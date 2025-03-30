@@ -82,6 +82,7 @@ struct _memberattr_t
     struct _struct_
     {
         byte_t *def;
+        bool_t def_null;
         bool_t is_pointer;
     } structt;
 
@@ -1448,11 +1449,18 @@ static void i_init_struct_data(byte_t *data, const StructProps *props)
                     *ndata = i_dbind_calloc(member->bind);
                     i_copy_struct_data(*ndata, member->attr.structt.def, &member->bind->props.structp);
                 }
+                else if (member->attr.structt.def_null == FALSE)
+                {
+                    *ndata = i_dbind_calloc(member->bind);
+                    i_init_struct_data(*ndata, &member->bind->props.structp);
+                }
             }
             else
             {
-                cassert_no_null(member->attr.structt.def);
-                i_copy_struct_data(data + member->offset, member->attr.structt.def, &member->bind->props.structp);
+                if (member->attr.structt.def != NULL)
+                    i_copy_struct_data(data + member->offset, member->attr.structt.def, &member->bind->props.structp);
+                else
+                    i_init_struct_data(data + member->offset, &member->bind->props.structp);
             }
             break;
 
@@ -1588,8 +1596,8 @@ static dbindst_t i_add_member(DBind *bind, const char_t *mname, const char_t *mt
 
             case ekDTYPE_STRUCT:
                 member->attr.structt.is_pointer = is_pointer;
-                member->attr.structt.def = i_dbind_calloc(member->bind);
-                i_init_struct_data(member->attr.structt.def, &member->bind->props.structp);
+                member->attr.structt.def = NULL;
+                member->attr.structt.def_null = FALSE;
                 break;
 
             case ekDTYPE_BINARY:
@@ -1762,40 +1770,13 @@ static bool_t i_nested_member(const DBind *stbind, const DBind *bind, const DBin
 
 /*---------------------------------------------------------------------------*/
 
-static void i_binary_defaults_destroy(const DBind *bind)
-{
-    cassert_no_null(bind);
-    cassert(bind->type == ekDTYPE_BINARY);
-    if (i_DATABIND.binds != NULL)
-    {
-        arrpt_foreach(dbind, i_DATABIND.binds, DBind)
-            if (dbind->type == ekDTYPE_STRUCT)
-            {
-                arrst_foreach(member, dbind->props.structp.members, StructMember)
-                    cassert_no_null(member->bind);
-                    if (member->bind == bind)
-                    {
-                        if (member->attr.binaryt.def != NULL)
-                        {
-                            cassert_no_nullf(bind->props.binaryp.func_destroy);
-                            bind->props.binaryp.func_destroy(&member->attr.binaryt.def);
-                        }
-                    }
-                arrst_end()
-            }
-        arrpt_end()
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
 static void i_stbind_defaults_destroy(const DBind *stbind, const DBind *bind)
 {
     cassert_no_null(stbind);
     cassert(stbind->type == ekDTYPE_STRUCT);
     arrst_foreach(member, stbind->props.structp.members, StructMember)
         cassert_no_null(member->bind);
-        switch(member->bind->type)
+        switch (member->bind->type)
         {
         case ekDTYPE_STRING:
             if (member->bind == bind)
@@ -1842,7 +1823,7 @@ static void i_stbind_defaults_destroy(const DBind *stbind, const DBind *bind)
         case ekDTYPE_ENUM:
             break;
         case ekDTYPE_UNKNOWN:
-        cassert_default();
+            cassert_default();
         }
     arrst_end()
 }
@@ -1869,16 +1850,16 @@ static dbindst_t i_try_unreg(const DBind *bind, const uint32_t alias_id)
     {
         cassert_no_null(bind);
 
-        /* 
-         * Remove deadlock in this struct. If the structure is nested within itself, 
-         * we must remove the member causing the deadlock. Also all default objects 
+        /*
+         * Remove deadlock in this struct. If the structure is nested within itself,
+         * we must remove the member causing the deadlock. Also all default objects
          * containing nested objects of this type.
-        */
+         */
         if (bind->type == ekDTYPE_STRUCT)
         {
             const DBind *stbind = NULL;
             uint32_t member_id = UINT32_MAX;
-            while(i_nested_member(bind, bind, &stbind, &member_id) == TRUE)
+            while (i_nested_member(bind, bind, &stbind, &member_id) == TRUE)
             {
                 cassert(stbind->type == ekDTYPE_STRUCT);
                 arrpt_foreach(nbind, i_DATABIND.binds, DBind)
@@ -1949,6 +1930,18 @@ dbindst_t dbind_unreg_imp(const char_t *type)
         return i_try_unreg(bind, alias_id);
     else
         return ekDBIND_TYPE_UNKNOWN;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dbind_defaults_unreg_imp(const char_t *type)
+{
+    bool_t is_pointer = FALSE;
+    uint32_t alias_id = UINT32_MAX;
+    DBind *bind = i_dbind_from_typename(type, &is_pointer, &alias_id);
+    cassert_unref(is_pointer == FALSE, is_pointer);
+    if (bind != NULL)
+        i_defaults_destroy(bind);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -3113,7 +3106,7 @@ void dbind_default_imp(const char_t *type, const char_t *mname, const byte_t *va
                 }
                 else
                 {
-                    cassert(member->attr.structt.is_pointer == TRUE);
+                    member->attr.structt.def_null = TRUE;
                 }
                 break;
             }

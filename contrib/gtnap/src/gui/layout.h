@@ -166,9 +166,7 @@ __END_C
         layout_dbind_obj_imp(layout, cast(obj, void), cast_const(#type, char_t)))
 
 #define layout_dbind_get_obj(layout, type) \
-    cast(layout_dbind_get_obj_imp(layout, cast_const(#type, char_t)), type);
-
-_gui_api void *layout_dbind_get_obj_imp(Layout *layout, const char_t *type);
+    cast(layout_dbind_get_obj_imp(layout, cast_const(#type, char_t)), type)
 
 #define layout_dbind_update(layout, type, mtype, mname) \
     ( \
