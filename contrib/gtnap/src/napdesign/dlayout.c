@@ -124,7 +124,6 @@ DLayout *dlayout_from_flayout(const FLayout *flayout, const char_t *resource_pat
                     ptr_destopt(image_destroy, &image, Image);
                 arrst_end()
             }
-
             else if (fcell->type == ekCELL_TYPE_LAYOUT)
             {
                 dcell->sublayout = dlayout_from_flayout(fcell->widget.layout, resource_path);
@@ -1022,6 +1021,10 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
                 draw_line_color(ctx, i_MAIN_COLOR);
                 break;
             }
+
+            /* TODO: Draw TableView */
+            case ekCELL_TYPE_TABLEVIEW:
+                break;
 
             case ekCELL_TYPE_LAYOUT:
             {

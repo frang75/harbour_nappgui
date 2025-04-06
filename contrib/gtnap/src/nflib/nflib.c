@@ -37,6 +37,7 @@ static void i_dbind(void)
     dbind_enum(celltype_t, ekCELL_TYPE_PROGRESS, "");
     dbind_enum(celltype_t, ekCELL_TYPE_POPUP, "");
     dbind_enum(celltype_t, ekCELL_TYPE_LISTBOX, "");
+    dbind_enum(celltype_t, ekCELL_TYPE_TABLEVIEW, "");
     dbind_enum(celltype_t, ekCELL_TYPE_LAYOUT, "");
     dbind_enum(halign_t, ekHALIGN_LEFT, "Left");
     dbind_enum(halign_t, ekHALIGN_CENTER, "Center");
@@ -76,6 +77,15 @@ static void i_dbind(void)
     dbind(FListBox, real32_t, min_width);
     dbind(FListBox, real32_t, min_height);
     dbind(FListBox, ArrSt(FElem) *, elems);
+    dbind(FHeader, String *,title);
+    dbind(FHeader, halign_t, align);
+    dbind(FHeader, bool_t, resizable);
+    dbind(FHeader, real32_t, width);
+    dbind(FHeader, real32_t, min_width);
+    dbind(FHeader, real32_t, max_width);
+    dbind(FTable, real32_t, min_width);
+    dbind(FTable, real32_t, min_height);
+    dbind(FTable, ArrSt(FHeader) *, headers);
     dbind(FColumn, real32_t, margin_right);
     dbind(FColumn, real32_t, forced_width);
     dbind(FRow, real32_t, margin_bottom);
@@ -167,6 +177,27 @@ static void i_dbind(void)
     dbind_precision(FListBox, real32_t, min_height, 1);
     dbind_range(FListBox, real32_t, min_height, 10, 1000);
 
+    dbind_default(FHeader, halign_t, align, ekHALIGN_LEFT);
+    dbind_default(FHeader, bool_t, resizable, TRUE);
+    dbind_default(FHeader, real32_t, width, 100);
+    dbind_increment(FHeader, real32_t, width, 1);
+    dbind_precision(FHeader, real32_t, width, 1);
+    dbind_range(FHeader, real32_t, width, 0, 1000);
+    dbind_default(FHeader, real32_t, min_width, 100);
+    dbind_increment(FHeader, real32_t, min_width, 1);
+    dbind_precision(FHeader, real32_t, min_width, 1);
+    dbind_default(FHeader, real32_t, max_width, 1000);
+    dbind_increment(FHeader, real32_t, max_width, 1);
+    dbind_precision(FHeader, real32_t, max_width, 1);
+    dbind_default(FTable, real32_t, min_width, 100);
+    dbind_increment(FTable, real32_t, min_width, 1);
+    dbind_precision(FTable, real32_t, min_width, 1);
+    dbind_range(FTable, real32_t, min_width, 10, 1000);
+    dbind_default(FTable, real32_t, min_height, 100);
+    dbind_increment(FTable, real32_t, min_height, 1);
+    dbind_precision(FTable, real32_t, min_height, 1);
+    dbind_range(FTable, real32_t, min_height, 10, 1000);
+
     dbind_default(FCell, celltype_t, type, ekCELL_TYPE_EMPTY);
     dbind_default(FCell, halign_t, halign, ekHALIGN_LEFT);
     dbind_default(FCell, valign_t, valign, ekVALIGN_TOP);
@@ -199,6 +230,7 @@ static void i_dbind(void)
     dbind(FWidget, FProgress *, progress);
     dbind(FWidget, FPopUp *, popup);
     dbind(FWidget, FListBox *, listbox);
+    dbind(FWidget, FTable*, table);
     dbind(FWidget, FLayout *, layout);
     dbind(FCell, FWidget, widget);
 
@@ -212,6 +244,7 @@ static void i_dbind(void)
     dbind_default(FWidget, FProgress *, progress, NULL);
     dbind_default(FWidget, FPopUp *, popup, NULL);
     dbind_default(FWidget, FListBox *, listbox, NULL);
+    dbind_default(FWidget, FTable*, table, NULL);
     dbind_default(FWidget, FLayout *, layout, NULL);
 }
 

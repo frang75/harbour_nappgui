@@ -1356,7 +1356,11 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
             layout_dbind_obj(data->listbox_layout, cell->widget.listbox, FListBox);
             panel_visible_layout(data->cell_panel, 11);
             i_update_elem_list(cell->widget.listbox->elems, data->listbox_list, folder_path);
-        }        
+        } 
+        else if (cell->type == ekCELL_TYPE_TABLEVIEW)
+        {
+            // TODO: TableView to property editor
+        } 
         else
         {
             cassert(FALSE);

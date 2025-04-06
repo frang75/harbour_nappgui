@@ -15,6 +15,7 @@
 #include <gui/label.h>
 #include <gui/listbox.h>
 #include <gui/imageview.h>
+#include <gui/tableview.h>
 #include <gui/textview.h>
 #include <gui/layout.h>
 #include <gui/layouth.h>
@@ -1071,6 +1072,21 @@ void dform_synchro_listbox_clear(DForm *form, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+void dform_synchro_tableview(DForm *form, const DSelect *sel)
+{
+    FCell *cell = i_sel_fcell(sel);
+    TableView *gtable = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_TABLEVIEW);
+    i_need_save(form);
+    gtable = layout_get_tableview(sel->glayout, sel->col, sel->row);
+    tableview_size(gtable, s2df(cell->widget.table->min_width, cell->widget.table->min_height));
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dform_synchro_layout_margin(DForm *form, const DSelect *sel)
 {
     cassert_no_null(form);
@@ -1246,6 +1262,8 @@ const char_t *dform_selpath_caption(const DForm *form, const uint32_t col, const
                 return "PopUpCell";
             case ekCELL_TYPE_LISTBOX:
                 return "ListBoxCell";
+            case ekCELL_TYPE_TABLEVIEW:
+                return "TableCell";
             case ekCELL_TYPE_LAYOUT:
                 return "LayoutCell";
             cassert_default();
