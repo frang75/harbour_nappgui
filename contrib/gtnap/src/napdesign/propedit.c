@@ -20,6 +20,7 @@
 #include <gui/view.h>
 #include <gui/updown.h>
 #include <draw2d/image.h>
+#include <geom2d/s2d.h>
 #include <core/arrst.h>
 #include <core/dbind.h>
 #include <core/event.h>
@@ -1088,20 +1089,17 @@ static void i_OnTableNotify(PropData *data, Event *e)
 
 static void i_OnTableAdd(PropData *data, Event *e)
 {
-    Window *window = NULL;
-    const char_t *folder_path = NULL;
     uint32_t id = 0;
     FTable *ftable = NULL;
     FHeader *fheader = NULL;
     cassert_no_null(data);
-    window = designer_main_window(data->app);
-    folder_path = designer_folder_path(data->app);
     ftable = layout_dbind_get_obj(data->table_layout, FTable);
     id = arrst_size(ftable->headers, FHeader);
     fheader = arrst_new0(ftable->headers, FHeader);
     i_init_header(id, fheader);
     listbox_add_elem(data->table_list, tc(fheader->title), NULL);
     listbox_select(data->table_list, id, TRUE);
+    layout_dbind_obj(data->header_layout, fheader, FHeader);
     dform_synchro_table_add(data->form, &data->sel);
     dform_compose(data->form);
     designer_canvas_update(data->app);
@@ -1112,13 +1110,23 @@ static void i_OnTableAdd(PropData *data, Event *e)
 
 static void i_OnHeaderNotify(PropData *data, Event *e)
 {
-    unref(data);
-    unref(e);
+    uint32_t id = UINT32_MAX;
+    cassert_no_null(data);
+    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
+    id = listbox_get_selected(data->table_list);
+    dform_synchro_table_header(data->form, &data->sel, id);
+    designer_canvas_update(data->app);
+
+    if (evbind_modify(e, FHeader, String*, title) == TRUE)
+    {
+        FHeader *fheader = evbind_object(e, FHeader);
+        listbox_set_elem(data->table_list, id, tc(fheader->title), NULL);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_header_layout(PropData *data)
+static Layout *i_header_layout(void)
 {
     Layout *layout1 = layout_create(2, 6);
     Layout *layout2 = i_value_updown_layout();
@@ -1162,6 +1170,18 @@ static Layout *i_header_layout(PropData *data)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnTableHeaderSelect(PropData *data, Event *e)
+{
+    const EvButton *p = event_params(e, EvButton);
+    FTable *ftable = layout_dbind_get_obj(data->table_layout, FTable);
+    FHeader *fheader = NULL;
+    if (p->index != UINT32_MAX)
+        fheader = arrst_get(ftable->headers, p->index, FHeader);
+    layout_dbind_obj(data->header_layout, fheader, FHeader);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Layout *i_table_layout(PropData *data)
 {
     Layout *layout1 = layout_create(1, 7);
@@ -1169,7 +1189,7 @@ static Layout *i_table_layout(PropData *data)
     Layout *layout3 = i_value_updown_layout();
     Layout *layout4 = i_value_updown_layout();
     Layout *layout5 = layout_create(3, 1);
-    Layout *layout6 = i_header_layout(data);
+    Layout *layout6 = i_header_layout();
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
@@ -1182,7 +1202,9 @@ static Layout *i_table_layout(PropData *data)
     label_text(label1, "Table properties");
     label_text(label2, "MWidth");
     label_text(label3, "MHeight");
-    label_text(label4, "Columns");
+    label_text(label4, "Header");
+    listbox_size(list, s2df(150, 60));
+    listbox_OnSelect(list, listener(data, i_OnTableHeaderSelect, PropData));
     button_image(button1, cast_const(PLUS16_PNG, Image));
     button_image(button2, cast_const(ERROR16_PNG, Image));
     button_image(button3, cast_const(RETRY16_PNG, Image));
@@ -1212,8 +1234,6 @@ static Layout *i_table_layout(PropData *data)
     cell_dbind(layout_cell(layout2, 1, 1), FTable, real32_t, min_height);
     layout_dbind(layout2, listener(data, i_OnTableNotify, PropData), FTable);
     layout_dbind(layout6, listener(data, i_OnHeaderNotify, PropData), FHeader);
-    layout_name(layout1, "TableLayout");
-    layout_name(layout6, "HeaderLayout");
     data->table_layout = layout2;
     data->header_layout = layout6;
     data->table_list = list;
@@ -1335,8 +1355,8 @@ static Layout *i_cell_layout(PropData *data)
     layout_vmargin(layout1, 0, i_HEADER_VMARGIN);
     layout_vmargin(layout1, 1, i_HEADER_VMARGIN);
     layout_vexpand(layout1, 3);
-    layout_dbind(layout1, listener(data, i_OnCellNotify, PropData), FCell);
-    data->cell_layout = layout1;
+    layout_dbind(layout2, listener(data, i_OnCellNotify, PropData), FCell);
+    data->cell_layout = layout2;
     return layout1;
 }
 
@@ -1389,6 +1409,25 @@ static void i_update_elem_list(const ArrSt(FElem) *elems, ListBox *list, const c
         listbox_add_elem(list, tc(elem->text), image);
         ptr_destopt(image_destroy, &image, Image);
     arrst_end()
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_update_header_list(ArrSt(FHeader) *headers, ListBox *list, Layout *header_layout)
+{
+    FHeader *fheader = NULL;
+    listbox_clear(list);
+    arrst_foreach_const(header, headers, FHeader)
+        listbox_add_elem(list, tc(header->title), NULL);
+    arrst_end()
+
+    if (arrst_size(headers, FHeader) > 0)
+    {
+        fheader = arrst_first(headers, FHeader);
+        listbox_select(list, 0, TRUE);
+    }
+    
+    layout_dbind_obj(header_layout, fheader, FHeader);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1528,6 +1567,7 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
         {
             layout_dbind_obj(data->table_layout, cell->widget.table, FTable);
             panel_visible_layout(data->cell_panel, 12);
+            i_update_header_list(cell->widget.table->headers, data->table_list, data->header_layout);
         } 
         else
         {
