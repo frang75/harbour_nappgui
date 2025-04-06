@@ -56,7 +56,9 @@ void dform_synchro_listbox_del(DForm *form, const DSelect *sel, const uint32_t i
 
 void dform_synchro_listbox_clear(DForm *form, const DSelect *sel);
 
-void dform_synchro_tableview(DForm *form, const DSelect *sel);
+void dform_synchro_table(DForm *form, const DSelect *sel);
+
+void dform_synchro_table_add(DForm *form, const DSelect *sel);
 
 void dform_synchro_layout_margin(DForm *form, const DSelect *sel);
 

@@ -117,6 +117,7 @@ static const char_t *i_EMPTY_TEXT = "";
 
 static TData *i_create_data(View *view)
 {
+
     TData *data = heap_new0(TData);
     data->sview = scrollview_create(view);
     data->font = font_system(font_regular_size(), 0);

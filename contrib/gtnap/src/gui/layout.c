@@ -44,7 +44,7 @@
 #include <sewer/ptr.h>
 
 #define LAYOUT_DEBUGGING
-#undef LAYOUT_DEBUGGING
+//#undef LAYOUT_DEBUGGING
 
 typedef struct i_line_dim_t i_LineDim;
 typedef struct i_cell_dim_t i_CellDim;
@@ -1657,23 +1657,15 @@ static void i_line_natural(i_LineDim *dim, const uint32_t di, Cell **cell, const
             real32_t expand_required_size = -1;
             if (cell[i]->displayed2 == TRUE)
             {
-                real32_t csize = i_natural_with_padding(cell[i], di);
+                //real32_t csize = i_natural_with_padding(cell[i], di);
 
                 /* We have user-defined size in column/row */
                 if (expand_required_size < 0 && dim->forced_size > 0)
-                {
-                    /* If user-defined size is greater than */
-                    if (cell[i]->dim[di].align == ekJUSTIFY || dim->forced_size < csize)
-                        expand_required_size = dim->forced_size;
-                }
+                    expand_required_size = dim->forced_size;
 
                 /* We have user-defined size in cell width/height */
                 if (expand_required_size < 0 && cell[i]->dim[di].forced_size > 0)
-                {
-                    /* If user-defined size is greater than */
-                    if (cell[i]->dim[di].align == ekJUSTIFY || cell[i]->dim[di].forced_size < csize)
-                        expand_required_size = cell[i]->dim[di].forced_size;
-                }
+                    expand_required_size = cell[i]->dim[di].forced_size;
 
                 /* We cell dimension must be expanded */
                 if (expand_required_size < 0 && cell[i]->dim[di].align == ekJUSTIFY)

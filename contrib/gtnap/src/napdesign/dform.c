@@ -684,6 +684,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     TableView *gtable = tableview_create();
                     cassert(arrst_size(ftable->headers, FHeader) == 0);
                     tableview_size(gtable, s2df(ftable->min_width, ftable->min_height));
+                    tableview_header_resizable(gtable, TRUE);
                     i_sel_remove_cell(&sel);
                     flayout_add_table(sel.flayout, ftable, sel.col, sel.row);
                     layout_tableview(sel.glayout, gtable, sel.col, sel.row);
@@ -1097,7 +1098,7 @@ void dform_synchro_listbox_clear(DForm *form, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-void dform_synchro_tableview(DForm *form, const DSelect *sel)
+void dform_synchro_table(DForm *form, const DSelect *sel)
 {
     FCell *cell = i_sel_fcell(sel);
     TableView *gtable = NULL;
@@ -1108,6 +1109,30 @@ void dform_synchro_tableview(DForm *form, const DSelect *sel)
     i_need_save(form);
     gtable = layout_get_tableview(sel->glayout, sel->col, sel->row);
     tableview_size(gtable, s2df(cell->widget.table->min_width, cell->widget.table->min_height));
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dform_synchro_table_add(DForm *form, const DSelect *sel)
+{
+    FCell *cell = i_sel_fcell(sel);
+    TableView *table = NULL;
+    const FHeader *header = NULL;
+    uint32_t id = UINT32_MAX;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_TABLEVIEW);
+    i_need_save(form);
+    table = layout_get_tableview(sel->glayout, sel->col, sel->row);
+    header = arrst_last_const(cell->widget.table->headers, FHeader);
+    id = tableview_new_column_text(table);
+    cassert(id == arrst_size(cell->widget.table->headers, FHeader) - 1);
+    tableview_column_width(table, id, header->width);
+    tableview_column_limits(table, id, header->min_width, header->max_width);
+    tableview_column_resizable(table, id, header->resizable);
+    tableview_header_title(table, id, tc(header->title));
+    tableview_header_align(table, id, i_halign(header->align));
 }
 
 /*---------------------------------------------------------------------------*/
