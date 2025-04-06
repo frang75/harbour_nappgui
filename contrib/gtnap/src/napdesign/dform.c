@@ -676,6 +676,31 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 }
             }
 
+            case ekWIDGET_TABLEVIEW:
+            {
+                FTable *ftable = dialog_new_table(window, &sel);
+                if (ftable != NULL)
+                {
+                    TableView *gtable = tableview_create();
+                    cassert(arrst_size(ftable->headers, FHeader) == 0);
+                    tableview_size(gtable, s2df(ftable->min_width, ftable->min_height));
+                    i_sel_remove_cell(&sel);
+                    flayout_add_table(sel.flayout, ftable, sel.col, sel.row);
+                    layout_tableview(sel.glayout, gtable, sel.col, sel.row);
+                    i_sel_synchro_cell(&sel);
+                    dform_compose(form);
+                    propedit_set(propedit, form, &sel);
+                    inspect_set(inspect, form);
+                    form->sel = sel;
+                    i_need_save(form);
+                    return TRUE;
+                }
+                else
+                {
+                    return FALSE;
+                }
+            }
+    
 			case ekWIDGET_GRID_LAYOUT:
             {
                 FLayout *fsublayout = dialog_new_layout(window, &sel);

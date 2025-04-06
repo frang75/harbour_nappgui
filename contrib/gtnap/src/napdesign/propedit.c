@@ -1360,6 +1360,7 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
         else if (cell->type == ekCELL_TYPE_TABLEVIEW)
         {
             // TODO: TableView to property editor
+            cassert(FALSE);
         } 
         else
         {
