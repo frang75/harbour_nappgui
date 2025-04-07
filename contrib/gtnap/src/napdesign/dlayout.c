@@ -9,6 +9,7 @@
 #include <gui/layout.h>
 #include <gui/layouth.h>
 #include <gui/listbox.h>
+#include <gui/tableviewh.h>
 #include <gui/edit.h>
 #include <gui/cell.h>
 #include <gui/drawctrl.inl>
@@ -1022,9 +1023,106 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
                 break;
             }
 
-            /* TODO: Draw TableView */
             case ekCELL_TYPE_TABLEVIEW:
+            {
+                color_t color = i_is_cell_sel(hover, dlayout, i, j) ? i_SEL_COLOR : i_MAIN_COLOR;
+                const TableView *gtable = cell_tableview(gcell);
+                const Font *font = tableview_get_font(gtable);
+                real32_t head_height = tableview_get_header_height(gtable);
+                real32_t fheight = font_height(font);
+                uint32_t k, n = tableview_get_num_columns(gtable);
+                real32_t x = 0;
+                draw_line_color(ctx, color);
+                draw_fill_color(ctx, i_BGCOLOR);
+                draw_font(ctx, font);
+                draw_text_color(ctx, color);
+                for(k = 0; k < n; ++k)
+                {
+                    real32_t width = tableview_get_column_width(gtable, k);
+                    align_t align = tableview_get_header_align(gtable, k);
+                    const char_t *text = tableview_get_header_title(gtable, k);
+
+                    if (x + width <= dcell->content_rect.size.width)
+                    {
+                        real32_t px = dcell->content_rect.pos.x + x;
+                        real32_t py = dcell->content_rect.pos.y;
+                        draw_rect(ctx, ekFILLSK, px, py, width, head_height);
+                        draw_text_width(ctx, width);
+                        draw_text_align(ctx, align, ekTOP);
+                        switch (align) {
+                        case ekLEFT:
+                        case ekJUSTIFY:
+                            px += 4;
+                            break;
+                        case ekCENTER:
+                            px += width / 2;
+                            break;
+                        case ekRIGHT:
+                            px += width - 4;
+                            break;
+                        cassert_default();
+                        }
+
+                        draw_text(ctx, text, px, py + (head_height - fheight) / 2);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                    x += width;
+                }
+
+                if (x < dcell->content_rect.size.width) 
+                {                        
+                    real32_t px = dcell->content_rect.pos.x + x;
+                    real32_t py = dcell->content_rect.pos.y;
+                    real32_t width = dcell->content_rect.size.width - x;
+                    draw_rect(ctx, ekFILLSK, px, py, width, head_height);
+                }
+
+                draw_line_width(ctx, 2);
+                draw_rect(ctx, ekSTROKE, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
+                draw_line_width(ctx, 1);
+                
+                //if (arrst_size(fcell->widget.listbox->elems, FElem) > 0)
+                //{
+                //    const ListBox *glistbox = cell_listbox(gcell);
+                //    real32_t rheight = listbox_get_row_height(glistbox);
+                //    real32_t ypos = 0;
+
+                //    draw_text_color(ctx, color);
+
+                //    /* TODO: Use clipping when ready */
+                //    arrst_foreach_const(elem, fcell->widget.listbox->elems, FElem)
+                //        if (dcell->content_rect.size.height >= ypos + rheight)
+                //        {
+                //            const Image *image = i_get_image(dcell, elem_i, i_is_cell_sel(hover, dlayout, i, j));
+                //            real32_t xoffset = 4;
+                //            real32_t twidth, theight;
+                //            real32_t tx, ty;
+
+                //            if (image != NULL)
+                //            {
+                //                real32_t imgwidth = (real32_t)image_width(image);
+                //                real32_t imgheight = (real32_t)image_height(image);
+                //                real32_t yoffset = (rheight - imgheight) / 2;
+                //                draw_image(ctx, image, dcell->content_rect.pos.x + xoffset, dcell->content_rect.pos.y + ypos + yoffset);
+                //                xoffset += imgwidth + 4;
+                //            }
+
+                //            font_extents(default_font, tc(elem->text), -1.f, &twidth, &theight);
+                //            tx = dcell->content_rect.pos.x + xoffset;
+                //            ty = dcell->content_rect.pos.y + ypos + ((rheight - theight) / 2);
+                //            drawctrl_text(ctx, tc(elem->text), (int32_t)tx, (int32_t)ty, ekCTRL_STATE_NORMAL);
+                //        }
+
+                //        ypos += rheight;
+                //    arrst_end();
+                //}
+
+                draw_line_color(ctx, i_MAIN_COLOR);
                 break;
+            }
 
             case ekCELL_TYPE_LAYOUT:
             {

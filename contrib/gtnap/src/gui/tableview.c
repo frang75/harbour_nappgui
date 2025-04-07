@@ -11,6 +11,7 @@
 /* TableView */
 
 #include "tableview.h"
+#include "tableviewh.h"
 #include "drawctrl.inl"
 #include "scrollview.inl"
 #include "component.inl"
@@ -2118,4 +2119,69 @@ uint32_t tableview_get_focus_row(const TableView *view)
 void tableview_scroll_visible(TableView *view, const bool_t horizontal, const bool_t vertical)
 {
     view_scroll_visible(cast(view, View), horizontal, vertical);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const Font *tableview_get_font(const TableView *view)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    cassert_no_null(data);
+    return data->font;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t tableview_get_header_height(const TableView *view)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    cassert_no_null(data);
+    return (real32_t)data->head_height;
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t tableview_get_num_columns(const TableView *view)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    cassert_no_null(data);
+    return arrst_size(data->columns, Column);
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t tableview_get_column_width(const TableView *view, const uint32_t column_id)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    const Column *column = NULL;
+    cassert_no_null(data);
+    column = arrst_get_const(data->columns, column_id, Column);
+    cassert_no_null(column);
+    return (real32_t)column->width;
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t* tableview_get_header_title(const TableView *view, const uint32_t column_id)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    const Column *column = NULL;
+    const String *text = NULL;
+    cassert_no_null(data);
+    column = arrst_get_const(data->columns, column_id, Column);
+    cassert_no_null(column);
+    text = arrpt_get_const(column->head_text, 0, String);
+    return tc(text);
+}
+
+/*---------------------------------------------------------------------------*/
+
+align_t tableview_get_header_align(const TableView *view, const uint32_t column_id)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    const Column *column = NULL;
+    cassert_no_null(data);
+    column = arrst_get_const(data->columns, column_id, Column);
+    cassert_no_null(column);
+    return column->align;
 }
