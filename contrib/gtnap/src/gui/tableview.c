@@ -2166,12 +2166,18 @@ const char_t* tableview_get_header_title(const TableView *view, const uint32_t c
 {
     TData *data = view_get_data(cast(view, View), TData);
     const Column *column = NULL;
-    const String *text = NULL;
     cassert_no_null(data);
     column = arrst_get_const(data->columns, column_id, Column);
     cassert_no_null(column);
-    text = arrpt_get_const(column->head_text, 0, String);
-    return tc(text);
+    if (arrpt_size(column->head_text, String) > 0)
+    {
+        const String *text = arrpt_get_const(column->head_text, 0, String);
+        return tc(text);
+    }
+    else
+    {
+        return "";
+    }
 }
 
 /*---------------------------------------------------------------------------*/
