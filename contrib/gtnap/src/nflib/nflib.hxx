@@ -145,6 +145,7 @@ struct _fheader_t
 {
     String *title;
     halign_t align;
+    halign_t dalign;
     bool_t resizable;
     real32_t width;
     real32_t min_width;

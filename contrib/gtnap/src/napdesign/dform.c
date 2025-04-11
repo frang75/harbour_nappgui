@@ -1130,6 +1130,7 @@ void dform_synchro_table_add(DForm *form, const DSelect *sel)
     cassert(id == arrst_size(cell->widget.table->headers, FHeader) - 1);
     tableview_column_width(table, id, header->width);
     tableview_column_limits(table, id, header->min_width, header->max_width);
+    tableview_column_align(table, id, i_halign(header->dalign));
     tableview_column_resizable(table, id, header->resizable);
     tableview_header_title(table, id, tc(header->title));
     tableview_header_align(table, id, i_halign(header->align));
@@ -1151,6 +1152,7 @@ void dform_synchro_table_header(DForm *form, const DSelect *sel, const uint32_t 
     header = arrst_get_const(cell->widget.table->headers, id, FHeader);
     tableview_column_width(table, id, header->width);
     tableview_column_limits(table, id, header->min_width, header->max_width);
+    tableview_column_align(table, id, i_halign(header->dalign));
     tableview_column_resizable(table, id, header->resizable);
     tableview_header_title(table, id, tc(header->title));
     tableview_header_align(table, id, i_halign(header->align));

@@ -54,6 +54,7 @@ struct _column_t
     uint32_t min_width;
     uint32_t max_width;
     align_t align;
+    align_t dalign;
     bool_t editable;
     bool_t resizable;
 };
@@ -170,12 +171,13 @@ static void i_destroy_data(TData **data)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_cell_data(TableView *view, const TData *data, const uint32_t col_id, const uint32_t row_id, EvTbCell *cell)
+static void i_cell_data(TableView *view, const TData *data, const uint32_t col_id, const uint32_t row_id, const Column *col, EvTbCell *cell)
 {
     cassert_no_null(data);
+    cassert_no_null(col);
     cassert_no_null(cell);
     cell->text = i_EMPTY_TEXT;
-    cell->align = ekLEFT;
+    cell->align = col->dalign;
 
     if (data->OnData != NULL)
     {
@@ -414,7 +416,7 @@ static void i_OnDraw(TableView *view, Event *e)
             {
                 if (cols[j].width > 0)
                 {
-                    i_cell_data(view, data, j, i, &cell);
+                    i_cell_data(view, data, j, i, &cols[j], &cell);
                     i_draw_cell(&cell, p->ctx, cols + j, lx, y, cols[j].width, state);
                     lx += cols[j].width;
                 }
@@ -474,7 +476,7 @@ static void i_OnDraw(TableView *view, Event *e)
                 {
                     if (cols[j].width > 0)
                     {
-                        i_cell_data(view, data, j, i, &cell);
+                        i_cell_data(view, data, j, i, &cols[j], &cell);
                         i_draw_cell(&cell, p->ctx, cols + j, lx, y, cols[j].width, state);
                         lx += cols[j].width;
                     }
@@ -1676,6 +1678,7 @@ uint32_t tableview_new_column_text(TableView *view)
     column->min_width = 0;
     column->max_width = UINT32_MAX;
     column->align = ekLEFT;
+    column->dalign = ekLEFT;
     column->editable = FALSE;
     column->resizable = TRUE;
     i_row_height(data);
@@ -1737,6 +1740,18 @@ void tableview_column_limits(TableView *view, const uint32_t column_id, const re
             view_update(cast(view, View));
         }
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void tableview_column_align(TableView *view, const uint32_t column_id, const align_t align)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    Column *column = NULL;
+    cassert_no_null(data);
+    column = arrst_get(data->columns, column_id, Column);
+    cassert_no_null(column);
+    column->dalign = align;
 }
 
 /*---------------------------------------------------------------------------*/

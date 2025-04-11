@@ -1128,7 +1128,7 @@ static void i_OnHeaderNotify(PropData *data, Event *e)
 
 static Layout *i_header_layout(void)
 {
-    Layout *layout1 = layout_create(2, 6);
+    Layout *layout1 = layout_create(2, 7);
     Layout *layout2 = i_value_updown_layout();
     Layout *layout3 = i_value_updown_layout();
     Layout *layout4 = i_value_updown_layout();
@@ -1138,33 +1138,39 @@ static Layout *i_header_layout(void)
     Label *label4 = label_create();
     Label *label5 = label_create();
     Label *label6 = label_create();
+    Label *label7 = label_create();
     Edit *edit = edit_create();
-    PopUp *popup = popup_create();
+    PopUp *popup1 = popup_create();
+    PopUp *popup2 = popup_create();
     Button *check = button_check();
     label_text(label1, "Title");
     label_text(label2, "Align");
-    label_text(label3, "Width");
-    label_text(label4, "Min");
-    label_text(label5, "Max");
-    label_text(label6, "Resize");
+    label_text(label3, "DAlign");
+    label_text(label4, "Width");
+    label_text(label5, "Min");
+    label_text(label6, "Max");
+    label_text(label7, "Resize");
     layout_label(layout1, label1, 0, 0);
     layout_label(layout1, label2, 0, 1);
     layout_label(layout1, label3, 0, 2);
     layout_label(layout1, label4, 0, 3);
     layout_label(layout1, label5, 0, 4);
     layout_label(layout1, label6, 0, 5);
+    layout_label(layout1, label7, 0, 6);
     layout_edit(layout1, edit, 1, 0);
-    layout_popup(layout1, popup, 1, 1);
-    layout_layout(layout1, layout2, 1, 2);
-    layout_layout(layout1, layout3, 1, 3);
-    layout_layout(layout1, layout4, 1, 4);
-    layout_button(layout1, check, 1, 5);
+    layout_popup(layout1, popup1, 1, 1);
+    layout_popup(layout1, popup2, 1, 2);
+    layout_layout(layout1, layout2, 1, 3);
+    layout_layout(layout1, layout3, 1, 4);
+    layout_layout(layout1, layout4, 1, 5);
+    layout_button(layout1, check, 1, 6);
     cell_dbind(layout_cell(layout1, 1, 0), FHeader, String *, title);
     cell_dbind(layout_cell(layout1, 1, 1), FHeader, halign_t, align);
-    cell_dbind(layout_cell(layout1, 1, 2), FHeader, real32_t, width);
-    cell_dbind(layout_cell(layout1, 1, 3), FHeader, real32_t, min_width);
-    cell_dbind(layout_cell(layout1, 1, 4), FHeader, real32_t, max_width);
-    cell_dbind(layout_cell(layout1, 1, 5), FHeader, bool_t, resizable);
+    cell_dbind(layout_cell(layout1, 1, 2), FHeader, halign_t, dalign);
+    cell_dbind(layout_cell(layout1, 1, 3), FHeader, real32_t, width);
+    cell_dbind(layout_cell(layout1, 1, 4), FHeader, real32_t, min_width);
+    cell_dbind(layout_cell(layout1, 1, 5), FHeader, real32_t, max_width);
+    cell_dbind(layout_cell(layout1, 1, 6), FHeader, bool_t, resizable);
     return layout1;
 }
 

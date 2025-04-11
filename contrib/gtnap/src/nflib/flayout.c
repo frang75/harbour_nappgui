@@ -318,6 +318,7 @@ static void i_read_header(Stream *stm, FHeader *header)
 {
     header->title = str_read(stm);
     header->align = stm_read_enum(stm, halign_t);
+    header->dalign = stm_read_enum(stm, halign_t);
     header->resizable = stm_read_bool(stm);
     header->width = stm_read_r32(stm);
     header->min_width = stm_read_r32(stm);
@@ -555,6 +556,7 @@ static void i_write_header(Stream *stm, const FHeader *header)
     cassert_no_null(header);
     str_write(stm, header->title);
     stm_write_enum(stm, header->align, halign_t);
+    stm_write_enum(stm, header->dalign, halign_t);
     stm_write_bool(stm, header->resizable);
     stm_write_r32(stm, header->width);
     stm_write_r32(stm, header->min_width);
@@ -1291,6 +1293,7 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                         tableview_new_column_text(gtable);
                         tableview_column_width(gtable, header_i, header->width);
                         tableview_column_limits(gtable, header_i, header->min_width, header->max_width);
+                        tableview_column_align(gtable, header_i, i_halign(header->dalign));
                         tableview_column_resizable(gtable, header_i, header->resizable);
                         tableview_header_title(gtable, header_i, tc(header->title));
                         tableview_header_align(gtable, header_i, i_halign(header->align));

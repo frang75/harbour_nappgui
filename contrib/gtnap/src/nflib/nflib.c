@@ -79,6 +79,7 @@ static void i_dbind(void)
     dbind(FListBox, ArrSt(FElem) *, elems);
     dbind(FHeader, String *,title);
     dbind(FHeader, halign_t, align);
+    dbind(FHeader, halign_t, dalign);
     dbind(FHeader, bool_t, resizable);
     dbind(FHeader, real32_t, width);
     dbind(FHeader, real32_t, min_width);
@@ -178,6 +179,7 @@ static void i_dbind(void)
     dbind_range(FListBox, real32_t, min_height, 10, 1000);
 
     dbind_default(FHeader, halign_t, align, ekHALIGN_LEFT);
+    dbind_default(FHeader, halign_t, dalign, ekHALIGN_LEFT);
     dbind_default(FHeader, bool_t, resizable, TRUE);
     dbind_default(FHeader, real32_t, width, 100);
     dbind_increment(FHeader, real32_t, width, 1);
