@@ -4954,6 +4954,14 @@ void hb_gtnap_form_dbind(GtNapForm *form, HB_ITEM *bind_block)
 
 /*---------------------------------------------------------------------------*/
 
+void hb_gtnap_form_dbind_area(GtNapForm *form, HB_ITEM *bind_block)
+{
+    unref(form);
+    unref(bind_block);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void hb_gtnap_form_dbind_store(GtNapForm *form)
 {
     cassert_no_null(form);

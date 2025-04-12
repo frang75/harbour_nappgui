@@ -22,6 +22,8 @@ ADDOPCAO V_JANELA TEXTO "PopUp e ListBox" ;
     ACAO TST_POPUP_LIST() AJUDA "P?????"
 ADDOPCAO V_JANELA TEXTO "#Menus dinâmicos" ;
     ACAO TST_FORM_DYNMENU() AJUDA "P?????"
+ADDOPCAO V_JANELA TEXTO "Browse de #DBF" ;
+    ACAO TST_FORM_TABLEVIEW() AJUDA "P?????"
 *
 ATIVE(V_JANELA)
 *
@@ -523,3 +525,48 @@ ENDIF
 
 NAP_FORM_DESTROY(V_FORM)
 NAP_DMENU_DESTROY(O_MENU)
+
+
+
+********************************
+STAT PROC TST_FORM_TABLEVIEW
+********************************
+LOCAL V_FORM := NAP_FORM_LOAD(DIRET_FORMS() + "TableDBF.nfm")
+LOCAL N_RES := 0
+// Mapping between Harbour working area and TableView
+LOCAL V_DBBIND := { ;
+    "tablecell", ;
+     { {|| cotacao->cdindx} }, ;
+     { {|| cotacao->dtcota} }, ;
+     { {|| cotacao->dtcota + 1} }, ;
+     { {|| cotacao->dtcota + 2} }, ;
+     { {|| TRANSFORM(cotacao->vlcota,"@E 999,999,999,999.99999999")} } ;
+}
+
+USE ../dados/cotacao NEW SHARED
+SET INDEX TO ../dados/cotacao
+GOTO TOP
+
+// Window title
+NAP_FORM_TITLE(V_FORM, "Visualizador de dados com formulários GTNAP")
+
+// Map TableView columns with DB
+NAP_FORM_DBIND_AREA(V_FORM, V_DBBIND)
+
+// Launch the form
+N_RES := NAP_FORM_MODAL(V_FORM, DIRET_FORMS())
+
+IF N_RES == NAP_MODAL_ENTER
+    MOSTRAR("M?????","Pressionado [Enter], dados aceitos.")
+ELSEIF N_RES == NAP_MODAL_ESC
+    MOSTRAR("M?????","ESC pressionado, dados cancelados.")
+ELSEIF N_RES == NAP_MODAL_X_BUTTON
+    MOSTRAR("M?????","Formulário fechado com [X], dados cancelados.")
+ELSE
+    MOSTRAR("M?????","Valor de retorno desconhecido.")
+ENDIF
+
+NAP_FORM_DESTROY(V_FORM)
+
+CLOSE COTACAO
+
