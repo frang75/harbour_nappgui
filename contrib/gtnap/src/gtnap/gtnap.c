@@ -26,6 +26,7 @@
 #include <gui/menuitem.h>
 #include <gui/panel.h>
 #include <gui/tableview.h>
+#include <gui/tableviewh.h>
 #include <gui/textview.h>
 #include <gui/view.h>
 #include <gui/window.h>
@@ -67,6 +68,8 @@ typedef struct _gtnap_object_t GtNapObject;
 typedef struct _gtnap_geom_t GtNapGeom;
 typedef struct _gtnap_window_t GtNapWindow;
 typedef struct _gtnap_bind_t GtNapBind;
+typedef struct _gtnap_fcolumn_t GtNapFColumn;
+typedef struct _gtnap_farea_t GtNapFArea;
 typedef struct _gtnap_t GtNap;
 
 typedef void (*FPtr_gtnap_callback)(GtNapCallback *callback, Event *event);
@@ -214,12 +217,29 @@ struct _gtnap_bind_t
     Listener *listener;
 };
 
+struct _gtnap_fcolumn_t
+{
+    HB_ITEM *block;
+};
+
+struct _gtnap_farea_t
+{
+    GtNapForm *form;
+    String *cellname;
+    TableView *table;
+    AREA *area;
+    HB_ULONG cache_recno;     /* Store the DB recno while table drawing */
+    ArrSt(uint32_t) *records; /* Records visible in table (index, deleted, filters) */
+    ArrSt(GtNapFColumn) *columns;
+};
+
 struct _gtnap_form_t
 {
     NForm *form;
     String *title;
     Window *window;
     uint32_t modal_ret;
+    GtNapFArea *area;
     ArrSt(GtNapBind) *binds;
     ArrPt(GtNapCallback) *callbacks;
 };
@@ -254,6 +274,7 @@ struct _gtnap_t
 
 DeclPt(GtNapCallback);
 DeclSt(GtNapColumn);
+DeclSt(GtNapFColumn);
 DeclPt(GtNapArea);
 DeclPt(GtNapObject);
 DeclSt(GtNapBind);
@@ -4924,6 +4945,26 @@ static void i_map_bind_to_form(NForm *form, ArrSt(GtNapBind) *binds)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnTableFAreaData(GtNapFArea *area, Event *e)
+{
+    cassert_no_null(area);
+    unref(e);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_map_bind_area_to_form(GtNapFArea *area)
+{
+    cassert_no_null(area);
+    cassert(area->table == NULL);
+    cassert_no_null(area->form);
+    area->table = nform_get_tableview(area->form->form, tc(area->cellname));
+    if (area->table != NULL)
+        tableview_OnData(area->table, listener(area, i_OnTableFAreaData, GtNapFArea));
+}
+
+/*---------------------------------------------------------------------------*/
+
 void hb_gtnap_form_dbind(GtNapForm *form, HB_ITEM *bind_block)
 {
     HB_SIZE i, n = UINT32_MAX;
@@ -4954,10 +4995,62 @@ void hb_gtnap_form_dbind(GtNapForm *form, HB_ITEM *bind_block)
 
 /*---------------------------------------------------------------------------*/
 
+static GtNapFArea *i_create_farea(GtNapForm *form, AREA *area)
+{
+    GtNapFArea *farea = heap_new0(GtNapFArea);
+    farea->form = form;
+    farea->cellname = NULL;
+    farea->table = NULL;
+    farea->area = area;
+    farea->cache_recno = UINT32_MAX;
+    farea->records = arrst_create(uint32_t);
+    farea->columns = arrst_create(GtNapFColumn);
+    return farea;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void hb_gtnap_form_dbind_area(GtNapForm *form, HB_ITEM *bind_block)
 {
-    unref(form);
-    unref(bind_block);
+    AREA *area = NULL;
+    HB_SIZE n = UINT32_MAX;
+    cassert_no_null(form);
+    /* At the moment, only one area in form */
+    cassert(form->area == NULL);
+    n = hb_arrayLen(bind_block);
+    cassert(n > 1);
+
+    area = cast(hb_rddGetCurrentWorkAreaPointer(), AREA);
+    if (area != NULL)
+    {
+        HB_SIZE i;
+        form->area = i_create_farea(form, area);
+
+        for (i = 2; i <= n; ++i)
+        {
+            PHB_ITEM bind_item = hb_arrayGetItemPtr(bind_block, i);
+            PHB_ITEM block_item = NULL;
+            GtNapFColumn *column = NULL;
+            /* At the moment, the column-bind item only has one member. The column block */
+            cassert(HB_ITEM_TYPE(bind_item) == HB_IT_ARRAY);
+            cassert(hb_arrayLen(bind_item) == 1);
+            block_item = hb_arrayGetItemPtr(bind_item, 1);
+            cassert(HB_ITEM_TYPE(block_item) == HB_IT_BLOCK);
+            column = arrst_new0(form->area->columns, GtNapFColumn);
+            column->block = block_item ? hb_itemNew(block_item) : NULL;
+        }
+
+        /* The first element in bind array is the tableView cell name */
+        {
+            PHB_ITEM name_item = hb_arrayGetItemPtr(bind_block, 1);
+            const char *gui_id = NULL;
+            cassert(HB_ITEM_TYPE(name_item) == HB_IT_STRING);
+            gui_id = hb_itemGetCPtr(name_item);
+            form->area->cellname = str_c(cast_const(gui_id, char_t));
+            if (form->window != NULL)
+                i_map_bind_area_to_form(form->area);
+        }
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -5088,6 +5181,7 @@ uint32_t hb_gtnap_form_modal(GtNapForm *form, const char_t *resource_path)
         form->window = nform_window(form->form, ekWINDOW_STD | ekWINDOW_RETURN | ekWINDOW_ESC, resource_path);
         window_title(form->window, tc(form->title));
         i_map_bind_to_form(form->form, form->binds);
+        i_map_bind_area_to_form(form->area);
     }
 
     i_center_window(mwin->window, form->window);
@@ -5122,15 +5216,38 @@ void hb_gtnap_form_update(GtNapForm *form)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_remove_fcolumn(GtNapFColumn *column)
+{
+    cassert_no_null(column);
+    if (column->block != NULL)
+        hb_itemRelease(column->block);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_destroy_farea(GtNapFArea **area)
+{
+    cassert_no_null(area);
+    (*area)->form = NULL;
+    (*area)->table = NULL;
+    (*area)->area = NULL;
+    str_destroy(&(*area)->cellname);
+    arrst_destroy(&(*area)->records, NULL, uint32_t);
+    arrst_destroy(&(*area)->columns, i_remove_fcolumn, GtNapFColumn);
+    heap_delete(area, GtNapFArea);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void hb_gtnap_form_destroy(GtNapForm **form)
 {
     cassert_no_null(form);
     cassert_no_null(*form);
-    if ((*form)->window != NULL)
-        window_destroy(&(*form)->window);
+    ptr_destopt(window_destroy, &(*form)->window, Window);
     str_destopt(&(*form)->title);
     arrst_destroy(&(*form)->binds, i_remove_bind, GtNapBind);
     arrpt_destroy(&(*form)->callbacks, i_destroy_callback, GtNapCallback);
+    ptr_destopt(i_destroy_farea, &(*form)->area, GtNapFArea);
     nform_destroy(&(*form)->form);
     heap_delete(form, GtNapForm);
 }

@@ -34,4 +34,6 @@ _nforms_api bool_t nform_set_listener(NForm *form, const char_t *cell_name, List
 
 _nforms_api R2Df nform_get_control_frame(NForm *form, const char_t *cell_name, Window *window);
 
+_nforms_api TableView *nform_get_tableview(NForm *form, const char_t *cell_name);
+
 __END_C
