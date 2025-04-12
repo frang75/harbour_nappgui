@@ -12,6 +12,7 @@
 #include <gui/textview.h>
 #include <gui/imageview.h>
 #include <gui/slider.h>
+#include <gui/tableview.h>
 #include <gui/progress.h>
 #include <gui/popup.h>
 #include <draw2d/image.h>
@@ -99,8 +100,11 @@ static void i_remove_cell(FCell *cell)
         dbind_destroy(&cell->widget.listbox, FListBox);
         break;
 
-    cassert_default();
+    case ekCELL_TYPE_TABLEVIEW:
+        dbind_destroy(&cell->widget.table, FTable);
+        break;
 
+    cassert_default();
     }
 
     cassert(cell->widget.label == NULL);
@@ -310,6 +314,30 @@ static FListBox *i_read_listbox(Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_read_header(Stream *stm, FHeader *header)
+{
+    header->title = str_read(stm);
+    header->align = stm_read_enum(stm, halign_t);
+    header->dalign = stm_read_enum(stm, halign_t);
+    header->resizable = stm_read_bool(stm);
+    header->width = stm_read_r32(stm);
+    header->min_width = stm_read_r32(stm);
+    header->max_width = stm_read_r32(stm);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static FTable *i_read_table(Stream *stm)
+{
+    FTable *table = heap_new0(FTable);
+    table->min_width = stm_read_r32(stm);
+    table->min_height = stm_read_r32(stm);
+    table->headers = arrst_read(stm, i_read_header, FHeader);
+    return table;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_read_cell(Stream *stm, FCell *cell)
 {
     cassert_no_null(cell);
@@ -351,6 +379,9 @@ static void i_read_cell(Stream *stm, FCell *cell)
         break;        
     case ekCELL_TYPE_LISTBOX:
         cell->widget.listbox = i_read_listbox(stm);
+        break;
+    case ekCELL_TYPE_TABLEVIEW:
+        cell->widget.table = i_read_table(stm);
         break;
     case ekCELL_TYPE_LAYOUT:
         cell->widget.layout = flayout_read(stm);
@@ -520,6 +551,30 @@ static void i_write_listbox(Stream *stm, const FListBox *listbox)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_write_header(Stream *stm, const FHeader *header)
+{
+    cassert_no_null(header);
+    str_write(stm, header->title);
+    stm_write_enum(stm, header->align, halign_t);
+    stm_write_enum(stm, header->dalign, halign_t);
+    stm_write_bool(stm, header->resizable);
+    stm_write_r32(stm, header->width);
+    stm_write_r32(stm, header->min_width);
+    stm_write_r32(stm, header->max_width);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_write_table(Stream *stm, const FTable *table)
+{
+    cassert_no_null(table);
+    stm_write_r32(stm, table->min_width);
+    stm_write_r32(stm, table->min_height);
+    arrst_write(stm, table->headers, i_write_header, FHeader);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_write_cell(Stream *stm, const FCell *cell)
 {
     cassert_no_null(cell);
@@ -560,6 +615,9 @@ static void i_write_cell(Stream *stm, const FCell *cell)
         break;
     case ekCELL_TYPE_LISTBOX:
 		i_write_listbox(stm, cell->widget.listbox);
+        break;
+    case ekCELL_TYPE_TABLEVIEW:
+		i_write_table(stm, cell->widget.table);
         break;
     case ekCELL_TYPE_LAYOUT:
         flayout_write(stm, cell->widget.layout);
@@ -912,6 +970,20 @@ void flayout_add_listbox(FLayout *layout, FListBox *listbox, const uint32_t col,
 
 /*---------------------------------------------------------------------------*/
 
+void flayout_add_table(FLayout *layout, FTable *table, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(table);
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_TABLEVIEW;
+    cell->halign = ekHALIGN_JUSTIFY;
+    cell->valign = ekVALIGN_JUSTIFY;
+    cell->widget.table = table;
+}
+
+/*---------------------------------------------------------------------------*/
+
 uint32_t flayout_ncols(const FLayout *layout)
 {
     cassert_no_null(layout);
@@ -1211,6 +1283,25 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     break;
                 }
 
+                case ekCELL_TYPE_TABLEVIEW:
+                {
+                    FTable *ftable = cells->widget.table;
+                    TableView *gtable = tableview_create();
+                    tableview_size(gtable, s2df(ftable->min_width, ftable->min_height));
+
+                    arrst_foreach_const(header, ftable->headers, FHeader)
+                        tableview_new_column_text(gtable);
+                        tableview_column_width(gtable, header_i, header->width);
+                        tableview_column_limits(gtable, header_i, header->min_width, header->max_width);
+                        tableview_column_align(gtable, header_i, i_halign(header->dalign));
+                        tableview_column_resizable(gtable, header_i, header->resizable);
+                        tableview_header_title(gtable, header_i, tc(header->title));
+                        tableview_header_align(gtable, header_i, i_halign(header->align));
+                    arrst_end()
+
+                    layout_tableview(glayout, gtable, i, j);
+                    break;
+                }
 
                 case ekCELL_TYPE_LAYOUT:
                 {
@@ -1257,6 +1348,7 @@ GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout
                 case ekCELL_TYPE_PROGRESS:
                 case ekCELL_TYPE_POPUP:
                 case ekCELL_TYPE_LISTBOX:
+                case ekCELL_TYPE_TABLEVIEW:
 				{
                     Cell *gcell = layout_cell(gui_layout, i, j);
                     return cell_control(gcell);

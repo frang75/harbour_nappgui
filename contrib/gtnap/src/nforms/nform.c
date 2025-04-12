@@ -399,3 +399,14 @@ R2Df nform_get_control_frame(NForm *form, const char_t *cell_name, Window *windo
 
     return kR2D_ZEROf;
 }
+
+/*---------------------------------------------------------------------------*/
+
+TableView *nform_get_tableview(NForm *form, const char_t *cell_name)
+{
+    GuiControl *control = NULL;
+    cassert_no_null(form);
+    cassert_no_null(form->glayout);
+    control = flayout_search_gui_control(form->flayout, form->glayout, cell_name);
+    return guicontrol_tableview(control);
+}

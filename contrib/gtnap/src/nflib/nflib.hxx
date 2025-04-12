@@ -17,6 +17,8 @@ typedef struct _fprogress_t FProgress;
 typedef struct _felem_t FElem;
 typedef struct _fpopup_t FPopUp;
 typedef struct _flistbox_t FListBox;
+typedef struct _fheader_t FHeader;
+typedef struct _ftable_t FTable;
 typedef struct _fcolumn_t FColumn;
 typedef struct _frow_t FRow;
 /* Must be a union (when dbind supports) */
@@ -38,7 +40,8 @@ typedef enum _celltype_t
     ekCELL_TYPE_SLIDER,
     ekCELL_TYPE_PROGRESS,
     ekCELL_TYPE_POPUP,
-    ekCELL_TYPE_LISTBOX
+    ekCELL_TYPE_LISTBOX,
+    ekCELL_TYPE_TABLEVIEW
 } celltype_t;
 
 /* Don't change the order. Add new values to end */
@@ -138,6 +141,24 @@ struct _flistbox_t
     ArrSt(FElem) *elems;
 };
 
+struct _fheader_t
+{
+    String *title;
+    halign_t align;
+    halign_t dalign;
+    bool_t resizable;
+    real32_t width;
+    real32_t min_width;
+    real32_t max_width;
+};
+
+struct _ftable_t
+{
+    real32_t min_width;
+    real32_t min_height;
+    ArrSt(FHeader) *headers;
+};
+
 struct _fcolumn_t
 {
     real32_t margin_right;
@@ -162,6 +183,7 @@ struct _fwidget_t
     FProgress *progress;
     FPopUp *popup;
     FListBox *listbox;
+    FTable *table;
     FLayout *layout;
 };
 
@@ -187,6 +209,7 @@ struct _flayout_t
 };
 
 DeclSt(FElem);
+DeclSt(FHeader);
 DeclSt(FColumn);
 DeclSt(FRow);
 DeclSt(FCell);

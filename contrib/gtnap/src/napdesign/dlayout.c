@@ -9,6 +9,7 @@
 #include <gui/layout.h>
 #include <gui/layouth.h>
 #include <gui/listbox.h>
+#include <gui/tableviewh.h>
 #include <gui/edit.h>
 #include <gui/cell.h>
 #include <gui/drawctrl.inl>
@@ -124,7 +125,6 @@ DLayout *dlayout_from_flayout(const FLayout *flayout, const char_t *resource_pat
                     ptr_destopt(image_destroy, &image, Image);
                 arrst_end()
             }
-
             else if (fcell->type == ekCELL_TYPE_LAYOUT)
             {
                 dcell->sublayout = dlayout_from_flayout(fcell->widget.layout, resource_path);
@@ -1019,6 +1019,72 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
                     arrst_end();
                 }
 
+                draw_line_color(ctx, i_MAIN_COLOR);
+                break;
+            }
+
+            case ekCELL_TYPE_TABLEVIEW:
+            {
+                color_t color = i_is_cell_sel(hover, dlayout, i, j) ? i_SEL_COLOR : i_MAIN_COLOR;
+                const TableView *gtable = cell_tableview(gcell);
+                const Font *font = tableview_get_font(gtable);
+                real32_t head_height = tableview_get_header_height(gtable);
+                real32_t fheight = font_height(font);
+                uint32_t k, n = tableview_get_num_columns(gtable);
+                real32_t x = 0;
+                draw_line_color(ctx, color);
+                draw_fill_color(ctx, i_BGCOLOR);
+                draw_font(ctx, font);
+                draw_text_color(ctx, color);
+                for(k = 0; k < n; ++k)
+                {
+                    real32_t width = tableview_get_column_width(gtable, k);
+                    align_t align = tableview_get_header_align(gtable, k);
+                    const char_t *text = tableview_get_header_title(gtable, k);
+
+                    if (x + width <= dcell->content_rect.size.width)
+                    {
+                        real32_t px = dcell->content_rect.pos.x + x;
+                        real32_t py = dcell->content_rect.pos.y;
+                        real32_t lx = dcell->content_rect.pos.x + x + width;
+                        draw_rect(ctx, ekFILLSK, px, py, width, head_height);
+                        draw_text_width(ctx, width);
+                        draw_text_align(ctx, align, ekTOP);
+                        switch (align) {
+                        case ekLEFT:
+                        case ekJUSTIFY:
+                            px += 4;
+                            break;
+                        case ekCENTER:
+                            px += width / 2;
+                            break;
+                        case ekRIGHT:
+                            px += width - 4;
+                            break;
+                        cassert_default();
+                        }
+
+                        draw_text(ctx, text, px, py + (head_height - fheight) / 2);
+                        draw_line(ctx, lx, py, lx, py + dcell->content_rect.size.height);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                    x += width;
+                }
+
+                if (x < dcell->content_rect.size.width) 
+                {                        
+                    real32_t px = dcell->content_rect.pos.x + x;
+                    real32_t py = dcell->content_rect.pos.y;
+                    real32_t width = dcell->content_rect.size.width - x;
+                    draw_rect(ctx, ekFILLSK, px, py, width, head_height);
+                }
+
+                draw_line_width(ctx, 2);
+                draw_rect(ctx, ekSTROKE, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
+                draw_line_width(ctx, 1);                
                 draw_line_color(ctx, i_MAIN_COLOR);
                 break;
             }

@@ -21,7 +21,8 @@
         "dlabel.h": "c",
         "dialogs.h": "c",
         "buttonh.h": "c",
-        "gui.h": "c"
+        "gui.h": "c",
+        "tableview.h": "c"
     },
     "files.encoding": "windows1252",
     "cmake.sourceDirectory": "/home/fran/harbour_nappgui"
