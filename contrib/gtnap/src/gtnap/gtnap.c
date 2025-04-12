@@ -4945,10 +4945,213 @@ static void i_map_bind_to_form(NForm *form, ArrSt(GtNapBind) *binds)
 
 /*---------------------------------------------------------------------------*/
 
+static const char_t *i_farea_eval_field(GtNapFArea *area, const uint32_t field_id, const uint32_t row_id)
+{
+    uint32_t recno = 0;
+    const GtNapFColumn *column = NULL;
+    HB_ITEM *ritem = NULL;
+
+    cassert_no_null(area);
+    cassert(field_id > 0);
+
+    /* Go to DB record */
+    recno = *arrst_get_const(area->records, row_id, uint32_t);
+    SELF_GOTO(area->area, recno);
+
+    /* Get the table column */
+    column = arrst_get_const(area->columns, field_id - 1, GtNapFColumn);
+
+    /* CodeBlock that computes the cell content */
+    ritem = hb_itemDo(column->block, 0);
+
+    /* Fill the temporal cell buffer with cell result */
+    i_hbitem_to_char(ritem, TEMP_BUFFER, sizeof(TEMP_BUFFER));
+
+    hb_itemRelease(ritem);
+    return TEMP_BUFFER;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnTableFAreaData(GtNapFArea *area, Event *e)
 {
+    uint32_t etype = event_type(e);
     cassert_no_null(area);
-    unref(e);
+
+    switch (etype)
+    {
+    case ekGUI_EVENT_TBL_BEGIN:
+        SELF_RECNO(area->area, &area->cache_recno);
+        break;
+
+    case ekGUI_EVENT_TBL_END:
+        SELF_GOTO(area->area, area->cache_recno);
+        area->cache_recno = UINT32_MAX;
+        break;
+
+    case ekGUI_EVENT_TBL_NROWS:
+    {
+        uint32_t *n = event_result(e, uint32_t);
+        *n = arrst_size(area->records, uint32_t);
+        break;
+    }
+
+    case ekGUI_EVENT_TBL_CELL:
+    {
+        EvTbCell *cell = event_result(e, EvTbCell);
+        const EvTbPos *pos = event_params(e, EvTbPos);
+        cell->text = i_farea_eval_field(area, pos->col + 1, pos->row);
+        break;
+    }
+
+    default:
+        break;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_farea_refresh(GtNapFArea *area)
+{
+    HB_ULONG ulCurRec;
+
+    cassert_no_null(area);
+
+    /* Database current RECNO() */
+    SELF_RECNO(area->area, &ulCurRec);
+
+    /* Clear the current record index */
+    arrst_clear(area->records, NULL, uint32_t);
+
+    /* Generate the record index for TableView */
+    //if (area->while_block == NULL)
+    {
+        HB_BOOL fEof;
+        SELF_GOTOP(area->area);
+        SELF_EOF(area->area, &fEof);
+        while (fEof == HB_FALSE)
+        {
+            HB_ULONG uiRecNo = 0;
+            SELF_RECNO(area->area, &uiRecNo);
+            arrst_append(area->records, (uint32_t)uiRecNo, uint32_t);
+            SELF_SKIP(area->area, 1);
+            SELF_EOF(area->area, &fEof);
+        }
+    }
+    //else
+    //{
+    //    HB_BOOL fEof;
+    //    SELF_GOTOP(area->area);
+    //    SELF_EOF(area->area, &fEof);
+    //    while (fEof == HB_FALSE)
+    //    {
+    //        HB_ULONG uiRecNo = 0;
+    //        SELF_RECNO(area->area, &uiRecNo);
+
+    //        {
+    //            PHB_ITEM ritem = hb_itemDo(area->while_block, 0);
+    //            HB_TYPE type = HB_ITEM_TYPE(ritem);
+    //            bool_t add = FALSE;
+    //            cassert_unref(type == HB_IT_LOGICAL, type);
+    //            add = (bool_t)hb_itemGetL(ritem);
+    //            hb_itemRelease(ritem);
+
+    //            if (add == TRUE)
+    //                arrst_append(area->records, (uint32_t)uiRecNo, uint32_t);
+    //        }
+
+    //        SELF_SKIP(area->area, 1);
+    //        SELF_EOF(area->area, &fEof);
+    //    }
+    //}
+
+    /* Restore database RECNO() */
+    SELF_GOTO(area->area, ulCurRec);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static uint32_t i_frow_from_recno(GtNapFArea *area, const uint32_t recno)
+{
+    cassert_no_null(area);
+    cassert(recno > 0);
+    arrst_foreach_const(rec, area->records, uint32_t)
+        if (*rec == recno)
+            return rec_i;
+    arrst_end();
+    return UINT32_MAX;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_farea_select_row(GtNapFArea *area)
+{
+    HB_ULONG ulCurRec;
+    uint32_t sel_row;
+    //TableView *view;
+
+    cassert_no_null(area);
+    //cassert_no_null(gtarea->gtobj);
+    //cassert(gtarea->gtobj->type == ekOBJ_TABLEVIEW);
+    //view = (TableView *)gtarea->gtobj->component;
+
+    /* Current selected */
+    SELF_RECNO(area->area, &ulCurRec);
+
+    sel_row = i_frow_from_recno(area, (uint32_t)ulCurRec);
+
+    /* In multisel table, the selected rows comes from  VN_Selecio */
+    //if (gtarea->gtobj->multisel == TRUE)
+    //{
+    //    if (tableview_get_focus_row(view) == UINT32_MAX)
+    //    {
+    //        /* We use RECNO for focused row */
+    //        if (sel_row != UINT32_MAX)
+    //        {
+    //            tableview_focus_row(view, sel_row, ekTOP);
+    //        }
+    //        else
+    //        {
+    //            uint32_t nrecs = arrst_size(gtarea->records, uint32_t);
+    //            sel_row = tableview_get_focus_row(view);
+    //            /* We move recno to current focused row */
+    //            if (sel_row >= nrecs)
+    //            {
+    //                sel_row = 0;
+    //            }
+
+    //            if (sel_row < nrecs)
+    //            {
+    //                uint32_t recno = *arrst_get_const(gtarea->records, sel_row, uint32_t);
+    //                tableview_select(view, &sel_row, 1);
+    //                SELF_GOTO(gtarea->area, recno);
+    //            }
+    //        }
+    //    }
+    //}
+    //else
+    {
+        tableview_deselect_all(area->table);
+
+        if (sel_row != UINT32_MAX)
+        {
+            tableview_select(area->table, &sel_row, 1);
+            tableview_focus_row(area->table, sel_row, ekTOP);
+        }
+        /* RECNO() doesn't exists in view (perhaps is deleted) */
+        else
+        {
+            uint32_t nrecs = arrst_size(area->records, uint32_t);
+            sel_row = tableview_get_focus_row(area->table);
+            /* We move recno to current focused row */
+            if (sel_row < nrecs)
+            {
+                uint32_t recno = *arrst_get_const(area->records, sel_row, uint32_t);
+                tableview_select(area->table, &sel_row, 1);
+                SELF_GOTO(area->area, recno);
+            }
+        }
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -4960,7 +5163,12 @@ static void i_map_bind_area_to_form(GtNapFArea *area)
     cassert_no_null(area->form);
     area->table = nform_get_tableview(area->form->form, tc(area->cellname));
     if (area->table != NULL)
+    {
         tableview_OnData(area->table, listener(area, i_OnTableFAreaData, GtNapFArea));
+        i_farea_refresh(area);
+        tableview_update(area->table);
+        i_farea_select_row(area);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -5181,7 +5389,8 @@ uint32_t hb_gtnap_form_modal(GtNapForm *form, const char_t *resource_path)
         form->window = nform_window(form->form, ekWINDOW_STD | ekWINDOW_RETURN | ekWINDOW_ESC, resource_path);
         window_title(form->window, tc(form->title));
         i_map_bind_to_form(form->form, form->binds);
-        i_map_bind_area_to_form(form->area);
+        if (form->area != NULL)
+            i_map_bind_area_to_form(form->area);
     }
 
     i_center_window(mwin->window, form->window);
