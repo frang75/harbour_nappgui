@@ -1,4 +1,4 @@
-# GTNAP Designer, after 16 Sprints
+# GTNAP Stack. Strategy plan.
 
 In the initial planning of [GTNAP-Forms-Designer](./plan.md), 38 sprints were estimated to be required to have a first operational version of the tool. After 16 sprints, we reviewed the current project status project and rethink the future actions.
 
@@ -25,28 +25,34 @@ In the initial planning of [GTNAP-Forms-Designer](./plan.md), 38 sprints were es
 
 ![GTNAP-Stack](images/stack.png)
 
-- `gtnap`: Library that generates the NAP general terminal. Allow create a "real" desktop application that runs on Windows, Linux and macOS. It offers three bindings with Harbour language:
+- `gtnap`: Library that generates the NAP general terminal. Allow create a desktop application that runs on Windows, Linux and macOS. It offers three bindings with Harbour language:
     - `hbcualib`: Connector for support the Aspec-CUALIB semigraphic environment.
     - `hbforms`: Support for `.nfm` files with formulary design. Total freedom in widget positions and sizes. Allow all standard widgets: Label, Button, PopUp, TableView, Image, TextView, Slider, etc.
     - `hbmenu`: Support for dynamic menus (menubar, popup) with icons and submenus.
 
-- `NAppGUI`: C API that allows you to create cross-platform graphical applications. It acts as a small layer that unifies native technologies: Win32, GTK3, and Cocoa. It evolves separately, and the copy of NAppGUI embedded in GTNAP is regularly updated.
+- `nflib`: Library that supports the NAppGUI-Forms data model. It contains the editable data from which we can generate a form. It allows model serialization to generate `.nfm` files. Currently, it is a binary format, but it is possible to create a parallel text format for direct editing (not planning yet). This library also allows create the GUI runtime form from a file on disk.
 
-- `nflib`: Library that supports the NAppGUI-Forms data model. It contains the editable data from which we can generate a form. It allows serialization of the model to generate .nfm files. Currently, it is a binary format, but it is possible to create a parallel text format for direct editing. This library also allows a form to be created at runtime from a file on disk.
+- `nforms`: Library that allows to query the `.nfm` model at runtime. For example, to retrieve a specific widget or data binding from controls to variables in memory (or vice versa).
 
-- `nforms`: Library that allows you to query the .nfm model at runtime. For example, to retrieve a specific widget or map data from controls to variables in memory (or vice versa).
+- `designer`: Graphical application that allows to design forms in a visual way and save them in `.nfm` format.
 
-- `designer`: Graphical application that allows us to design forms and save them in `.nfm` format.
+- `deblib`: Implementation of debugging protocol that allows to use the Harbour debugger in a GTNAP graphics application.
 
-- `LibreOffice-SDK`: Library that allows us to create and edit LibreOffice documents using C++.
+- `gtnapdeb`: Application that shows the Harbour debugger in a GTNAP graphics applications. Uses the `deblib` protocol and recreate the standard debugger text interface.
 
-- `hboffice`: A library that defines high-level operations on LibreOffice documents, simplifying use and providing a binding to Harbour. It implements only a small subset of LibreOffice, allowing it to continue to grow and adapt to new requirements. Uses the NAppGUI `core` library for dynamic memory, strings and data structures.
-
-- `AWS-SDK`: C++ library that allows you to access the AWS API through code. It's very complex, but eliminates the need to manually manage HTTP requests to Amazon servers.
+- `hboffice`: A library that defines high-level operations on LibreOffice documents, simplifying use and providing a binding to Harbour. It implements only a small subset of LibreOffice, allowing it to continue to grow and adapt to new requirements.
 
 - `hbaws`: Library that defines high-level operations on AWS, implementing a binding to Harbour. Currently, it defines certain operations on the S3 service, but can be expanded to meet new requirements.
 
-> Important: In a single application written in Harbour you can combine all the libraries: `GTNAP/Cualib`, `GTNAP/Forms`, `GTNAP/Dynamic menus`, `HBOFFICE`, `HBAWS`.
+- `NAppGUI`: C API that allows to create cross-platform graphical applications. It acts as a small layer that unifies native technologies: Win32, GTK3, and Cocoa. It evolves separately, and the copy of NAppGUI embedded in GTNAP is regularly updated.
+
+- `LibreOffice-SDK`: Library that allows to create and edit LibreOffice documents using C++.
+
+- `AWS-SDK`: C++ library that allows to access the AWS API through code. It's very complex, but eliminates the need to manually manage HTTP requests to Amazon servers.
+
+> Important: In a single application written in Harbour you can combine all the stack: `GTNAP/Cualib`, `GTNAP/Forms`, `GTNAP/Dynamic menus`, `HBOFFICE`, `HBAWS`.
+
+ ## Future actions
 
 
 
