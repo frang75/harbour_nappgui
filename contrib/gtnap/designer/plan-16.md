@@ -1,6 +1,6 @@
 # GTNAP Designer. Strategy plan.
 
-In the initial planning of [GTNAP-Forms-Designer](./plan.md), **38** sprints were estimated to be required to have a first operational version of the tool. After 16 sprints, we reviewed the current project status project and rethink the future actions.
+In the initial planning of [GTNAP-Forms-Designer](./plan.md), **38** sprints were estimated to be required to have a first operational version of the tool. After 16 sprints, we reviewed the current project status project and replanning the future actions.
 
 ## Designer timeline
 
@@ -56,7 +56,7 @@ In the initial planning of [GTNAP-Forms-Designer](./plan.md), **38** sprints wer
 
 GTNAP-Designer already offers basic functionality for creating forms and integrating them into end-user Harbour applications. We propose the following improvements.
 
-> Important: GTNAP-Designer is ready to start working in production and get feedback. However, the usability of the application must still improve a lot.
+> Important: GTNAP-Designer is ready to start working in production and get feedback. However, the usability of the application must still improve.
 
 ### Designer UX
 
@@ -127,6 +127,7 @@ The forms panel will be left as it is. The shows all existing forms in the work 
 This panel is important and its operation is different from other similar tools (such as _QtDesigner_). It does not show all the hierarchy of the form, which would do it "little inituitive" and "massive", due to the large number of elements. It shows "the sublayout path" from the original layout to the currently selected cell. This panel can be enhanced to help the user navigate the layout/cell that is editing.
 
 - The "object" and "type" columns must be resizable.
+- List must be reversed. The selected cell must be the first item in table. The main layout, the last.
 - An icon with the cellType will be shown near the object name.
 - If a layout is selected, the layout area will be shaded over the canvas, highlighting the columns, rows and margins.
 - If a cell is selected, the parent layout will be shaded (as previous option), but changing the color of selected cell.
@@ -209,9 +210,13 @@ Until now, all the forms we can design have a fixed size. We may want to make th
 - Form: Insert layout column, Insert layout row, Remove layout column, Remove layout row.
 - View: Forms Box, Widget Box, Object Inspector, Property Editor, Toolbars.
 
+### Refactor, clean code
+
+During the implementation of each new feature, some time of cleaning and refactorizing the code will be invested, in order to improve future maintenance.
+
 ### Discarded functionality
 
-In the previous planning, two features were included that, but now do not make much sense and will not be implemented.
+In the previous planning two features were included, but now do not make much sense and will not be implemented.
 
 - **Multiple selection**: Normally, the multiple widgets selection is used for alignment or organization. This makes no sense, since the layouts do this automatically.
 
