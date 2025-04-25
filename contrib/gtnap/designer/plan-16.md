@@ -30,7 +30,7 @@ In the initial planning of [GTNAP-Forms-Designer](./plan.md), **38** sprints wer
     - `hbforms`: Support for `.nfm` files with formulary design. Total freedom in widget positions and sizes. Allow all standard widgets: Label, Button, PopUp, TableView, Image, TextView, Slider, etc.
     - `hbmenu`: Support for dynamic menus (menubar, popup) with icons and submenus.
 
-- `nflib`: Library that supports the NAppGUI-Forms data model. It contains the editable data from which we can generate a form. It allows model serialization to generate `.nfm` files. Currently, it is a binary format, but it is possible to create a parallel text format for direct editing (not planning yet). This library also allows create the GUI runtime form from a file on disk.
+- `nflib`: Library that supports the NAppGUI-Forms data model. It contains the editable data from which we can generate a form. It allows model serialization to generate `.nfm` files. Currently, it is a binary format, but it is possible to create a parallel text format for direct editing (not planning yet). This library also allows create the form window at runtime, from a file on disk.
 
 - `nforms`: Library that allows to query the `.nfm` model at runtime. For example, to retrieve a specific widget or data binding from controls to variables in memory (or vice versa).
 
@@ -56,9 +56,11 @@ In the initial planning of [GTNAP-Forms-Designer](./plan.md), **38** sprints wer
 
 GTNAP-Designer already offers basic functionality for creating forms and integrating them into end-user Harbour applications. We propose the following improvements.
 
+> Important: GTNAP-Designer is ready to start working in production and get feedback. However, the usability of the application must still improve a lot.
+
 ### Designer UX
 
-Improve the usability and appearance of the design application:
+Improve the usability and appearance of GTNAP-Designer:
 
 ![UX-Improve](images/ux_improve.png)
 
@@ -72,13 +74,17 @@ Improve the usability and appearance of the design application:
 
 - Vertical scrollbar in `Widgets` and `Property Editor` panels. They currently have a considerable fixed height and will grow in the future.
 
+- Allow to show/hide panels.
+
+- Save in a .cfg file the current state of panel sized.
+
 - Panel header and drawers. Tool panels need a header. They should also implement sections or drawers to show or hide certain parts of the panel. **Important:** At the moment, the panel headers will not incorporate "dockerizable" or "drag and drop" functionality. They will be fixed in their location.
 
     ![Header_drawers](images/header_drawers.png)
 
 ### Widget Box
 
-Organize widgets in drawers. Radiobuttons will be replaced by **temporary** icons. The definitive icons of the application will be designed at the end of the project.
+Organize widgets in drawers. The radiobuttons will be replaced by **temporary** icons. The definitive icons of the application will be designed at the end of the project.
 
 - **Drawer 0:** (no drawer) Select.
 
@@ -134,8 +140,15 @@ This panel is important and its operation is different from other similar tools 
     - Cell properties: Name, Alignment.
     - Label properties.
     - Button properties.
+    - CheckBox properties.
     - Edit properties.
-    - ...
+    - TextView properties.
+    - ImageView properties.
+    - Slider properties.
+    - Progress properties.
+    - PopUp properties + Elements.
+    - ListBox properties + Elements.
+    - TableView properties + Columns.
 
 ### Layout management
 
@@ -155,9 +168,13 @@ Right-click on a cell or on an element of the `Object Inspector` will show a pop
 - Remove the content of a cell, copying it to the clipboard.
     ![copy_paste](images/copy_paste.png)
 
-### Menu and toolbar
-
 ### Canvas
+
+In order to improve the sketch of the forms in the canvas, the clipping operation must be implemented in NAppGUI. It will also be useful to show information about the cell in the mouse position, using an Overlay window.
+
+- Clipping draw.
+- Show info overlay window, while mouse moving.
+    ![overlay_info](images/overlay_info.png)
 
 ### Status bar
 
@@ -166,12 +183,44 @@ The status bar has no apparent utility and will be removed.
 - Remove the status bar from the main window.
     ![RemoveStatusBar](images/remove_statusbar.png)
 
+### Undo redo
+
+Ability to undo and redo changes (from previous planning).
+- Define what types of operations can be undone.
+- Create the Undo/Redo data structures.
+- Implementation.
+
+## Resizable forms
+
+Until now, all the forms we can design have a fixed size. We may want to make them re-sizable by using the maximize button or dragging the window borders. This requires adding new properties to the layout and its cells in order to recursively manage how the controls will adapt to the size change. More information [Here](https://nappgui.com/en/gui/layout.html#h5) and [Here](https://nappgui.com/en/demo/die.html#h4).
+
+* Add to the Property Editor those properties necessary to handle the size change.
+* Create a "preview" capable of accepting window resizing.
+* Modify the **(*.ui)** file to accept these new properties.
+* Modify the exporter to **(*.prg)** so that it generates the re-sizable forms.
+* Add new functions to handle re-sizing to the GTNAP-Forms library.
+
+![resizing](images/resize.png)
+
+### Menu and toolbars
+
+- File: Open folder, Save all forms, Add new form, Rename form, Close form, Remove form, Next form, Previous form.
+- Edit: Undo, Redo, Copy, Paste, Cut, Delete.
+- Form: Insert layout column, Insert layout row, Remove layout column, Remove layout row.
+- View: Forms Box, Widget Box, Object Inspector, Property Editor, Toolbars.
+
 ### Discarded functionality
+
+In the previous planning, two features were included that, but now do not make much sense and will not be implemented.
+
+- **Multiple selection**: Normally, the multiple widgets selection is used for alignment or organization. This makes no sense, since the layouts do this automatically.
+
+- **Drag'N'Drop support**: The current implementation of selecting a widget from the widget box and adding it into the cell with just one click, is much more intuitive and precise than dragging the widget.
 
 ## Sprint detail
 
 - Sprint 17: UX - SplitViews (drag size) and scrollbars. Remove statusbar.
-- Sprint 18: UX - Panel headers and drawer implementation.
+- Sprint 18: UX - Show/hide panels, panel headers and drawer implementation, .cfg file.
 - Sprint 19: WidgetBox - Vertical + horizontal layout. Layout property editor.
 - Sprint 20: WidgetBox - Toolbutton + RadioButton.
 - Sprint 21: WidgetBox - ComboBox.
@@ -181,71 +230,13 @@ The status bar has no apparent utility and will be removed.
 - Sprint 25: Property editor. Organize layouts/widgets properties into drawers.
 - Sprint 26: Property editor (and II).
 - Sprint 27: Layout management. Add/remove columns/rows.
-- Sprint 28: Clipboard. Copy, paste, cut cell content.
+- Sprint 28: Clipboard. Copy, Paste, Cut cell content.
+- Sprint 29: Canvas clipping operation.
+- Sprint 30: Canvas overlay info window.
+- Sprint 31: Undo/redo.
+- Sprint 32: Undo/redo (and II).
+- Sprint 33: Resizable forms.
+- Sprint 34: Resizable forms (II).
+- Sprint 35: Resizable forms (and III).
+- Sprint 36: Menu and toolbars.
 
-
-
-
-
-
-
-
-## Fuera
-
-- Vertical scrollbar in `Widgets` panels. It currently has a considerable fixed height and will grow in the future.
-
-- Improve the usability of GTNAP-Designer. Currently, although functional, the application's design is very crude. We will improve the user experience in the following Sprints.
-
-- Designer Layout: Form list, Widget selector, Object inspector, property editor. Añadir barras de scroll a cada panel y SplitViews con el fin de poder modificar el tamaño relativo respecto a la ventana principal.
-
-- Mejorar el canvas: Implementar el clipping gráfico en NAppGUI, para poder recortar elementos de dibujo (imágenes, columnas, etc).
-
-- Copy/Paste: Posibilidad de copiar el contenido de una celda (widget o sublayout) y pegarla en una celda vacía.
-
-- Undo/Redo:
-
-
-- Funcionalidades no implementadas de momento.
-    - Drag 'n' drop (postpuesta).
-    - Multiple seleccition (postpuesta).
-
-### Wizard CUA
-
-GTNAP-Designer provides a layout-based design system, which greatly simplifies the placement and sizing of widgets. However, it is far from the ease of use provided by CUALIB, as it is a very high-level interface that allows forms to be generated from just a few lines of code. Although GTNAP-Designer offers detailed control over form aesthetics, we should consider a more high-level tool rather than using GTNAP-Designer directly.
-
-The CUA Wizard will deploy a series of configurable templates with just a few clicks.
-
-### Dockable UI
-
-
-
-### Improve the CUA model
-
-
-- Option 1: CUALIB 2.0: Extend the CUALIB library to take advantage of the graphical capabilities of modern GUIs, completely decoupling text terminals and character-based coordinates.
-
-- Option 2: Define templates (Wizards) that automatically generate .nfm files, instead of having to create them "from scratch," which would involve a lot of repetitive work.
-
-### Improve the GTNAP-Designer user experience
-
-
-### Old/modern CUALIB code cohexistence
-
-
-### Needs
-
-## Next actions
-
-
-
-
-
-
-
-
-
-
-
-
-
-Since Aspec applications are based on the CUA (_Common User Access_) methodology, future actions to be carried out on the GTNAP project will be aimed at integrating the current Aspec code base (based on CUALIB) with the new forms methodology, based on `.nfm` files generated with GTNAP-Designer.
