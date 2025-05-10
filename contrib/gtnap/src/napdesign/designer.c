@@ -608,6 +608,7 @@ static Panel *i_widgets_box(Designer *app)
     layout_panel(layout, panel2, 0, 1);
     layout_vmargin(layout, 0, 5);
     layout_vexpand(layout, 1);
+    layout_margin4(layout, 0, 5, 5, 5);
     panel_layout(panel1, layout);
     return panel1;
 }
@@ -639,6 +640,7 @@ static Panel *i_forms_box(Designer *app)
     layout_listbox(layout, list, 0, 1);
     layout_vmargin(layout, 0, 5);
     layout_vexpand(layout, 1);
+    layout_margin4(layout, 0, 5, 5, 5);
     panel_layout(panel, layout);
     app->form_list = list;
     return panel;
@@ -824,10 +826,10 @@ static Layout *i_statusbar_layout(Designer *app)
 
     /* All the horizontal expansion will be done in empty column-cell(2) */
     layout_hexpand(layout, 2);
-
     label_text(label1, "status-1");
     label_text(label2, "status-2");
 
+    layout_margin4(layout, 0, 5, 5, 5);
     /* Keep the controls for futher updates */
     app->status_label = label1;
     app->cells_label = label2;
@@ -857,8 +859,6 @@ static Layout *i_main_layout(Designer *app)
     layout_vmargin(layout1, 0, 5);
     layout_vmargin(layout1, 1, 5);
 
-    /* A border margin for all layout edges */
-    layout_margin(layout1, 5);
     return layout1;
 }
 
