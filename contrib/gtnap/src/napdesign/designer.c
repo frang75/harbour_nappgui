@@ -49,6 +49,10 @@ struct _desiger_t
     Cell *add_form_cell;
     Cell *remove_form_cell;
     Cell *rename_form_cell;
+    SplitView *split1;
+    SplitView *split2;
+    SplitView *split3;
+    SplitView *split4;
     Image *add_icon;
     Font *default_font;
 };
@@ -666,23 +670,6 @@ static Panel *i_forms_box(Designer *app)
 
 /*---------------------------------------------------------------------------*/
 
-static SplitView *i_left_split(Designer *app)
-{
-    SplitView *split = splitview_horizontal();
-    Panel *panel1 = i_forms_box(app);
-    Panel *panel2 = i_widgets_box(app);
-    cassert_no_null(app);
-    splitview_panel(split, panel1);
-    splitview_panel(split, panel2);
-    splitview_mode(split, ekSPLIT_FIXED0);
-    splitview_minsize0(split, 100);
-    splitview_minsize1(split, 100);
-    splitview_pos(split, ekSPLIT_FIXED0, 150);
-    return split;
-}
-
-/*---------------------------------------------------------------------------*/
-
 static Panel *i_inspector_box(Designer *app)
 {
     Panel *panel1 = panel_create();
@@ -719,23 +706,6 @@ static Panel *i_propedit_box(Designer *app)
     panel_layout(panel1, layout);
     app->propedit = panel2;
     return panel1;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static SplitView *i_right_split(Designer *app)
-{
-    SplitView *split = splitview_horizontal();
-    Panel *panel1 = i_inspector_box(app);
-    Panel *panel2 = i_propedit_box(app);
-    cassert_no_null(app);
-    splitview_panel(split, panel1);
-    splitview_panel(split, panel2);
-    splitview_mode(split, ekSPLIT_FIXED0);
-    splitview_minsize0(split, 100);
-    splitview_minsize1(split, 100);
-    splitview_pos(split, ekSPLIT_FIXED0, 150);
-    return split;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -822,21 +792,37 @@ static View *i_canvas_view(Designer *app)
 static SplitView *i_middle_view(Designer *app)
 {
     SplitView *split1 = splitview_vertical();
-    SplitView *split2 = splitview_vertical();
-    SplitView *split3 = i_left_split(app);
-    SplitView *split4 = i_right_split(app);
+    SplitView *split2 = splitview_horizontal();
+    SplitView *split3 = splitview_vertical();
+    SplitView *split4 = splitview_horizontal();
+    Panel *panel1 = i_forms_box(app);
+    Panel *panel2 = i_widgets_box(app);
+    Panel *panel3 = i_inspector_box(app);
+    Panel *panel4 = i_propedit_box(app);
     View *view = i_canvas_view(app);
-    splitview_split(split1, split3);
-    splitview_view(split2, view, FALSE);
-    splitview_split(split2, split4);
     splitview_split(split1, split2);
+    splitview_split(split1, split3);
+    splitview_panel(split2, panel1);
+    splitview_panel(split2, panel2);
+    splitview_view(split3, view, FALSE);
+    splitview_split(split3, split4);
+    splitview_panel(split4, panel3);
+    splitview_panel(split4, panel4);
     splitview_mode(split1, ekSPLIT_FIXED0);
-    splitview_mode(split2, ekSPLIT_FIXED1);
-    splitview_pos(split1, ekSPLIT_FIXED0, 200);
-    splitview_pos(split2, ekSPLIT_FIXED1, 200);
-    splitview_minsize0(split1, 150);
-    splitview_minsize0(split2, 50);
-    splitview_minsize1(split2, 150);
+    splitview_mode(split2, ekSPLIT_FIXED0);
+    splitview_mode(split3, ekSPLIT_FIXED1);
+    splitview_mode(split4, ekSPLIT_FIXED0);    
+    splitview_minsize0(split1, 100);
+    splitview_minsize0(split2, 100);
+    splitview_minsize1(split2, 100);
+    splitview_minsize0(split3, 50);
+    splitview_minsize1(split3, 100);
+    splitview_minsize0(split4, 100);
+    splitview_minsize1(split4, 100);
+    app->split1 = split1;
+    app->split2 = split2;
+    app->split3 = split3;
+    app->split4 = split4;
     return split1;
 }
 
