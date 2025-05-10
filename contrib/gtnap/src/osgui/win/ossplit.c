@@ -33,7 +33,6 @@ struct _ossplit_t
     OSControl *child1;
     OSControl *child2;
     bool_t left_button;
-    //  bool_t launch_OnDrag;
     POINTS mouse_st;
     POINTS mouse_pos;
     Listener *OnDrag;
@@ -78,7 +77,6 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
             if (split->OnDrag != NULL)
             {
                 EvMouse params;
-                // cassert(split->OnDrag != NULL);
                 split->mouse_pos = MAKEPOINTS(lParam);
                 params.x = (real32_t)split->mouse_pos.x;
                 params.y = (real32_t)split->mouse_pos.y;
@@ -89,13 +87,6 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
                 params.modifiers = 0;
                 params.tag = 0;
                 listener_event(split->OnDrag, ekGUI_EVENT_DRAG, split, &params, NULL, OSSplit, EvMouse, void);
-                // split->launch_OnDrag = FALSE;
-
-                // RECT rect;
-                // split->mouse_pos = MAKEPOINTS(lParam);
-                // split->launch_OnDrag = TRUE;
-                // GetWindowRect(hwnd, &rect);
-                // SetWindowPos(hwnd, NULL, 0, 0, rect.right - rect.left + 1, rect.bottom - rect.top + 1, SWP_NOMOVE /*| SWP_NOSIZE */ | SWP_NOZORDER);
             }
         }
         else
@@ -146,28 +137,6 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
         ReleaseCapture();
         return 0;
-
-    case WM_SIZE:
-        // if (split->launch_OnDrag == TRUE)
-        //{
-        //     if (split->left_button == TRUE)
-        //     {
-        //         EvMouse params;
-        //         cassert(split->OnDrag != NULL);
-        //         params.x = (real32_t)split->mouse_pos.x;
-        //         params.y = (real32_t)split->mouse_pos.y;
-        //         params.lx = (real32_t)split->mouse_st.x;
-        //         params.ly = (real32_t)split->mouse_st.y;
-        //         params.button = ekGUI_MOUSE_LEFT;
-        //         params.count = 0;
-        //         params.modifiers = 0;
-        //         params.tag = 0;
-        //         listener_event(split->OnDrag, ekGUI_EVENT_DRAG, split, &params, NULL, OSSplit, EvMouse, void);
-        //         split->launch_OnDrag = FALSE;
-        //     }
-        // }
-
-        break;
     }
 
     return CallWindowProc(split->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);

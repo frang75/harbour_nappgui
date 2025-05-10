@@ -661,50 +661,63 @@ static SplitView *i_left_split(Designer *app)
     splitview_minsize1(split, 100);
     splitview_pos(split, ekSPLIT_FIXED0, 150);
     return split;
-
-
-
-    //SplitView *split = splitview_vertical();
-    //View *view1 = view_create();
-    //View *view2 = view_create();
-    //cassert_no_null(app);
-    //splitview_view(split, view1, FALSE);
-    //splitview_view(split, view2, FALSE);
-    //splitview_mode(split, ekSPLIT_FIXED0);
-    //splitview_minsize0(split, 100);
-    //splitview_minsize1(split, 100);
-    //splitview_pos(split, ekSPLIT_FIXED0, 150);
-    //return split;
-
 }
 
 /*---------------------------------------------------------------------------*/
 
-static Panel *i_right_panel(Designer *app)
+static Panel *i_inspector_box(Designer *app)
 {
-    Panel *panel = panel_create();
-    Layout *layout = layout_create(1, 4);
-    Label *label1 = label_create();
-    Label *label2 = label_create();
-    Panel *panel1 = inspect_create(app);
-    Panel *panel2 = propedit_create(app);
+    Panel *panel1 = panel_create();
+    Panel *panel2 = inspect_create(app);
+    Layout *layout = layout_create(1, 2);
+    Label *label = label_create();
     cassert_no_null(app);
-    label_text(label1, "Object inspector");
-    label_text(label2, "Property editor");
-    panel_size(panel1, s2df(150, 200));
-    panel_size(panel2, s2df(150, 200));
-    layout_label(layout, label1, 0, 0);
-    layout_panel(layout, panel1, 0, 1);
-    layout_label(layout, label2, 0, 2);
-    layout_panel(layout, panel2, 0, 3);
-    layout_vmargin(layout, 1, 5);
-    layout_vmargin(layout, 2, 5);
-    layout_vexpand(layout, 3);
-    layout_vmargin(layout, 1, 5.f);
-    panel_layout(panel, layout);
-    app->inspect = panel1;
+    label_text(label, "Object inspector");
+    layout_label(layout, label, 0, 0);
+    layout_panel(layout, panel2, 0, 1);
+    layout_vmargin(layout, 0, 5);
+    layout_vexpand(layout, 1);
+    layout_margin4(layout, 0, 5, 5, 5);
+    panel_layout(panel1, layout);
+    app->inspect = panel2;
+    return panel1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Panel *i_propedit_box(Designer *app)
+{
+    Panel *panel1 = panel_create();
+    Panel *panel2 = propedit_create(app);
+    Layout *layout = layout_create(1, 2);
+    Label *label = label_create();
+    cassert_no_null(app);
+    label_text(label, "Property editor");
+    layout_label(layout, label, 0, 0);
+    layout_panel(layout, panel2, 0, 1);
+    layout_vmargin(layout, 0, 5);
+    layout_vexpand(layout, 1);
+    layout_margin4(layout, 0, 0, 5, 5);
+    panel_layout(panel1, layout);
     app->propedit = panel2;
-    return panel;
+    return panel1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static SplitView *i_right_split(Designer *app)
+{
+    SplitView *split = splitview_horizontal();
+    Panel *panel1 = i_inspector_box(app);
+    Panel *panel2 = i_propedit_box(app);
+    cassert_no_null(app);
+    splitview_panel(split, panel1);
+    splitview_panel(split, panel2);
+    splitview_mode(split, ekSPLIT_FIXED0);
+    splitview_minsize0(split, 100);
+    splitview_minsize1(split, 100);
+    splitview_pos(split, ekSPLIT_FIXED0, 150);
+    return split;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -793,11 +806,11 @@ static SplitView *i_middle_view(Designer *app)
     SplitView *split1 = splitview_vertical();
     SplitView *split2 = splitview_vertical();
     SplitView *split3 = i_left_split(app);
-    Panel *panel2 = i_right_panel(app);
+    SplitView *split4 = i_right_split(app);
     View *view = i_canvas_view(app);
     splitview_split(split1, split3);
     splitview_view(split2, view, FALSE);
-    splitview_panel(split2, panel2);
+    splitview_split(split2, split4);
     splitview_split(split1, split2);
     splitview_mode(split1, ekSPLIT_FIXED0);
     splitview_mode(split2, ekSPLIT_FIXED1);
