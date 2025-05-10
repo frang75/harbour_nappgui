@@ -17,6 +17,8 @@ struct _config_t
     String *folder_path;
     uint32_t sel_form;
     widget_t swidget;
+    real32_t wx;
+    real32_t wy;
     real32_t wwidth;
     real32_t wheight;
     real32_t split1_pos;
@@ -914,9 +916,13 @@ static void i_OnHotKey(Designer *app, Event *e)
 
 static void i_update_config(Designer *app)
 {
+    V2Df pos;
     S2Df size;
     cassert_no_null(app);
+    pos = window_get_origin(app->window);
     size = window_get_size(app->window);
+    app->config.wx = pos.x;
+    app->config.wy = pos.y;
     app->config.wwidth = size.width;
     app->config.wheight = size.height;
     app->config.split1_pos = splitview_get_pos(app->split1, i_SPLIT1_MODE);
@@ -939,6 +945,8 @@ static void i_save_config(const Config *config)
         str_write(stm, config->folder_path);
         stm_write_u32(stm, config->sel_form);
         stm_write_enum(stm, config->swidget, widget_t);
+        stm_write_r32(stm, config->wx);
+        stm_write_r32(stm, config->wy);
         stm_write_r32(stm, config->wwidth);
         stm_write_r32(stm, config->wheight);
         stm_write_r32(stm, config->split1_pos);
@@ -973,6 +981,8 @@ static void i_default_config(Config *config)
     config->folder_path = str_c("");
     config->sel_form = UINT32_MAX;
     config->swidget = ekWIDGET_SELECT;
+    config->wx = 100;
+    config->wy = 100;
     config->wwidth = 850;
     config->wheight = 500;
     config->split1_pos = 200;
@@ -1002,6 +1012,8 @@ static void i_load_config(Config *config)
             config->folder_path = str_read(stm);
             config->sel_form = stm_read_u32(stm);
             config->swidget = stm_read_enum(stm, widget_t);
+            config->wx = stm_read_r32(stm);
+            config->wy = stm_read_r32(stm);
             config->wwidth = stm_read_r32(stm);
             config->wheight = stm_read_r32(stm);
             config->split1_pos = stm_read_r32(stm);
@@ -1029,6 +1041,7 @@ static void i_load_config(Config *config)
 static void i_apply_config(Designer *app)
 {
     cassert_no_null(app);
+    window_origin(app->window, v2df(app->config.wx, app->config.wy));
     window_size(app->window, s2df(app->config.wwidth, app->config.wheight));
     splitview_pos(app->split1, i_SPLIT1_MODE, app->config.split1_pos);
     splitview_pos(app->split2, i_SPLIT2_MODE, app->config.split2_pos);
