@@ -590,7 +590,25 @@ static Panel *i_widgets_panel(Designer *app)
     panel_size(panel, s2df(-1, 200));
     cell_dbind(layout_cell(layout1, 0, 0), Designer, widget_t, swidget);
     app->widgets_layout = layout2;
+    app->widgets_cell = layout_cell(layout1, 0, 0);
     return panel;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Panel *i_widgets_box(Designer *app)
+{
+    Panel *panel1 = panel_create();
+    Panel *panel2 = i_widgets_panel(app);
+    Layout *layout = layout_create(1, 2);
+    Label *label = label_create();
+    label_text(label, "Widgets");
+    layout_label(layout, label, 0, 0);
+    layout_panel(layout, panel2, 0, 1);
+    layout_vmargin(layout, 0, 5);
+    layout_vexpand(layout, 1);
+    panel_layout(panel1, layout);
+    return panel1;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -606,31 +624,55 @@ static void i_OnFormSelect(Designer *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static Panel *i_left_panel(Designer *app)
+static Panel *i_forms_box(Designer *app)
 {
-    Panel *panel1 = panel_create();
-    Panel *panel2 = i_widgets_panel(app);
-    Layout *layout1 = layout_create(1, 5);
-    Label *label1 = label_create();
-    Label *label2 = label_create();
-    ListBox *list1 = listbox_create();
+    Panel *panel = panel_create();
+    Layout *layout = layout_create(1, 2);
+    Label *label = label_create();
+    ListBox *list = listbox_create();
     cassert_no_null(app);
-    label_text(label1, "Forms");
-    label_text(label2, "Widgets");
-    listbox_size(list1, s2df(150, 100));
-    listbox_OnSelect(list1, listener(app, i_OnFormSelect, Designer));
-    layout_label(layout1, label1, 0, 0);
-    layout_label(layout1, label2, 0, 2);
-    layout_listbox(layout1, list1, 0, 1);
-    layout_panel(layout1, panel2, 0, 3);
-    layout_valign(layout1, 0, 3, ekTOP);
-    layout_vmargin(layout1, 1, 5);
-    layout_vmargin(layout1, 2, 5);
-    layout_vexpand2(layout1, 1, 4, .75f);
-    panel_layout(panel1, layout1);
-    app->form_list = list1;
-    app->widgets_cell = layout_cell(layout1, 0, 3);
-    return panel1;
+    label_text(label, "Forms");
+    listbox_size(list, s2df(150, 100));
+    listbox_OnSelect(list, listener(app, i_OnFormSelect, Designer));
+    layout_label(layout, label, 0, 0);
+    layout_listbox(layout, list, 0, 1);
+    layout_vmargin(layout, 0, 5);
+    layout_vexpand(layout, 1);
+    panel_layout(panel, layout);
+    app->form_list = list;
+    return panel;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static SplitView *i_left_split(Designer *app)
+{
+    SplitView *split = splitview_vertical();
+    Panel *panel1 = i_forms_box(app);
+    Panel *panel2 = i_widgets_box(app);
+    cassert_no_null(app);
+    splitview_panel(split, panel1);
+    splitview_panel(split, panel2);
+    splitview_mode(split, ekSPLIT_FIXED0);
+    splitview_minsize0(split, 100);
+    splitview_minsize1(split, 100);
+    splitview_pos(split, ekSPLIT_FIXED0, 150);
+    return split;
+
+
+
+    //SplitView *split = splitview_vertical();
+    //View *view1 = view_create();
+    //View *view2 = view_create();
+    //cassert_no_null(app);
+    //splitview_view(split, view1, FALSE);
+    //splitview_view(split, view2, FALSE);
+    //splitview_mode(split, ekSPLIT_FIXED0);
+    //splitview_minsize0(split, 100);
+    //splitview_minsize1(split, 100);
+    //splitview_pos(split, ekSPLIT_FIXED0, 150);
+    //return split;
+
 }
 
 /*---------------------------------------------------------------------------*/
@@ -747,10 +789,10 @@ static SplitView *i_middle_view(Designer *app)
 {
     SplitView *split1 = splitview_vertical();
     SplitView *split2 = splitview_vertical();
-    Panel *panel1 = i_left_panel(app);
+    SplitView *split3 = i_left_split(app);
     Panel *panel2 = i_right_panel(app);
     View *view = i_canvas_view(app);
-    splitview_panel(split1, panel1);
+    splitview_split(split1, split3);
     splitview_view(split2, view, FALSE);
     splitview_panel(split2, panel2);
     splitview_split(split1, split2);
