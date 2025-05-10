@@ -528,9 +528,11 @@ static Layout *i_tools_layout(Designer *app)
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_widgets_layout(Designer *app)
+static Panel *i_widgets_panel(Designer *app)
 {
-    Layout *layout = layout_create(1, 13);
+    Panel *panel = panel_custom(FALSE, TRUE, FALSE);
+    Layout *layout1 = layout_create(1, 1);
+    Layout *layout2 = layout_create(1, 13);
     Button *radio1 = button_radio();
     Button *radio2 = button_radio();
     Button *radio3 = button_radio();
@@ -544,6 +546,7 @@ static Layout *i_widgets_layout(Designer *app)
     Button *radio11 = button_radio();
     Button *radio12 = button_radio();
     Button *radio13 = button_radio();
+    cassert_no_null(app);
     button_text(radio1, "Select");
     button_text(radio2, "Grid layout");
     button_text(radio3, "Label");
@@ -557,33 +560,37 @@ static Layout *i_widgets_layout(Designer *app)
     button_text(radio11, "PopUp");
     button_text(radio12, "ListBox");
     button_text(radio13, "TableView");
-    layout_button(layout, radio1, 0, 0);
-    layout_button(layout, radio2, 0, 1);
-    layout_button(layout, radio3, 0, 2);
-    layout_button(layout, radio4, 0, 3);
-    layout_button(layout, radio5, 0, 4);
-    layout_button(layout, radio6, 0, 5);
-    layout_button(layout, radio7, 0, 6);
-    layout_button(layout, radio8, 0, 7);
-    layout_button(layout, radio9, 0, 8);
-    layout_button(layout, radio10, 0, 9);
-    layout_button(layout, radio11, 0, 10);
-    layout_button(layout, radio12, 0, 11);
-    layout_button(layout, radio13, 0, 12);
-    layout_vmargin(layout, 0, 5);
-    layout_vmargin(layout, 1, 5);
-    layout_vmargin(layout, 2, 5);
-    layout_vmargin(layout, 3, 5);
-    layout_vmargin(layout, 4, 5);
-    layout_vmargin(layout, 5, 5);
-    layout_vmargin(layout, 6, 5);
-    layout_vmargin(layout, 7, 5);
-    layout_vmargin(layout, 8, 5);
-    layout_vmargin(layout, 9, 5);
-    layout_vmargin(layout, 10, 5);
-    layout_vmargin(layout, 11, 5);
-    unref(app);
-    return layout;
+    layout_button(layout2, radio1, 0, 0);
+    layout_button(layout2, radio2, 0, 1);
+    layout_button(layout2, radio3, 0, 2);
+    layout_button(layout2, radio4, 0, 3);
+    layout_button(layout2, radio5, 0, 4);
+    layout_button(layout2, radio6, 0, 5);
+    layout_button(layout2, radio7, 0, 6);
+    layout_button(layout2, radio8, 0, 7);
+    layout_button(layout2, radio9, 0, 8);
+    layout_button(layout2, radio10, 0, 9);
+    layout_button(layout2, radio11, 0, 10);
+    layout_button(layout2, radio12, 0, 11);
+    layout_button(layout2, radio13, 0, 12);
+    layout_vmargin(layout2, 0, 5);
+    layout_vmargin(layout2, 1, 5);
+    layout_vmargin(layout2, 2, 5);
+    layout_vmargin(layout2, 3, 5);
+    layout_vmargin(layout2, 4, 5);
+    layout_vmargin(layout2, 5, 5);
+    layout_vmargin(layout2, 6, 5);
+    layout_vmargin(layout2, 7, 5);
+    layout_vmargin(layout2, 8, 5);
+    layout_vmargin(layout2, 9, 5);
+    layout_vmargin(layout2, 10, 5);
+    layout_vmargin(layout2, 11, 5);
+    layout_layout(layout1, layout2, 0, 0);
+    panel_layout(panel, layout1);
+    panel_size(panel, s2df(-1, 200));
+    cell_dbind(layout_cell(layout1, 0, 0), Designer, widget_t, swidget);
+    app->widgets_layout = layout2;
+    return panel;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -601,9 +608,9 @@ static void i_OnFormSelect(Designer *app, Event *e)
 
 static Panel *i_left_panel(Designer *app)
 {
-    Panel *panel = panel_create();
+    Panel *panel1 = panel_create();
+    Panel *panel2 = i_widgets_panel(app);
     Layout *layout1 = layout_create(1, 5);
-    Layout *layout2 = i_widgets_layout(app);
     Label *label1 = label_create();
     Label *label2 = label_create();
     ListBox *list1 = listbox_create();
@@ -615,17 +622,15 @@ static Panel *i_left_panel(Designer *app)
     layout_label(layout1, label1, 0, 0);
     layout_label(layout1, label2, 0, 2);
     layout_listbox(layout1, list1, 0, 1);
-    layout_layout(layout1, layout2, 0, 3);
+    layout_panel(layout1, panel2, 0, 3);
     layout_valign(layout1, 0, 3, ekTOP);
     layout_vmargin(layout1, 1, 5);
     layout_vmargin(layout1, 2, 5);
     layout_vexpand2(layout1, 1, 4, .75f);
-    cell_dbind(layout_cell(layout1, 0, 3), Designer, widget_t, swidget);
-    panel_layout(panel, layout1);
+    panel_layout(panel1, layout1);
     app->form_list = list1;
     app->widgets_cell = layout_cell(layout1, 0, 3);
-    app->widgets_layout = layout2;
-    return panel;
+    return panel1;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -751,9 +756,11 @@ static SplitView *i_middle_view(Designer *app)
     splitview_split(split1, split2);
     splitview_mode(split1, ekSPLIT_FIXED0);
     splitview_mode(split2, ekSPLIT_FIXED1);
+    splitview_pos(split1, ekSPLIT_FIXED0, 200);
+    splitview_pos(split2, ekSPLIT_FIXED1, 200);
     splitview_minsize0(split1, 150);
     splitview_minsize0(split2, 50);
-    splitview_minsize1(split2, 200);
+    splitview_minsize1(split2, 150);
     return split1;
 }
 
