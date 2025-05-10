@@ -35,6 +35,7 @@ struct _desiger_t
 {
     Window *window;
     Config config;
+    Menu *menu;
     ArrPt(DForm) *forms;
     ListBox *form_list;
     Label *status_label;
@@ -914,6 +915,40 @@ static void i_OnHotKey(Designer *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static Menu *i_view_menu(Designer *app)
+{
+    Menu *menu = menu_create();
+    MenuItem *item1 = menuitem_create();
+    MenuItem *item2 = menuitem_create();
+    MenuItem *item3 = menuitem_create();
+    MenuItem *item4 = menuitem_create();
+    cassert_no_null(app);
+    menuitem_text(item1, "Forms box");
+    menuitem_text(item2, "Widgets box");
+    menuitem_text(item3, "Object inspector");
+    menuitem_text(item4, "Property editor");
+    menu_add_item(menu, item1);
+    menu_add_item(menu, item2);
+    menu_add_item(menu, item3);
+    menu_add_item(menu, item4);
+    return menu;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Menu *i_menu(Designer *app)
+{
+    Menu *menu = menu_create();
+    Menu *submenu1 = i_view_menu(app);
+    MenuItem *item1 = menuitem_create();
+    menuitem_text(item1, "View");
+    menuitem_submenu(item1, &submenu1);
+    menu_add_item(menu, item1);
+    return menu;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_update_config(Designer *app)
 {
     V2Df pos;
@@ -1085,12 +1120,14 @@ static Designer *i_create(void)
     Designer *app = i_app();
     Panel *panel = i_panel(app);
     app->window = window_create(ekWINDOW_STDRES);
+    app->menu = i_menu(app);
     window_panel(app->window, panel);
     window_title(app->window, "GTNAP Designer");
     window_origin(app->window, v2df(500, 200));
     window_OnClose(app->window, listener(app, i_OnClose, Designer));
     window_hotkey(app->window, ekKEY_SUPR, 0, listener(app, i_OnHotKey, Designer));
     window_show(app->window);
+    osapp_menubar(app->menu, app->window);
     i_apply_config(app);
     layout_dbind(app->widgets_layout, NULL, Designer);
     layout_dbind_obj(app->widgets_layout, app, Designer);
@@ -1108,6 +1145,7 @@ static void i_destroy(Designer **app)
     image_destroy(&(*app)->add_icon);
     font_destroy(&(*app)->default_font);
     arrpt_destroy(&(*app)->forms, i_destroy_form_opt, DForm);
+    menu_destroy(&(*app)->menu);
     window_destroy(&(*app)->window);
     nflib_finish();
     heap_delete(app, Designer);
