@@ -585,6 +585,7 @@ static Panel *i_widgets_panel(Designer *app)
     layout_vmargin(layout2, 9, 5);
     layout_vmargin(layout2, 10, 5);
     layout_vmargin(layout2, 11, 5);
+    layout_valign(layout1, 0, 0, ekTOP);
     layout_layout(layout1, layout2, 0, 0);
     panel_layout(panel, layout1);
     panel_size(panel, s2df(-1, 200));
@@ -647,7 +648,7 @@ static Panel *i_forms_box(Designer *app)
 
 static SplitView *i_left_split(Designer *app)
 {
-    SplitView *split = splitview_vertical();
+    SplitView *split = splitview_horizontal();
     Panel *panel1 = i_forms_box(app);
     Panel *panel2 = i_widgets_box(app);
     cassert_no_null(app);

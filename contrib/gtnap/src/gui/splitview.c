@@ -71,7 +71,6 @@ static real32_t i_convert_clamp_divpos(const split_mode_t from_mode, const split
             return bmath_clampf(bmath_ceilf((1 - divpos) * size), 0, size);
             cassert_default();
         }
-        break;
 
     case ekSPLIT_FIXED0:
     {
@@ -86,7 +85,6 @@ static real32_t i_convert_clamp_divpos(const split_mode_t from_mode, const split
             return size - pos;
             cassert_default();
         }
-        break;
     }
 
     case ekSPLIT_FIXED1:
@@ -102,7 +100,6 @@ static real32_t i_convert_clamp_divpos(const split_mode_t from_mode, const split
             return pos;
             cassert_default();
         }
-        break;
     }
 
         cassert_default();
@@ -299,7 +296,7 @@ static real32_t i_frames(SplitView *split, const S2Df *size, R2Df *rect0, R2Df *
         {
             real32_t divider_y = i_divpos_to_px(split, size->height);
             real32_t total_height = size->height;
-            i_adjust_minimum(min_r32(split->minsize0, split->mindrag0), min_r32(split->minsize1, split->mindrag1), &divider_y, &total_height, can_expand);
+            i_adjust_minimum(max_r32(split->minsize0, split->mindrag0), max_r32(split->minsize1, split->mindrag1), &divider_y, &total_height, can_expand);
             rect0->pos = kV2D_ZEROf;
             rect0->size.width = size->width;
             rect0->size.height = divider_y;
@@ -420,7 +417,7 @@ static void i_recompute_children(SplitView *split)
         /* Any of the children may not accept the new dimensions. */
         if (split_get_type(split->flags) == ekSPLIT_HORZ)
         {
-            real32_t height = rect0.size.height + rect1.size.width;
+            real32_t height = rect0.size.height + rect1.size.height;
             real32_t nheight = size0.height + size1.height;
 
             /* The divider constraint cannot be met */
