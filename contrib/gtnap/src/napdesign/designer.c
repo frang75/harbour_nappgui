@@ -60,6 +60,10 @@ struct _desiger_t
 /*---------------------------------------------------------------------------*/
 
 static const uint16_t i_CONFIG_VERS = 0;
+static const split_mode_t i_SPLIT1_MODE = ekSPLIT_FIXED0;
+static const split_mode_t i_SPLIT2_MODE = ekSPLIT_FIXED0;
+static const split_mode_t i_SPLIT3_MODE = ekSPLIT_FIXED1;
+static const split_mode_t i_SPLIT4_MODE = ekSPLIT_FIXED0;
 static const char_t *i_FILE_EXT = "nfm";
 static const char_t *i_SAVE_MARK = "• ";
 DeclPt(DForm);
@@ -808,10 +812,10 @@ static SplitView *i_middle_view(Designer *app)
     splitview_split(split3, split4);
     splitview_panel(split4, panel3);
     splitview_panel(split4, panel4);
-    splitview_mode(split1, ekSPLIT_FIXED0);
-    splitview_mode(split2, ekSPLIT_FIXED0);
-    splitview_mode(split3, ekSPLIT_FIXED1);
-    splitview_mode(split4, ekSPLIT_FIXED0);    
+    splitview_mode(split1, i_SPLIT1_MODE);
+    splitview_mode(split2, i_SPLIT2_MODE);
+    splitview_mode(split3, i_SPLIT3_MODE);
+    splitview_mode(split4, i_SPLIT4_MODE);    
     splitview_minsize0(split1, 100);
     splitview_minsize0(split2, 100);
     splitview_minsize1(split2, 100);
@@ -908,16 +912,43 @@ static void i_OnHotKey(Designer *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_save_config(const Designer *app)
+static void i_update_config(Designer *app)
+{
+    S2Df size;
+    cassert_no_null(app);
+    size = window_get_size(app->window);
+    app->config.wwidth = size.width;
+    app->config.wheight = size.height;
+    app->config.split1_pos = splitview_get_pos(app->split1, i_SPLIT1_MODE);
+    app->config.split2_pos = splitview_get_pos(app->split2, i_SPLIT2_MODE);
+    app->config.split3_pos = splitview_get_pos(app->split3, i_SPLIT3_MODE);
+    app->config.split4_pos = splitview_get_pos(app->split4, i_SPLIT4_MODE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_save_config(const Config *config)
 {
     String *cfile = hfile_appdata("config.bin");
     Stream *stm = stm_to_file(tc(cfile), NULL);
-    cassert_no_null(app);
+    cassert_no_null(config);
+    
     if (stm != NULL)
     {
-        stm_write_enum(stm, app->config.swidget, widget_t);
-        str_write(stm, app->config.folder_path);
-        stm_write_u32(stm, app->config.sel_form);
+        stm_write_u16(stm, i_CONFIG_VERS);
+        str_write(stm, config->folder_path);
+        stm_write_u32(stm, config->sel_form);
+        stm_write_enum(stm, config->swidget, widget_t);
+        stm_write_r32(stm, config->wwidth);
+        stm_write_r32(stm, config->wheight);
+        stm_write_r32(stm, config->split1_pos);
+        stm_write_r32(stm, config->split2_pos);
+        stm_write_r32(stm, config->split3_pos);
+        stm_write_r32(stm, config->split4_pos);
+        stm_write_bool(stm, config->show_forms);
+        stm_write_bool(stm, config->show_widgets);
+        stm_write_bool(stm, config->show_inspect);
+        stm_write_bool(stm, config->show_propedt);
         stm_close(&stm);
     }
 
@@ -999,10 +1030,10 @@ static void i_apply_config(Designer *app)
 {
     cassert_no_null(app);
     window_size(app->window, s2df(app->config.wwidth, app->config.wheight));
-    splitview_pos(app->split1, ekSPLIT_FIXED0, app->config.split1_pos);
-    splitview_pos(app->split2, ekSPLIT_FIXED0, app->config.split2_pos);
-    splitview_pos(app->split3, ekSPLIT_FIXED1, app->config.split3_pos);
-    splitview_pos(app->split4, ekSPLIT_FIXED0, app->config.split4_pos);
+    splitview_pos(app->split1, i_SPLIT1_MODE, app->config.split1_pos);
+    splitview_pos(app->split2, i_SPLIT2_MODE, app->config.split2_pos);
+    splitview_pos(app->split3, i_SPLIT3_MODE, app->config.split3_pos);
+    splitview_pos(app->split4, i_SPLIT4_MODE, app->config.split4_pos);
     window_update(app->window);
 }
 
@@ -1010,7 +1041,8 @@ static void i_apply_config(Designer *app)
 
 static void i_OnClose(Designer *app, Event *e)
 {
-    i_save_config(app);
+    i_update_config(app);
+    i_save_config(&app->config);
     osapp_finish();
     unref(e);
 }

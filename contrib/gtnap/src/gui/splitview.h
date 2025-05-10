@@ -33,6 +33,8 @@ _gui_api void splitview_mode(SplitView *split, const split_mode_t mode);
 
 _gui_api void splitview_pos(SplitView *split, const split_mode_t mode, const real32_t pos);
 
+_gui_api real32_t splitview_get_pos(const SplitView *split, const split_mode_t mode);
+
 _gui_api void splitview_visible0(SplitView *split, const bool_t visible);
 
 _gui_api void splitview_visible1(SplitView *split, const bool_t visible);

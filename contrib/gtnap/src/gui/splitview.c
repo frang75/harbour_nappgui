@@ -621,6 +621,19 @@ void splitview_pos(SplitView *split, const split_mode_t mode, const real32_t pos
 
 /*---------------------------------------------------------------------------*/
 
+real32_t splitview_get_pos(const SplitView *split, const split_mode_t mode)
+{
+    real32_t size = 0;
+    cassert_no_null(split);
+    if (split_get_type(split->flags) == ekSPLIT_HORZ)
+        size = split->current_size.height;
+    else
+        size = split->current_size.width;
+    return i_convert_clamp_divpos(split->pos_mode, mode, split->div_pos, size);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void splitview_visible0(SplitView *split, const bool_t visible)
 {
     cassert_no_null(split);
