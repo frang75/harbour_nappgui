@@ -995,6 +995,19 @@ static void i_load_config(Config *config)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_apply_config(Designer *app)
+{
+    cassert_no_null(app);
+    window_size(app->window, s2df(app->config.wwidth, app->config.wheight));
+    splitview_pos(app->split1, ekSPLIT_FIXED0, app->config.split1_pos);
+    splitview_pos(app->split2, ekSPLIT_FIXED0, app->config.split2_pos);
+    splitview_pos(app->split3, ekSPLIT_FIXED1, app->config.split3_pos);
+    splitview_pos(app->split4, ekSPLIT_FIXED0, app->config.split4_pos);
+    window_update(app->window);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnClose(Designer *app, Event *e)
 {
     i_save_config(app);
@@ -1033,6 +1046,7 @@ static Designer *i_create(void)
     window_OnClose(app->window, listener(app, i_OnClose, Designer));
     window_hotkey(app->window, ekKEY_SUPR, 0, listener(app, i_OnHotKey, Designer));
     window_show(app->window);
+    i_apply_config(app);
     layout_dbind(app->widgets_layout, NULL, Designer);
     layout_dbind_obj(app->widgets_layout, app, Designer);
     i_init_forms(app, tc(app->config.folder_path));
@@ -1045,7 +1059,7 @@ static void i_destroy(Designer **app)
 {
     cassert_no_null(app);
     cassert_no_null(*app);
-    str_destroy(&(*app)->config.folder_path);
+    i_remove_config(&(*app)->config);
     image_destroy(&(*app)->add_icon);
     font_destroy(&(*app)->default_font);
     arrpt_destroy(&(*app)->forms, i_destroy_form_opt, DForm);
