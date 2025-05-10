@@ -27,8 +27,8 @@ struct _config_t
     real32_t split4_pos;
     bool_t show_forms;
     bool_t show_widgets;
-    bool_t show_inspect;
-    bool_t show_propedt;
+    bool_t show_inspectr;
+    bool_t show_propedit;
 };
 
 struct _desiger_t
@@ -56,6 +56,10 @@ struct _desiger_t
     SplitView *split2;
     SplitView *split3;
     SplitView *split4;
+    MenuItem *show_forms;
+    MenuItem *show_widgets;
+    MenuItem *show_inspectr;
+    MenuItem *show_propedit;
     Image *add_icon;
     Font *default_font;
 };
@@ -915,6 +919,100 @@ static void i_OnHotKey(Designer *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static gui_state_t i_bool_state(const bool_t state)
+{
+    if (state == TRUE)
+        return ekGUI_ON;
+    else 
+        return ekGUI_OFF;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_swap_item(bool_t *value, MenuItem *item)
+{
+    cassert_no_null(value);
+    *value = !*value;
+    menuitem_state(item, i_bool_state(*value));
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_save_splits(Designer *app)
+{
+    cassert_no_null(app);
+    if (app->config.show_forms == TRUE && app->config.show_widgets == TRUE)
+        app->config.split2_pos = splitview_get_pos(app->split2, i_SPLIT2_MODE);
+    if (app->config.show_forms == TRUE || app->config.show_widgets == TRUE)
+        app->config.split1_pos = splitview_get_pos(app->split1, i_SPLIT1_MODE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_restore_splits(Designer *app)
+{
+    cassert_no_null(app);
+    if (app->config.show_forms == TRUE || app->config.show_widgets == TRUE)
+    {
+        splitview_visible0(app->split1, TRUE);
+        splitview_pos(app->split1, i_SPLIT1_MODE, app->config.split1_pos);
+    }
+    else
+    {
+        splitview_visible0(app->split1, FALSE);
+    }
+
+    splitview_visible0(app->split2, app->config.show_forms);
+    splitview_visible1(app->split2, app->config.show_widgets);
+
+    if (app->config.show_forms == TRUE && app->config.show_widgets == TRUE)
+        splitview_pos(app->split2, i_SPLIT2_MODE, app->config.split2_pos);        
+
+    window_update(app->window);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnShowForms(Designer *app, Event *e)
+{
+    cassert_no_null(app);
+    unref(e);
+    i_save_splits(app);    
+    i_swap_item(&app->config.show_forms, app->show_forms);
+    i_restore_splits(app);    
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnShowWidgets(Designer *app, Event *e)
+{
+    cassert_no_null(app);
+    unref(e);
+    i_save_splits(app);        
+    i_swap_item(&app->config.show_widgets, app->show_widgets);
+    i_restore_splits(app);        
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnShowInspectr(Designer *app, Event *e)
+{
+    cassert_no_null(app);
+    unref(e);
+    i_swap_item(&app->config.show_inspectr, app->show_inspectr);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnShowPropEdit(Designer *app, Event *e)
+{
+    cassert_no_null(app);
+    unref(e);
+    i_swap_item(&app->config.show_propedit, app->show_propedit);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Menu *i_view_menu(Designer *app)
 {
     Menu *menu = menu_create();
@@ -927,10 +1025,18 @@ static Menu *i_view_menu(Designer *app)
     menuitem_text(item2, "Widgets box");
     menuitem_text(item3, "Object inspector");
     menuitem_text(item4, "Property editor");
+    menuitem_OnClick(item1, listener(app, i_OnShowForms, Designer));
+    menuitem_OnClick(item2, listener(app, i_OnShowWidgets, Designer));
+    menuitem_OnClick(item3, listener(app, i_OnShowInspectr, Designer));
+    menuitem_OnClick(item4, listener(app, i_OnShowPropEdit, Designer));
     menu_add_item(menu, item1);
     menu_add_item(menu, item2);
     menu_add_item(menu, item3);
     menu_add_item(menu, item4);
+    app->show_forms = item1;
+    app->show_widgets = item2;
+    app->show_inspectr = item3;
+    app->show_propedit = item4;
     return menu;
 }
 
@@ -990,8 +1096,8 @@ static void i_save_config(const Config *config)
         stm_write_r32(stm, config->split4_pos);
         stm_write_bool(stm, config->show_forms);
         stm_write_bool(stm, config->show_widgets);
-        stm_write_bool(stm, config->show_inspect);
-        stm_write_bool(stm, config->show_propedt);
+        stm_write_bool(stm, config->show_inspectr);
+        stm_write_bool(stm, config->show_propedit);
         stm_close(&stm);
     }
 
@@ -1026,8 +1132,8 @@ static void i_default_config(Config *config)
     config->split4_pos = 200;
     config->show_forms = TRUE;
     config->show_widgets = TRUE;
-    config->show_inspect = TRUE;
-    config->show_propedt = TRUE;
+    config->show_inspectr = TRUE;
+    config->show_propedit = TRUE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1057,8 +1163,8 @@ static void i_load_config(Config *config)
             config->split4_pos = stm_read_r32(stm);
             config->show_forms = stm_read_bool(stm);
             config->show_widgets = stm_read_bool(stm);
-            config->show_inspect = stm_read_bool(stm);
-            config->show_propedt = stm_read_bool(stm);
+            config->show_inspectr = stm_read_bool(stm);
+            config->show_propedit = stm_read_bool(stm);
             ok = stm_state(stm) == ekSTOK;
         }
 
@@ -1082,6 +1188,10 @@ static void i_apply_config(Designer *app)
     splitview_pos(app->split2, i_SPLIT2_MODE, app->config.split2_pos);
     splitview_pos(app->split3, i_SPLIT3_MODE, app->config.split3_pos);
     splitview_pos(app->split4, i_SPLIT4_MODE, app->config.split4_pos);
+    menuitem_state(app->show_forms, i_bool_state(app->config.show_forms));
+    menuitem_state(app->show_widgets, i_bool_state(app->config.show_widgets));
+    menuitem_state(app->show_inspectr, i_bool_state(app->config.show_inspectr));
+    menuitem_state(app->show_propedit, i_bool_state(app->config.show_propedit));
     window_update(app->window);
 }
 

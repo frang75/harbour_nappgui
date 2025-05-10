@@ -438,7 +438,8 @@ static void i_recompute_children(SplitView *split)
             /* Constraint can be met */
             else
             {
-                split->div_pos = i_convert_clamp_divpos(ekSPLIT_FIXED0, split->divider_mode, divpos_px, height);
+                if (nheight > 0)
+                    split->div_pos = i_convert_clamp_divpos(ekSPLIT_FIXED0, split->divider_mode, divpos_px, height);
                 recompute = FALSE;
             }
         }
@@ -465,7 +466,8 @@ static void i_recompute_children(SplitView *split)
             /* Constraint can be met */
             else
             {
-                split->div_pos = i_convert_clamp_divpos(ekSPLIT_FIXED0, split->divider_mode, divpos_px, width);
+                if (nwidth > 0)
+                    split->div_pos = i_convert_clamp_divpos(ekSPLIT_FIXED0, split->divider_mode, divpos_px, width);
                 recompute = FALSE;
             }
         }
@@ -638,14 +640,7 @@ void splitview_visible0(SplitView *split, const bool_t visible)
 {
     cassert_no_null(split);
     if (split->child0_visible != visible)
-    {
         split->child0_visible = visible;
-        if (split->current_size.width > 0 && split->current_size.height > 0)
-        {
-            i_recompute_children(split);
-            i_recompute_rect_track(split);
-        }
-    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -654,14 +649,7 @@ void splitview_visible1(SplitView *split, const bool_t visible)
 {
     cassert_no_null(split);
     if (split->child1_visible != visible)
-    {
         split->child1_visible = visible;
-        if (split->current_size.width > 0 && split->current_size.height > 0)
-        {
-            i_recompute_children(split);
-            i_recompute_rect_track(split);
-        }
-    }
 }
 
 /*---------------------------------------------------------------------------*/
