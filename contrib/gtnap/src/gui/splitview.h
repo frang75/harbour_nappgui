@@ -29,6 +29,16 @@ _gui_api void splitview_split(SplitView *split, SplitView *child);
 
 _gui_api void splitview_panel(SplitView *split, Panel *panel);
 
-_gui_api void splitview_pos(SplitView *split, const real32_t pos);
+_gui_api void splitview_mode(SplitView *split, const split_mode_t mode);
+
+_gui_api void splitview_pos(SplitView *split, const split_mode_t mode, const real32_t pos);
+
+_gui_api void splitview_visible0(SplitView *split, const bool_t visible);
+
+_gui_api void splitview_visible1(SplitView *split, const bool_t visible);
+
+_gui_api void splitview_minsize0(SplitView *split, const real32_t size);
+
+_gui_api void splitview_minsize1(SplitView *split, const real32_t size);
 
 __END_C

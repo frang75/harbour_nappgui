@@ -44,7 +44,7 @@
 #include <sewer/ptr.h>
 
 #define LAYOUT_DEBUGGING
-//#undef LAYOUT_DEBUGGING
+#undef LAYOUT_DEBUGGING
 
 typedef struct i_line_dim_t i_LineDim;
 typedef struct i_cell_dim_t i_CellDim;
@@ -1953,19 +1953,11 @@ void _layout_compose(Layout *layout, const S2Df *required_size, S2Df *final_size
     real32_t natural_width = 0, natural_height = 0;
     cassert_no_null(layout);
     cassert_no_null(final_size);
-
     _layout_natural(layout, 0, &natural_width, &natural_height);
-    if (required_size != NULL)
-        _layout_expand(layout, 0, natural_width, required_size->width, &final_size->width);
-    else
-        final_size->width = natural_width;
-
+    _layout_expand(layout, 0, natural_width, required_size != NULL ? required_size->width : natural_width, &final_size->width);
     cassert(natural_height == 0);
     _layout_natural(layout, 1, &natural_width, &natural_height);
-    if (required_size != NULL)
-        _layout_expand(layout, 1, natural_height, required_size->height, &final_size->height);
-    else
-        final_size->height = natural_height;
+    _layout_expand(layout, 1, natural_height, required_size != NULL ? required_size->height : natural_height, &final_size->height);
 }
 
 /*---------------------------------------------------------------------------*/
