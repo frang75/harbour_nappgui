@@ -50,7 +50,7 @@ struct _splitview_t
 };
 
 static const real32_t i_MIN_VISIBLE_SIZE = 5;
-static const real32_t i_DIVIDER_THICKNESS = 20;
+static const real32_t i_DIVIDER_THICKNESS = 10;
 
 /*---------------------------------------------------------------------------*/
 
@@ -71,6 +71,7 @@ static real32_t i_convert_clamp_divpos(const split_mode_t from_mode, const split
             return bmath_clampf(bmath_ceilf((1 - divpos) * size), 0, size);
             cassert_default();
         }
+        break;
 
     case ekSPLIT_FIXED0:
     {
@@ -85,6 +86,7 @@ static real32_t i_convert_clamp_divpos(const split_mode_t from_mode, const split
             return size - pos;
             cassert_default();
         }
+        break;
     }
 
     case ekSPLIT_FIXED1:
@@ -100,6 +102,7 @@ static real32_t i_convert_clamp_divpos(const split_mode_t from_mode, const split
             return pos;
             cassert_default();
         }
+        break;
     }
 
         cassert_default();
@@ -484,26 +487,22 @@ static void i_OnDrag(SplitView *split, Event *e)
     const EvMouse *params = event_params(e, EvMouse);
     if (event_type(e) == ekGUI_EVENT_DRAG)
     {
-        real32_t mouse_pos = 0, size = 0, st_pos = 0, npos = 0;
+        real32_t mouse_pos = 0, size = 0;
         cassert_no_null(split);
         cassert(params->button == ekGUI_MOUSE_LEFT);
         if (split_get_type(split->flags) == ekSPLIT_HORZ)
         {
             mouse_pos = params->y;
             size = split->current_size.height;
-            st_pos = params->ly;
         }
         else
         {
             mouse_pos = params->x;
             size = split->current_size.width;
-            st_pos = params->lx;
         }
 
         split->div_pos = i_convert_clamp_divpos(ekSPLIT_FIXED0, split->divider_mode, mouse_pos, size);
         i_recompute_children(split);
-        npos = i_convert_clamp_divpos(split->divider_mode, ekSPLIT_FIXED0, split->div_pos, size);
-        //bstd_printf("Drag. StPos: %g MousePos: %g NPos: %g\n", st_pos, mouse_pos, split->div_pos);
     }
     else
     {
@@ -791,7 +790,6 @@ void _splitview_OnResize(SplitView *split, const S2Df *size)
     cassert_no_null(size);
     i_recompute_children(split);
     i_recompute_rect_track(split);
-    //bstd_printf("OnResize %g\n", split->div_pos);
     cassert_unref(bmath_absf(size->width - split->current_size.width) < 1, size);
     cassert_unref(bmath_absf(size->height - split->current_size.height) < 1, size);
 }

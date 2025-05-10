@@ -599,8 +599,9 @@ static void i_OnFormSelect(Designer *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_left_layout(Designer *app)
+static Panel *i_left_panel(Designer *app)
 {
+    Panel *panel = panel_create();
     Layout *layout1 = layout_create(1, 5);
     Layout *layout2 = i_widgets_layout(app);
     Label *label1 = label_create();
@@ -620,16 +621,18 @@ static Layout *i_left_layout(Designer *app)
     layout_vmargin(layout1, 2, 5);
     layout_vexpand2(layout1, 1, 4, .75f);
     cell_dbind(layout_cell(layout1, 0, 3), Designer, widget_t, swidget);
+    panel_layout(panel, layout1);
     app->form_list = list1;
     app->widgets_cell = layout_cell(layout1, 0, 3);
     app->widgets_layout = layout2;
-    return layout1;
+    return panel;
 }
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_right_layout(Designer *app)
+static Panel *i_right_panel(Designer *app)
 {
+    Panel *panel = panel_create();
     Layout *layout = layout_create(1, 4);
     Label *label1 = label_create();
     Label *label2 = label_create();
@@ -648,9 +651,10 @@ static Layout *i_right_layout(Designer *app)
     layout_vmargin(layout, 2, 5);
     layout_vexpand(layout, 3);
     layout_vmargin(layout, 1, 5.f);
+    panel_layout(panel, layout);
     app->inspect = panel1;
     app->propedit = panel2;
-    return layout;
+    return panel;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -719,9 +723,8 @@ static void i_OnSize(Designer *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_canvas_layout(Designer *app)
+static View *i_canvas_view(Designer *app)
 {
-    Layout *layout = layout_create(1, 1);
     View *view = view_scroll();
     view_size(view, s2df(450, 200));
     view_OnDraw(view, listener(app, i_OnDraw, Designer));
@@ -729,31 +732,29 @@ static Layout *i_canvas_layout(Designer *app)
     view_OnExit(view, listener(app, i_OnExit, Designer));
     view_OnClick(view, listener(app, i_OnClick, Designer));
     view_OnSize(view, listener(app, i_OnSize, Designer));
-    layout_view(layout, view, 0, 0);
     app->canvas = view;
-    return layout;
+    return view;
 }
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_middle_layout(Designer *app)
+static SplitView *i_middle_view(Designer *app)
 {
-    Layout *layout1 = layout_create(3, 1);
-    Layout *layout2 = i_left_layout(app);
-    Layout *layout3 = i_canvas_layout(app);
-    Layout *layout4 = i_right_layout(app);
-    layout_layout(layout1, layout2, 0, 0);
-    layout_layout(layout1, layout3, 1, 0);
-    layout_layout(layout1, layout4, 2, 0);
-
-    /* A small horizontal margin between view cell and list (left) table (right) layouts */
-    layout_hmargin(layout1, 0, 3);
-    layout_hmargin(layout1, 1, 3);
-
-    /* All the horizontal expansion will be done in the middle cell (view)
-       list_layout (left) and table_layout (right) will preserve the 'natural' width */
-    layout_hexpand(layout1, 1);
-    return layout1;
+    SplitView *split1 = splitview_vertical();
+    SplitView *split2 = splitview_vertical();
+    Panel *panel1 = i_left_panel(app);
+    Panel *panel2 = i_right_panel(app);
+    View *view = i_canvas_view(app);
+    splitview_panel(split1, panel1);
+    splitview_view(split2, view, FALSE);
+    splitview_panel(split2, panel2);
+    splitview_split(split1, split2);
+    splitview_mode(split1, ekSPLIT_FIXED0);
+    splitview_mode(split2, ekSPLIT_FIXED1);
+    splitview_minsize0(split1, 150);
+    splitview_minsize0(split2, 50);
+    splitview_minsize1(split2, 200);
+    return split1;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -790,10 +791,10 @@ static Layout *i_main_layout(Designer *app)
 {
     Layout *layout1 = layout_create(1, 3);
     Layout *layout2 = i_tools_layout(app);
-    Layout *layout3 = i_middle_layout(app);
     Layout *layout4 = i_statusbar_layout(app);
+    SplitView *view = i_middle_view(app);
     layout_layout(layout1, layout2, 0, 0);
-    layout_layout(layout1, layout3, 0, 1);
+    layout_splitview(layout1, view, 0, 1);
     layout_layout(layout1, layout4, 0, 2);
     /*
      * All the vertical expansion will be done in the middle layout
