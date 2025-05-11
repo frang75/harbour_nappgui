@@ -62,6 +62,9 @@ struct _desiger_t
     MenuItem *show_propedit;
     Image *add_icon;
     Font *default_font;
+    bool_t dragging;
+    V2Df drag_mouse;
+    V2Df drag_form;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -737,14 +740,49 @@ static void i_OnDraw(Designer *app, Event *e)
 
 static void i_OnMove(Designer *app, Event *e)
 {
-    const EvMouse *p = event_params(e, EvMouse);
     cassert_no_null(app);
     if (app->config.sel_form != UINT32_MAX)
     {
+        const EvMouse *p = event_params(e, EvMouse);
         DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
         if (dform_OnMove(form, p->x, p->y) == TRUE)
             view_update(app->canvas);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnDrag(Designer *app, Event *e)
+{
+    cassert_no_null(app);
+    if (app->config.sel_form != UINT32_MAX)
+    {
+        const EvMouse *p = event_params(e, EvMouse);
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
+        if (app->dragging == FALSE)
+        {
+            app->drag_mouse = v2df(p->x, p->y);
+            app->drag_form = dform_get_origin(form);
+            app->dragging = TRUE;
+        }
+        else
+        {
+            V2Df origin;
+            origin.x = app->drag_form.x + (p->x - app->drag_mouse.x);
+            origin.y = app->drag_form.y + (p->y - app->drag_mouse.y);
+            dform_origin(form, origin);
+            view_update(app->canvas);
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnUp(Designer *app, Event *e)
+{
+    cassert_no_null(app);
+    unref(e);
+    app->dragging = FALSE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -791,6 +829,8 @@ static View *i_canvas_view(Designer *app)
     view_size(view, s2df(450, 200));
     view_OnDraw(view, listener(app, i_OnDraw, Designer));
     view_OnMove(view, listener(app, i_OnMove, Designer));
+    view_OnDrag(view, listener(app, i_OnDrag, Designer));
+    view_OnUp(view, listener(app, i_OnUp, Designer));
     view_OnExit(view, listener(app, i_OnExit, Designer));
     view_OnClick(view, listener(app, i_OnClick, Designer));
     view_OnSize(view, listener(app, i_OnSize, Designer));

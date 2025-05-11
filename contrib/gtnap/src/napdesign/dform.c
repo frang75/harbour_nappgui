@@ -43,6 +43,7 @@ struct _dform_t
     FLayout *flayout;
     Layout *glayout;
     Window *window;
+    V2Df origin;
     DSelect hover;
     DSelect sel;
     ArrSt(DSelect) *temp_path;
@@ -222,7 +223,7 @@ void dform_compose(DForm *form)
     }
 
     window_update(form->window);
-    dlayout_synchro_visual(form->dlayout, form->glayout, kV2D_ZEROf);
+    dlayout_synchro_visual(form->dlayout, form->glayout, form->origin);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -807,6 +808,23 @@ bool_t dform_OnSupr(DForm *form, Panel *inspect, Panel *propedit)
     }
 
     return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+V2Df dform_get_origin(const DForm *form)
+{
+    cassert_no_null(form);
+    return form->origin;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dform_origin(DForm *form, const V2Df origin)
+{
+    cassert_no_null(form);
+    form->origin = origin;
+    dlayout_synchro_visual(form->dlayout, form->glayout, form->origin);
 }
 
 /*---------------------------------------------------------------------------*/
