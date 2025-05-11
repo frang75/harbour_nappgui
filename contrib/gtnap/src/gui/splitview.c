@@ -138,7 +138,7 @@ static real32_t i_divpos_to_px(SplitView *split, const real32_t size)
 
 /*---------------------------------------------------------------------------*/
 
-static bool_t i_child0_displayed(SplitView *split)
+static bool_t i_child0_displayed(const SplitView *split)
 {
     cassert_no_null(split);
     if (split->child0 == NULL)
@@ -152,7 +152,7 @@ static bool_t i_child0_displayed(SplitView *split)
 
 /*---------------------------------------------------------------------------*/
 
-static bool_t i_child1_displayed(SplitView *split)
+static bool_t i_child1_displayed(const SplitView *split)
 {
     cassert_no_null(split);
     if (split->child1 == NULL)
@@ -385,7 +385,7 @@ static void i_recompute_rect_track(SplitView *split)
 
 static void i_recompute_children(SplitView *split)
 {
-    R2Df rect0, rect1;
+    R2Df rect0 = kR2D_ZEROf, rect1 = kR2D_ZEROf;
     bool_t recompute = TRUE;
     cassert_no_null(split);
 
@@ -473,8 +473,12 @@ static void i_recompute_children(SplitView *split)
         }
     }
 
-    _component_locate(split->child0);
-    _component_locate(split->child1);
+    if (rect0.size.width > 0 && rect0.size.height > 0)
+        _component_locate(split->child0);
+
+    if (rect1.size.width > 0 && rect1.size.height > 0)
+        _component_locate(split->child1);
+        
     i_resize_child(&rect0, split->child0);
     i_resize_child(&rect1, split->child1);
 }
@@ -822,8 +826,10 @@ static void i_accum_child_panels(const GuiComponent *component, uint32_t *num_pa
 static void i_accum_panels(const SplitView *split, uint32_t *num_panels, Panel **panels)
 {
     cassert_no_null(split);
-    i_accum_child_panels(split->child0, num_panels, panels);
-    i_accum_child_panels(split->child1, num_panels, panels);
+    if (i_child0_displayed(split) == TRUE)
+        i_accum_child_panels(split->child0, num_panels, panels);
+    if (i_child1_displayed(split) == TRUE)
+        i_accum_child_panels(split->child1, num_panels, panels);
 }
 
 /*---------------------------------------------------------------------------*/

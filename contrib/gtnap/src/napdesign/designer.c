@@ -929,15 +929,7 @@ static gui_state_t i_bool_state(const bool_t state)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_swap_item(bool_t *value, MenuItem *item)
-{
-    cassert_no_null(value);
-    *value = !*value;
-    menuitem_state(item, i_bool_state(*value));
-}
-
-/*---------------------------------------------------------------------------*/
-
+/* TODO: Remove when splits cache the divpos on hide */
 static void i_save_splits(Designer *app)
 {
     cassert_no_null(app);
@@ -945,6 +937,10 @@ static void i_save_splits(Designer *app)
         app->config.split2_pos = splitview_get_pos(app->split2, i_SPLIT2_MODE);
     if (app->config.show_forms == TRUE || app->config.show_widgets == TRUE)
         app->config.split1_pos = splitview_get_pos(app->split1, i_SPLIT1_MODE);
+    if (app->config.show_inspectr == TRUE && app->config.show_propedit == TRUE)
+        app->config.split4_pos = splitview_get_pos(app->split4, i_SPLIT4_MODE);
+    if (app->config.show_inspectr == TRUE || app->config.show_propedit == TRUE)
+        app->config.split3_pos = splitview_get_pos(app->split3, i_SPLIT3_MODE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -968,7 +964,32 @@ static void i_restore_splits(Designer *app)
     if (app->config.show_forms == TRUE && app->config.show_widgets == TRUE)
         splitview_pos(app->split2, i_SPLIT2_MODE, app->config.split2_pos);        
 
-    window_update(app->window);
+    if (app->config.show_inspectr == TRUE || app->config.show_propedit == TRUE)
+    {
+        splitview_visible1(app->split3, TRUE);
+        splitview_pos(app->split3, i_SPLIT3_MODE, app->config.split3_pos);
+    }
+    else
+    {
+        splitview_visible1(app->split3, FALSE);
+    }
+
+    splitview_visible0(app->split4, app->config.show_inspectr);
+    splitview_visible1(app->split4, app->config.show_propedit);
+
+    if (app->config.show_inspectr == TRUE && app->config.show_propedit == TRUE)
+        splitview_pos(app->split4, i_SPLIT4_MODE, app->config.split4_pos);        
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_swap_show_item(Designer *app, bool_t *value, MenuItem *item)
+{
+    cassert_no_null(value);
+    i_save_splits(app);
+    *value = !*value;
+    menuitem_state(item, i_bool_state(*value));
+    i_restore_splits(app);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -977,9 +998,8 @@ static void i_OnShowForms(Designer *app, Event *e)
 {
     cassert_no_null(app);
     unref(e);
-    i_save_splits(app);    
-    i_swap_item(&app->config.show_forms, app->show_forms);
-    i_restore_splits(app);    
+    i_swap_show_item(app, &app->config.show_forms, app->show_forms);
+    window_update(app->window);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -988,9 +1008,8 @@ static void i_OnShowWidgets(Designer *app, Event *e)
 {
     cassert_no_null(app);
     unref(e);
-    i_save_splits(app);        
-    i_swap_item(&app->config.show_widgets, app->show_widgets);
-    i_restore_splits(app);        
+    i_swap_show_item(app, &app->config.show_widgets, app->show_widgets);
+    window_update(app->window);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -999,7 +1018,8 @@ static void i_OnShowInspectr(Designer *app, Event *e)
 {
     cassert_no_null(app);
     unref(e);
-    i_swap_item(&app->config.show_inspectr, app->show_inspectr);
+    i_swap_show_item(app, &app->config.show_inspectr, app->show_inspectr);
+    window_update(app->window);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1008,7 +1028,8 @@ static void i_OnShowPropEdit(Designer *app, Event *e)
 {
     cassert_no_null(app);
     unref(e);
-    i_swap_item(&app->config.show_propedit, app->show_propedit);
+    i_swap_show_item(app, &app->config.show_propedit, app->show_propedit);
+    window_update(app->window);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1184,10 +1205,7 @@ static void i_apply_config(Designer *app)
     cassert_no_null(app);
     window_origin(app->window, v2df(app->config.wx, app->config.wy));
     window_size(app->window, s2df(app->config.wwidth, app->config.wheight));
-    splitview_pos(app->split1, i_SPLIT1_MODE, app->config.split1_pos);
-    splitview_pos(app->split2, i_SPLIT2_MODE, app->config.split2_pos);
-    splitview_pos(app->split3, i_SPLIT3_MODE, app->config.split3_pos);
-    splitview_pos(app->split4, i_SPLIT4_MODE, app->config.split4_pos);
+    i_restore_splits(app);
     menuitem_state(app->show_forms, i_bool_state(app->config.show_forms));
     menuitem_state(app->show_widgets, i_bool_state(app->config.show_widgets));
     menuitem_state(app->show_inspectr, i_bool_state(app->config.show_inspectr));
