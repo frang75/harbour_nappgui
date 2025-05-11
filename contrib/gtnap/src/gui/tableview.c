@@ -119,7 +119,6 @@ static const char_t *i_EMPTY_TEXT = "";
 
 static TData *i_create_data(View *view)
 {
-
     TData *data = heap_new0(TData);
     data->sview = scrollview_create(view);
     data->font = font_system(font_regular_size(), 0);
@@ -2177,7 +2176,7 @@ real32_t tableview_get_column_width(const TableView *view, const uint32_t column
 
 /*---------------------------------------------------------------------------*/
 
-const char_t* tableview_get_header_title(const TableView *view, const uint32_t column_id)
+const char_t *tableview_get_header_title(const TableView *view, const uint32_t column_id)
 {
     TData *data = view_get_data(cast(view, View), TData);
     const Column *column = NULL;

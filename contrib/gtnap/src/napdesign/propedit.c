@@ -322,7 +322,7 @@ static void i_OnRowNotify(PropData *data, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_layout_layout(PropData *data)
+static Layout *i_layout_layout(PropData *data, const real32_t mright)
 {
     Layout *layout1 = layout_create(1, 5);
     Layout *layout2 = i_margin_layout(data);
@@ -335,6 +335,7 @@ static Layout *i_layout_layout(PropData *data)
     layout_layout(layout1, layout2, 0, 1);
     layout_layout(layout1, layout3, 0, 2);
     layout_layout(layout1, layout4, 0, 3);
+    layout_margin4(layout1, 0, mright, 0, 0);
     layout_vmargin(layout1, 0, i_HEADER_VMARGIN);
     layout_vexpand(layout1, 4);
     layout_dbind(layout2, listener(data, i_OnLayoutNotify, PropData), FLayout);
@@ -1348,7 +1349,7 @@ static void i_OnCellNotify(PropData *data, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_cell_layout(PropData *data)
+static Layout *i_cell_layout(PropData *data, const real32_t mright)
 {
     Layout *layout1 = layout_create(1, 4);
     Layout *layout2 = i_cell_props_layout(data);
@@ -1360,6 +1361,7 @@ static Layout *i_cell_layout(PropData *data)
     layout_panel(layout1, panel, 0, 2);
     layout_vmargin(layout1, 0, i_HEADER_VMARGIN);
     layout_vmargin(layout1, 1, i_HEADER_VMARGIN);
+    layout_margin4(layout1, 0, mright, 0, 0);
     layout_vexpand(layout1, 3);
     layout_dbind(layout2, listener(data, i_OnCellNotify, PropData), FCell);
     data->cell_layout = layout2;
@@ -1387,10 +1389,11 @@ static void i_destroy_data(PropData **data)
 Panel *propedit_create(Designer *app)
 {
     PropData *data = i_data(app);
+    Panel *panel = panel_custom(FALSE, TRUE, FALSE);
+    real32_t mright = panel_scroll_width(panel);
     Layout *layout0 = i_no_sel_layout();
-    Layout *layout1 = i_layout_layout(data);
-    Layout *layout2 = i_cell_layout(data);
-    Panel *panel = panel_create();
+    Layout *layout1 = i_layout_layout(data, mright);
+    Layout *layout2 = i_cell_layout(data, mright);
     panel_layout(panel, layout0);
     panel_layout(panel, layout1);
     panel_layout(panel, layout2);

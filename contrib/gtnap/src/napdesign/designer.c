@@ -9,13 +9,34 @@
 #include "propedit.h"
 #include "inspect.h"
 
+typedef struct _config_t Config;
+
+struct _config_t
+{
+    uint16_t vers;
+    String *folder_path;
+    uint32_t sel_form;
+    widget_t swidget;
+    real32_t wx;
+    real32_t wy;
+    real32_t wwidth;
+    real32_t wheight;
+    real32_t split1_pos;
+    real32_t split2_pos;
+    real32_t split3_pos;
+    real32_t split4_pos;
+    bool_t show_forms;
+    bool_t show_widgets;
+    bool_t show_inspectr;
+    bool_t show_propedit;
+};
+
 struct _desiger_t
 {
     Window *window;
-    widget_t swidget;
-    String *folder_path;
+    Config config;
+    Menu *menu;
     ArrPt(DForm) *forms;
-    uint32_t sel_form;
     ListBox *form_list;
     Label *status_label;
     Label *cells_label;
@@ -31,16 +52,31 @@ struct _desiger_t
     Cell *add_form_cell;
     Cell *remove_form_cell;
     Cell *rename_form_cell;
+    SplitView *split1;
+    SplitView *split2;
+    SplitView *split3;
+    SplitView *split4;
+    MenuItem *show_forms;
+    MenuItem *show_widgets;
+    MenuItem *show_inspectr;
+    MenuItem *show_propedit;
     Image *add_icon;
     Font *default_font;
+    bool_t dragging;
+    V2Df drag_mouse;
+    V2Df drag_form;
 };
-
-DeclPt(DForm);
 
 /*---------------------------------------------------------------------------*/
 
+static const uint16_t i_CONFIG_VERS = 0;
+static const split_mode_t i_SPLIT1_MODE = ekSPLIT_FIXED0;
+static const split_mode_t i_SPLIT2_MODE = ekSPLIT_FIXED0;
+static const split_mode_t i_SPLIT3_MODE = ekSPLIT_FIXED1;
+static const split_mode_t i_SPLIT4_MODE = ekSPLIT_FIXED0;
 static const char_t *i_FILE_EXT = "nfm";
 static const char_t *i_SAVE_MARK = "• ";
+DeclPt(DForm);
 
 /*---------------------------------------------------------------------------*/
 
@@ -59,7 +95,7 @@ static void i_dbind(void)
     dbind_enum(widget_t, ekWIDGET_POPUP, "");
     dbind_enum(widget_t, ekWIDGET_LISTBOX, "");
     dbind_enum(widget_t, ekWIDGET_TABLEVIEW, "");    
-    dbind(Designer, widget_t, swidget);
+    dbind(Designer, widget_t, config.swidget);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -137,7 +173,7 @@ static void i_update_form_controls(Designer *app, const bool_t enable)
     {
         enable_save = i_need_save(app);
 
-        if (app->sel_form != UINT32_MAX)
+        if (app->config.sel_form != UINT32_MAX)
         {
             enable_run = TRUE;
             enable_remove = TRUE;
@@ -173,7 +209,7 @@ static void i_open_form(Designer *app, const uint32_t index)
         if (form == NULL)
         {
             const char_t *name = i_list_text(app->form_list, index);
-            String *path = str_cpath("%s/%s.%s", tc(app->folder_path), name, i_FILE_EXT);
+            String *path = str_cpath("%s/%s.%s", tc(app->config.folder_path), name, i_FILE_EXT);
             Stream *stm = NULL;
             DForm **forms = arrpt_all(app->forms, DForm);
             stm = stm_from_file(tc(path), NULL);
@@ -214,7 +250,7 @@ static void i_init_forms(Designer *app, const char_t *path)
     {
         uint32_t n = UINT32_MAX;
 
-        str_upd(&app->folder_path, path);
+        str_upd(&app->config.folder_path, path);
         arrst_foreach(file, files, DirEntry)
             String *fil = NULL;
             String *ext = NULL;
@@ -232,21 +268,21 @@ static void i_init_forms(Designer *app, const char_t *path)
         n = arrpt_size(app->forms, DForm);
         if (n > 0)
         {
-            if (app->sel_form >= n)
-                app->sel_form = 0;
-            i_open_form(app, app->sel_form);
-            listbox_select(app->form_list, app->sel_form, TRUE);
+            if (app->config.sel_form >= n)
+                app->config.sel_form = 0;
+            i_open_form(app, app->config.sel_form);
+            listbox_select(app->form_list, app->config.sel_form, TRUE);
         }
         else
         {
-            app->sel_form = UINT32_MAX;
+            app->config.sel_form = UINT32_MAX;
         }
 
         i_update_form_controls(app, TRUE);
 
         {
             Button *button = cell_button(app->open_form_cell);
-            String *tooltip = str_printf("Open forms folder (%s)", tc(app->folder_path));
+            String *tooltip = str_printf("Open forms folder (%s)", tc(app->config.folder_path));
             button_tooltip(button, tc(tooltip));
             str_destroy(&tooltip);
         }
@@ -275,7 +311,7 @@ static void i_save_forms(Designer *app)
         if (need_save == TRUE)
         {
             const char_t *name = i_list_text(app->form_list, form_i);
-            String *path = str_cpath("%s/%s.%s", tc(app->folder_path), name, i_FILE_EXT);
+            String *path = str_cpath("%s/%s.%s", tc(app->config.folder_path), name, i_FILE_EXT);
             Stream *stm = stm_to_file(tc(path), NULL);
             if (stm != NULL)
             {
@@ -307,7 +343,7 @@ static void i_OnOpenFormsClick(Designer *app, Event *e)
     if (can_open == TRUE)
     {
         const char_t *ftype = "..DIR..";
-        const char_t *folder = comwin_open_file(app->window, &ftype, 1, tc(app->folder_path));
+        const char_t *folder = comwin_open_file(app->window, &ftype, 1, tc(app->config.folder_path));
         if (folder != NULL)
             i_init_forms(app, folder);
     }
@@ -328,9 +364,9 @@ static void i_OnSimulateClick(Designer *app, Event *e)
 {
     cassert_no_null(app);
     unref(e);
-    if (app->sel_form != UINT32_MAX)
+    if (app->config.sel_form != UINT32_MAX)
     {
-        DForm *form = arrpt_get(app->forms, app->sel_form, DForm);
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
         dform_simulate(form, app->window);
     }
 }
@@ -342,10 +378,10 @@ static void i_OnRemoveClick(Designer *app, Event *e)
     const char_t *name = NULL;
     cassert_no_null(app);
     unref(e);
-    name = i_list_text(app->form_list, app->sel_form);
+    name = i_list_text(app->form_list, app->config.sel_form);
     if (dialog_remove_form(app->window, name) == TRUE)
     {
-        String *path = str_cpath("%s/%s.%s", tc(app->folder_path), name, i_FILE_EXT);
+        String *path = str_cpath("%s/%s.%s", tc(app->config.folder_path), name, i_FILE_EXT);
         bool_t removed = TRUE;
 
         if (hfile_exists(tc(path), NULL) == TRUE)
@@ -354,22 +390,22 @@ static void i_OnRemoveClick(Designer *app, Event *e)
         if (removed == TRUE)
         {
             uint32_t n = UINT32_MAX;
-            listbox_del_elem(app->form_list, app->sel_form);
-            arrpt_delete(app->forms, app->sel_form, i_destroy_form_opt, DForm);
+            listbox_del_elem(app->form_list, app->config.sel_form);
+            arrpt_delete(app->forms, app->config.sel_form, i_destroy_form_opt, DForm);
             n = arrpt_size(app->forms, DForm);
 
             if (n > 0)
             {
-                if (app->sel_form >= n)
-                    app->sel_form = n - 1;
-                listbox_select(app->form_list, app->sel_form, TRUE);
+                if (app->config.sel_form >= n)
+                    app->config.sel_form = n - 1;
+                listbox_select(app->form_list, app->config.sel_form, TRUE);
             }
             else
             {
-                app->sel_form = UINT32_MAX;
+                app->config.sel_form = UINT32_MAX;
             }
 
-            i_open_form(app, app->sel_form);
+            i_open_form(app, app->config.sel_form);
             i_update_form_controls(app, TRUE);
         }
 
@@ -414,7 +450,7 @@ static void i_OnAddFormClick(Designer *app, Event *e)
             listbox_add_elem(app->form_list, tc(fname), NULL);
             listbox_select(app->form_list, n, TRUE);
             arrpt_append(app->forms, form, DForm);
-            app->sel_form = n;
+            app->config.sel_form = n;
             i_update_form_controls(app, TRUE);
             view_update(app->canvas);
         }
@@ -435,31 +471,31 @@ static void i_OnRenameFormClick(Designer *app, Event *e)
     String *fname = NULL;
     cassert_no_null(app);
     unref(e);
-    name = i_list_text(app->form_list, app->sel_form);
+    name = i_list_text(app->form_list, app->config.sel_form);
     fname = dialog_form_name(app->window, name);
     if (str_empty(fname) == FALSE)
     {
         if (i_exists_form_name(app, tc(fname)) == FALSE)
         {
-            String *oldpath = str_cpath("%s/%s.%s", tc(app->folder_path), name, i_FILE_EXT);
+            String *oldpath = str_cpath("%s/%s.%s", tc(app->config.folder_path), name, i_FILE_EXT);
             if (hfile_exists(tc(oldpath), NULL) == TRUE)
             {
-                String *newpath = str_cpath("%s/%s.%s", tc(app->folder_path), tc(fname), i_FILE_EXT);
+                String *newpath = str_cpath("%s/%s.%s", tc(app->config.folder_path), tc(fname), i_FILE_EXT);
                 bfile_rename(tc(oldpath), tc(newpath), NULL);
                 str_destroy(&newpath);
             }
 
             {
-                bool_t with_bullet = i_with_save_mark(app->form_list, app->sel_form);
+                bool_t with_bullet = i_with_save_mark(app->form_list, app->config.sel_form);
                 if (with_bullet == TRUE)
                 {
                     String *rname = str_printf("%s%s", i_SAVE_MARK, tc(fname));
-                    listbox_set_elem(app->form_list, app->sel_form, tc(rname), NULL);
+                    listbox_set_elem(app->form_list, app->config.sel_form, tc(rname), NULL);
                     str_destroy(&rname);
                 }
                 else
                 {
-                    listbox_set_elem(app->form_list, app->sel_form, tc(fname), NULL);
+                    listbox_set_elem(app->form_list, app->config.sel_form, tc(fname), NULL);
                 }
             }
 
@@ -528,9 +564,11 @@ static Layout *i_tools_layout(Designer *app)
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_widgets_layout(Designer *app)
+static Panel *i_widgets_panel(Designer *app)
 {
-    Layout *layout = layout_create(1, 13);
+    Panel *panel = panel_custom(FALSE, TRUE, FALSE);
+    Layout *layout1 = layout_create(1, 1);
+    Layout *layout2 = layout_create(1, 13);
     Button *radio1 = button_radio();
     Button *radio2 = button_radio();
     Button *radio3 = button_radio();
@@ -544,6 +582,7 @@ static Layout *i_widgets_layout(Designer *app)
     Button *radio11 = button_radio();
     Button *radio12 = button_radio();
     Button *radio13 = button_radio();
+    cassert_no_null(app);
     button_text(radio1, "Select");
     button_text(radio2, "Grid layout");
     button_text(radio3, "Label");
@@ -557,33 +596,57 @@ static Layout *i_widgets_layout(Designer *app)
     button_text(radio11, "PopUp");
     button_text(radio12, "ListBox");
     button_text(radio13, "TableView");
-    layout_button(layout, radio1, 0, 0);
-    layout_button(layout, radio2, 0, 1);
-    layout_button(layout, radio3, 0, 2);
-    layout_button(layout, radio4, 0, 3);
-    layout_button(layout, radio5, 0, 4);
-    layout_button(layout, radio6, 0, 5);
-    layout_button(layout, radio7, 0, 6);
-    layout_button(layout, radio8, 0, 7);
-    layout_button(layout, radio9, 0, 8);
-    layout_button(layout, radio10, 0, 9);
-    layout_button(layout, radio11, 0, 10);
-    layout_button(layout, radio12, 0, 11);
-    layout_button(layout, radio13, 0, 12);
+    layout_button(layout2, radio1, 0, 0);
+    layout_button(layout2, radio2, 0, 1);
+    layout_button(layout2, radio3, 0, 2);
+    layout_button(layout2, radio4, 0, 3);
+    layout_button(layout2, radio5, 0, 4);
+    layout_button(layout2, radio6, 0, 5);
+    layout_button(layout2, radio7, 0, 6);
+    layout_button(layout2, radio8, 0, 7);
+    layout_button(layout2, radio9, 0, 8);
+    layout_button(layout2, radio10, 0, 9);
+    layout_button(layout2, radio11, 0, 10);
+    layout_button(layout2, radio12, 0, 11);
+    layout_button(layout2, radio13, 0, 12);
+    layout_vmargin(layout2, 0, 5);
+    layout_vmargin(layout2, 1, 5);
+    layout_vmargin(layout2, 2, 5);
+    layout_vmargin(layout2, 3, 5);
+    layout_vmargin(layout2, 4, 5);
+    layout_vmargin(layout2, 5, 5);
+    layout_vmargin(layout2, 6, 5);
+    layout_vmargin(layout2, 7, 5);
+    layout_vmargin(layout2, 8, 5);
+    layout_vmargin(layout2, 9, 5);
+    layout_vmargin(layout2, 10, 5);
+    layout_vmargin(layout2, 11, 5);
+    layout_valign(layout1, 0, 0, ekTOP);
+    layout_layout(layout1, layout2, 0, 0);
+    panel_layout(panel, layout1);
+    panel_size(panel, s2df(-1, 200));
+    cell_dbind(layout_cell(layout1, 0, 0), Designer, widget_t, config.swidget);
+    app->widgets_layout = layout2;
+    app->widgets_cell = layout_cell(layout1, 0, 0);
+    return panel;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Panel *i_widgets_box(Designer *app)
+{
+    Panel *panel1 = panel_create();
+    Panel *panel2 = i_widgets_panel(app);
+    Layout *layout = layout_create(1, 2);
+    Label *label = label_create();
+    label_text(label, "Widgets");
+    layout_label(layout, label, 0, 0);
+    layout_panel(layout, panel2, 0, 1);
     layout_vmargin(layout, 0, 5);
-    layout_vmargin(layout, 1, 5);
-    layout_vmargin(layout, 2, 5);
-    layout_vmargin(layout, 3, 5);
-    layout_vmargin(layout, 4, 5);
-    layout_vmargin(layout, 5, 5);
-    layout_vmargin(layout, 6, 5);
-    layout_vmargin(layout, 7, 5);
-    layout_vmargin(layout, 8, 5);
-    layout_vmargin(layout, 9, 5);
-    layout_vmargin(layout, 10, 5);
-    layout_vmargin(layout, 11, 5);
-    unref(app);
-    return layout;
+    layout_vexpand(layout, 1);
+    layout_margin4(layout, 0, 5, 5, 5);
+    panel_layout(panel1, layout);
+    return panel1;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -592,65 +655,71 @@ static void i_OnFormSelect(Designer *app, Event *e)
 {
     const EvButton *p = event_params(e, EvButton);
     cassert_no_null(app);
-    app->sel_form = p->index;
-    i_open_form(app, app->sel_form);
+    app->config.sel_form = p->index;
+    i_open_form(app, app->config.sel_form);
     i_update_form_controls(app, TRUE);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_left_layout(Designer *app)
+static Panel *i_forms_box(Designer *app)
 {
-    Layout *layout1 = layout_create(1, 5);
-    Layout *layout2 = i_widgets_layout(app);
-    Label *label1 = label_create();
-    Label *label2 = label_create();
-    ListBox *list1 = listbox_create();
+    Panel *panel = panel_create();
+    Layout *layout = layout_create(1, 2);
+    Label *label = label_create();
+    ListBox *list = listbox_create();
     cassert_no_null(app);
-    label_text(label1, "Forms");
-    label_text(label2, "Widgets");
-    listbox_size(list1, s2df(150, 100));
-    listbox_OnSelect(list1, listener(app, i_OnFormSelect, Designer));
-    layout_label(layout1, label1, 0, 0);
-    layout_label(layout1, label2, 0, 2);
-    layout_listbox(layout1, list1, 0, 1);
-    layout_layout(layout1, layout2, 0, 3);
-    layout_valign(layout1, 0, 3, ekTOP);
-    layout_vmargin(layout1, 1, 5);
-    layout_vmargin(layout1, 2, 5);
-    layout_vexpand2(layout1, 1, 4, .75f);
-    cell_dbind(layout_cell(layout1, 0, 3), Designer, widget_t, swidget);
-    app->form_list = list1;
-    app->widgets_cell = layout_cell(layout1, 0, 3);
-    app->widgets_layout = layout2;
-    return layout1;
+    label_text(label, "Forms");
+    listbox_size(list, s2df(150, 100));
+    listbox_OnSelect(list, listener(app, i_OnFormSelect, Designer));
+    layout_label(layout, label, 0, 0);
+    layout_listbox(layout, list, 0, 1);
+    layout_vmargin(layout, 0, 5);
+    layout_vexpand(layout, 1);
+    layout_margin4(layout, 0, 5, 5, 5);
+    panel_layout(panel, layout);
+    app->form_list = list;
+    return panel;
 }
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_right_layout(Designer *app)
+static Panel *i_inspector_box(Designer *app)
 {
-    Layout *layout = layout_create(1, 4);
-    Label *label1 = label_create();
-    Label *label2 = label_create();
-    Panel *panel1 = inspect_create(app);
-    Panel *panel2 = propedit_create(app);
+    Panel *panel1 = panel_create();
+    Panel *panel2 = inspect_create(app);
+    Layout *layout = layout_create(1, 2);
+    Label *label = label_create();
     cassert_no_null(app);
-    label_text(label1, "Object inspector");
-    label_text(label2, "Property editor");
-    panel_size(panel1, s2df(150, 200));
-    panel_size(panel2, s2df(150, 200));
-    layout_label(layout, label1, 0, 0);
-    layout_panel(layout, panel1, 0, 1);
-    layout_label(layout, label2, 0, 2);
-    layout_panel(layout, panel2, 0, 3);
-    layout_vmargin(layout, 1, 5);
-    layout_vmargin(layout, 2, 5);
-    layout_vexpand(layout, 3);
-    layout_vmargin(layout, 1, 5.f);
-    app->inspect = panel1;
+    label_text(label, "Object inspector");
+    layout_label(layout, label, 0, 0);
+    layout_panel(layout, panel2, 0, 1);
+    layout_vmargin(layout, 0, 5);
+    layout_vexpand(layout, 1);
+    layout_margin4(layout, 0, 5, 5, 5);
+    panel_layout(panel1, layout);
+    app->inspect = panel2;
+    return panel1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Panel *i_propedit_box(Designer *app)
+{
+    Panel *panel1 = panel_create();
+    Panel *panel2 = propedit_create(app);
+    Layout *layout = layout_create(1, 2);
+    Label *label = label_create();
+    cassert_no_null(app);
+    label_text(label, "Property editor");
+    layout_label(layout, label, 0, 0);
+    layout_panel(layout, panel2, 0, 1);
+    layout_vmargin(layout, 0, 5);
+    layout_vexpand(layout, 1);
+    layout_margin4(layout, 0, 0, 5, 5);
+    panel_layout(panel1, layout);
     app->propedit = panel2;
-    return layout;
+    return panel1;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -660,10 +729,10 @@ static void i_OnDraw(Designer *app, Event *e)
     const EvDraw *p = event_params(e, EvDraw);
     cassert_no_null(app);
     draw_clear(p->ctx, kCOLOR_YELLOW);
-    if (app->sel_form != UINT32_MAX)
+    if (app->config.sel_form != UINT32_MAX)
     {
-        DForm *form = arrpt_get(app->forms, app->sel_form, DForm);
-        dform_draw(form, app->swidget, app->add_icon, app->default_font, p->ctx);
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
+        dform_draw(form, app->config.swidget, app->add_icon, app->default_font, p->ctx);
     }
 }
 
@@ -671,14 +740,49 @@ static void i_OnDraw(Designer *app, Event *e)
 
 static void i_OnMove(Designer *app, Event *e)
 {
-    const EvMouse *p = event_params(e, EvMouse);
     cassert_no_null(app);
-    if (app->sel_form != UINT32_MAX)
+    if (app->config.sel_form != UINT32_MAX)
     {
-        DForm *form = arrpt_get(app->forms, app->sel_form, DForm);
+        const EvMouse *p = event_params(e, EvMouse);
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
         if (dform_OnMove(form, p->x, p->y) == TRUE)
             view_update(app->canvas);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnDrag(Designer *app, Event *e)
+{
+    cassert_no_null(app);
+    if (app->config.sel_form != UINT32_MAX)
+    {
+        const EvMouse *p = event_params(e, EvMouse);
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
+        if (app->dragging == FALSE)
+        {
+            app->drag_mouse = v2df(p->x, p->y);
+            app->drag_form = dform_get_origin(form);
+            app->dragging = TRUE;
+        }
+        else
+        {
+            V2Df origin;
+            origin.x = app->drag_form.x + (p->x - app->drag_mouse.x);
+            origin.y = app->drag_form.y + (p->y - app->drag_mouse.y);
+            dform_origin(form, origin);
+            view_update(app->canvas);
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnUp(Designer *app, Event *e)
+{
+    cassert_no_null(app);
+    unref(e);
+    app->dragging = FALSE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -687,9 +791,9 @@ static void i_OnExit(Designer *app, Event *e)
 {
     cassert_no_null(app);
     unref(e);
-    if (app->sel_form != UINT32_MAX)
+    if (app->config.sel_form != UINT32_MAX)
     {
-        DForm *form = arrpt_get(app->forms, app->sel_form, DForm);
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
         if (dform_OnExit(form) == TRUE)
             view_update(app->canvas);
     }
@@ -700,11 +804,11 @@ static void i_OnExit(Designer *app, Event *e)
 static void i_OnClick(Designer *app, Event *e)
 {
     cassert_no_null(app);
-    if (app->sel_form != UINT32_MAX)
+    if (app->config.sel_form != UINT32_MAX)
     {
         const EvMouse *p = event_params(e, EvMouse);
-        DForm *form = arrpt_get(app->forms, app->sel_form, DForm);
-        if (dform_OnClick(form, app->window, app->inspect, app->propedit, app->swidget, p->x, p->y, p->button) == TRUE)
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
+        if (dform_OnClick(form, app->window, app->inspect, app->propedit, app->config.swidget, p->x, p->y, p->button) == TRUE)
             view_update(app->canvas);
     }
 }
@@ -719,41 +823,58 @@ static void i_OnSize(Designer *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_canvas_layout(Designer *app)
+static View *i_canvas_view(Designer *app)
 {
-    Layout *layout = layout_create(1, 1);
     View *view = view_scroll();
     view_size(view, s2df(450, 200));
     view_OnDraw(view, listener(app, i_OnDraw, Designer));
     view_OnMove(view, listener(app, i_OnMove, Designer));
+    view_OnDrag(view, listener(app, i_OnDrag, Designer));
+    view_OnUp(view, listener(app, i_OnUp, Designer));
     view_OnExit(view, listener(app, i_OnExit, Designer));
     view_OnClick(view, listener(app, i_OnClick, Designer));
     view_OnSize(view, listener(app, i_OnSize, Designer));
-    layout_view(layout, view, 0, 0);
     app->canvas = view;
-    return layout;
+    return view;
 }
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_middle_layout(Designer *app)
+static SplitView *i_middle_view(Designer *app)
 {
-    Layout *layout1 = layout_create(3, 1);
-    Layout *layout2 = i_left_layout(app);
-    Layout *layout3 = i_canvas_layout(app);
-    Layout *layout4 = i_right_layout(app);
-    layout_layout(layout1, layout2, 0, 0);
-    layout_layout(layout1, layout3, 1, 0);
-    layout_layout(layout1, layout4, 2, 0);
-
-    /* A small horizontal margin between view cell and list (left) table (right) layouts */
-    layout_hmargin(layout1, 0, 3);
-    layout_hmargin(layout1, 1, 3);
-
-    /* All the horizontal expansion will be done in the middle cell (view)
-       list_layout (left) and table_layout (right) will preserve the 'natural' width */
-    layout_hexpand(layout1, 1);
-    return layout1;
+    SplitView *split1 = splitview_vertical();
+    SplitView *split2 = splitview_horizontal();
+    SplitView *split3 = splitview_vertical();
+    SplitView *split4 = splitview_horizontal();
+    Panel *panel1 = i_forms_box(app);
+    Panel *panel2 = i_widgets_box(app);
+    Panel *panel3 = i_inspector_box(app);
+    Panel *panel4 = i_propedit_box(app);
+    View *view = i_canvas_view(app);
+    splitview_split(split1, split2);
+    splitview_split(split1, split3);
+    splitview_panel(split2, panel1);
+    splitview_panel(split2, panel2);
+    splitview_view(split3, view, FALSE);
+    splitview_split(split3, split4);
+    splitview_panel(split4, panel3);
+    splitview_panel(split4, panel4);
+    splitview_mode(split1, i_SPLIT1_MODE);
+    splitview_mode(split2, i_SPLIT2_MODE);
+    splitview_mode(split3, i_SPLIT3_MODE);
+    splitview_mode(split4, i_SPLIT4_MODE);    
+    splitview_minsize0(split1, 100);
+    splitview_minsize0(split2, 100);
+    splitview_minsize1(split2, 100);
+    splitview_minsize0(split3, 50);
+    splitview_minsize1(split3, 100);
+    splitview_minsize0(split4, 100);
+    splitview_minsize1(split4, 100);
+    app->split1 = split1;
+    app->split2 = split2;
+    app->split3 = split3;
+    app->split4 = split4;
+    return split1;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -773,10 +894,10 @@ static Layout *i_statusbar_layout(Designer *app)
 
     /* All the horizontal expansion will be done in empty column-cell(2) */
     layout_hexpand(layout, 2);
-
     label_text(label1, "status-1");
     label_text(label2, "status-2");
 
+    layout_margin4(layout, 0, 5, 5, 5);
     /* Keep the controls for futher updates */
     app->status_label = label1;
     app->cells_label = label2;
@@ -790,10 +911,10 @@ static Layout *i_main_layout(Designer *app)
 {
     Layout *layout1 = layout_create(1, 3);
     Layout *layout2 = i_tools_layout(app);
-    Layout *layout3 = i_middle_layout(app);
     Layout *layout4 = i_statusbar_layout(app);
+    SplitView *view = i_middle_view(app);
     layout_layout(layout1, layout2, 0, 0);
-    layout_layout(layout1, layout3, 0, 1);
+    layout_splitview(layout1, view, 0, 1);
     layout_layout(layout1, layout4, 0, 2);
     /*
      * All the vertical expansion will be done in the middle layout
@@ -806,8 +927,6 @@ static Layout *i_main_layout(Designer *app)
     layout_vmargin(layout1, 0, 5);
     layout_vmargin(layout1, 1, 5);
 
-    /* A border margin for all layout edges */
-    layout_margin(layout1, 5);
     return layout1;
 }
 
@@ -829,9 +948,9 @@ static void i_OnHotKey(Designer *app, Event *e)
     cassert_no_null(app);
     if (p->key == ekKEY_SUPR)
     {
-        if (app->sel_form != UINT32_MAX)
+        if (app->config.sel_form != UINT32_MAX)
         {
-            DForm *form = arrpt_get(app->forms, app->sel_form, DForm);
+            DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
             if (dform_OnSupr(form, app->inspect, app->propedit) == TRUE)
                 view_update(app->canvas);
         }
@@ -840,16 +959,206 @@ static void i_OnHotKey(Designer *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_save_config(const Designer *app)
+static gui_state_t i_bool_state(const bool_t state)
+{
+    if (state == TRUE)
+        return ekGUI_ON;
+    else 
+        return ekGUI_OFF;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/* TODO: Remove when splits cache the divpos on hide */
+static void i_save_splits(Designer *app)
+{
+    cassert_no_null(app);
+    if (app->config.show_forms == TRUE && app->config.show_widgets == TRUE)
+        app->config.split2_pos = splitview_get_pos(app->split2, i_SPLIT2_MODE);
+    if (app->config.show_forms == TRUE || app->config.show_widgets == TRUE)
+        app->config.split1_pos = splitview_get_pos(app->split1, i_SPLIT1_MODE);
+    if (app->config.show_inspectr == TRUE && app->config.show_propedit == TRUE)
+        app->config.split4_pos = splitview_get_pos(app->split4, i_SPLIT4_MODE);
+    if (app->config.show_inspectr == TRUE || app->config.show_propedit == TRUE)
+        app->config.split3_pos = splitview_get_pos(app->split3, i_SPLIT3_MODE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_restore_splits(Designer *app)
+{
+    cassert_no_null(app);
+    if (app->config.show_forms == TRUE || app->config.show_widgets == TRUE)
+    {
+        splitview_visible0(app->split1, TRUE);
+        splitview_pos(app->split1, i_SPLIT1_MODE, app->config.split1_pos);
+    }
+    else
+    {
+        splitview_visible0(app->split1, FALSE);
+    }
+
+    splitview_visible0(app->split2, app->config.show_forms);
+    splitview_visible1(app->split2, app->config.show_widgets);
+
+    if (app->config.show_forms == TRUE && app->config.show_widgets == TRUE)
+        splitview_pos(app->split2, i_SPLIT2_MODE, app->config.split2_pos);        
+
+    if (app->config.show_inspectr == TRUE || app->config.show_propedit == TRUE)
+    {
+        splitview_visible1(app->split3, TRUE);
+        splitview_pos(app->split3, i_SPLIT3_MODE, app->config.split3_pos);
+    }
+    else
+    {
+        splitview_visible1(app->split3, FALSE);
+    }
+
+    splitview_visible0(app->split4, app->config.show_inspectr);
+    splitview_visible1(app->split4, app->config.show_propedit);
+
+    if (app->config.show_inspectr == TRUE && app->config.show_propedit == TRUE)
+        splitview_pos(app->split4, i_SPLIT4_MODE, app->config.split4_pos);        
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_swap_show_item(Designer *app, bool_t *value, MenuItem *item)
+{
+    cassert_no_null(value);
+    i_save_splits(app);
+    *value = !*value;
+    menuitem_state(item, i_bool_state(*value));
+    i_restore_splits(app);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnShowForms(Designer *app, Event *e)
+{
+    cassert_no_null(app);
+    unref(e);
+    i_swap_show_item(app, &app->config.show_forms, app->show_forms);
+    window_update(app->window);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnShowWidgets(Designer *app, Event *e)
+{
+    cassert_no_null(app);
+    unref(e);
+    i_swap_show_item(app, &app->config.show_widgets, app->show_widgets);
+    window_update(app->window);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnShowInspectr(Designer *app, Event *e)
+{
+    cassert_no_null(app);
+    unref(e);
+    i_swap_show_item(app, &app->config.show_inspectr, app->show_inspectr);
+    window_update(app->window);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnShowPropEdit(Designer *app, Event *e)
+{
+    cassert_no_null(app);
+    unref(e);
+    i_swap_show_item(app, &app->config.show_propedit, app->show_propedit);
+    window_update(app->window);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Menu *i_view_menu(Designer *app)
+{
+    Menu *menu = menu_create();
+    MenuItem *item1 = menuitem_create();
+    MenuItem *item2 = menuitem_create();
+    MenuItem *item3 = menuitem_create();
+    MenuItem *item4 = menuitem_create();
+    cassert_no_null(app);
+    menuitem_text(item1, "Forms box");
+    menuitem_text(item2, "Widgets box");
+    menuitem_text(item3, "Object inspector");
+    menuitem_text(item4, "Property editor");
+    menuitem_OnClick(item1, listener(app, i_OnShowForms, Designer));
+    menuitem_OnClick(item2, listener(app, i_OnShowWidgets, Designer));
+    menuitem_OnClick(item3, listener(app, i_OnShowInspectr, Designer));
+    menuitem_OnClick(item4, listener(app, i_OnShowPropEdit, Designer));
+    menu_add_item(menu, item1);
+    menu_add_item(menu, item2);
+    menu_add_item(menu, item3);
+    menu_add_item(menu, item4);
+    app->show_forms = item1;
+    app->show_widgets = item2;
+    app->show_inspectr = item3;
+    app->show_propedit = item4;
+    return menu;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Menu *i_menu(Designer *app)
+{
+    Menu *menu = menu_create();
+    Menu *submenu1 = i_view_menu(app);
+    MenuItem *item1 = menuitem_create();
+    menuitem_text(item1, "View");
+    menuitem_submenu(item1, &submenu1);
+    menu_add_item(menu, item1);
+    return menu;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_update_config(Designer *app)
+{
+    V2Df pos;
+    S2Df size;
+    cassert_no_null(app);
+    pos = window_get_origin(app->window);
+    size = window_get_size(app->window);
+    app->config.wx = pos.x;
+    app->config.wy = pos.y;
+    app->config.wwidth = size.width;
+    app->config.wheight = size.height;
+    app->config.split1_pos = splitview_get_pos(app->split1, i_SPLIT1_MODE);
+    app->config.split2_pos = splitview_get_pos(app->split2, i_SPLIT2_MODE);
+    app->config.split3_pos = splitview_get_pos(app->split3, i_SPLIT3_MODE);
+    app->config.split4_pos = splitview_get_pos(app->split4, i_SPLIT4_MODE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_save_config(const Config *config)
 {
     String *cfile = hfile_appdata("config.bin");
     Stream *stm = stm_to_file(tc(cfile), NULL);
-    cassert_no_null(app);
+    cassert_no_null(config);
+    
     if (stm != NULL)
     {
-        stm_write_enum(stm, app->swidget, widget_t);
-        str_write(stm, app->folder_path);
-        stm_write_u32(stm, app->sel_form);
+        stm_write_u16(stm, i_CONFIG_VERS);
+        str_write(stm, config->folder_path);
+        stm_write_u32(stm, config->sel_form);
+        stm_write_enum(stm, config->swidget, widget_t);
+        stm_write_r32(stm, config->wx);
+        stm_write_r32(stm, config->wy);
+        stm_write_r32(stm, config->wwidth);
+        stm_write_r32(stm, config->wheight);
+        stm_write_r32(stm, config->split1_pos);
+        stm_write_r32(stm, config->split2_pos);
+        stm_write_r32(stm, config->split3_pos);
+        stm_write_r32(stm, config->split4_pos);
+        stm_write_bool(stm, config->show_forms);
+        stm_write_bool(stm, config->show_widgets);
+        stm_write_bool(stm, config->show_inspectr);
+        stm_write_bool(stm, config->show_propedit);
         stm_close(&stm);
     }
 
@@ -858,37 +1167,98 @@ static void i_save_config(const Designer *app)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_load_config(Designer *app)
+static void i_remove_config(Config *config)
+{
+    cassert_no_null(config);
+    str_destopt(&config->folder_path);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_default_config(Config *config)
+{
+    cassert_no_null(config);
+    i_remove_config(config);
+    config->vers = i_CONFIG_VERS;
+    config->folder_path = str_c("");
+    config->sel_form = UINT32_MAX;
+    config->swidget = ekWIDGET_SELECT;
+    config->wx = 100;
+    config->wy = 100;
+    config->wwidth = 850;
+    config->wheight = 500;
+    config->split1_pos = 200;
+    config->split2_pos = 200;
+    config->split3_pos = 200;
+    config->split4_pos = 200;
+    config->show_forms = TRUE;
+    config->show_widgets = TRUE;
+    config->show_inspectr = TRUE;
+    config->show_propedit = TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_load_config(Config *config)
 {
     String *cfile = hfile_appdata("config.bin");
     Stream *stm = stm_from_file(tc(cfile), NULL);
     bool_t ok = FALSE;
-    cassert_no_null(app);
-    cassert(app->folder_path == NULL);
+    cassert_no_null(config);
+    i_remove_config(config);
     if (stm != NULL)
     {
-        app->swidget = stm_read_enum(stm, widget_t);
-        app->folder_path = str_read(stm);
-        app->sel_form = stm_read_u32(stm);
-        ok = stm_state(stm) == ekSTOK;
+        config->vers = stm_read_u16(stm);
+        if (config->vers <= i_CONFIG_VERS)
+        {
+            config->folder_path = str_read(stm);
+            config->sel_form = stm_read_u32(stm);
+            config->swidget = stm_read_enum(stm, widget_t);
+            config->wx = stm_read_r32(stm);
+            config->wy = stm_read_r32(stm);
+            config->wwidth = stm_read_r32(stm);
+            config->wheight = stm_read_r32(stm);
+            config->split1_pos = stm_read_r32(stm);
+            config->split2_pos = stm_read_r32(stm);
+            config->split3_pos = stm_read_r32(stm);
+            config->split4_pos = stm_read_r32(stm);
+            config->show_forms = stm_read_bool(stm);
+            config->show_widgets = stm_read_bool(stm);
+            config->show_inspectr = stm_read_bool(stm);
+            config->show_propedit = stm_read_bool(stm);
+            ok = stm_state(stm) == ekSTOK;
+        }
+
         stm_close(&stm);
     }
 
     if (ok == FALSE)
-    {
-        app->swidget = ekWIDGET_SELECT;
-        str_upd(&app->folder_path, "");
-        app->sel_form = UINT32_MAX;
-    }
+        i_default_config(config);
 
     str_destroy(&cfile);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_apply_config(Designer *app)
+{
+    cassert_no_null(app);
+    window_origin(app->window, v2df(app->config.wx, app->config.wy));
+    window_size(app->window, s2df(app->config.wwidth, app->config.wheight));
+    i_restore_splits(app);
+    menuitem_state(app->show_forms, i_bool_state(app->config.show_forms));
+    menuitem_state(app->show_widgets, i_bool_state(app->config.show_widgets));
+    menuitem_state(app->show_inspectr, i_bool_state(app->config.show_inspectr));
+    menuitem_state(app->show_propedit, i_bool_state(app->config.show_propedit));
+    window_update(app->window);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static void i_OnClose(Designer *app, Event *e)
 {
-    i_save_config(app);
+    i_update_config(app);
+    i_save_config(&app->config);
     osapp_finish();
     unref(e);
 }
@@ -902,8 +1272,8 @@ static Designer *i_app(void)
     gui_language("");
     nflib_start();
     i_dbind();
-    dialog_dbind();
-    i_load_config(app);
+    dialog_dbind();    
+    i_load_config(&app->config);
     dlayout_global_init();
     app->forms = arrpt_create(DForm);
     app->add_icon = image_copy(gui_image(PLUS16_PNG));
@@ -918,15 +1288,18 @@ static Designer *i_create(void)
     Designer *app = i_app();
     Panel *panel = i_panel(app);
     app->window = window_create(ekWINDOW_STDRES);
+    app->menu = i_menu(app);
     window_panel(app->window, panel);
     window_title(app->window, "GTNAP Designer");
     window_origin(app->window, v2df(500, 200));
     window_OnClose(app->window, listener(app, i_OnClose, Designer));
     window_hotkey(app->window, ekKEY_SUPR, 0, listener(app, i_OnHotKey, Designer));
     window_show(app->window);
+    osapp_menubar(app->menu, app->window);
+    i_apply_config(app);
     layout_dbind(app->widgets_layout, NULL, Designer);
     layout_dbind_obj(app->widgets_layout, app, Designer);
-    i_init_forms(app, tc(app->folder_path));
+    i_init_forms(app, tc(app->config.folder_path));
     return app;
 }
 
@@ -936,10 +1309,11 @@ static void i_destroy(Designer **app)
 {
     cassert_no_null(app);
     cassert_no_null(*app);
-    str_destroy(&(*app)->folder_path);
+    i_remove_config(&(*app)->config);
     image_destroy(&(*app)->add_icon);
     font_destroy(&(*app)->default_font);
     arrpt_destroy(&(*app)->forms, i_destroy_form_opt, DForm);
+    menu_destroy(&(*app)->menu);
     window_destroy(&(*app)->window);
     nflib_finish();
     heap_delete(app, Designer);
@@ -982,9 +1356,9 @@ void designer_inspect_update(Designer *app)
 void designer_inspect_select(Designer *app, const uint32_t row)
 {
     cassert_no_null(app);
-    if (app->sel_form != UINT32_MAX)
+    if (app->config.sel_form != UINT32_MAX)
     {
-        DForm *form = arrpt_get(app->forms, app->sel_form, DForm);
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
         dform_inspect_select(form, app->propedit, row);
     }
 }
@@ -994,7 +1368,7 @@ void designer_inspect_select(Designer *app, const uint32_t row)
 const char_t *designer_folder_path(const Designer *app)
 {
     cassert_no_null(app);
-    return tc(app->folder_path);
+    return tc(app->config.folder_path);
 }
 
 /*---------------------------------------------------------------------------*/
