@@ -1,0 +1,8 @@
+nap_library(sewer "" "${NAPPGUI_SHARED}" NRC_NONE)
+target_compile_definitions(sewer PUBLIC "-DNAPPGUI_MAJOR=${NAPPGUI_MAJOR}")
+target_compile_definitions(sewer PUBLIC "-DNAPPGUI_MINOR=${NAPPGUI_MINOR}")
+target_compile_definitions(sewer PUBLIC "-DNAPPGUI_PATCH=${NAPPGUI_PATCH}")
+target_compile_definitions(sewer PUBLIC "-DNAPPGUI_BUILD=${NAPPGUI_BUILD}")
+if (CMAKE_DISABLE_CRTDBG)
+    target_compile_definitions(sewer PUBLIC "-DNAPPGUI_NO_CRTDBG")
+endif()
