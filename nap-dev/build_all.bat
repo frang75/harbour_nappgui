@@ -7,10 +7,14 @@
 ::
 :: Options: -comp [msvc64|mingw64|clang]  (mingw64 default)
 ::          -b [Debug|Release]            (Release default)
+::          -noharbour                    (Avoid recompile Harbour)
 ::
 :: build_all.bat -comp msvc64 -b Release
+:: build_all.bat -comp mingw64 -b Release 1> full_build_log.txt 2>&1
+:: build_all.bat -noharbour -comp mingw64 -b Release 1> noharbour_build_log.txt 2>&1
 ::
 @echo off
+set BUILD_HARBOUR=yes
 set ALL_BUILD_COMPILER=mingw64
 set BUILD=Release
 set HBMK_FLAGS=
@@ -19,6 +23,7 @@ set HBMK_FLAGS=
 IF "%~1"=="" GOTO endparse
 IF "%~1"=="-comp" GOTO compiler
 IF "%~1"=="-b" GOTO build
+IF "%~1"=="-noharbour" GOTO noharbour
 SHIFT
 GOTO parse
 
@@ -34,9 +39,16 @@ set ALL_BUILD_COMPILER=%~1
 SHIFT
 GOTO parse
 
+:noharbour
+set BUILD_HARBOUR=no
+SHIFT
+GOTO parse
+
 :endparse
 
 cd ..
+
+IF "%BUILD_HARBOUR%"=="no" GOTO hboffice
 
 :: Remove previous compilations
 rmdir /s /q bin\win

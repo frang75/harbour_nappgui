@@ -51,7 +51,9 @@ struct _ossplittrack_t
     OSXSplitView *captured;
 };
 
+#pragma clang diagnostic ignored "-Wcast-function-type"
 DeclPt(OSXSplitView);
+#pragma clang diagnostic warning "-Wcast-function-type"
 
 /*---------------------------------------------------------------------------*/
 
@@ -101,7 +103,7 @@ static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
     pt = [event locationInWindow];
     i_SPLIT_TRACKS.captured = nil;
     arrpt_foreach(split, i_SPLIT_TRACKS.splits, OSXSplitView)
-        NSPoint local_point = [split convertPoint:pt fromView:[split superview]];
+        NSPoint local_point = [split convertPoint:pt fromView:nil];
         if (NSPointInRect(local_point, split->divrect) == YES)
         {
             i_SPLIT_TRACKS.captured = split;
@@ -379,7 +381,7 @@ void ossplit_frame(OSSplit *view, const real32_t x, const real32_t y, const real
     _oscontrol_set_frame(split, x, y, width, height);
     [split removeTrackingArea:split->track_area];
     [split->track_area release];
-    split->track_area = [[NSTrackingArea alloc] initWithRect:NSMakeRect((CGFloat)x, (CGFloat)y, (CGFloat)width, (CGFloat)height) options:(NSTrackingAreaOptions)(NSTrackingMouseMoved | NSTrackingActiveInActiveApp) owner:split userInfo:nil];
+    split->track_area = [[NSTrackingArea alloc] initWithRect:NSMakeRect(0, 0, (CGFloat)width, (CGFloat)height) options:(NSTrackingAreaOptions)(NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingActiveInActiveApp) owner:split userInfo:nil];
     [split addTrackingArea:split->track_area];
 }
 

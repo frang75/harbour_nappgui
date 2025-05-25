@@ -19,17 +19,17 @@ _gui_api SplitView *splitview_horizontal(void);
 
 _gui_api SplitView *splitview_vertical(void);
 
-_gui_api void splitview_size(SplitView *split, const S2Df size);
-
 _gui_api void splitview_view(SplitView *split, View *view, const bool_t tabstop);
 
-_gui_api void splitview_text(SplitView *split, TextView *view, const bool_t tabstop);
+_gui_api void splitview_textview(SplitView *split, TextView *view, const bool_t tabstop);
 
-_gui_api void splitview_split(SplitView *split, SplitView *child);
+_gui_api void splitview_webview(SplitView *split, WebView *view, const bool_t tabstop);
+
+_gui_api void splitview_tableview(SplitView *split, TableView *view, const bool_t tabstop);
+
+_gui_api void splitview_splitview(SplitView *split, SplitView *view);
 
 _gui_api void splitview_panel(SplitView *split, Panel *panel);
-
-_gui_api void splitview_mode(SplitView *split, const split_mode_t mode);
 
 _gui_api void splitview_pos(SplitView *split, const split_mode_t mode, const real32_t pos);
 

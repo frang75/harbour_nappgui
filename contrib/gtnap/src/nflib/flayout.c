@@ -52,7 +52,8 @@ static void i_remove_cell(FCell *cell)
     /* TODO: Remove when 'dbind()' support unions */
     cassert_no_null(cell);
     str_destroy(&cell->name);
-    switch(cell->type) {
+    switch (cell->type)
+    {
     case ekCELL_TYPE_EMPTY:
         break;
 
@@ -104,7 +105,7 @@ static void i_remove_cell(FCell *cell)
         dbind_destroy(&cell->widget.table, FTable);
         break;
 
-    cassert_default();
+        cassert_default();
     }
 
     cassert(cell->widget.label == NULL);
@@ -376,7 +377,7 @@ static void i_read_cell(Stream *stm, FCell *cell)
         break;
     case ekCELL_TYPE_POPUP:
         cell->widget.popup = i_read_popup(stm);
-        break;        
+        break;
     case ekCELL_TYPE_LISTBOX:
         cell->widget.listbox = i_read_listbox(stm);
         break;
@@ -602,22 +603,22 @@ static void i_write_cell(Stream *stm, const FCell *cell)
         i_write_text(stm, cell->widget.text);
         break;
     case ekCELL_TYPE_IMAGE:
-		i_write_image(stm, cell->widget.image);
+        i_write_image(stm, cell->widget.image);
         break;
     case ekCELL_TYPE_SLIDER:
-		i_write_slider(stm, cell->widget.slider);
+        i_write_slider(stm, cell->widget.slider);
         break;
     case ekCELL_TYPE_PROGRESS:
-		i_write_progress(stm, cell->widget.progress);
+        i_write_progress(stm, cell->widget.progress);
         break;
     case ekCELL_TYPE_POPUP:
-		i_write_popup(stm, cell->widget.popup);
+        i_write_popup(stm, cell->widget.popup);
         break;
     case ekCELL_TYPE_LISTBOX:
-		i_write_listbox(stm, cell->widget.listbox);
+        i_write_listbox(stm, cell->widget.listbox);
         break;
     case ekCELL_TYPE_TABLEVIEW:
-		i_write_table(stm, cell->widget.table);
+        i_write_table(stm, cell->widget.table);
         break;
     case ekCELL_TYPE_LAYOUT:
         flayout_write(stm, cell->widget.layout);
@@ -809,7 +810,7 @@ void flayout_remove_cell(FLayout *layout, const uint32_t col, const uint32_t row
     cassert_no_null(cell);
     name = str_c(tc(cell->name));
     i_remove_cell(cell);
-    //dbind_remove(cell, FCell);
+    /*dbind_remove(cell, FCell);*/
     cell->type = ekCELL_TYPE_EMPTY;
     str_upd(&cell->name, tc(name));
     str_destroy(&name);
@@ -1070,7 +1071,8 @@ static align_t i_valign(const valign_t valign)
 
 static gui_scale_t i_scale(const scale_t scale)
 {
-    switch(scale) {
+    switch (scale)
+    {
     case ekSCALE_NONE:
         return ekGUI_SCALE_NONE;
     case ekSCALE_AUTO:
@@ -1079,7 +1081,7 @@ static gui_scale_t i_scale(const scale_t scale)
         return ekGUI_SCALE_ASPECT;
     case ekSCALE_FIT:
         return ekGUI_SCALE_ADJUST;
-    cassert_default();
+        cassert_default();
     }
     return ekGUI_SCALE_ASPECT;
 }
@@ -1195,7 +1197,7 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     break;
                 }
 
-				case ekCELL_TYPE_IMAGE:
+                case ekCELL_TYPE_IMAGE:
                 {
                     FImage *fimage = cells->widget.image;
                     ImageView *gimage = imageview_create();
@@ -1225,7 +1227,7 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                 {
                     FSlider *fslider = cells->widget.slider;
                     Slider *gslider = slider_create();
-					slider_min_width(gslider, fslider->min_width);
+                    slider_min_width(gslider, fslider->min_width);
                     slider_value(gslider, .5f);
                     layout_slider(glayout, gslider, i, j);
                     break;
@@ -1235,7 +1237,7 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                 {
                     FProgress *fprogress = cells->widget.progress;
                     Progress *gprogress = progress_create();
-					progress_min_width(gprogress, fprogress->min_width);
+                    progress_min_width(gprogress, fprogress->min_width);
                     layout_progress(glayout, gprogress, i, j);
                     break;
                 }
@@ -1349,7 +1351,7 @@ GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout
                 case ekCELL_TYPE_POPUP:
                 case ekCELL_TYPE_LISTBOX:
                 case ekCELL_TYPE_TABLEVIEW:
-				{
+                {
                     Cell *gcell = layout_cell(gui_layout, i, j);
                     return cell_control(gcell);
                 }

@@ -120178,6 +120178,10 @@ SQLITE_PRIVATE void sqlite3AuthContextPop(AuthContext *pContext){
 */
 /* #include "sqliteInt.h" */
 
+#if defined( __GNUC__ ) && __GNUC__ >= 14
+#  pragma GCC diagnostic ignored "-Wstringop-overread"
+#endif
+
 #ifndef SQLITE_OMIT_SHARED_CACHE
 /*
 ** The TableLock structure is only used by the sqlite3TableLock() and

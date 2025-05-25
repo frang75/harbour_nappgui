@@ -273,7 +273,7 @@ EXTERNAL hbmk_KEYW
 #define _HBMK_SPECDIR_CONTRIB   "contrib"
 #define _HBMK_SPECDIR_ADDONS    "addons"
 
-#define _HBMK_SIGN_TIMEURL      "http://timestamp.verisign.com/scripts/timstamp.dll"
+#define _HBMK_SIGN_TIMEURL      "http://timestamp.comodoca.com/authenticode"
 
 #define _HBMK_HBEXTREQ          "__HBEXTREQ__"
 #define _HBMK_WITH_TPL          "HBMK_WITH_%1$s"
@@ -2150,11 +2150,11 @@ STATIC FUNCTION __hbmk( aArgs, nArgTarget, nLevel, /* @ */ lPause, /* @ */ lExit
                            DO CASE
                            CASE FindInPath( "os2.h", GetEnv( "INCLUDE" ) ) != NIL
                               hbmk[ _HBMK_cPLAT ] := "os2"
-                           CASE FindInPath( "dirent.h", GetEnv( "INCLUDE" ) ) != NIL
-                              hbmk[ _HBMK_cPLAT ] := "linux"
                            CASE FindInPath( "windows.h", GetEnv( "INCLUDE" ) ) != NIL
                               hbmk[ _HBMK_cPLAT ] := "win"
-                           OTHERWISE
+                           CASE At( Lower( PathSepToForward( GetEnv( "WATCOM" ) ) ) + "/lh", Lower( PathSepToForward( GetEnv( "INCLUDE" ) ) ) ) > 0
+                              hbmk[ _HBMK_cPLAT ] := "linux"
+                           CASE hbmk[ _HBMK_cPLAT ] == Lower( hb_Version( HB_VERSION_PLATFORM ) )
                               hbmk[ _HBMK_cPLAT ] := "dos"
                            ENDCASE
                         ENDIF
@@ -15757,7 +15757,7 @@ STATIC PROCEDURE ShowHeader( hbmk )
          "Copyright (c) 2007-" + ;
             cToYear + ", " + ;
             "Viktor Szakats" + e"\n" + ;
-         "Copyright (c) 2003-2007, Przemys?aw Czerpak" + e"\n"
+         "Copyright (c) 2003-2007, Przemysław Czerpak" + e"\n"
    ELSE
       cText := _SELF_NAME_LONG_
       IF ! _SELF_NAME_ == _SELF_NAME_LONG_
