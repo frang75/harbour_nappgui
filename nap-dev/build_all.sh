@@ -7,9 +7,13 @@
 #
 # Options: -comp [gcc|clang]  (gcc default)
 #          -b [Debug|Release] (Release default)
+#          -noharbour (Avoid recompile Harbour)
 #
-# build_all.bat -comp msvc64 -b Release
+# bash build_all.sh -comp gcc -b Release
+# bash build_all.sh -comp gcc -b Release &> full_build_log.txt
+# bash build_all.sh -noharbour -comp gcc -b Release &> noharbour_build_log.txt
 #
+BUILD_HARBOUR=yes
 ALL_BUILD_COMPILER=gcc
 BUILD=Release
 HBMK_FLAGS=
@@ -26,6 +30,10 @@ while [[ $# -gt 0 ]]; do
       shift
       shift
       ;;
+    -noharbour)
+      BUILD_HARBOUR=no
+      shift
+      ;;
     -*|--*)
       shift
       ;;
@@ -34,11 +42,6 @@ done
 
 cd ..
 
-# Remove previous compilations
-rm -rf bin/linux
-rm -rf lib/linux
-make clean
-
 # Allowed compilers for Linux
 if [[ "$ALL_BUILD_COMPILER" != "gcc" && "$ALL_BUILD_COMPILER" != "clang" ]]; then
     echo Error Unknown compiler: $ALL_BUILD_COMPILER
@@ -46,10 +49,16 @@ if [[ "$ALL_BUILD_COMPILER" != "gcc" && "$ALL_BUILD_COMPILER" != "clang" ]]; the
 fi
 
 # Compile Harbour with gcc or clang
-make -j4 HB_CPU=x86_64 HB_COMPILER=$ALL_BUILD_COMPILER
-echo ----------------------------------------
-echo Harbour $ALL_BUILD_COMPILER build successfully
-echo ----------------------------------------
+if [[ "$BUILD_HARBOUR" == "yes" ]]; then
+    # Remove previous compilations
+    rm -rf bin/linux
+    rm -rf lib/linux
+    make clean
+    make -j4 HB_CPU=x86_64 HB_COMPILER=$ALL_BUILD_COMPILER
+    echo ----------------------------------------
+    echo Harbour $ALL_BUILD_COMPILER build successfully
+    echo ----------------------------------------
+fi
 
 # Compile LibreOffice
 cd contrib/hboffice
