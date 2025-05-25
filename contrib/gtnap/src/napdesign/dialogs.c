@@ -245,7 +245,7 @@ FLabel *dialog_new_label(Window *parent, const DSelect *sel)
     layout_vmargin(layout1, 0, 5);
     layout_vmargin(layout1, 1, 5);
     panel_layout(panel, layout1);
-    cell_dbind(layout_cell(layout2, 1, 0), FLabel, String*, text);
+    cell_dbind(layout_cell(layout2, 1, 0), FLabel, String *, text);
     cell_dbind(layout_cell(layout1, 0, 2), FLabel, bool_t, multiline);
     layout_dbind(layout1, NULL, FLabel);
     layout_dbind_obj(layout1, flabel, FLabel);
@@ -293,7 +293,7 @@ FButton *dialog_new_button(Window *parent, const DSelect *sel)
     layout_vmargin(layout1, 0, 5);
     layout_vmargin(layout1, 1, 5);
     panel_layout(panel, layout1);
-    cell_dbind(layout_cell(layout2, 1, 0), FButton, String*, text);
+    cell_dbind(layout_cell(layout2, 1, 0), FButton, String *, text);
     layout_dbind(layout1, NULL, FButton);
     layout_dbind_obj(layout1, fbutton, FButton);
     window_panel(window, panel);
@@ -340,7 +340,7 @@ FCheck *dialog_new_check(Window *parent, const DSelect *sel)
     layout_vmargin(layout1, 0, 5);
     layout_vmargin(layout1, 1, 5);
     panel_layout(panel, layout1);
-    cell_dbind(layout_cell(layout2, 1, 0), FCheck, String*, text);
+    cell_dbind(layout_cell(layout2, 1, 0), FCheck, String *, text);
     layout_dbind(layout1, NULL, FCheck);
     layout_dbind_obj(layout1, fcheck, FCheck);
     window_panel(window, panel);
@@ -486,8 +486,8 @@ static void i_OnLoadImage(DialogData *data, Event *e)
     cassert_no_null(data);
     cassert_no_null(data->path);
     imgpath = comwin_open_file(data->window, NULL, 0, data->path);
-	if (imgpath != NULL)
-	{
+    if (imgpath != NULL)
+    {
         Image *image = image_from_file(imgpath, NULL);
         if (image != NULL)
         {
@@ -509,10 +509,10 @@ static void i_OnLoadImage(DialogData *data, Event *e)
             window_update(data->window);
             image_destroy(&image);
         }
-	}
+    }
     unref(e);
 }
-    
+
 /*---------------------------------------------------------------------------*/
 
 static Layout *i_image_layout(DialogData *data)
@@ -537,7 +537,7 @@ static Layout *i_image_layout(DialogData *data)
     data->imgview = view;
     return layout;
 }
-    
+
 /*---------------------------------------------------------------------------*/
 
 FImage *dialog_new_image(Window *parent, const DSelect *sel, const char_t *folder_path)
@@ -785,8 +785,6 @@ FElem *dialog_new_elem(Window *parent, const char_t *folder_path)
     layout_layout(layout1, layout2, 0, 1);
     layout_layout(layout1, layout3, 0, 2);
     layout_layout(layout1, layout4, 0, 3);
-
-    //layout_vmargin(layout1, 0, 5);
     panel_layout(panel, layout1);
     window_panel(window, panel);
     window_defbutton(window, data.defbutton);

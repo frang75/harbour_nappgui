@@ -381,9 +381,7 @@ static void i_OnLabelNotify(PropData *data, Event *e)
         dform_compose(data->form);
         designer_canvas_update(data->app);
     }
-    else if (evbind_modify(e, FLabel, bool_t, multiline) == TRUE
-        || evbind_modify(e, FLabel, real32_t, min_width) == TRUE
-        || evbind_modify(e, FLabel, halign_t, align) == TRUE)
+    else if (evbind_modify(e, FLabel, bool_t, multiline) == TRUE || evbind_modify(e, FLabel, real32_t, min_width) == TRUE || evbind_modify(e, FLabel, halign_t, align) == TRUE)
     {
         dform_synchro_label(data->form, &data->sel);
         dform_compose(data->form);
@@ -533,10 +531,7 @@ static void i_OnEditNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
     cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
-    if (evbind_modify(e, FEdit, bool_t, passmode) == TRUE
-        || evbind_modify(e, FEdit, bool_t, autosel) == TRUE
-        || evbind_modify(e, FEdit, halign_t, text_align) == TRUE
-        || evbind_modify(e, FEdit, real32_t, min_width) == TRUE)
+    if (evbind_modify(e, FEdit, bool_t, passmode) == TRUE || evbind_modify(e, FEdit, bool_t, autosel) == TRUE || evbind_modify(e, FEdit, halign_t, text_align) == TRUE || evbind_modify(e, FEdit, real32_t, min_width) == TRUE)
     {
         dform_synchro_edit(data->form, &data->sel);
 
@@ -594,14 +589,11 @@ static void i_OnTextNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
     cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
-    if (evbind_modify(e, FText, bool_t, read_only) == TRUE
-        || evbind_modify(e, FText, real32_t, min_width) == TRUE
-        || evbind_modify(e, FText, real32_t, min_height) == TRUE)
+    if (evbind_modify(e, FText, bool_t, read_only) == TRUE || evbind_modify(e, FText, real32_t, min_width) == TRUE || evbind_modify(e, FText, real32_t, min_height) == TRUE)
     {
         dform_synchro_textview(data->form, &data->sel);
 
-        if (evbind_modify(e, FText, real32_t, min_width) == TRUE
-            || evbind_modify(e, FText, real32_t, min_height) == TRUE)
+        if (evbind_modify(e, FText, real32_t, min_width) == TRUE || evbind_modify(e, FText, real32_t, min_height) == TRUE)
         {
             dform_compose(data->form);
             designer_canvas_update(data->app);
@@ -651,9 +643,7 @@ static void i_OnImageNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
     cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
-    if (evbind_modify(e, FImage, scale_t, scale) == TRUE
-        || evbind_modify(e, FImage, real32_t, min_width) == TRUE
-        || evbind_modify(e, FImage, real32_t, min_height) == TRUE)
+    if (evbind_modify(e, FImage, scale_t, scale) == TRUE || evbind_modify(e, FImage, real32_t, min_width) == TRUE || evbind_modify(e, FImage, real32_t, min_height) == TRUE)
     {
         dform_synchro_imageview(data->form, &data->sel);
         dform_compose(data->form);
@@ -673,8 +663,8 @@ static void i_OnLoadImage(PropData *data, Event *e)
     folder_path = designer_folder_path(data->app);
     window = designer_main_window(data->app);
     imgpath = comwin_open_file(window, NULL, 0, folder_path);
-	if (imgpath != NULL)
-	{
+    if (imgpath != NULL)
+    {
         Image *image = image_from_file(imgpath, NULL);
         if (image != NULL)
         {
@@ -687,7 +677,7 @@ static void i_OnLoadImage(PropData *data, Event *e)
             str_destroy(&relpath);
             image_destroy(&image);
         }
-	}
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -997,8 +987,7 @@ static void i_OnListBoxNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
     cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
-    if (evbind_modify(e, FListBox, real32_t, min_width) == TRUE
-        || evbind_modify(e, FListBox, real32_t, min_height) == TRUE)
+    if (evbind_modify(e, FListBox, real32_t, min_width) == TRUE || evbind_modify(e, FListBox, real32_t, min_height) == TRUE)
     {
         dform_synchro_listbox(data->form, &data->sel);
         dform_compose(data->form);
@@ -1077,8 +1066,7 @@ static void i_OnTableNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
     cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
-    if (evbind_modify(e, FTable, real32_t, min_width) == TRUE
-        || evbind_modify(e, FTable, real32_t, min_height) == TRUE)
+    if (evbind_modify(e, FTable, real32_t, min_width) == TRUE || evbind_modify(e, FTable, real32_t, min_height) == TRUE)
     {
         dform_synchro_table(data->form, &data->sel);
         dform_compose(data->form);
@@ -1118,7 +1106,7 @@ static void i_OnHeaderNotify(PropData *data, Event *e)
     dform_synchro_table_header(data->form, &data->sel, id);
     designer_canvas_update(data->app);
 
-    if (evbind_modify(e, FHeader, String*, title) == TRUE)
+    if (evbind_modify(e, FHeader, String *, title) == TRUE)
     {
         FHeader *fheader = evbind_object(e, FHeader);
         listbox_set_elem(data->table_list, id, tc(fheader->title), NULL);
@@ -1219,8 +1207,8 @@ static Layout *i_table_layout(PropData *data)
     button_tooltip(button2, "Remove current column");
     button_tooltip(button3, "Clear all columns");
     button_OnClick(button1, listener(data, i_OnTableAdd, PropData));
-    //button_OnClick(button2, listener(data, i_OnListBoxRemove, PropData));
-    //button_OnClick(button3, listener(data, i_OnListBoxClear, PropData));
+    /*button_OnClick(button2, listener(data, i_OnListBoxRemove, PropData));*/
+    /*button_OnClick(button3, listener(data, i_OnListBoxClear, PropData));*/
     layout_label(layout1, label1, 0, 0);
     layout_label(layout2, label2, 0, 0);
     layout_label(layout2, label3, 0, 1);
@@ -1435,7 +1423,7 @@ static void i_update_header_list(ArrSt(FHeader) *headers, ListBox *list, Layout 
         fheader = arrst_first(headers, FHeader);
         listbox_select(list, 0, TRUE);
     }
-    
+
     layout_dbind_obj(header_layout, fheader, FHeader);
 }
 
@@ -1542,12 +1530,12 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
             layout_dbind_obj(data->text_layout, cell->widget.text, FText);
             panel_visible_layout(data->cell_panel, 6);
         }
-		else if (cell->type == ekCELL_TYPE_IMAGE)
-		{
+        else if (cell->type == ekCELL_TYPE_IMAGE)
+        {
             layout_dbind_obj(data->image_layout, cell->widget.image, FImage);
             panel_visible_layout(data->cell_panel, 7);
             button_tooltip(data->load_button, tc(cell->widget.image->path));
-		}
+        }
         else if (cell->type == ekCELL_TYPE_SLIDER)
         {
             layout_dbind_obj(data->slider_layout, cell->widget.slider, FSlider);
@@ -1571,13 +1559,13 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
             layout_dbind_obj(data->listbox_layout, cell->widget.listbox, FListBox);
             panel_visible_layout(data->cell_panel, 11);
             i_update_elem_list(cell->widget.listbox->elems, data->listbox_list, folder_path);
-        } 
+        }
         else if (cell->type == ekCELL_TYPE_TABLEVIEW)
         {
             layout_dbind_obj(data->table_layout, cell->widget.table, FTable);
             panel_visible_layout(data->cell_panel, 12);
             i_update_header_list(cell->widget.table->headers, data->table_list, data->header_layout);
-        } 
+        }
         else
         {
             cassert(FALSE);

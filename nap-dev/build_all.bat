@@ -9,6 +9,7 @@
 ::          -b [Debug|Release]            (Release default)
 ::
 :: build_all.bat -comp msvc64 -b Release
+:: build_all.bat -comp mingw64 -b Release 1> full_build_log.txt 2>&1
 ::
 @echo off
 set ALL_BUILD_COMPILER=mingw64
