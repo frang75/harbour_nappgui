@@ -593,6 +593,8 @@ void splitview_pos(SplitView *split, const split_mode_t mode, const real32_t pos
             split->user_divpos = i_convert_clamp_divpos(split->divider_mode, mode, split->user_divpos, size);
         else
             split->user_divpos = pos;
+
+        split->drag_divpos = -1;
     }
 
     split->divider_mode = mode;

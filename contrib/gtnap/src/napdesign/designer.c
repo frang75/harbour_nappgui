@@ -1287,12 +1287,11 @@ static Designer *i_create(void)
     app->menu = i_menu(app);
     window_panel(app->window, panel);
     window_title(app->window, "GTNAP Designer");
-    window_origin(app->window, v2df(500, 200));
     window_OnClose(app->window, listener(app, i_OnClose, Designer));
     window_hotkey(app->window, ekKEY_SUPR, 0, listener(app, i_OnHotKey, Designer));
+    i_apply_config(app);
     window_show(app->window);
     osapp_menubar(app->menu, app->window);
-    i_apply_config(app);
     layout_dbind(app->widgets_layout, NULL, Designer);
     layout_dbind_obj(app->widgets_layout, app, Designer);
     i_init_forms(app, tc(app->config.folder_path));
