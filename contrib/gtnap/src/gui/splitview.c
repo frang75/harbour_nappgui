@@ -378,8 +378,8 @@ static void i_recompute_dimension(SplitView *split, const uint32_t di, const rea
             /* Constraint can be met */
             else
             {
-                cassert(divpos_px >= 0);
-                split->drag_divpos = i_convert_clamp_divpos(ekSPLIT_FIXED0, split->divider_mode, divpos_px, tsize);
+                if (divpos_px >= 0)
+                    split->drag_divpos = i_convert_clamp_divpos(ekSPLIT_FIXED0, split->divider_mode, divpos_px, tsize);
                 ptr_assign(final_size, fsize);
                 recompute = FALSE;
             }
