@@ -68,15 +68,15 @@ echo ---------------------------
 mkdir -p build
 cd build
 if [ "$(uname)" == "Darwin" ]; then
-    cmake -G Xcode .. -DCMAKE_OSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET} || exit 1
+    cmake -G Xcode .. -DNAPPGUI_WEB=NO -DCMAKE_OSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET} || exit 1
     xcodebuild -configuration $BUILD || exit 1
 else
     if [ "$COMPILER" == "gcc" ]; then
-        cmake .. -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=$BUILD || exit 1
+        cmake .. -DNAPPGUI_WEB=NO -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=$BUILD || exit 1
     fi
 
     if [ "$COMPILER" == "clang" ]; then
-        cmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=$BUILD || exit 1
+        cmake .. -DNAPPGUI_WEB=NO -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=$BUILD || exit 1
     fi
 
     make -j 4 || exit 1

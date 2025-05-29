@@ -78,7 +78,7 @@ goto cmake
 :: Build NAppGUI from sources
 ::
 :cmake
-call cmake %CMAKE_ARGS% -S %CWD% -B %CWD%\build || goto error_cmake
+call cmake %CMAKE_ARGS% -DNAPPGUI_WEB=NO -S %CWD% -B %CWD%\build || goto error_cmake
 call cmake --build %CWD%\build %CMAKE_BUILD% || goto error_build
 
 ::
