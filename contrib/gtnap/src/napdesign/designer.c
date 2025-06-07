@@ -11,6 +11,7 @@
 #include "inspect.h"
 
 typedef struct _config_t Config;
+typedef struct _bwidget_t BWidget;
 
 struct _config_t
 {
@@ -32,12 +33,22 @@ struct _config_t
     bool_t show_propedit;
 };
 
+struct _bwidget_t
+{
+    widget_t twidget;
+    const char_t *label;
+    ResId imageid;
+    Button *button;
+    uint32_t drawer;
+};
+
 struct _desiger_t
 {
     Window *window;
     Config config;
     Menu *menu;
     ArrPt(DForm) *forms;
+    ArrSt(BWidget) *widgets;
     ListBox *form_list;
     Label *status_label;
     Label *cells_label;
@@ -78,6 +89,7 @@ static const split_mode_t i_SPLIT4_MODE = ekSPLIT_FIXED0;
 static const char_t *i_FILE_EXT = "nfm";
 static const char_t *i_SAVE_MARK = "• ";
 DeclPt(DForm);
+DeclSt(BWidget);
 
 /*---------------------------------------------------------------------------*/
 
@@ -1265,6 +1277,17 @@ static void i_OnClose(Designer *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_add_widget(ArrSt(BWidget) *widgets, const widget_t twidget, const char_t *label, ResId imageid, const uint32_t drawer)
+{
+    BWidget *widget = arrst_new0(widgets, BWidget);
+    widget->twidget = twidget;
+    widget->label = label;
+    widget->imageid = imageid;
+    widget->drawer = drawer;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Designer *i_app(void)
 {
     Designer *app = heap_new0(Designer);
@@ -1279,6 +1302,26 @@ static Designer *i_app(void)
     app->forms = arrpt_create(DForm);
     app->add_icon = image_copy(gui_image(PLUS16_PNG));
     app->default_font = font_system(font_regular_size(), 0);
+    app->widgets = arrst_create(BWidget);
+    i_add_widget(app->widgets, ekWIDGET_SELECT, "Select", CURSOR_PNG, 0);
+    i_add_widget(app->widgets, ekWIDGET_VERT_LAYOUT, "Vertical Layout", VLAYOUT_PNG, 1);
+    i_add_widget(app->widgets, ekWIDGET_HORZ_LAYOUT, "Horizontal Layout", HLAYOUT_PNG, 1);
+    i_add_widget(app->widgets, ekWIDGET_GRID_LAYOUT, "Grid Layout", GLAYOUT_PNG, 1);
+    i_add_widget(app->widgets, ekWIDGET_PUSH_BUTTON, "Push Button", PUSHBUT_PNG, 2);
+    i_add_widget(app->widgets, ekWIDGET_TOOL_BUTTON, "Tool Button", TOOLBUT_PNG, 2);
+    i_add_widget(app->widgets, ekWIDGET_RADIO_BUTTON, "Radio Button", RADBUT_PNG, 2);
+    i_add_widget(app->widgets, ekWIDGET_CHECK_BUTTON, "Check Box", CHECBUT_PNG, 2);
+    i_add_widget(app->widgets, ekWIDGET_LABEL, "Label", LABEL_PNG, 3);
+    i_add_widget(app->widgets, ekWIDGET_EDITBOX, "Edit Box", EDITBOX_PNG, 3);
+    i_add_widget(app->widgets, ekWIDGET_COMBOBOX, "Combo Box", COMBOBOX_PNG, 3);
+    i_add_widget(app->widgets, ekWIDGET_TEXTVIEW, "Text View", TEXTVIEW_PNG, 3);
+    i_add_widget(app->widgets, ekWIDGET_LISTBOX, "List Box", LISTVIEW_PNG, 4);
+    i_add_widget(app->widgets, ekWIDGET_POPUP, "PopUp Button", POPUP_PNG, 4);
+    i_add_widget(app->widgets, ekWIDGET_TABLEVIEW, "Table View", TABLEVIEW_PNG, 4);
+    i_add_widget(app->widgets, ekWIDGET_IMAGEVIEW, "Image View", IMAGEVIEW_PNG, 5);
+    i_add_widget(app->widgets, ekWIDGET_HORZ_SLIDER, "Horizontal Slider", HORSLIDER_PNG, 5);
+    i_add_widget(app->widgets, ekWIDGET_VERT_SLIDER, "Vertical Slider", VERSLIDER_PNG, 5);
+    i_add_widget(app->widgets, ekWIDGET_PROGRESS, "Progress Bar", PROGRESSBAR_PNG, 5);
     return app;
 }
 
