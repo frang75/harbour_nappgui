@@ -446,7 +446,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 }
             }
 
-            case ekWIDGET_BUTTON:
+            case ekWIDGET_PUSH_BUTTON:
             {
                 FButton *fbutton = dialog_new_button(window, &sel);
                 if (fbutton != NULL)
@@ -470,7 +470,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 }
             }
 
-            case ekWIDGET_CHECKBOX:
+            case ekWIDGET_CHECK_BUTTON:
             {
                 FCheck *fcheck = dialog_new_check(window, &sel);
                 if (fcheck != NULL)
@@ -578,7 +578,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 }
 			}
 
-            case ekWIDGET_SLIDER:
+            case ekWIDGET_HORZ_SLIDER:
             {
                 FSlider *fslider = dialog_new_slider(window, &sel);
                 if (fslider != NULL)
@@ -729,6 +729,15 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     return FALSE;
                 }
             }
+
+            /* Still not supported */
+            case ekWIDGET_VERT_LAYOUT:
+            case ekWIDGET_HORZ_LAYOUT:
+            case ekWIDGET_TOOL_BUTTON:
+            case ekWIDGET_RADIO_BUTTON:
+            case ekWIDGET_COMBOBOX:
+            case ekWIDGET_VERT_SLIDER:
+                break;
 
             default:
                 break;

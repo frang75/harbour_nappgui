@@ -90,20 +90,20 @@ static void i_OnShowPropEdit(Designer *, Event *);
 
 static void i_dbind(void)
 {
-    dbind_enum(widget_t, ekWIDGET_SELECT, "");
-    dbind_enum(widget_t, ekWIDGET_GRID_LAYOUT, "");
-    dbind_enum(widget_t, ekWIDGET_LABEL, "");
-    dbind_enum(widget_t, ekWIDGET_BUTTON, "");
-    dbind_enum(widget_t, ekWIDGET_CHECKBOX, "");
-    dbind_enum(widget_t, ekWIDGET_EDITBOX, "");
-    dbind_enum(widget_t, ekWIDGET_TEXTVIEW, "");
-    dbind_enum(widget_t, ekWIDGET_IMAGEVIEW, "");
-    dbind_enum(widget_t, ekWIDGET_SLIDER, "");
-    dbind_enum(widget_t, ekWIDGET_PROGRESS, "");
-    dbind_enum(widget_t, ekWIDGET_POPUP, "");
-    dbind_enum(widget_t, ekWIDGET_LISTBOX, "");
-    dbind_enum(widget_t, ekWIDGET_TABLEVIEW, "");    
-    dbind(Designer, widget_t, config.swidget);
+    //dbind_enum(widget_t, ekWIDGET_SELECT, "");
+    //dbind_enum(widget_t, ekWIDGET_GRID_LAYOUT, "");
+    //dbind_enum(widget_t, ekWIDGET_LABEL, "");
+    //dbind_enum(widget_t, ekWIDGET_BUTTON, "");
+    //dbind_enum(widget_t, ekWIDGET_CHECKBOX, "");
+    //dbind_enum(widget_t, ekWIDGET_EDITBOX, "");
+    //dbind_enum(widget_t, ekWIDGET_TEXTVIEW, "");
+    //dbind_enum(widget_t, ekWIDGET_IMAGEVIEW, "");
+    //dbind_enum(widget_t, ekWIDGET_SLIDER, "");
+    //dbind_enum(widget_t, ekWIDGET_PROGRESS, "");
+    //dbind_enum(widget_t, ekWIDGET_POPUP, "");
+    //dbind_enum(widget_t, ekWIDGET_LISTBOX, "");
+    //dbind_enum(widget_t, ekWIDGET_TABLEVIEW, "");    
+    //dbind(Designer, widget_t, config.swidget);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -633,7 +633,7 @@ static Panel *i_widgets_panel(Designer *app)
     layout_layout(layout1, layout2, 0, 0);
     panel_layout(panel, layout1);
     panel_size(panel, s2df(-1, 200));
-    cell_dbind(layout_cell(layout1, 0, 0), Designer, widget_t, config.swidget);
+    //cell_dbind(layout_cell(layout1, 0, 0), Designer, widget_t, config.swidget);
     app->widgets_layout = layout2;
     app->widgets_cell = layout_cell(layout1, 0, 0);
     return panel;
