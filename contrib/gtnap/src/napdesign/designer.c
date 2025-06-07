@@ -5,6 +5,7 @@
 #include "res_designer.h"
 #include "dlayout.h"
 #include "dform.h"
+#include "dgui.h"
 #include "dialogs.h"
 #include "propedit.h"
 #include "inspect.h"
@@ -77,6 +78,10 @@ static const split_mode_t i_SPLIT4_MODE = ekSPLIT_FIXED0;
 static const char_t *i_FILE_EXT = "nfm";
 static const char_t *i_SAVE_MARK = "• ";
 DeclPt(DForm);
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnShowForms(Designer *, Event *);
 
 /*---------------------------------------------------------------------------*/
 
@@ -666,15 +671,14 @@ static Panel *i_forms_box(Designer *app)
 {
     Panel *panel = panel_create();
     Layout *layout = layout_create(1, 2);
-    Label *label = label_create();
+    View *header = dgui_panel_header("Forms", app->default_font, listener(app, i_OnShowForms, Designer));
     ListBox *list = listbox_create();
     cassert_no_null(app);
-    label_text(label, "Forms");
     listbox_size(list, s2df(150, 100));
     listbox_OnSelect(list, listener(app, i_OnFormSelect, Designer));
-    layout_label(layout, label, 0, 0);
+    layout_view(layout, header, 0, 0);
     layout_listbox(layout, list, 0, 1);
-    layout_vmargin(layout, 0, 5);
+    layout_vmargin(layout, 0, 2);
     layout_vexpand(layout, 1);
     layout_margin4(layout, 0, 5, 5, 5);
     panel_layout(panel, layout);
@@ -1266,6 +1270,7 @@ static Designer *i_app(void)
     Designer *app = heap_new0(Designer);
     gui_respack(res_designer_respack);
     gui_language("");
+    dgui_init();
     nflib_start();
     i_dbind();
     dialog_dbind();    

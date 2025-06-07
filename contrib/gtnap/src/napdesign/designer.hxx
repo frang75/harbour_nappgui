@@ -41,6 +41,11 @@ typedef enum _layelem_t
     ekLAYELEM_CELL
 } layelem_t;
 
+typedef enum _devent_t
+{
+    ekDEVENT_HEADER_CLOSE = 0x500
+} devent_t;
+
 struct _dcolumn_t
 {
     real32_t width;
