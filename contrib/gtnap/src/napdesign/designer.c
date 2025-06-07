@@ -82,6 +82,9 @@ DeclPt(DForm);
 /*---------------------------------------------------------------------------*/
 
 static void i_OnShowForms(Designer *, Event *);
+static void i_OnShowWidgets(Designer *, Event *);
+static void i_OnShowInspectr(Designer *, Event *);
+static void i_OnShowPropEdit(Designer *, Event *);
 
 /*---------------------------------------------------------------------------*/
 
@@ -643,13 +646,12 @@ static Panel *i_widgets_box(Designer *app)
     Panel *panel1 = panel_create();
     Panel *panel2 = i_widgets_panel(app);
     Layout *layout = layout_create(1, 2);
-    Label *label = label_create();
-    label_text(label, "Widgets");
-    layout_label(layout, label, 0, 0);
+    View *header = dgui_panel_header("Widgets", app->default_font, listener(app, i_OnShowWidgets, Designer));
+    layout_view(layout, header, 0, 0);
     layout_panel(layout, panel2, 0, 1);
-    layout_vmargin(layout, 0, 5);
+    layout_vmargin(layout, 0, 2);
     layout_vexpand(layout, 1);
-    layout_margin4(layout, 0, 5, 5, 5);
+    layout_margin4(layout, 0, 5, 5, 1);
     panel_layout(panel1, layout);
     return panel1;
 }
@@ -680,7 +682,7 @@ static Panel *i_forms_box(Designer *app)
     layout_listbox(layout, list, 0, 1);
     layout_vmargin(layout, 0, 2);
     layout_vexpand(layout, 1);
-    layout_margin4(layout, 0, 5, 5, 5);
+    layout_margin4(layout, 0, 5, 5, 1);
     panel_layout(panel, layout);
     app->form_list = list;
     return panel;
@@ -693,14 +695,13 @@ static Panel *i_inspector_box(Designer *app)
     Panel *panel1 = panel_create();
     Panel *panel2 = inspect_create(app);
     Layout *layout = layout_create(1, 2);
-    Label *label = label_create();
+    View *header = dgui_panel_header("Object inspector", app->default_font, listener(app, i_OnShowInspectr, Designer));
     cassert_no_null(app);
-    label_text(label, "Object inspector");
-    layout_label(layout, label, 0, 0);
+    layout_view(layout, header, 0, 0);
     layout_panel(layout, panel2, 0, 1);
-    layout_vmargin(layout, 0, 5);
+    layout_vmargin(layout, 0, 2);
     layout_vexpand(layout, 1);
-    layout_margin4(layout, 0, 5, 5, 5);
+    layout_margin4(layout, 0, 1, 5, 5);
     panel_layout(panel1, layout);
     app->inspect = panel2;
     return panel1;
@@ -713,14 +714,13 @@ static Panel *i_propedit_box(Designer *app)
     Panel *panel1 = panel_create();
     Panel *panel2 = propedit_create(app);
     Layout *layout = layout_create(1, 2);
-    Label *label = label_create();
+    View *header = dgui_panel_header("Property editor", app->default_font, listener(app, i_OnShowPropEdit, Designer));
     cassert_no_null(app);
-    label_text(label, "Property editor");
-    layout_label(layout, label, 0, 0);
+    layout_view(layout, header, 0, 0);
     layout_panel(layout, panel2, 0, 1);
-    layout_vmargin(layout, 0, 5);
+    layout_vmargin(layout, 0, 2);
     layout_vexpand(layout, 1);
-    layout_margin4(layout, 0, 0, 5, 5);
+    layout_margin4(layout, 0, 1, 5, 5);
     panel_layout(panel1, layout);
     app->propedit = panel2;
     return panel1;
