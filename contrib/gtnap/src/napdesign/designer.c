@@ -11,6 +11,7 @@
 #include "inspect.h"
 
 typedef struct _config_t Config;
+typedef struct _wdrawer_t WDrawer;
 typedef struct _bwidget_t BWidget;
 
 struct _config_t
@@ -33,6 +34,12 @@ struct _config_t
     bool_t show_propedit;
 };
 
+struct _wdrawer_t
+{
+    const char_t *label;
+    bool_t opened;
+};
+
 struct _bwidget_t
 {
     widget_t twidget;
@@ -40,6 +47,7 @@ struct _bwidget_t
     ResId imageid;
     Button *button;
     uint32_t drawer;
+    bool_t opened;
 };
 
 struct _desiger_t
@@ -48,7 +56,8 @@ struct _desiger_t
     Config config;
     Menu *menu;
     ArrPt(DForm) *forms;
-    ArrSt(BWidget) *widgets;
+    ArrSt(WDrawer) *wdrawers;
+    ArrSt(BWidget) *bwidgets;
     ListBox *form_list;
     Label *status_label;
     Label *cells_label;
@@ -90,6 +99,7 @@ static const char_t *i_FILE_EXT = "nfm";
 static const char_t *i_SAVE_MARK = "• ";
 DeclPt(DForm);
 DeclSt(BWidget);
+DeclSt(WDrawer);
 
 /*---------------------------------------------------------------------------*/
 
@@ -584,70 +594,80 @@ static Layout *i_tools_layout(Designer *app)
 
 /*---------------------------------------------------------------------------*/
 
+//static Panel *i_drawer_panel(ArrSt(BWidget) *widgets, )
+    
+/*---------------------------------------------------------------------------*/
+
 static Panel *i_widgets_panel(Designer *app)
 {
+    uint32_t i, ndrawers = 6;
     Panel *panel = panel_custom(FALSE, TRUE, FALSE);
-    Layout *layout1 = layout_create(1, 1);
-    Layout *layout2 = layout_create(1, 13);
-    Button *radio1 = button_radio();
-    Button *radio2 = button_radio();
-    Button *radio3 = button_radio();
-    Button *radio4 = button_radio();
-    Button *radio5 = button_radio();
-    Button *radio6 = button_radio();
-    Button *radio7 = button_radio();
-    Button *radio8 = button_radio();
-    Button *radio9 = button_radio();
-    Button *radio10 = button_radio();
-    Button *radio11 = button_radio();
-    Button *radio12 = button_radio();
-    Button *radio13 = button_radio();
-    cassert_no_null(app);
-    button_text(radio1, "Select");
-    button_text(radio2, "Grid layout");
-    button_text(radio3, "Label");
-    button_text(radio4, "Button");
-    button_text(radio5, "Checkbox");
-    button_text(radio6, "Editbox");
-    button_text(radio7, "TextView");
-    button_text(radio8, "ImageView");
-    button_text(radio9, "Slider");
-    button_text(radio10, "Progress");
-    button_text(radio11, "PopUp");
-    button_text(radio12, "ListBox");
-    button_text(radio13, "TableView");
-    layout_button(layout2, radio1, 0, 0);
-    layout_button(layout2, radio2, 0, 1);
-    layout_button(layout2, radio3, 0, 2);
-    layout_button(layout2, radio4, 0, 3);
-    layout_button(layout2, radio5, 0, 4);
-    layout_button(layout2, radio6, 0, 5);
-    layout_button(layout2, radio7, 0, 6);
-    layout_button(layout2, radio8, 0, 7);
-    layout_button(layout2, radio9, 0, 8);
-    layout_button(layout2, radio10, 0, 9);
-    layout_button(layout2, radio11, 0, 10);
-    layout_button(layout2, radio12, 0, 11);
-    layout_button(layout2, radio13, 0, 12);
-    layout_vmargin(layout2, 0, 5);
-    layout_vmargin(layout2, 1, 5);
-    layout_vmargin(layout2, 2, 5);
-    layout_vmargin(layout2, 3, 5);
-    layout_vmargin(layout2, 4, 5);
-    layout_vmargin(layout2, 5, 5);
-    layout_vmargin(layout2, 6, 5);
-    layout_vmargin(layout2, 7, 5);
-    layout_vmargin(layout2, 8, 5);
-    layout_vmargin(layout2, 9, 5);
-    layout_vmargin(layout2, 10, 5);
-    layout_vmargin(layout2, 11, 5);
-    layout_valign(layout1, 0, 0, ekTOP);
-    layout_layout(layout1, layout2, 0, 0);
-    panel_layout(panel, layout1);
-    panel_size(panel, s2df(-1, 200));
-    //cell_dbind(layout_cell(layout1, 0, 0), Designer, widget_t, config.swidget);
-    app->widgets_layout = layout2;
-    app->widgets_cell = layout_cell(layout1, 0, 0);
+    Layout *layout = layout_create(1, ndrawers);
+
+    //for (i = 0; i < ndrawers; ++i)
+    //{
+    //    Panel *dpanel = i_drawer_panel(app->widgets, i, dname[i]);
+    //}
+    //Layout *layout2 = layout_create(1, 13);
+    //Button *radio1 = button_radio();
+    //Button *radio2 = button_radio();
+    //Button *radio3 = button_radio();
+    //Button *radio4 = button_radio();
+    //Button *radio5 = button_radio();
+    //Button *radio6 = button_radio();
+    //Button *radio7 = button_radio();
+    //Button *radio8 = button_radio();
+    //Button *radio9 = button_radio();
+    //Button *radio10 = button_radio();
+    //Button *radio11 = button_radio();
+    //Button *radio12 = button_radio();
+    //Button *radio13 = button_radio();
+    //cassert_no_null(app);
+    //button_text(radio1, "Select");
+    //button_text(radio2, "Grid layout");
+    //button_text(radio3, "Label");
+    //button_text(radio4, "Button");
+    //button_text(radio5, "Checkbox");
+    //button_text(radio6, "Editbox");
+    //button_text(radio7, "TextView");
+    //button_text(radio8, "ImageView");
+    //button_text(radio9, "Slider");
+    //button_text(radio10, "Progress");
+    //button_text(radio11, "PopUp");
+    //button_text(radio12, "ListBox");
+    //button_text(radio13, "TableView");
+    //layout_button(layout2, radio1, 0, 0);
+    //layout_button(layout2, radio2, 0, 1);
+    //layout_button(layout2, radio3, 0, 2);
+    //layout_button(layout2, radio4, 0, 3);
+    //layout_button(layout2, radio5, 0, 4);
+    //layout_button(layout2, radio6, 0, 5);
+    //layout_button(layout2, radio7, 0, 6);
+    //layout_button(layout2, radio8, 0, 7);
+    //layout_button(layout2, radio9, 0, 8);
+    //layout_button(layout2, radio10, 0, 9);
+    //layout_button(layout2, radio11, 0, 10);
+    //layout_button(layout2, radio12, 0, 11);
+    //layout_button(layout2, radio13, 0, 12);
+    //layout_vmargin(layout2, 0, 5);
+    //layout_vmargin(layout2, 1, 5);
+    //layout_vmargin(layout2, 2, 5);
+    //layout_vmargin(layout2, 3, 5);
+    //layout_vmargin(layout2, 4, 5);
+    //layout_vmargin(layout2, 5, 5);
+    //layout_vmargin(layout2, 6, 5);
+    //layout_vmargin(layout2, 7, 5);
+    //layout_vmargin(layout2, 8, 5);
+    //layout_vmargin(layout2, 9, 5);
+    //layout_vmargin(layout2, 10, 5);
+    //layout_vmargin(layout2, 11, 5);
+    //layout_valign(layout1, 0, 0, ekTOP);
+    //layout_layout(layout1, layout2, 0, 0);
+    //panel_layout(panel, layout1);
+    //panel_size(panel, s2df(-1, 200));
+    ////cell_dbind(layout_cell(layout1, 0, 0), Designer, widget_t, config.swidget);
+    //app->widgets_layout = layout2;
+    //app->widgets_cell = layout_cell(layout1, 0, 0);
     return panel;
 }
 
@@ -1277,13 +1297,23 @@ static void i_OnClose(Designer *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_add_widget(ArrSt(BWidget) *widgets, const widget_t twidget, const char_t *label, ResId imageid, const uint32_t drawer)
+static uint32_t i_add_drawer(ArrSt(WDrawer) *wdrawers, const char_t *label)
 {
-    BWidget *widget = arrst_new0(widgets, BWidget);
-    widget->twidget = twidget;
-    widget->label = label;
-    widget->imageid = imageid;
-    widget->drawer = drawer;
+    uint32_t id = arrst_size(wdrawers, WDrawer);
+    WDrawer *wdrawer = arrst_new0(wdrawers, WDrawer);
+    wdrawer->label = label;
+    return id;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_add_widget(ArrSt(BWidget) *bwidgets, const widget_t twidget, const char_t *label, ResId imageid, const uint32_t drawer)
+{
+    BWidget *bwidget = arrst_new0(bwidgets, BWidget);
+    bwidget->twidget = twidget;
+    bwidget->label = label;
+    bwidget->imageid = imageid;
+    bwidget->drawer = drawer;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1291,6 +1321,7 @@ static void i_add_widget(ArrSt(BWidget) *widgets, const widget_t twidget, const 
 static Designer *i_app(void)
 {
     Designer *app = heap_new0(Designer);
+    uint32_t drawerid[6];
     gui_respack(res_designer_respack);
     gui_language("");
     dgui_init();
@@ -1302,26 +1333,33 @@ static Designer *i_app(void)
     app->forms = arrpt_create(DForm);
     app->add_icon = image_copy(gui_image(PLUS16_PNG));
     app->default_font = font_system(font_regular_size(), 0);
-    app->widgets = arrst_create(BWidget);
-    i_add_widget(app->widgets, ekWIDGET_SELECT, "Select", CURSOR_PNG, 0);
-    i_add_widget(app->widgets, ekWIDGET_VERT_LAYOUT, "Vertical Layout", VLAYOUT_PNG, 1);
-    i_add_widget(app->widgets, ekWIDGET_HORZ_LAYOUT, "Horizontal Layout", HLAYOUT_PNG, 1);
-    i_add_widget(app->widgets, ekWIDGET_GRID_LAYOUT, "Grid Layout", GLAYOUT_PNG, 1);
-    i_add_widget(app->widgets, ekWIDGET_PUSH_BUTTON, "Push Button", PUSHBUT_PNG, 2);
-    i_add_widget(app->widgets, ekWIDGET_TOOL_BUTTON, "Tool Button", TOOLBUT_PNG, 2);
-    i_add_widget(app->widgets, ekWIDGET_RADIO_BUTTON, "Radio Button", RADBUT_PNG, 2);
-    i_add_widget(app->widgets, ekWIDGET_CHECK_BUTTON, "Check Box", CHECBUT_PNG, 2);
-    i_add_widget(app->widgets, ekWIDGET_LABEL, "Label", LABEL_PNG, 3);
-    i_add_widget(app->widgets, ekWIDGET_EDITBOX, "Edit Box", EDITBOX_PNG, 3);
-    i_add_widget(app->widgets, ekWIDGET_COMBOBOX, "Combo Box", COMBOBOX_PNG, 3);
-    i_add_widget(app->widgets, ekWIDGET_TEXTVIEW, "Text View", TEXTVIEW_PNG, 3);
-    i_add_widget(app->widgets, ekWIDGET_LISTBOX, "List Box", LISTVIEW_PNG, 4);
-    i_add_widget(app->widgets, ekWIDGET_POPUP, "PopUp Button", POPUP_PNG, 4);
-    i_add_widget(app->widgets, ekWIDGET_TABLEVIEW, "Table View", TABLEVIEW_PNG, 4);
-    i_add_widget(app->widgets, ekWIDGET_IMAGEVIEW, "Image View", IMAGEVIEW_PNG, 5);
-    i_add_widget(app->widgets, ekWIDGET_HORZ_SLIDER, "Horizontal Slider", HORSLIDER_PNG, 5);
-    i_add_widget(app->widgets, ekWIDGET_VERT_SLIDER, "Vertical Slider", VERSLIDER_PNG, 5);
-    i_add_widget(app->widgets, ekWIDGET_PROGRESS, "Progress Bar", PROGRESSBAR_PNG, 5);
+    app->wdrawers = arrst_create(WDrawer);
+    app->bwidgets = arrst_create(BWidget);
+    drawerid[0] = i_add_drawer(app->wdrawers, "");
+    drawerid[1] = i_add_drawer(app->wdrawers, "Layouts");
+    drawerid[2] = i_add_drawer(app->wdrawers, "Buttons");
+    drawerid[3] = i_add_drawer(app->wdrawers, "Text Widgets");
+    drawerid[4] = i_add_drawer(app->wdrawers, "Item Widgets");
+    drawerid[5] = i_add_drawer(app->wdrawers, "Other Widgets");
+    i_add_widget(app->bwidgets, ekWIDGET_SELECT, "Select", CURSOR_PNG, drawerid[0]);
+    i_add_widget(app->bwidgets, ekWIDGET_VERT_LAYOUT, "Vertical Layout", VLAYOUT_PNG, drawerid[1]);
+    i_add_widget(app->bwidgets, ekWIDGET_HORZ_LAYOUT, "Horizontal Layout", HLAYOUT_PNG, drawerid[1]);
+    i_add_widget(app->bwidgets, ekWIDGET_GRID_LAYOUT, "Grid Layout", GLAYOUT_PNG, drawerid[1]);
+    i_add_widget(app->bwidgets, ekWIDGET_PUSH_BUTTON, "Push Button", PUSHBUT_PNG, drawerid[2]);
+    i_add_widget(app->bwidgets, ekWIDGET_TOOL_BUTTON, "Tool Button", TOOLBUT_PNG, drawerid[2]);
+    i_add_widget(app->bwidgets, ekWIDGET_RADIO_BUTTON, "Radio Button", RADBUT_PNG, drawerid[2]);
+    i_add_widget(app->bwidgets, ekWIDGET_CHECK_BUTTON, "Check Box", CHECBUT_PNG, drawerid[2]);
+    i_add_widget(app->bwidgets, ekWIDGET_LABEL, "Label", LABEL_PNG, drawerid[3]);
+    i_add_widget(app->bwidgets, ekWIDGET_EDITBOX, "Edit Box", EDITBOX_PNG, drawerid[3]);
+    i_add_widget(app->bwidgets, ekWIDGET_COMBOBOX, "Combo Box", COMBOBOX_PNG, drawerid[3]);
+    i_add_widget(app->bwidgets, ekWIDGET_TEXTVIEW, "Text View", TEXTVIEW_PNG, drawerid[3]);
+    i_add_widget(app->bwidgets, ekWIDGET_LISTBOX, "List Box", LISTVIEW_PNG, drawerid[4]);
+    i_add_widget(app->bwidgets, ekWIDGET_POPUP, "PopUp Button", POPUP_PNG, drawerid[4]);
+    i_add_widget(app->bwidgets, ekWIDGET_TABLEVIEW, "Table View", TABLEVIEW_PNG, drawerid[4]);
+    i_add_widget(app->bwidgets, ekWIDGET_IMAGEVIEW, "Image View", IMAGEVIEW_PNG, drawerid[5]);
+    i_add_widget(app->bwidgets, ekWIDGET_HORZ_SLIDER, "Horizontal Slider", HORSLIDER_PNG, drawerid[5]);
+    i_add_widget(app->bwidgets, ekWIDGET_VERT_SLIDER, "Vertical Slider", VERSLIDER_PNG, drawerid[5]);
+    i_add_widget(app->bwidgets, ekWIDGET_PROGRESS, "Progress Bar", PROGRESSBAR_PNG, drawerid[5]);
     return app;
 }
 
