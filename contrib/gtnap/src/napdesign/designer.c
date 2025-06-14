@@ -616,10 +616,14 @@ static Panel *i_drawer_inner_panel(ArrSt(BWidget) *bwidgets, const uint32_t draw
                 label_text(label, bwidget->label);
                 layout_button(layout, button, 0, i);
                 layout_label(layout, label, 1, i);
+                layout_tabstop(layout, 0, i, FALSE);
+                layout_halign(layout, 1, i, ekLEFT);
                 bwidget->button = button;
                 i += 1;
             }
         arrst_end()
+        layout_hmargin(layout, 0, 10);
+        layout_hexpand(layout, 1);
         panel_layout(panel, layout);
     }
 
@@ -636,7 +640,7 @@ static Panel *i_widgets_panel(Designer *app)
     n = arrst_size(app->wdrawers, WDrawer);
 
     {
-        Layout *layout = layout_create(1, n);
+        Layout *layout = layout_create(1, n + 1);
         arrst_foreach_const(wdrawer, app->wdrawers, WDrawer)
             Panel *dpanel = NULL;
             Panel *ipanel = i_drawer_inner_panel(app->bwidgets, wdrawer_i);
@@ -646,6 +650,7 @@ static Panel *i_widgets_panel(Designer *app)
                 dpanel = ipanel;
             layout_panel(layout, dpanel, 0, wdrawer_i);
         arrst_end()
+        layout_vexpand(layout, n);
         panel_layout(panel, layout);
     }
 

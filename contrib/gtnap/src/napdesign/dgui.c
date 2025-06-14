@@ -26,7 +26,7 @@ struct _header_data_t
     Panel *panel;
     real32_t width;
     real32_t height;
-    bool_t over_close;
+    bool_t over;
     bool_t on_down;
     bool_t open;
     Listener *OnClose;
@@ -37,6 +37,10 @@ struct _header_data_t
 static color_t i_HEADER_GRADIENT[2] = {0, 0};
 static color_t i_DRAWER_GRADIENT[2] = {0, 0};
 static const real32_t i_HEADER_TEXT_MARGIN = 4;
+static const real32_t i_DRAWER_TRIANGLE_WIDTH = 10;
+static const char_t *i_UTF8_CLOSE_BUTTON = "✖";
+static const char_t *i_UTF8_RIGHT_ARROW = "▶";
+static const char_t *i_UTF8_DOWN_ARROW = "▼";
 
 /*---------------------------------------------------------------------------*/
 
@@ -81,7 +85,7 @@ static void i_OnHeaderDraw(HeaderData *data, Event *e)
     back_width = p->width;
     text_ypos = (int32_t)((p->height - font_height(data->font)) / 2);
 
-    if (data->over_close == TRUE)
+    if (data->over == TRUE)
         back_width -= p->height;
 
     /* Background */
@@ -92,12 +96,12 @@ static void i_OnHeaderDraw(HeaderData *data, Event *e)
     {
         int32_t xpos = (int32_t)(p->width - p->height);
 
-        if (data->over_close == TRUE)
+        if (data->over == TRUE)
             drawctrl_fill(p->ctx, xpos, 0, (int32_t)p->height, (int32_t)p->height, data->on_down ? ekCTRL_STATE_PRESSED : ekCTRL_STATE_HOT);
 
         draw_text_width(p->ctx, p->height);
         draw_text_halign(p->ctx, ekCENTER);
-        drawctrl_text(p->ctx, "✖", xpos, text_ypos, ekCTRL_STATE_NORMAL);
+        drawctrl_text(p->ctx, i_UTF8_CLOSE_BUTTON, xpos, text_ypos, ekCTRL_STATE_NORMAL);
     }
 
     /* Title */
@@ -136,11 +140,11 @@ static void i_OnHeaderMove(HeaderData *data, Event *e)
     if (p->lx >= data->width - data->height)
         over_close = TRUE;
 
-    if (data->over_close != over_close)
+    if (data->over != over_close)
     {
-        data->over_close = over_close;
+        data->over = over_close;
         
-        if (data->over_close == FALSE)
+        if (data->over == FALSE)
             data->on_down = FALSE;
 
         view_update(data->view);
@@ -154,7 +158,7 @@ static void i_OnHeaderDown(HeaderData *data, Event *e)
     cassert_no_null(data);
     unref(e);
     data->on_down = TRUE;
-    if (data->over_close == TRUE)
+    if (data->over == TRUE)
         view_update(data->view);
 }
 
@@ -165,7 +169,7 @@ static void i_OnHeaderUp(HeaderData *data, Event *e)
     cassert_no_null(data);
     unref(e);
     data->on_down = FALSE;
-    if (data->over_close == TRUE)
+    if (data->over == TRUE)
     {
         view_update(data->view);
         if (data->OnClose != NULL)
@@ -179,9 +183,9 @@ static void i_OnHeaderExit(HeaderData *data, Event *e)
 {
     cassert_no_null(data);
     unref(e);
-    if (data->over_close == TRUE)
+    if (data->over == TRUE)
     {
-        data->over_close = FALSE;
+        data->over = FALSE;
         view_update(data->view);
     }
 }
@@ -215,21 +219,21 @@ View *dgui_panel_header(const char_t *title, const Font *font, Listener *OnClose
 static void i_OnDrawerDraw(HeaderData *data, Event *e)
 {
     const EvDraw *p = event_params(e, EvDraw);
-    //real32_t stop[2] = {0, 1};
+    real32_t stop[2] = {0, 1};
     //real32_t back_width = 0;
-    //int32_t text_ypos = 0;
+    int32_t text_ypos = 0;
     cassert_no_null(data);
-    draw_clear(p->ctx, kCOLOR_BLUE);
-    //draw_font(p->ctx, data->font);
+    //draw_clear(p->ctx, kCOLOR_BLUE);
+    draw_font(p->ctx, data->font);
     //back_width = p->width;
-    //text_ypos = (int32_t)((p->height - font_height(data->font)) / 2);
+    text_ypos = (int32_t)((p->height - font_height(data->font)) / 2);
 
     //if (data->over_close == TRUE)
     //    back_width -= p->height;
 
     ///* Background */
-    //draw_fill_linear(p->ctx, i_HEADER_GRADIENT, stop, 2, 0, 0, 0, p->height);
-    //draw_rect(p->ctx, ekFILL, 0.f, 0.f, back_width, p->height);
+    draw_fill_linear(p->ctx, i_DRAWER_GRADIENT, stop, 2, 0, 0, 0, p->height);
+    draw_rect(p->ctx, ekFILL, 0.f, 0.f, p->width, p->height);
 
     ///* Close button */
     //{
@@ -243,19 +247,22 @@ static void i_OnDrawerDraw(HeaderData *data, Event *e)
     //    drawctrl_text(p->ctx, "✖", xpos, text_ypos, ekCTRL_STATE_NORMAL);
     //}
 
-    ///* Title */
-    //{
-    //    real32_t twidth = p->width - p->height - 2 * i_HEADER_TEXT_MARGIN;
-    //    draw_text_width(p->ctx, twidth);
-    //    draw_text_halign(p->ctx, ekLEFT);
-    //    draw_text_trim(p->ctx, ekELLIPEND);
-    //    drawctrl_text(p->ctx, tc(data->title), (int32_t)i_HEADER_TEXT_MARGIN, text_ypos, ekCTRL_STATE_NORMAL);
-    //}
+    /* Title */
+    {
+        real32_t twidth = p->width - i_DRAWER_TRIANGLE_WIDTH - 2 * i_HEADER_TEXT_MARGIN;
+        draw_text_width(p->ctx, twidth);
+        draw_text_halign(p->ctx, ekCENTER);
+        draw_text_trim(p->ctx, ekELLIPEND);
+        drawctrl_text(p->ctx, tc(data->title), (int32_t)(i_HEADER_TEXT_MARGIN + i_DRAWER_TRIANGLE_WIDTH), text_ypos, ekCTRL_STATE_NORMAL);
+        draw_text_halign(p->ctx, ekLEFT);        
+        draw_text_color(p->ctx, data->over ? gui_link_color() : kCOLOR_DEFAULT);
+        drawctrl_text(p->ctx, data->open ? i_UTF8_DOWN_ARROW : i_UTF8_RIGHT_ARROW, (int32_t)i_HEADER_TEXT_MARGIN, text_ypos, ekCTRL_STATE_HOT);
+    }
 
     ///* Frame */
-    //draw_line_color(p->ctx, gui_line_color());
-    //draw_line_width(p->ctx, 1);
-    //draw_rect(p->ctx, ekSTROKE, 0.f, 0.f, p->width - 1, p->height - 1);
+    draw_line_color(p->ctx, gui_line_color());
+    draw_line_width(p->ctx, 1);
+    draw_rect(p->ctx, ekSTROKE, 0.f, 0.f, p->width - 1, p->height - 1);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -273,21 +280,22 @@ static void i_OnDrawerSize(HeaderData *data, Event *e)
 static void i_OnDrawerMove(HeaderData *data, Event *e)
 {
     //bool_t over_close = FALSE;
-    const EvMouse *p = event_params(e, EvMouse);
+    //const EvMouse *p = event_params(e, EvMouse);
     cassert_no_null(data);
-    unref(p);
+    unref(e);
+    //unref(p);
     //if (p->lx >= data->width - data->height)
     //    over_close = TRUE;
 
-    //if (data->over_close != over_close)
-    //{
-    //    data->over_close = over_close;
-    //    
-    //    if (data->over_close == FALSE)
-    //        data->on_down = FALSE;
+    if (data->over == FALSE)
+    {
+        data->over = TRUE;
+        
+        //if (data->over_close == FALSE)
+        //    data->on_down = FALSE;
 
-    //    view_update(data->view);
-    //}
+        view_update(data->view);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -322,11 +330,11 @@ static void i_OnDrawerExit(HeaderData *data, Event *e)
 {
     cassert_no_null(data);
     unref(e);
-    //if (data->over_close == TRUE)
-    //{
-    //    data->over_close = FALSE;
-    //    view_update(data->view);
-    //}
+    if (data->over == TRUE)
+    {
+        data->over = FALSE;
+        view_update(data->view);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
