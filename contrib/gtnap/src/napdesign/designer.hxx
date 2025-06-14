@@ -49,7 +49,8 @@ typedef enum _layelem_t
 
 typedef enum _devent_t
 {
-    ekDEVENT_HEADER_CLOSE = 0x500
+    ekDEVENT_HEADER_CLOSE = 0x500,
+    ekDEVENT_DRAWER_CHANGE
 } devent_t;
 
 struct _dcolumn_t

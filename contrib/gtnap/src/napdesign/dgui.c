@@ -29,7 +29,7 @@ struct _header_data_t
     bool_t over;
     bool_t on_down;
     bool_t open;
-    Listener *OnClose;
+    Listener *listener;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -50,7 +50,7 @@ static void i_destroy_header_data(HeaderData **data)
     cassert_no_null(*data);
     str_destroy(&(*data)->title);
     font_destroy(&(*data)->font);
-    listener_destroy(&(*data)->OnClose);
+    listener_destroy(&(*data)->listener);
     heap_delete(data, HeaderData);
 }
 
@@ -172,8 +172,8 @@ static void i_OnHeaderUp(HeaderData *data, Event *e)
     if (data->over == TRUE)
     {
         view_update(data->view);
-        if (data->OnClose != NULL)
-            listener_event(data->OnClose, ekDEVENT_HEADER_CLOSE, data->view, NULL, NULL, View, void, void);
+        if (data->listener != NULL)
+            listener_event(data->listener, ekDEVENT_HEADER_CLOSE, data->view, NULL, NULL, View, void, void);
     }
 }
 
@@ -202,7 +202,7 @@ View *dgui_panel_header(const char_t *title, const Font *font, Listener *OnClose
     data->view = view;
     size.width = 100;
     size.height = font_height(data->font) + 4;
-    listener_update(&data->OnClose, OnClose);
+    listener_update(&data->listener, OnClose);
     view_size(view, size);
     view_OnDraw(view, listener(data, i_OnHeaderDraw, HeaderData));
     view_OnSize(view, listener(data, i_OnHeaderSize, HeaderData));
@@ -220,32 +220,14 @@ static void i_OnDrawerDraw(HeaderData *data, Event *e)
 {
     const EvDraw *p = event_params(e, EvDraw);
     real32_t stop[2] = {0, 1};
-    //real32_t back_width = 0;
     int32_t text_ypos = 0;
     cassert_no_null(data);
-    //draw_clear(p->ctx, kCOLOR_BLUE);
     draw_font(p->ctx, data->font);
-    //back_width = p->width;
     text_ypos = (int32_t)((p->height - font_height(data->font)) / 2);
-
-    //if (data->over_close == TRUE)
-    //    back_width -= p->height;
 
     ///* Background */
     draw_fill_linear(p->ctx, i_DRAWER_GRADIENT, stop, 2, 0, 0, 0, p->height);
     draw_rect(p->ctx, ekFILL, 0.f, 0.f, p->width, p->height);
-
-    ///* Close button */
-    //{
-    //    int32_t xpos = (int32_t)(p->width - p->height);
-
-    //    if (data->over_close == TRUE)
-    //        drawctrl_fill(p->ctx, xpos, 0, (int32_t)p->height, (int32_t)p->height, data->on_down ? ekCTRL_STATE_PRESSED : ekCTRL_STATE_HOT);
-
-    //    draw_text_width(p->ctx, p->height);
-    //    draw_text_halign(p->ctx, ekCENTER);
-    //    drawctrl_text(p->ctx, "✖", xpos, text_ypos, ekCTRL_STATE_NORMAL);
-    //}
 
     /* Title */
     {
@@ -259,7 +241,7 @@ static void i_OnDrawerDraw(HeaderData *data, Event *e)
         drawctrl_text(p->ctx, data->open ? i_UTF8_DOWN_ARROW : i_UTF8_RIGHT_ARROW, (int32_t)i_HEADER_TEXT_MARGIN, text_ypos, ekCTRL_STATE_HOT);
     }
 
-    ///* Frame */
+    /* Frame */
     draw_line_color(p->ctx, gui_line_color());
     draw_line_width(p->ctx, 1);
     draw_rect(p->ctx, ekSTROKE, 0.f, 0.f, p->width - 1, p->height - 1);
@@ -279,21 +261,11 @@ static void i_OnDrawerSize(HeaderData *data, Event *e)
 
 static void i_OnDrawerMove(HeaderData *data, Event *e)
 {
-    //bool_t over_close = FALSE;
-    //const EvMouse *p = event_params(e, EvMouse);
     cassert_no_null(data);
     unref(e);
-    //unref(p);
-    //if (p->lx >= data->width - data->height)
-    //    over_close = TRUE;
-
     if (data->over == FALSE)
     {
         data->over = TRUE;
-        
-        //if (data->over_close == FALSE)
-        //    data->on_down = FALSE;
-
         view_update(data->view);
     }
 }
@@ -307,21 +279,16 @@ static void i_OnDrawerDown(HeaderData *data, Event *e)
     data->open = !data->open;
     panel_visible_layout(data->panel, data->open ? 1 : 0);
     panel_update(data->panel);
+    if (data->listener != NULL)
+        listener_event(data->listener, ekDEVENT_DRAWER_CHANGE, data->panel, &data->open, NULL, Panel, bool_t, void);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static void i_OnDrawerUp(HeaderData *data, Event *e)
 {
-    cassert_no_null(data);
+    unref(data);
     unref(e);
-    //data->on_down = FALSE;
-    //if (data->over_close == TRUE)
-    //{
-    //    view_update(data->view);
-    //    if (data->OnClose != NULL)
-    //        listener_event(data->OnClose, ekDEVENT_HEADER_CLOSE, data->view, NULL, NULL, View, void, void);
-    //}
 }
 
 /*---------------------------------------------------------------------------*/
@@ -362,7 +329,7 @@ static View *i_drawer_header(const char_t *title, const Font *font)
     
 /*---------------------------------------------------------------------------*/
 
-Panel *dgui_drawer(const char_t *title, const Font *font, Panel *child, const bool_t open)
+Panel *dgui_drawer(const char_t *title, const Font *font, Panel *child, const bool_t open, Listener *OnChange)
 {
     View *view = i_drawer_header(title, font);
     HeaderData *data = view_get_data(view, HeaderData);
@@ -375,6 +342,7 @@ Panel *dgui_drawer(const char_t *title, const Font *font, Panel *child, const bo
     panel_layout(panel, layout1);
     panel_layout(panel, layout2);
     panel_visible_layout(panel, open ? 1 : 0);
+    listener_update(&data->listener, OnChange);
     data->open = open;
     data->panel = panel;
     return panel;

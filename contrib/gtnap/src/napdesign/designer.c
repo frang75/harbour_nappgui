@@ -37,6 +37,7 @@ struct _config_t
 struct _wdrawer_t
 {
     const char_t *label;
+    Panel *panel;
     bool_t opened;
 };
 
@@ -639,6 +640,7 @@ static Panel *i_drawer_inner_panel(Designer *app, const uint32_t drawer_id)
             {
                 Button *button = button_flatgle();
                 Label *label = label_create();
+                cassert(bwidget->button == NULL);
                 button_OnClick(button, listener(app, i_OnWidgetButtonClick, Designer));               
                 button_image(button, gui_image(bwidget->imageid));
                 label_text(label, bwidget->label);
@@ -657,6 +659,30 @@ static Panel *i_drawer_inner_panel(Designer *app, const uint32_t drawer_id)
 
     return panel;
 }
+
+/*---------------------------------------------------------------------------*/
+
+static WDrawer *i_get_drawer(Designer *app, Panel *panel)
+{
+    cassert_no_null(app);
+    arrst_foreach(wdrawer, app->wdrawers, WDrawer)
+        if (wdrawer->panel == panel)
+            return wdrawer;
+    arrst_end()
+
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnDrawerChange(Designer *app, Event *e)
+{
+    Panel *sender = event_sender(e, Panel);
+    WDrawer *drawer = i_get_drawer(app, sender);
+    const bool_t *p = event_params(e, bool_t);
+    cassert(drawer->opened != *p);
+    drawer->opened = *p;
+}
     
 /*---------------------------------------------------------------------------*/
 
@@ -669,13 +695,19 @@ static Panel *i_widgets_panel(Designer *app)
 
     {
         Layout *layout = layout_create(1, n + 1);
-        arrst_foreach_const(wdrawer, app->wdrawers, WDrawer)
+        arrst_foreach(wdrawer, app->wdrawers, WDrawer)
             Panel *dpanel = NULL;
             Panel *ipanel = i_drawer_inner_panel(app, wdrawer_i);
+            cassert(wdrawer->panel == NULL);
             if (str_empty_c(wdrawer->label) == FALSE)
-                dpanel = dgui_drawer(wdrawer->label, app->default_font, ipanel, wdrawer->opened);
+            {
+                dpanel = dgui_drawer(wdrawer->label, app->default_font, ipanel, wdrawer->opened, listener(app, i_OnDrawerChange, Designer));
+                wdrawer->panel = dpanel;
+            }
             else
+            {
                 dpanel = ipanel;
+            }
             layout_panel(layout, dpanel, 0, wdrawer_i);
         arrst_end()
         layout_vexpand(layout, n);
