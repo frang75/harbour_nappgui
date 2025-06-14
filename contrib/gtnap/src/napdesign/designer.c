@@ -594,24 +594,52 @@ static Layout *i_tools_layout(Designer *app)
 
 /*---------------------------------------------------------------------------*/
 
-static Panel *i_drawer_inner_panel(ArrSt(BWidget) *bwidgets, const uint32_t drawer_id)
+static void i_set_bwidget(const widget_t swidget, ArrSt(BWidget) *bwidgets)
+{
+    arrst_foreach(bwidget, bwidgets, BWidget)
+        button_state(bwidget->button, bwidget->twidget == swidget ? ekGUI_ON : ekGUI_OFF);
+    arrst_end()
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnWidgetButtonClick(Designer *app, Event *e)
+{
+    Button *sender = event_sender(e, Button);
+    cassert_no_null(app);
+    arrst_foreach(bwidget, app->bwidgets, BWidget)
+        if (bwidget->button == sender)
+        {
+            app->config.swidget = bwidget->twidget;
+            break;
+        }
+    arrst_end()
+
+    i_set_bwidget(app->config.swidget, app->bwidgets);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Panel *i_drawer_inner_panel(Designer *app, const uint32_t drawer_id)
 {
     Panel *panel = panel_create();
     uint32_t i = 0, n = 0;    
+    cassert_no_null(app);
 
     /* Number of widgets for this drawer */
-    arrst_foreach_const(bwidget, bwidgets, BWidget)
+    arrst_foreach_const(bwidget, app->bwidgets, BWidget)
         if (bwidget->drawer == drawer_id)
             n += 1;
     arrst_end()
 
     {
         Layout *layout = layout_create(2, n);
-        arrst_foreach(bwidget, bwidgets, BWidget)
+        arrst_foreach(bwidget, app->bwidgets, BWidget)
             if (bwidget->drawer == drawer_id)
             {
                 Button *button = button_flatgle();
                 Label *label = label_create();
+                button_OnClick(button, listener(app, i_OnWidgetButtonClick, Designer));               
                 button_image(button, gui_image(bwidget->imageid));
                 label_text(label, bwidget->label);
                 layout_button(layout, button, 0, i);
@@ -643,7 +671,7 @@ static Panel *i_widgets_panel(Designer *app)
         Layout *layout = layout_create(1, n + 1);
         arrst_foreach_const(wdrawer, app->wdrawers, WDrawer)
             Panel *dpanel = NULL;
-            Panel *ipanel = i_drawer_inner_panel(app->bwidgets, wdrawer_i);
+            Panel *ipanel = i_drawer_inner_panel(app, wdrawer_i);
             if (str_empty_c(wdrawer->label) == FALSE)
                 dpanel = dgui_drawer(wdrawer->label, app->default_font, ipanel, wdrawer->opened);
             else
@@ -1324,7 +1352,7 @@ static void i_load_config(Config *config)
 
     str_destroy(&cfile);
 }
-
+    
 /*---------------------------------------------------------------------------*/
 
 static void i_apply_config(Designer *app)
@@ -1333,6 +1361,7 @@ static void i_apply_config(Designer *app)
     window_origin(app->window, v2df(app->config.wx, app->config.wy));
     window_size(app->window, s2df(app->config.wwidth, app->config.wheight));
     i_restore_splits(app);
+    i_set_bwidget(app->config.swidget, app->bwidgets);
     menuitem_state(app->show_forms, i_bool_state(app->config.show_forms));
     menuitem_state(app->show_widgets, i_bool_state(app->config.show_widgets));
     menuitem_state(app->show_inspectr, i_bool_state(app->config.show_inspectr));
@@ -1448,6 +1477,8 @@ static void i_destroy(Designer **app)
     i_remove_config(&(*app)->config);
     image_destroy(&(*app)->add_icon);
     font_destroy(&(*app)->default_font);
+    arrst_destroy(&(*app)->wdrawers, NULL, WDrawer);
+    arrst_destroy(&(*app)->bwidgets, NULL, BWidget);
     arrpt_destroy(&(*app)->forms, i_destroy_form_opt, DForm);
     menu_destroy(&(*app)->menu);
     window_destroy(&(*app)->window);

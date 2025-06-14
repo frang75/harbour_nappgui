@@ -304,9 +304,9 @@ static void i_OnDrawerDown(HeaderData *data, Event *e)
 {
     cassert_no_null(data);
     unref(e);
-    //data->on_down = TRUE;
-    //if (data->over_close == TRUE)
-    //    view_update(data->view);
+    data->open = !data->open;
+    panel_visible_layout(data->panel, data->open ? 1 : 0);
+    panel_update(data->panel);
 }
 
 /*---------------------------------------------------------------------------*/
