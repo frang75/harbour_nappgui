@@ -16,18 +16,24 @@ typedef struct _dselect_t DSelect;
 typedef enum _widget_t
 {
     ekWIDGET_SELECT = 0,
+    ekWIDGET_VERT_LAYOUT,
+    ekWIDGET_HORZ_LAYOUT,
     ekWIDGET_GRID_LAYOUT,
+    ekWIDGET_PUSH_BUTTON,
+    ekWIDGET_TOOL_BUTTON,
+    ekWIDGET_RADIO_BUTTON,
+    ekWIDGET_CHECK_BUTTON,
     ekWIDGET_LABEL,
-    ekWIDGET_BUTTON,
-    ekWIDGET_CHECKBOX,
     ekWIDGET_EDITBOX,
+    ekWIDGET_COMBOBOX,
     ekWIDGET_TEXTVIEW,
-    ekWIDGET_IMAGEVIEW,
-    ekWIDGET_SLIDER,
-    ekWIDGET_PROGRESS,
-    ekWIDGET_POPUP,
     ekWIDGET_LISTBOX,
-    ekWIDGET_TABLEVIEW
+    ekWIDGET_POPUP,
+    ekWIDGET_TABLEVIEW,
+    ekWIDGET_IMAGEVIEW,
+    ekWIDGET_HORZ_SLIDER,
+    ekWIDGET_VERT_SLIDER,
+    ekWIDGET_PROGRESS
 } widget_t;
 
 typedef enum _layelem_t
@@ -40,6 +46,12 @@ typedef enum _layelem_t
     ekLAYELEM_MARGIN_ROW,
     ekLAYELEM_CELL
 } layelem_t;
+
+typedef enum _devent_t
+{
+    ekDEVENT_HEADER_CLOSE = 0x500,
+    ekDEVENT_DRAWER_CHANGE
+} devent_t;
 
 struct _dcolumn_t
 {
