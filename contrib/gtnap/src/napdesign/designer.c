@@ -873,7 +873,7 @@ static void i_OnClick(Designer *app, Event *e)
     {
         const EvMouse *p = event_params(e, EvMouse);
         DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
-        if (dform_OnClick(form, app->window, app->inspect, app->propedit, app->config.swidget, p->x, p->y, p->button) == TRUE)
+        if (dform_OnClick(form, app->window, app->inspect, app->propedit, app->default_font, app->config.swidget, p->x, p->y, p->button) == TRUE)
             view_update(app->canvas);
     }
 }

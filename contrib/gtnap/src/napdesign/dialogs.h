@@ -30,7 +30,7 @@ FElem *dialog_new_elem(Window *parent, const char_t *folder_path);
 
 FTable *dialog_new_table(Window *parent, const DSelect *sel);
 
-FLayout *dialog_new_layout(Window *parent, const DSelect *sel);
+FLayout *dialog_grid_layout(Window *parent, const Font *font, const DSelect *sel);
 
 uint8_t dialog_unsaved_changes(Window *parent);
 

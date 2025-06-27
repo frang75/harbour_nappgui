@@ -1,12 +1,15 @@
 /* Dialog boxes */
 
 #include "dialogs.h"
+#include "dgui.h"
+#include "res_designer.h"
 #include <nflib/nflib.h>
 #include <nflib/flayout.h>
 #include <gui/button.h>
 #include <gui/cell.h>
 #include <gui/comwin.h>
 #include <gui/edit.h>
+#include <gui/gui.h>
 #include <gui/label.h>
 #include <gui/layout.h>
 #include <gui/imageview.h>
@@ -46,6 +49,7 @@ struct _dialogdata_t
 #define BUTTON_CANCEL 1001
 #define BUTTON_SAVE 1002
 #define BUTTON_NO_SAVE 1003
+#define BUTTON_HEADER_CLOSE 1004
 
 /*---------------------------------------------------------------------------*/
 
@@ -100,22 +104,27 @@ static void i_OnClick(DialogData *data, Event *e)
 
 static Layout *i_ok_cancel(DialogData *data, const bool_t ok_default)
 {
-    Layout *layout = layout_create(2, 1);
+    Layout *layout = layout_create(3, 1);
     Button *button1 = button_push();
     Button *button2 = button_push();
     cassert_no_null(data);
-    button_text(button1, "Ok");
-    button_text(button2, "Cancel");
+    button_text(button1, gui_text(TEXT_OK));
+    button_text(button2, gui_text(TEXT_CANCEL));
     button_tag(button1, BUTTON_OK);
     button_tag(button2, BUTTON_CANCEL);
     button_OnClick(button1, listener(data, i_OnClick, DialogData));
     button_OnClick(button2, listener(data, i_OnClick, DialogData));
-    layout_button(layout, button1, 0, 0);
-    layout_button(layout, button2, 1, 0);
+    button_min_width(button1, 70);
+    button_min_width(button2, 80);
+    layout_button(layout, button1, 1, 0);
+    layout_button(layout, button2, 2, 0);
+    layout_hexpand(layout, 0);
+
     if (ok_default == TRUE)
         data->defbutton = button1;
     else
         data->defbutton = button2;
+
     return layout;
 }
 
@@ -871,8 +880,10 @@ static Layout *i_grid_layout(void)
     Edit *edit2 = edit_create();
     UpDown *updown1 = updown_create();
     UpDown *updown2 = updown_create();
-    label_text(label1, "Columns");
-    label_text(label2, "Rows");
+    edit_align(edit1, ekRIGHT);
+    edit_align(edit2, ekRIGHT);
+    label_text(label1, gui_text(TEXT_COLUMNS));
+    label_text(label2, gui_text(TEXT_ROWS));
     layout_label(layout, label1, 0, 0);
     layout_label(layout, label2, 0, 1);
     layout_edit(layout, edit1, 1, 0);
@@ -889,39 +900,72 @@ static Layout *i_grid_layout(void)
 
 /*---------------------------------------------------------------------------*/
 
-FLayout *dialog_new_layout(Window *parent, const DSelect *sel)
+static void i_OnHeaderClose(DialogData *data, Event *e)
 {
-    DialogData data = i_dialog_data();
+    cassert_no_null(data);
+    unref(e);
+    window_stop_modal(data->window, BUTTON_HEADER_CLOSE);
+}
+    
+/*---------------------------------------------------------------------------*/
+
+FLayout *dialog_grid_layout(Window *parent, const Font *font, const DSelect *sel)
+{
     DialogLayout diag;
-    Layout *layout1 = layout_create(1, 3);
-    Layout *layout2 = i_grid_layout();
-    Layout *layout3 = i_ok_cancel(&data, TRUE);
+    DialogData data = i_dialog_data();
+    Layout *layout1 = layout_create(1, 4);
+    Layout *layout2 = layout_create(2, 1);
+    Layout *layout3 = i_grid_layout();
+    Layout *layout4 = i_ok_cancel(&data, TRUE);
+    ImageView *icon = imageview_create();               
+    View *header = dgui_panel_header(gui_text(TEXT_GRID_LAYOUT), font, listener(&data, i_OnHeaderClose, DialogData));
     Label *label = label_create();
     Panel *panel = panel_create();
-    Window *window = window_create(ekWINDOW_STD | ekWINDOW_ESC);
+    Window *window = window_create(ekWINDOW_RETURN | ekWINDOW_ESC);
     String *caption = NULL;
     FLayout *flayout = NULL;
     uint32_t ret = 0;
     data.window = window;
     cassert_no_null(sel);
     cassert_no_null(sel->flayout);
-    caption = str_printf("New Grid Layout in (%d, %d) of '%s'", sel->col, sel->row, tc(sel->flayout->name));
+    imageview_scale(icon, ekGUI_SCALE_ADJUST);
+    imageview_image(icon, gui_image(GLAYOUT_PNG));
+    caption = str_printf(gui_text(TEXT_NEW_SUBLAYOUT), sel->col, sel->row, tc(sel->flayout->name));
     label_text(label, tc(caption));
-    layout_label(layout1, label, 0, 0);
+    label_multiline(label, TRUE);
+    label_min_width(label, 200);
+    layout_imageview(layout2, icon, 0, 0);
+    layout_label(layout2, label, 1, 0);
+
+    layout_view(layout1, header, 0, 0);
     layout_layout(layout1, layout2, 0, 1);
     layout_layout(layout1, layout3, 0, 2);
-    layout_vmargin(layout1, 0, 5);
-    layout_vmargin(layout1, 1, 5);
+    layout_layout(layout1, layout4, 0, 3);
+
+    layout_hmargin(layout2, 0, 10);
+    layout_margin4(layout2, 10, 10, 10, 10);
+
+    layout_hmargin(layout3, 0, 10);
+
+    layout_margin4(layout3, 0, 30, 0, 60);
+    layout_hexpand(layout3, 1);
+
+    layout_hmargin(layout4, 1, 5);
+    layout_margin4(layout4, 30, 10, 10, 10);
+
+    //layout_label(layout1, label, 0, 0);
+    //layout_vmargin(layout1, 0, 5);
+    //layout_vmargin(layout1, 1, 5);
     panel_layout(panel, layout1);
     window_panel(window, panel);
     window_defbutton(window, data.defbutton);
     i_center_window(parent, window);
     diag.ncols = 3;
     diag.nrows = 2;
-    layout_dbind_obj(layout2, &diag, DialogLayout);
+    layout_dbind_obj(layout3, &diag, DialogLayout);
     ret = window_modal(window, parent);
 
-    if (ret == BUTTON_OK)
+    if (ret == BUTTON_OK || ret == ekGUI_CLOSE_INTRO)
     {
         cassert(diag.ncols > 0);
         cassert(diag.nrows > 0);

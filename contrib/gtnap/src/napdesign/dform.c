@@ -404,7 +404,7 @@ static bool_t i_sel_empty_cell(const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedit, const widget_t widget, const real32_t mouse_x, const real32_t mouse_y, const gui_mouse_t mbutton)
+bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedit, const Font *font, const widget_t widget, const real32_t mouse_x, const real32_t mouse_y, const gui_mouse_t mbutton)
 {
     cassert_no_null(form);
     if (mbutton == ekGUI_MOUSE_LEFT)
@@ -705,7 +705,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
     
 			case ekWIDGET_GRID_LAYOUT:
             {
-                FLayout *fsublayout = dialog_new_layout(window, &sel);
+                FLayout *fsublayout = dialog_grid_layout(window, font, &sel);
                 if (fsublayout != NULL)
                 {
                     const char_t *resource_path = designer_folder_path(form->app);
