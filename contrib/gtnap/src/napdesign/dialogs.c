@@ -871,6 +871,25 @@ FTable *dialog_new_table(Window *parent, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+static Layout *i_vertical_layout(void)
+{
+    Layout *layout = layout_create(3, 1);
+    Label *label1 = label_create();
+    Edit *edit1 = edit_create();
+    UpDown *updown1 = updown_create();
+    edit_align(edit1, ekRIGHT);
+    label_text(label1, gui_text(TEXT_ROWS));
+    layout_label(layout, label1, 0, 0);
+    layout_edit(layout, edit1, 1, 0);
+    layout_updown(layout, updown1, 2, 0);
+    cell_dbind(layout_cell(layout, 1, 0), DialogLayout, uint32_t, nrows);
+    cell_dbind(layout_cell(layout, 2, 0), DialogLayout, uint32_t, nrows);
+    layout_dbind(layout, NULL, DialogLayout);
+    return layout;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Layout *i_grid_layout(void)
 {
     Layout *layout = layout_create(3, 2);
@@ -965,6 +984,14 @@ static FLayout *i_dialog_layout(Window *parent, const Font *font, const DSelect 
     str_destroy(&caption);
     i_remove_dialog_data(&data);
     return flayout;
+}
+
+/*---------------------------------------------------------------------------*/
+
+FLayout *dialog_vertical_layout(Window *parent, const Font *font, const DSelect *sel)
+{
+    DialogLayout diag = {1, 3};
+    return i_dialog_layout(parent, font, sel, i_vertical_layout(), VLAYOUT_PNG, TEXT_VERT_LAYOUT, &diag);
 }
 
 /*---------------------------------------------------------------------------*/

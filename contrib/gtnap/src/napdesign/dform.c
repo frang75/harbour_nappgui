@@ -703,9 +703,15 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 }
             }
     
-			case ekWIDGET_GRID_LAYOUT:
+            case ekWIDGET_VERT_LAYOUT:
+            case ekWIDGET_GRID_LAYOUT:
             {
-                FLayout *fsublayout = dialog_grid_layout(window, font, &sel);
+                FLayout *fsublayout = NULL;
+                if (widget == ekWIDGET_VERT_LAYOUT)
+                    fsublayout = dialog_vertical_layout(window, font, &sel);
+                else
+                    fsublayout = dialog_grid_layout(window, font, &sel);
+
                 if (fsublayout != NULL)
                 {
                     const char_t *resource_path = designer_folder_path(form->app);
@@ -731,7 +737,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
             }
 
             /* Still not supported */
-            case ekWIDGET_VERT_LAYOUT:
             case ekWIDGET_HORZ_LAYOUT:
             case ekWIDGET_TOOL_BUTTON:
             case ekWIDGET_RADIO_BUTTON:
