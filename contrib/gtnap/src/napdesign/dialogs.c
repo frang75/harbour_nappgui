@@ -890,6 +890,25 @@ static Layout *i_vertical_layout(void)
 
 /*---------------------------------------------------------------------------*/
 
+static Layout *i_horizontal_layout(void)
+{
+    Layout *layout = layout_create(3, 1);
+    Label *label1 = label_create();
+    Edit *edit1 = edit_create();
+    UpDown *updown1 = updown_create();
+    edit_align(edit1, ekRIGHT);
+    label_text(label1, gui_text(TEXT_COLUMNS));
+    layout_label(layout, label1, 0, 0);
+    layout_edit(layout, edit1, 1, 0);
+    layout_updown(layout, updown1, 2, 0);
+    cell_dbind(layout_cell(layout, 1, 0), DialogLayout, uint32_t, ncols);
+    cell_dbind(layout_cell(layout, 2, 0), DialogLayout, uint32_t, ncols);
+    layout_dbind(layout, NULL, DialogLayout);
+    return layout;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Layout *i_grid_layout(void)
 {
     Layout *layout = layout_create(3, 2);
@@ -992,6 +1011,14 @@ FLayout *dialog_vertical_layout(Window *parent, const Font *font, const DSelect 
 {
     DialogLayout diag = {1, 3};
     return i_dialog_layout(parent, font, sel, i_vertical_layout(), VLAYOUT_PNG, TEXT_VERT_LAYOUT, &diag);
+}
+
+/*---------------------------------------------------------------------------*/
+
+FLayout* dialog_horizontal_layout(Window* parent, const Font* font, const DSelect* sel)
+{
+    DialogLayout diag = {3, 1};
+    return i_dialog_layout(parent, font, sel, i_horizontal_layout(), HLAYOUT_PNG, TEXT_HORZ_LAYOUT, &diag);
 }
 
 /*---------------------------------------------------------------------------*/
