@@ -906,19 +906,18 @@ static void i_OnHeaderClose(DialogData *data, Event *e)
     unref(e);
     window_stop_modal(data->window, BUTTON_HEADER_CLOSE);
 }
-    
+ 
 /*---------------------------------------------------------------------------*/
 
-FLayout *dialog_grid_layout(Window *parent, const Font *font, const DSelect *sel)
+static FLayout *i_dialog_layout(Window *parent, const Font *font, const DSelect *sel, Layout *grid_layout, const ResId icon_id, const ResId text_id, DialogLayout *diag)
 {
-    DialogLayout diag;
     DialogData data = i_dialog_data();
     Layout *layout1 = layout_create(1, 4);
     Layout *layout2 = layout_create(2, 1);
-    Layout *layout3 = i_grid_layout();
+    Layout *layout3 = grid_layout;
     Layout *layout4 = i_ok_cancel(&data, TRUE);
     ImageView *icon = imageview_create();               
-    View *header = dgui_panel_header(gui_text(TEXT_GRID_LAYOUT), font, listener(&data, i_OnHeaderClose, DialogData));
+    View *header = dgui_panel_header(gui_text(text_id), font, listener(&data, i_OnHeaderClose, DialogData));
     Label *label = label_create();
     Panel *panel = panel_create();
     Window *window = window_create(ekWINDOW_RETURN | ekWINDOW_ESC);
@@ -928,54 +927,52 @@ FLayout *dialog_grid_layout(Window *parent, const Font *font, const DSelect *sel
     data.window = window;
     cassert_no_null(sel);
     cassert_no_null(sel->flayout);
+    cassert_no_null(diag);
     imageview_scale(icon, ekGUI_SCALE_ADJUST);
-    imageview_image(icon, gui_image(GLAYOUT_PNG));
+    imageview_image(icon, gui_image(icon_id));
     caption = str_printf(gui_text(TEXT_NEW_SUBLAYOUT), sel->col, sel->row, tc(sel->flayout->name));
     label_text(label, tc(caption));
     label_multiline(label, TRUE);
     label_min_width(label, 200);
     layout_imageview(layout2, icon, 0, 0);
     layout_label(layout2, label, 1, 0);
-
     layout_view(layout1, header, 0, 0);
     layout_layout(layout1, layout2, 0, 1);
     layout_layout(layout1, layout3, 0, 2);
     layout_layout(layout1, layout4, 0, 3);
-
     layout_hmargin(layout2, 0, 10);
     layout_margin4(layout2, 10, 10, 10, 10);
-
     layout_hmargin(layout3, 0, 10);
-
     layout_margin4(layout3, 0, 30, 0, 60);
     layout_hexpand(layout3, 1);
-
     layout_hmargin(layout4, 1, 5);
     layout_margin4(layout4, 30, 10, 10, 10);
-
-    //layout_label(layout1, label, 0, 0);
-    //layout_vmargin(layout1, 0, 5);
-    //layout_vmargin(layout1, 1, 5);
     panel_layout(panel, layout1);
     window_panel(window, panel);
     window_defbutton(window, data.defbutton);
     i_center_window(parent, window);
-    diag.ncols = 3;
-    diag.nrows = 2;
-    layout_dbind_obj(layout3, &diag, DialogLayout);
+    layout_dbind_obj(layout3, diag, DialogLayout);
     ret = window_modal(window, parent);
 
     if (ret == BUTTON_OK || ret == ekGUI_CLOSE_INTRO)
     {
-        cassert(diag.ncols > 0);
-        cassert(diag.nrows > 0);
-        flayout = flayout_create(diag.ncols, diag.nrows);
+        cassert(diag->ncols > 0);
+        cassert(diag->nrows > 0);
+        flayout = flayout_create(diag->ncols, diag->nrows);
     }
 
     window_destroy(&window);
     str_destroy(&caption);
     i_remove_dialog_data(&data);
     return flayout;
+}
+
+/*---------------------------------------------------------------------------*/
+
+FLayout *dialog_grid_layout(Window *parent, const Font *font, const DSelect *sel)
+{
+    DialogLayout diag = {3, 2};
+    return i_dialog_layout(parent, font, sel, i_grid_layout(), GLAYOUT_PNG, TEXT_GRID_LAYOUT, &diag);
 }
 
 /*---------------------------------------------------------------------------*/
