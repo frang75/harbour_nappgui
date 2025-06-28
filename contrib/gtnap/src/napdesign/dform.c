@@ -152,6 +152,33 @@ DForm *dform_empty(Designer *app)
 
 /*---------------------------------------------------------------------------*/
 
+static uint32_t i_num_cells(const FLayout *flayout)
+{
+    uint32_t n = 0;
+    cassert_no_null(flayout);
+    n = arrst_size(flayout->cells, FCell);
+    arrst_foreach_const(fcell, flayout->cells, FCell)
+        if (fcell->type == ekCELL_TYPE_LAYOUT)
+            n += i_num_cells(fcell->widget.layout);
+    arrst_end()
+    return n;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static uint32_t i_num_layouts(const FLayout *flayout)
+{
+    uint32_t n = 1;
+    cassert_no_null(flayout);
+    arrst_foreach_const(fcell, flayout->cells, FCell)
+        if (fcell->type == ekCELL_TYPE_LAYOUT)
+            n += i_num_layouts(fcell->widget.layout);
+    arrst_end()
+    return n;
+}
+
+/*---------------------------------------------------------------------------*/
+
 DForm *dform_read(Stream *stm, Designer *app)
 {
     FLayout *flayout = flayout_read(stm);
@@ -162,6 +189,8 @@ DForm *dform_read(Stream *stm, Designer *app)
         form->flayout = flayout;
         form->temp_path = arrst_create(DSelect);
         form->sel_path = arrst_create(DSelect);
+        form->cell_id = i_num_cells(flayout);
+        form->layout_id = i_num_layouts(flayout);
         return form;
     }
     else
