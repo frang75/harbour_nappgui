@@ -14,4 +14,4 @@ const char_t *designer_folder_path(const Designer *app);
 
 Window *designer_main_window(const Designer *app);
 
-Panel *designer_drawer(Designer *app, Panel *child, const drawer_t drawer, ResId labelid);
+Panel *designer_drawer(Designer *app, Panel *child, const drawer_t drawer);

@@ -689,6 +689,7 @@ static bool_t i_is_widget_drawer(const drawer_t drawer)
     case ekDRAWER_LAYOUT_PROPS:
     case ekDRAWER_COLUMN_PROPS:
     case ekDRAWER_ROW_PROPS:
+    case ekDRAWER_CELL_PROPS:
         return FALSE;
         cassert_default();
     }
@@ -1431,6 +1432,7 @@ static Designer *i_app(void)
     i_add_drawer(app->wdrawers, ekDRAWER_LAYOUT_PROPS, TEXT_LAYOUT_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_COLUMN_PROPS, TEXT_COLUMN_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_ROW_PROPS, TEXT_ROW_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_CELL_PROPS, TEXT_CELL_PROPS);
     i_add_widget(app->bwidgets, ekWIDGET_SELECT, TEXT_SELECT, CURSOR_PNG, ekDRAWER_WIDGET_SELECT);
     i_add_widget(app->bwidgets, ekWIDGET_VERT_LAYOUT, TEXT_VERT_LAYOUT, VLAYOUT_PNG, ekDRAWER_WIDGET_LAYOUTS);
     i_add_widget(app->bwidgets, ekWIDGET_HORZ_LAYOUT, TEXT_HORZ_LAYOUT, HLAYOUT_PNG, ekDRAWER_WIDGET_LAYOUTS);
@@ -1553,15 +1555,13 @@ Window *designer_main_window(const Designer *app)
 
 /*---------------------------------------------------------------------------*/
 
-Panel *designer_drawer(Designer *app, Panel *child, const drawer_t drawer, ResId labelid)
+Panel *designer_drawer(Designer *app, Panel *child, const drawer_t drawer)
 {
     WDrawer *wdrawer = i_find_drawer_by_type(app, drawer);
-    Panel *panel = NULL;
     cassert_no_null(wdrawer);
     cassert(wdrawer->panel == NULL);
-    panel = dgui_drawer(gui_text(labelid), app->default_font, child, wdrawer->opened, listener(app, i_OnDrawerChange, Designer));    
-    wdrawer->panel = panel;
-    return panel;
+    wdrawer->panel = dgui_drawer(gui_text(wdrawer->labelid), app->default_font, child, wdrawer->opened, listener(app, i_OnDrawerChange, Designer));    
+    return wdrawer->panel;
 }
 
 /*---------------------------------------------------------------------------*/

@@ -61,7 +61,7 @@ struct _propdata_t
     Cell *column_margin_cell;
     Cell *row_margin_cell;
     Label *layout_type_label;
-    Label *cell_geom_label;
+    Label *cell_pos_label;
     PopUp *column_popup;
     PopUp *row_popup;
     Button *load_button;
@@ -84,8 +84,7 @@ static void i_remove_elem(FElem *elem)
 
 static Layout *i_no_sel_layout(void)
 {
-    Layout *layout = layout_create(1, 1);
-    return layout;
+    return layout_create(1, 1);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -348,9 +347,9 @@ static Layout *i_layout_layout(PropData *data, const real32_t mright)
     panel_layout(panel1, layout2);
     panel_layout(panel2, layout3);
     panel_layout(panel3, layout4);
-    panel4 = designer_drawer(data->app, panel1, ekDRAWER_LAYOUT_PROPS, TEXT_LAYOUT_PROPS);
-    panel5 = designer_drawer(data->app, panel2, ekDRAWER_COLUMN_PROPS, TEXT_COLUMN_PROPS);
-    panel6 = designer_drawer(data->app, panel3, ekDRAWER_ROW_PROPS, TEXT_ROW_PROPS);
+    panel4 = designer_drawer(data->app, panel1, ekDRAWER_LAYOUT_PROPS);
+    panel5 = designer_drawer(data->app, panel2, ekDRAWER_COLUMN_PROPS);
+    panel6 = designer_drawer(data->app, panel3, ekDRAWER_ROW_PROPS);
     layout_panel(layout1, panel4, 0, 0);
     layout_panel(layout1, panel5, 0, 1);
     layout_panel(layout1, panel6, 0, 2);
@@ -1292,42 +1291,6 @@ static Panel *i_cell_content_panel(PropData *data)
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_cell_props_layout(PropData *data)
-{
-    Layout *layout = layout_create(2, 4);
-    Label *label1 = label_create();
-    Label *label2 = label_create();
-    Label *label3 = label_create();
-    Label *label4 = label_create();
-    Label *label5 = label_create();
-    Edit *edit = edit_create();
-    PopUp *popup1 = popup_create();
-    PopUp *popup2 = popup_create();
-    cassert_no_null(data);
-    label_text(label1, "Coord");
-    label_text(label2, "Name");
-    label_text(label3, "HAlign");
-    label_text(label4, "VAlign");
-    layout_label(layout, label1, 0, 0);
-    layout_label(layout, label2, 0, 1);
-    layout_label(layout, label3, 0, 2);
-    layout_label(layout, label4, 0, 3);
-    layout_label(layout, label5, 1, 0);
-    layout_edit(layout, edit, 1, 1);
-    layout_popup(layout, popup1, 1, 2);
-    layout_popup(layout, popup2, 1, 3);
-    layout_halign(layout, 1, 0, ekJUSTIFY);
-    layout_hmargin(layout, 0, i_GRID_HMARGIN);
-    layout_hexpand(layout, 1);
-    data->cell_geom_label = label5;
-    cell_dbind(layout_cell(layout, 1, 1), FCell, String *, name);
-    cell_dbind(layout_cell(layout, 1, 2), FCell, halign_t, halign);
-    cell_dbind(layout_cell(layout, 1, 3), FCell, valign_t, valign);
-    return layout;
-}
-
-/*---------------------------------------------------------------------------*/
-
 static void i_OnCellNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
@@ -1355,23 +1318,59 @@ static void i_OnCellNotify(PropData *data, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static Panel *i_cell_props_panel(PropData *data)
+{
+    Panel *panel = panel_create();
+    Layout *layout = layout_create(2, 4);
+    Label *label1 = label_create();
+    Label *label2 = label_create();
+    Label *label3 = label_create();
+    Label *label4 = label_create();
+    Label *label5 = label_create();
+    Edit *edit = edit_create();
+    PopUp *popup1 = popup_create();
+    PopUp *popup2 = popup_create();
+    cassert_no_null(data);
+    label_text(label1, gui_text(TEXT_CELL_POS));
+    label_text(label2, gui_text(TEXT_NAME));
+    label_text(label3, gui_text(TEXT_HALIGN));
+    label_text(label4, gui_text(TEXT_VALIGN));
+    layout_label(layout, label1, 0, 0);
+    layout_label(layout, label2, 0, 1);
+    layout_label(layout, label3, 0, 2);
+    layout_label(layout, label4, 0, 3);
+    layout_label(layout, label5, 1, 0);
+    layout_edit(layout, edit, 1, 1);
+    layout_popup(layout, popup1, 1, 2);
+    layout_popup(layout, popup2, 1, 3);
+    layout_halign(layout, 1, 0, ekJUSTIFY);
+    layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
+    layout_hexpand(layout, 1);
+    data->cell_pos_label = label5;
+    cell_dbind(layout_cell(layout, 1, 1), FCell, String *, name);
+    cell_dbind(layout_cell(layout, 1, 2), FCell, halign_t, halign);
+    cell_dbind(layout_cell(layout, 1, 3), FCell, valign_t, valign);
+    layout_dbind(layout, listener(data, i_OnCellNotify, PropData), FCell);
+    panel_layout(panel, layout);
+    data->cell_layout = layout;
+    return panel;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Layout *i_cell_layout(PropData *data, const real32_t mright)
 {
-    Layout *layout1 = layout_create(1, 4);
-    Layout *layout2 = i_cell_props_layout(data);
-    Label *label = label_create();
-    Panel *panel = i_cell_content_panel(data);
-    label_text(label, "Cell properties");
-    layout_label(layout1, label, 0, 0);
-    layout_layout(layout1, layout2, 0, 1);
-    layout_panel(layout1, panel, 0, 2);
-    layout_vmargin(layout1, 0, i_HEADER_VMARGIN);
-    layout_vmargin(layout1, 1, i_HEADER_VMARGIN);
-    layout_margin4(layout1, 0, mright, 0, 0);
-    layout_vexpand(layout1, 3);
-    layout_dbind(layout2, listener(data, i_OnCellNotify, PropData), FCell);
-    data->cell_layout = layout2;
-    return layout1;
+    Layout *layout = layout_create(1, 3);
+    Panel *panel1 = i_cell_props_panel(data);
+    Panel *panel2 = i_cell_content_panel(data);
+    Panel *panel3 = NULL;
+    cassert_no_null(data);
+    panel3 = designer_drawer(data->app, panel1, ekDRAWER_CELL_PROPS);
+    layout_panel(layout, panel3, 0, 0);
+    layout_panel(layout, panel2, 0, 1);
+    layout_margin4(layout, 0, mright, 0, 0);
+    layout_vexpand(layout, 2);
+    return layout;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1521,7 +1520,7 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
         char_t text[64];
         FCell *cell = dform_sel_fcell(sel);
         bstd_sprintf(text, sizeof(text), "(%d,%d)", sel->col, sel->row);
-        label_text(data->cell_geom_label, text);
+        label_text(data->cell_pos_label, text);
         panel_visible_layout(panel, 2);
         layout_dbind_obj(data->cell_layout, cell, FCell);
         if (cell->type == ekCELL_TYPE_EMPTY)

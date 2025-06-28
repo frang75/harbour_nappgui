@@ -6,6 +6,8 @@ TEXT_NEW_SUBLAYOUT  A new sublayout will be placed in cell (%d, %d) of '%s' layo
 TEXT_LAYOUT_PROPS   Layout properties
 TEXT_COLUMN_PROPS   Column properties
 TEXT_ROW_PROPS      Row properties
+TEXT_CELL_PROPS     Cell properties
+TEXT_CELL_POS       Pos
 TEXT_LAYOUTS        Layouts
 TEXT_BUTTONS        Buttons
 TEXT_TEXT_WIDGETS   Text Widgets
@@ -44,10 +46,13 @@ TEXT_WIDTH          Width
 TEXT_HEIGHT         Height
 TEXT_COLUMN         Column
 TEXT_ROW            Row
+TEXT_HALIGN         HAlign
+TEXT_VALIGN         VAlign
 TEXT_LTYPE_SING     Single cell
 TEXT_LTYPE_VERT     Vertical with %d rows
 TEXT_LTYPE_HORZ     Horizontal with %d cols
 TEXT_LTYPE_GRID     Grid %d cols x %d rows
+
 TIP_LAYOUT_NAME     Layout name. It will be useful to locate the layout at runtime.
 TIP_TOP_MARGIN      Margin at top of layout (in px).
 TIP_LEFT_MARGIN     Margin at left of layout (in px).
