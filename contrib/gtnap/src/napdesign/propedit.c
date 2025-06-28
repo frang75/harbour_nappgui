@@ -4,6 +4,7 @@
 #include "designer.h"
 #include "dlayout.h"
 #include "dform.h"
+#include "dgui.h"
 #include "dialogs.h"
 #include "res_designer.h"
 #include <nflib/flayout.h>
@@ -12,6 +13,7 @@
 #include <gui/comwin.h>
 #include <gui/button.h>
 #include <gui/edit.h>
+#include <gui/imageview.h>
 #include <gui/label.h>
 #include <gui/layout.h>
 #include <gui/listbox.h>
@@ -88,11 +90,18 @@ static Layout *i_no_sel_layout(void)
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_value_updown_layout(void)
+static Layout *i_value_updown_layout(const char_t *tooltip)
 {
     Layout *layout = layout_create(2, 1);
     Edit *edit = edit_create();
     UpDown *updown = updown_create();
+    
+    if (str_empty_c(tooltip) == FALSE)
+    {
+        edit_tooltip(edit, tooltip);
+        updown_tooltip(updown, tooltip);
+    }
+
     layout_edit(layout, edit, 0, 0);
     layout_updown(layout, updown, 1, 0);
     layout_hexpand(layout, 0);
@@ -112,10 +121,10 @@ static Layout *i_margin_layout(PropData *data)
     Label *label6 = label_create();
     Label *label7 = label_create();
     Edit *edit = edit_create();
-    Layout *val1 = i_value_updown_layout();
-    Layout *val2 = i_value_updown_layout();
-    Layout *val3 = i_value_updown_layout();
-    Layout *val4 = i_value_updown_layout();
+    Layout *val1 = i_value_updown_layout(NULL);
+    Layout *val2 = i_value_updown_layout(NULL);
+    Layout *val3 = i_value_updown_layout(NULL);
+    Layout *val4 = i_value_updown_layout(NULL);
     cassert_no_null(data);
     label_text(label1, "Geom");
     label_text(label2, "Name");
@@ -200,8 +209,8 @@ static Layout *i_column_layout(PropData *data)
     Label *label2 = label_create();
     Label *label3 = label_create();
     PopUp *popup = popup_create();
-    Layout *val1 = i_value_updown_layout();
-    Layout *val2 = i_value_updown_layout();
+    Layout *val1 = i_value_updown_layout(NULL);
+    Layout *val2 = i_value_updown_layout(NULL);
     cassert_no_null(data);
     label_text(label1, "Column");
     label_text(label2, "CRight");
@@ -231,8 +240,8 @@ static Layout *i_row_layout(PropData *data)
     Label *label2 = label_create();
     Label *label3 = label_create();
     PopUp *popup = popup_create();
-    Layout *val1 = i_value_updown_layout();
-    Layout *val2 = i_value_updown_layout();
+    Layout *val1 = i_value_updown_layout(NULL);
+    Layout *val2 = i_value_updown_layout(NULL);
     cassert_no_null(data);
     label_text(label1, "Row");
     label_text(label2, "RBottom");
@@ -395,7 +404,7 @@ static Layout *i_label_layout(PropData *data)
 {
     Layout *layout1 = layout_create(1, 3);
     Layout *layout2 = layout_create(2, 4);
-    Layout *layout3 = i_value_updown_layout();
+    Layout *layout3 = i_value_updown_layout(NULL);
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
@@ -459,7 +468,7 @@ static Layout *i_button_layout(PropData *data)
 {
     Layout *layout1 = layout_create(1, 3);
     Layout *layout2 = layout_create(2, 2);
-    Layout *layout3 = i_value_updown_layout();
+    Layout *layout3 = i_value_updown_layout(NULL);
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
@@ -549,7 +558,7 @@ static Layout *i_edit_layout(PropData *data)
 {
     Layout *layout1 = layout_create(1, 5);
     Layout *layout2 = layout_create(2, 2);
-    Layout *layout3 = i_value_updown_layout();
+    Layout *layout3 = i_value_updown_layout(NULL);
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
@@ -607,8 +616,8 @@ static Layout *i_text_layout(PropData *data)
 {
     Layout *layout1 = layout_create(1, 4);
     Layout *layout2 = layout_create(2, 2);
-    Layout *layout3 = i_value_updown_layout();
-    Layout *layout4 = i_value_updown_layout();
+    Layout *layout3 = i_value_updown_layout(NULL);
+    Layout *layout4 = i_value_updown_layout(NULL);
     Button *button1 = button_check();
     Label *label1 = label_create();
     Label *label2 = label_create();
@@ -686,8 +695,8 @@ static Layout *i_image_layout(PropData *data)
 {
     Layout *layout1 = layout_create(1, 3);
     Layout *layout2 = layout_create(2, 4);
-    Layout *layout3 = i_value_updown_layout();
-    Layout *layout4 = i_value_updown_layout();
+    Layout *layout3 = i_value_updown_layout(NULL);
+    Layout *layout4 = i_value_updown_layout(NULL);
     PopUp *popup = popup_create();
     Button *button = button_push();
     Label *label1 = label_create();
@@ -746,7 +755,7 @@ static Layout *i_slider_layout(PropData *data)
 {
     Layout *layout1 = layout_create(1, 3);
     Layout *layout2 = layout_create(2, 1);
-    Layout *layout3 = i_value_updown_layout();
+    Layout *layout3 = i_value_updown_layout(NULL);
     Label *label1 = label_create();
     Label *label2 = label_create();
     cassert_no_null(data);
@@ -786,7 +795,7 @@ static Layout *i_progress_layout(PropData *data)
 {
     Layout *layout1 = layout_create(1, 3);
     Layout *layout2 = layout_create(2, 1);
-    Layout *layout3 = i_value_updown_layout();
+    Layout *layout3 = i_value_updown_layout(NULL);
     Label *label1 = label_create();
     Label *label2 = label_create();
     cassert_no_null(data);
@@ -1001,8 +1010,8 @@ static Layout *i_listbox_layout(PropData *data)
 {
     Layout *layout1 = layout_create(1, 6);
     Layout *layout2 = layout_create(2, 2);
-    Layout *layout3 = i_value_updown_layout();
-    Layout *layout4 = i_value_updown_layout();
+    Layout *layout3 = i_value_updown_layout(NULL);
+    Layout *layout4 = i_value_updown_layout(NULL);
     Layout *layout5 = layout_create(3, 1);
     Label *label1 = label_create();
     Label *label2 = label_create();
@@ -1118,9 +1127,9 @@ static void i_OnHeaderNotify(PropData *data, Event *e)
 static Layout *i_header_layout(void)
 {
     Layout *layout1 = layout_create(2, 7);
-    Layout *layout2 = i_value_updown_layout();
-    Layout *layout3 = i_value_updown_layout();
-    Layout *layout4 = i_value_updown_layout();
+    Layout *layout2 = i_value_updown_layout(NULL);
+    Layout *layout3 = i_value_updown_layout(NULL);
+    Layout *layout4 = i_value_updown_layout(NULL);
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
@@ -1181,8 +1190,8 @@ static Layout *i_table_layout(PropData *data)
 {
     Layout *layout1 = layout_create(1, 7);
     Layout *layout2 = layout_create(2, 2);
-    Layout *layout3 = i_value_updown_layout();
-    Layout *layout4 = i_value_updown_layout();
+    Layout *layout3 = i_value_updown_layout(NULL);
+    Layout *layout4 = i_value_updown_layout(NULL);
     Layout *layout5 = layout_create(3, 1);
     Layout *layout6 = i_header_layout();
     Label *label1 = label_create();
