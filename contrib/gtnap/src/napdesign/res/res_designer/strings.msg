@@ -34,3 +34,28 @@ TEXT_BOX_FORMS      Forms
 TEXT_BOX_INSPECTOR  Object inspector
 TEXT_BOX_PROPEDIT   Property editor
 TEXT_BOX_WIDGETS    Widgets
+TEXT_TYPE           Type
+TEXT_NAME           Name
+TEXT_TOP            Top
+TEXT_LEFT           Left
+TEXT_BOTTOM         Bottom
+TEXT_RIGHT          Right
+TEXT_WIDTH          Width
+TEXT_HEIGHT         Height
+TEXT_COLUMN         Column
+TEXT_ROW            Row
+TEXT_LTYPE_SING     Single cell
+TEXT_LTYPE_VERT     Vertical with %d rows
+TEXT_LTYPE_HORZ     Horizontal with %d cols
+TEXT_LTYPE_GRID     Grid %d cols x %d rows
+TIP_LAYOUT_NAME     Layout name. It will be useful to locate the layout at runtime.
+TIP_TOP_MARGIN      Margin at top of layout (in px).
+TIP_LEFT_MARGIN     Margin at left of layout (in px).
+TIP_BOTTOM_MARGIN   Margin at bottom of layout (in px).
+TIP_RIGHT_MARGIN    Margin at right of layout (in px).
+TIP_COLUMN          Index of the column will be edited (0-based).
+TIP_COLUMN_MARGIN   Internal margin at right of column (in px).
+TIP_COLUMN_WIDTH    Column width (forced). If 0 will be set automatically.
+TIP_ROW             Index of the row will be edited (0-based).
+TIP_ROW_MARGIN      Internal margin at bottom of row (in px).
+TIP_ROW_HEIGHT      Row height (forced). If 0 will be set automatically.

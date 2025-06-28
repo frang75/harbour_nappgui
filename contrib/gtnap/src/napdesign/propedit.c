@@ -60,7 +60,7 @@ struct _propdata_t
     ListBox *table_list;
     Cell *column_margin_cell;
     Cell *row_margin_cell;
-    Label *layout_geom_label;
+    Label *layout_type_label;
     Label *cell_geom_label;
     PopUp *column_popup;
     PopUp *row_popup;
@@ -71,6 +71,7 @@ struct _propdata_t
 
 static const real32_t i_GRID_HMARGIN = 5;
 static const real32_t i_HEADER_VMARGIN = 3;
+static const real32_t i_LABEL_COLUMN_WIDTH = 60;
 
 /*---------------------------------------------------------------------------*/
 
@@ -96,11 +97,9 @@ static Layout *i_value_updown_layout(const char_t *tooltip)
     UpDown *updown = updown_create();
     
     if (str_empty_c(tooltip) == FALSE)
-    {
         edit_tooltip(edit, tooltip);
-        updown_tooltip(updown, tooltip);
-    }
 
+    edit_align(edit, ekRIGHT);
     layout_edit(layout, edit, 0, 0);
     layout_updown(layout, updown, 1, 0);
     layout_hexpand(layout, 0);
@@ -120,17 +119,18 @@ static Layout *i_margin_layout(PropData *data)
     Label *label6 = label_create();
     Label *label7 = label_create();
     Edit *edit = edit_create();
-    Layout *val1 = i_value_updown_layout(NULL);
-    Layout *val2 = i_value_updown_layout(NULL);
-    Layout *val3 = i_value_updown_layout(NULL);
-    Layout *val4 = i_value_updown_layout(NULL);
+    Layout *val1 = i_value_updown_layout(gui_text(TIP_TOP_MARGIN));
+    Layout *val2 = i_value_updown_layout(gui_text(TIP_LEFT_MARGIN));
+    Layout *val3 = i_value_updown_layout(gui_text(TIP_BOTTOM_MARGIN));
+    Layout *val4 = i_value_updown_layout(gui_text(TIP_RIGHT_MARGIN));
     cassert_no_null(data);
-    label_text(label1, "Geom");
-    label_text(label2, "Name");
-    label_text(label3, "Top");
-    label_text(label4, "Left");
-    label_text(label5, "Bottom");
-    label_text(label6, "Right");
+    edit_tooltip(edit, gui_text(TIP_LAYOUT_NAME));
+    label_text(label1, gui_text(TEXT_TYPE));
+    label_text(label2, gui_text(TEXT_NAME));
+    label_text(label3, gui_text(TEXT_TOP));
+    label_text(label4, gui_text(TEXT_LEFT));
+    label_text(label5, gui_text(TEXT_BOTTOM));
+    label_text(label6, gui_text(TEXT_RIGHT));
     layout_label(layout, label1, 0, 0);
     layout_label(layout, label2, 0, 1);
     layout_label(layout, label3, 0, 2);
@@ -145,8 +145,8 @@ static Layout *i_margin_layout(PropData *data)
     layout_layout(layout, val4, 1, 5);
     layout_halign(layout, 1, 0, ekJUSTIFY);
     layout_hexpand(layout, 1);
-    layout_hmargin(layout, 0, i_GRID_HMARGIN);
-    data->layout_geom_label = label7;
+    layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
+    data->layout_type_label = label7;
     cell_dbind(layout_cell(layout, 1, 1), FLayout, String *, name);
     cell_dbind(layout_cell(layout, 1, 2), FLayout, real32_t, margin_top);
     cell_dbind(layout_cell(layout, 1, 3), FLayout, real32_t, margin_left);
@@ -208,12 +208,13 @@ static Layout *i_column_layout(PropData *data)
     Label *label2 = label_create();
     Label *label3 = label_create();
     PopUp *popup = popup_create();
-    Layout *val1 = i_value_updown_layout(NULL);
-    Layout *val2 = i_value_updown_layout(NULL);
+    Layout *val1 = i_value_updown_layout(gui_text(TIP_COLUMN_MARGIN));
+    Layout *val2 = i_value_updown_layout(gui_text(TIP_COLUMN_WIDTH));
     cassert_no_null(data);
-    label_text(label1, "Column");
-    label_text(label2, "CRight");
-    label_text(label3, "FWidth");
+    label_text(label1, gui_text(TEXT_COLUMN));
+    label_text(label2, gui_text(TEXT_RIGHT));
+    label_text(label3, gui_text(TEXT_WIDTH));
+    popup_tooltip(popup, gui_text(TIP_COLUMN));
     popup_OnSelect(popup, listener(data, i_OnColumnSelect, PropData));
     layout_label(layout, label1, 0, 0);
     layout_label(layout, label2, 0, 1);
@@ -222,7 +223,7 @@ static Layout *i_column_layout(PropData *data)
     layout_layout(layout, val1, 1, 1);
     layout_layout(layout, val2, 1, 2);
     layout_hexpand(layout, 1);
-    layout_hmargin(layout, 0, i_GRID_HMARGIN);
+    layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
     data->column_popup = popup;
     data->column_margin_cell = layout_cell(layout, 1, 1);
     cell_dbind(layout_cell(layout, 1, 1), FColumn, real32_t, margin_right);
@@ -239,12 +240,13 @@ static Layout *i_row_layout(PropData *data)
     Label *label2 = label_create();
     Label *label3 = label_create();
     PopUp *popup = popup_create();
-    Layout *val1 = i_value_updown_layout(NULL);
-    Layout *val2 = i_value_updown_layout(NULL);
+    Layout *val1 = i_value_updown_layout(gui_text(TIP_ROW_MARGIN));
+    Layout *val2 = i_value_updown_layout(gui_text(TIP_ROW_HEIGHT));
     cassert_no_null(data);
-    label_text(label1, "Row");
-    label_text(label2, "RBottom");
-    label_text(label3, "RHeight");
+    label_text(label1, gui_text(TEXT_ROW));
+    label_text(label2, gui_text(TEXT_BOTTOM));
+    label_text(label3, gui_text(TEXT_HEIGHT));
+    popup_tooltip(popup, gui_text(TIP_ROW));
     popup_OnSelect(popup, listener(data, i_OnRowSelect, PropData));
     layout_label(layout, label1, 0, 0);
     layout_label(layout, label2, 0, 1);
@@ -253,7 +255,7 @@ static Layout *i_row_layout(PropData *data)
     layout_layout(layout, val1, 1, 1);
     layout_layout(layout, val2, 1, 2);
     layout_hexpand(layout, 1);
-    layout_hmargin(layout, 0, i_GRID_HMARGIN);
+    layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
     data->row_popup = popup;
     data->row_margin_cell = layout_cell(layout, 1, 1);
     cell_dbind(layout_cell(layout, 1, 1), FRow, real32_t, margin_bottom);
@@ -1462,8 +1464,17 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
         char_t text[64];
         uint32_t ncols = flayout_ncols(sel->flayout);
         uint32_t nrows = flayout_nrows(sel->flayout);
-        bstd_sprintf(text, sizeof(text), "%d cols x %d rows", ncols, nrows);
-        label_text(data->layout_geom_label, text);
+
+        if (ncols == 1 && nrows == 1)
+            bstd_sprintf(text, sizeof(text), gui_text(TEXT_LTYPE_SING));
+        else if (ncols == 1)
+            bstd_sprintf(text, sizeof(text), gui_text(TEXT_LTYPE_VERT), nrows);
+        else if (nrows == 1)
+            bstd_sprintf(text, sizeof(text), gui_text(TEXT_LTYPE_HORZ), ncols);
+        else
+            bstd_sprintf(text, sizeof(text), gui_text(TEXT_LTYPE_GRID), ncols, nrows);
+        
+        label_text(data->layout_type_label, text);
 
         /* Column selector */
         {
