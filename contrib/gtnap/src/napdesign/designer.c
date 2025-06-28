@@ -36,6 +36,7 @@ struct _config_t
 
 struct _wdrawer_t
 {
+    drawer_t type;
     ResId labelid;
     Panel *panel;
     bool_t opened;
@@ -44,10 +45,10 @@ struct _wdrawer_t
 struct _bwidget_t
 {
     widget_t twidget;
+    drawer_t drawer;
     ResId labelid;
     ResId imageid;
     Button *button;
-    uint32_t drawer;
     bool_t opened;
 };
 
@@ -604,7 +605,7 @@ static void i_OnWidgetButtonClick(Designer *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static Panel *i_drawer_inner_panel(Designer *app, const uint32_t drawer_id)
+static Panel *i_drawer_widget_panel(Designer *app, const drawer_t drawer)
 {
     Panel *panel = panel_create();
     uint32_t i = 0, n = 0;    
@@ -612,14 +613,15 @@ static Panel *i_drawer_inner_panel(Designer *app, const uint32_t drawer_id)
 
     /* Number of widgets for this drawer */
     arrst_foreach_const(bwidget, app->bwidgets, BWidget)
-        if (bwidget->drawer == drawer_id)
+        if (bwidget->drawer == drawer)
             n += 1;
     arrst_end()
 
+    if (n > 0)
     {
         Layout *layout = layout_create(2, n);
         arrst_foreach(bwidget, app->bwidgets, BWidget)
-            if (bwidget->drawer == drawer_id)
+            if (bwidget->drawer == drawer)
             {
                 Button *button = button_flatgle();
                 Label *label = label_create();
@@ -638,6 +640,10 @@ static Panel *i_drawer_inner_panel(Designer *app, const uint32_t drawer_id)
         layout_hmargin(layout, 0, 10);
         layout_hexpand(layout, 1);
         panel_layout(panel, layout);
+    }
+    else
+    {
+        cassert(FALSE);
     }
 
     return panel;
@@ -658,6 +664,29 @@ static WDrawer *i_get_drawer(Designer *app, Panel *panel)
 
 /*---------------------------------------------------------------------------*/
 
+const bool_t i_is_widget_drawer(const drawer_t drawer)
+{
+    switch (drawer)
+    {
+    case ekDRAWER_WIDGET_SELECT:
+    case ekDRAWER_WIDGET_LAYOUTS:
+    case ekDRAWER_WIDGET_BUTTONS:
+    case ekDRAWER_WIDGET_TEXT:
+    case ekDRAWER_WIDGET_ITEMS:
+    case ekDRAWER_WIDGET_OTHERS:
+        return TRUE;
+    case ekDRAWER_LAYOUT_PROPS:
+    case ekDRAWER_COLUMN_PROPS:
+    case ekDRAWER_ROW_PROPS:
+        return FALSE;
+        cassert_default();
+    }
+
+    return FALSE;
+}
+    
+/*---------------------------------------------------------------------------*/
+
 static void i_OnDrawerChange(Designer *app, Event *e)
 {
     Panel *sender = event_sender(e, Panel);
@@ -674,25 +703,34 @@ static Panel *i_widgets_panel(Designer *app)
     Panel *panel = panel_custom(FALSE, TRUE, FALSE);
     uint32_t n = 0;
     cassert_no_null(app);       
-    n = arrst_size(app->wdrawers, WDrawer);
+
+    arrst_foreach_const(wdrawer, app->wdrawers, WDrawer)
+        if (i_is_widget_drawer(wdrawer->type) == TRUE)
+            n += 1;
+    arrst_end()
 
     {
+        uint32_t i = 0;
         Layout *layout = layout_create(1, n + 1);
         arrst_foreach(wdrawer, app->wdrawers, WDrawer)
-            Panel *dpanel = NULL;
-            Panel *ipanel = i_drawer_inner_panel(app, wdrawer_i);
-            const char_t *dlabel = gui_text(wdrawer->labelid);
-            cassert(wdrawer->panel == NULL);
-            if (str_empty_c(dlabel) == FALSE)
+            if (i_is_widget_drawer(wdrawer->type) == TRUE)
             {
-                dpanel = dgui_drawer(dlabel, app->default_font, ipanel, wdrawer->opened, listener(app, i_OnDrawerChange, Designer));
-                wdrawer->panel = dpanel;
+                Panel *dpanel = NULL;
+                Panel *ipanel = i_drawer_widget_panel(app, wdrawer->type);
+                const char_t *dlabel = gui_text(wdrawer->labelid);
+                cassert(wdrawer->panel == NULL);
+                if (str_empty_c(dlabel) == FALSE)
+                {
+                    dpanel = dgui_drawer(dlabel, app->default_font, ipanel, wdrawer->opened, listener(app, i_OnDrawerChange, Designer));
+                    wdrawer->panel = dpanel;
+                }
+                else
+                {
+                    dpanel = ipanel;
+                }
+                layout_panel(layout, dpanel, 0, i);
+                i += 1;
             }
-            else
-            {
-                dpanel = ipanel;
-            }
-            layout_panel(layout, dpanel, 0, wdrawer_i);
         arrst_end()
         layout_vexpand(layout, n);
         panel_layout(panel, layout);
@@ -1338,17 +1376,16 @@ static void i_OnClose(Designer *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static uint32_t i_add_drawer(ArrSt(WDrawer) *wdrawers, ResId labelid)
+static void i_add_drawer(ArrSt(WDrawer) *wdrawers, const drawer_t type, ResId labelid)
 {
-    uint32_t id = arrst_size(wdrawers, WDrawer);
     WDrawer *wdrawer = arrst_new0(wdrawers, WDrawer);
+    wdrawer->type = type;
     wdrawer->labelid = labelid;
-    return id;
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_add_widget(ArrSt(BWidget) *bwidgets, const widget_t twidget, ResId labelid, ResId imageid, const uint32_t drawer)
+static void i_add_widget(ArrSt(BWidget) *bwidgets, const widget_t twidget, ResId labelid, ResId imageid, const drawer_t drawer)
 {
     BWidget *bwidget = arrst_new0(bwidgets, BWidget);
     bwidget->twidget = twidget;
@@ -1362,7 +1399,6 @@ static void i_add_widget(ArrSt(BWidget) *bwidgets, const widget_t twidget, ResId
 static Designer *i_app(void)
 {
     Designer *app = heap_new0(Designer);
-    uint32_t drawerid[6];
     gui_respack(res_designer_respack);
     gui_language("");
     dgui_init();
@@ -1375,31 +1411,34 @@ static Designer *i_app(void)
     app->default_font = font_system(font_regular_size(), 0);
     app->wdrawers = arrst_create(WDrawer);
     app->bwidgets = arrst_create(BWidget);
-    drawerid[0] = i_add_drawer(app->wdrawers, "");
-    drawerid[1] = i_add_drawer(app->wdrawers, TEXT_LAYOUTS);
-    drawerid[2] = i_add_drawer(app->wdrawers, TEXT_BUTTONS);
-    drawerid[3] = i_add_drawer(app->wdrawers, TEXT_TEXT_WIDGETS);
-    drawerid[4] = i_add_drawer(app->wdrawers, TEXT_ITEM_WIDGETS);
-    drawerid[5] = i_add_drawer(app->wdrawers, TEXT_OTHER_WIDGETS);
-    i_add_widget(app->bwidgets, ekWIDGET_SELECT, TEXT_SELECT, CURSOR_PNG, drawerid[0]);
-    i_add_widget(app->bwidgets, ekWIDGET_VERT_LAYOUT, TEXT_VERT_LAYOUT, VLAYOUT_PNG, drawerid[1]);
-    i_add_widget(app->bwidgets, ekWIDGET_HORZ_LAYOUT, TEXT_HORZ_LAYOUT, HLAYOUT_PNG, drawerid[1]);
-    i_add_widget(app->bwidgets, ekWIDGET_GRID_LAYOUT, TEXT_GRID_LAYOUT, GLAYOUT_PNG, drawerid[1]);
-    i_add_widget(app->bwidgets, ekWIDGET_PUSH_BUTTON, TEXT_PUSH_BUTTON, PUSHBUT_PNG, drawerid[2]);
-    i_add_widget(app->bwidgets, ekWIDGET_TOOL_BUTTON, TEXT_TOOL_BUTTON, TOOLBUT_PNG, drawerid[2]);
-    i_add_widget(app->bwidgets, ekWIDGET_RADIO_BUTTON, TEXT_RADIO_BUTTON, RADBUT_PNG, drawerid[2]);
-    i_add_widget(app->bwidgets, ekWIDGET_CHECK_BUTTON, TEXT_CHECK_BOX, CHECBUT_PNG, drawerid[2]);
-    i_add_widget(app->bwidgets, ekWIDGET_LABEL, TEXT_LABEL, LABEL_PNG, drawerid[3]);
-    i_add_widget(app->bwidgets, ekWIDGET_EDITBOX, TEXT_EDIT_BOX, EDITBOX_PNG, drawerid[3]);
-    i_add_widget(app->bwidgets, ekWIDGET_COMBOBOX, TEXT_COMBO_BOX, COMBOBOX_PNG, drawerid[3]);
-    i_add_widget(app->bwidgets, ekWIDGET_TEXTVIEW, TEXT_TEXT_VIEW, TEXTVIEW_PNG, drawerid[3]);
-    i_add_widget(app->bwidgets, ekWIDGET_LISTBOX, TEXT_LIST_BOX, LISTVIEW_PNG, drawerid[4]);
-    i_add_widget(app->bwidgets, ekWIDGET_POPUP, TEXT_POPUP_BUTTON, POPUP_PNG, drawerid[4]);
-    i_add_widget(app->bwidgets, ekWIDGET_TABLEVIEW, TEXT_TABLE_VIEW, TABLEVIEW_PNG, drawerid[4]);
-    i_add_widget(app->bwidgets, ekWIDGET_IMAGEVIEW, TEXT_IMAGE_VIEW, IMAGEVIEW_PNG, drawerid[5]);
-    i_add_widget(app->bwidgets, ekWIDGET_HORZ_SLIDER, TEXT_HORZ_SLIDER, HORSLIDER_PNG, drawerid[5]);
-    i_add_widget(app->bwidgets, ekWIDGET_VERT_SLIDER, TEXT_VERT_SLIDER, VERSLIDER_PNG, drawerid[5]);
-    i_add_widget(app->bwidgets, ekWIDGET_PROGRESS, TEXT_PROGRESS_BAR, PROGRESSBAR_PNG, drawerid[5]);
+    i_add_drawer(app->wdrawers, ekDRAWER_WIDGET_SELECT, "");
+    i_add_drawer(app->wdrawers, ekDRAWER_WIDGET_LAYOUTS, TEXT_LAYOUTS);
+    i_add_drawer(app->wdrawers, ekDRAWER_WIDGET_BUTTONS, TEXT_BUTTONS);
+    i_add_drawer(app->wdrawers, ekDRAWER_WIDGET_TEXT, TEXT_TEXT_WIDGETS);
+    i_add_drawer(app->wdrawers, ekDRAWER_WIDGET_ITEMS, TEXT_ITEM_WIDGETS);
+    i_add_drawer(app->wdrawers, ekDRAWER_WIDGET_OTHERS, TEXT_OTHER_WIDGETS);
+    i_add_drawer(app->wdrawers, ekDRAWER_LAYOUT_PROPS, TEXT_LAYOUT_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_COLUMN_PROPS, TEXT_COLUMN_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_ROW_PROPS, TEXT_ROW_PROPS);
+    i_add_widget(app->bwidgets, ekWIDGET_SELECT, TEXT_SELECT, CURSOR_PNG, ekDRAWER_WIDGET_SELECT);
+    i_add_widget(app->bwidgets, ekWIDGET_VERT_LAYOUT, TEXT_VERT_LAYOUT, VLAYOUT_PNG, ekDRAWER_WIDGET_LAYOUTS);
+    i_add_widget(app->bwidgets, ekWIDGET_HORZ_LAYOUT, TEXT_HORZ_LAYOUT, HLAYOUT_PNG, ekDRAWER_WIDGET_LAYOUTS);
+    i_add_widget(app->bwidgets, ekWIDGET_GRID_LAYOUT, TEXT_GRID_LAYOUT, GLAYOUT_PNG, ekDRAWER_WIDGET_LAYOUTS);
+    i_add_widget(app->bwidgets, ekWIDGET_PUSH_BUTTON, TEXT_PUSH_BUTTON, PUSHBUT_PNG, ekDRAWER_WIDGET_BUTTONS);
+    i_add_widget(app->bwidgets, ekWIDGET_TOOL_BUTTON, TEXT_TOOL_BUTTON, TOOLBUT_PNG, ekDRAWER_WIDGET_BUTTONS);
+    i_add_widget(app->bwidgets, ekWIDGET_RADIO_BUTTON, TEXT_RADIO_BUTTON, RADBUT_PNG, ekDRAWER_WIDGET_BUTTONS);
+    i_add_widget(app->bwidgets, ekWIDGET_CHECK_BUTTON, TEXT_CHECK_BOX, CHECBUT_PNG, ekDRAWER_WIDGET_BUTTONS);
+    i_add_widget(app->bwidgets, ekWIDGET_LABEL, TEXT_LABEL, LABEL_PNG, ekDRAWER_WIDGET_TEXT);
+    i_add_widget(app->bwidgets, ekWIDGET_EDITBOX, TEXT_EDIT_BOX, EDITBOX_PNG, ekDRAWER_WIDGET_TEXT);
+    i_add_widget(app->bwidgets, ekWIDGET_COMBOBOX, TEXT_COMBO_BOX, COMBOBOX_PNG, ekDRAWER_WIDGET_TEXT);
+    i_add_widget(app->bwidgets, ekWIDGET_TEXTVIEW, TEXT_TEXT_VIEW, TEXTVIEW_PNG, ekDRAWER_WIDGET_TEXT);
+    i_add_widget(app->bwidgets, ekWIDGET_LISTBOX, TEXT_LIST_BOX, LISTVIEW_PNG, ekDRAWER_WIDGET_ITEMS);
+    i_add_widget(app->bwidgets, ekWIDGET_POPUP, TEXT_POPUP_BUTTON, POPUP_PNG, ekDRAWER_WIDGET_ITEMS);
+    i_add_widget(app->bwidgets, ekWIDGET_TABLEVIEW, TEXT_TABLE_VIEW, TABLEVIEW_PNG, ekDRAWER_WIDGET_ITEMS);
+    i_add_widget(app->bwidgets, ekWIDGET_IMAGEVIEW, TEXT_IMAGE_VIEW, IMAGEVIEW_PNG, ekDRAWER_WIDGET_OTHERS);
+    i_add_widget(app->bwidgets, ekWIDGET_HORZ_SLIDER, TEXT_HORZ_SLIDER, HORSLIDER_PNG, ekDRAWER_WIDGET_OTHERS);
+    i_add_widget(app->bwidgets, ekWIDGET_VERT_SLIDER, TEXT_VERT_SLIDER, VERSLIDER_PNG, ekDRAWER_WIDGET_OTHERS);
+    i_add_widget(app->bwidgets, ekWIDGET_PROGRESS, TEXT_PROGRESS_BAR, PROGRESSBAR_PNG, ekDRAWER_WIDGET_OTHERS);
     i_load_config(app);
     return app;
 }

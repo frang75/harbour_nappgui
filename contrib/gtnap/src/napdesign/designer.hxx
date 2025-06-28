@@ -36,6 +36,19 @@ typedef enum _widget_t
     ekWIDGET_PROGRESS
 } widget_t;
 
+typedef enum _drawer_t
+{
+    ekDRAWER_WIDGET_SELECT = 1,
+    ekDRAWER_WIDGET_LAYOUTS,
+    ekDRAWER_WIDGET_BUTTONS,
+    ekDRAWER_WIDGET_TEXT,
+    ekDRAWER_WIDGET_ITEMS,
+    ekDRAWER_WIDGET_OTHERS,
+    ekDRAWER_LAYOUT_PROPS,
+    ekDRAWER_COLUMN_PROPS,
+    ekDRAWER_ROW_PROPS
+} drawer_t;
+
 typedef enum _layelem_t
 {
     ekLAYELEM_MARGIN_LEFT,
