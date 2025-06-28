@@ -1555,8 +1555,13 @@ Window *designer_main_window(const Designer *app)
 
 Panel *designer_drawer(Designer *app, Panel *child, const drawer_t drawer, ResId labelid)
 {
-    const WDrawer *wdrawer = i_find_drawer_by_type(app, drawer);
-    return dgui_drawer(gui_text(labelid), app->default_font, child, wdrawer->opened, listener(app, i_OnDrawerChange, Designer));    
+    WDrawer *wdrawer = i_find_drawer_by_type(app, drawer);
+    Panel *panel = NULL;
+    cassert_no_null(wdrawer);
+    cassert(wdrawer->panel == NULL);
+    panel = dgui_drawer(gui_text(labelid), app->default_font, child, wdrawer->opened, listener(app, i_OnDrawerChange, Designer));    
+    wdrawer->panel = panel;
+    return panel;
 }
 
 /*---------------------------------------------------------------------------*/

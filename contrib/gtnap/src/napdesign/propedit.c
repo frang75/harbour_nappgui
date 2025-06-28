@@ -332,20 +332,28 @@ static void i_OnRowNotify(PropData *data, Event *e)
 
 static Layout *i_layout_layout(PropData *data, const real32_t mright)
 {
-    Layout *layout1 = layout_create(1, 5);
+    Layout *layout1 = layout_create(1, 4);
     Layout *layout2 = i_margin_layout(data);
     Layout *layout3 = i_column_layout(data);
     Layout *layout4 = i_row_layout(data);
-    Label *label = label_create();
+    Panel *panel1 = panel_create();
+    Panel *panel2 = panel_create();
+    Panel *panel3 = panel_create();
+    Panel *panel4 = NULL;
+    Panel *panel5 = NULL;
+    Panel *panel6 = NULL;
     cassert_no_null(data);
-    label_text(label, "Layout properties");
-    layout_label(layout1, label, 0, 0);
-    layout_layout(layout1, layout2, 0, 1);
-    layout_layout(layout1, layout3, 0, 2);
-    layout_layout(layout1, layout4, 0, 3);
+    panel_layout(panel1, layout2);
+    panel_layout(panel2, layout3);
+    panel_layout(panel3, layout4);
+    panel4 = designer_drawer(data->app, panel1, ekDRAWER_LAYOUT_PROPS, TEXT_LAYOUT_PROPS);
+    panel5 = designer_drawer(data->app, panel2, ekDRAWER_COLUMN_PROPS, TEXT_COLUMN_PROPS);
+    panel6 = designer_drawer(data->app, panel3, ekDRAWER_ROW_PROPS, TEXT_ROW_PROPS);
+    layout_panel(layout1, panel4, 0, 0);
+    layout_panel(layout1, panel5, 0, 1);
+    layout_panel(layout1, panel6, 0, 2);
     layout_margin4(layout1, 0, mright, 0, 0);
-    layout_vmargin(layout1, 0, i_HEADER_VMARGIN);
-    layout_vexpand(layout1, 4);
+    layout_vexpand(layout1, 3);
     layout_dbind(layout2, listener(data, i_OnLayoutNotify, PropData), FLayout);
     layout_dbind(layout3, listener(data, i_OnColumnNotify, PropData), FColumn);
     layout_dbind(layout4, listener(data, i_OnRowNotify, PropData), FRow);
