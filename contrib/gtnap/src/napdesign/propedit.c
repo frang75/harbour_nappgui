@@ -4,7 +4,6 @@
 #include "designer.h"
 #include "dlayout.h"
 #include "dform.h"
-#include "dgui.h"
 #include "dialogs.h"
 #include "res_designer.h"
 #include <nflib/flayout.h>

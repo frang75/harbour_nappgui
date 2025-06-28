@@ -651,20 +651,31 @@ static Panel *i_drawer_widget_panel(Designer *app, const drawer_t drawer)
 
 /*---------------------------------------------------------------------------*/
 
-static WDrawer *i_get_drawer(Designer *app, Panel *panel)
+static WDrawer *i_find_drawer_by_panel(Designer *app, Panel *panel)
 {
     cassert_no_null(app);
     arrst_foreach(wdrawer, app->wdrawers, WDrawer)
         if (wdrawer->panel == panel)
             return wdrawer;
     arrst_end()
-
     return NULL;
 }
 
 /*---------------------------------------------------------------------------*/
 
-const bool_t i_is_widget_drawer(const drawer_t drawer)
+static WDrawer *i_find_drawer_by_type(Designer *app, const drawer_t type)
+{
+    cassert_no_null(app);
+    arrst_foreach(wdrawer, app->wdrawers, WDrawer)
+        if (wdrawer->type == type)
+            return wdrawer;
+    arrst_end()
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_is_widget_drawer(const drawer_t drawer)
 {
     switch (drawer)
     {
@@ -684,13 +695,13 @@ const bool_t i_is_widget_drawer(const drawer_t drawer)
 
     return FALSE;
 }
-    
+
 /*---------------------------------------------------------------------------*/
 
 static void i_OnDrawerChange(Designer *app, Event *e)
 {
     Panel *sender = event_sender(e, Panel);
-    WDrawer *drawer = i_get_drawer(app, sender);
+    WDrawer *drawer = i_find_drawer_by_panel(app, sender);
     const bool_t *p = event_params(e, bool_t);
     cassert(drawer->opened != *p);
     drawer->opened = *p;
@@ -1538,6 +1549,14 @@ Window *designer_main_window(const Designer *app)
 {
     cassert_no_null(app);
     return app->window;
+}
+
+/*---------------------------------------------------------------------------*/
+
+Panel *designer_drawer(Designer *app, Panel *child, const drawer_t drawer, ResId labelid)
+{
+    const WDrawer *wdrawer = i_find_drawer_by_type(app, drawer);
+    return dgui_drawer(gui_text(labelid), app->default_font, child, wdrawer->opened, listener(app, i_OnDrawerChange, Designer));    
 }
 
 /*---------------------------------------------------------------------------*/
