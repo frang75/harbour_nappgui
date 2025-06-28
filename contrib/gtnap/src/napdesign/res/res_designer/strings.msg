@@ -30,3 +30,7 @@ TEXT_IMAGE_VIEW     Image View
 TEXT_HORZ_SLIDER    Horizontal Slider
 TEXT_VERT_SLIDER    Vertical Slider
 TEXT_PROGRESS_BAR   Progress Bar
+TEXT_BOX_FORMS      Forms
+TEXT_BOX_INSPECTOR  Object inspector
+TEXT_BOX_PROPEDIT   Property editor
+TEXT_BOX_WIDGETS    Widgets

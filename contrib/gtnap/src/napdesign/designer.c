@@ -746,7 +746,7 @@ static Panel *i_widgets_box(Designer *app)
     Panel *panel1 = panel_create();
     Panel *panel2 = i_widgets_panel(app);
     Layout *layout = layout_create(1, 2);
-    View *header = dgui_panel_header("Widgets", app->default_font, listener(app, i_OnShowWidgets, Designer));
+    View *header = dgui_panel_header(gui_text(TEXT_BOX_WIDGETS), app->default_font, listener(app, i_OnShowWidgets, Designer));
     layout_view(layout, header, 0, 0);
     layout_panel(layout, panel2, 0, 1);
     layout_vmargin(layout, 0, 2);
@@ -773,7 +773,7 @@ static Panel *i_forms_box(Designer *app)
 {
     Panel *panel = panel_create();
     Layout *layout = layout_create(1, 2);
-    View *header = dgui_panel_header("Forms", app->default_font, listener(app, i_OnShowForms, Designer));
+    View *header = dgui_panel_header(gui_text(TEXT_BOX_FORMS), app->default_font, listener(app, i_OnShowForms, Designer));
     ListBox *list = listbox_create();
     cassert_no_null(app);
     listbox_size(list, s2df(150, 100));
@@ -795,7 +795,7 @@ static Panel *i_inspector_box(Designer *app)
     Panel *panel1 = panel_create();
     Panel *panel2 = inspect_create(app);
     Layout *layout = layout_create(1, 2);
-    View *header = dgui_panel_header("Object inspector", app->default_font, listener(app, i_OnShowInspectr, Designer));
+    View *header = dgui_panel_header(gui_text(TEXT_BOX_INSPECTOR), app->default_font, listener(app, i_OnShowInspectr, Designer));
     cassert_no_null(app);
     layout_view(layout, header, 0, 0);
     layout_panel(layout, panel2, 0, 1);
@@ -814,7 +814,7 @@ static Panel *i_propedit_box(Designer *app)
     Panel *panel1 = panel_create();
     Panel *panel2 = propedit_create(app);
     Layout *layout = layout_create(1, 2);
-    View *header = dgui_panel_header("Property editor", app->default_font, listener(app, i_OnShowPropEdit, Designer));
+    View *header = dgui_panel_header(gui_text(TEXT_BOX_PROPEDIT), app->default_font, listener(app, i_OnShowPropEdit, Designer));
     cassert_no_null(app);
     layout_view(layout, header, 0, 0);
     layout_panel(layout, panel2, 0, 1);
