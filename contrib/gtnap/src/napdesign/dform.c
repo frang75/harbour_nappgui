@@ -6,11 +6,13 @@
 #include "dialogs.h"
 #include "inspect.h"
 #include "propedit.h"
+#include "res_designer.h"
 #include <nflib/flabel.h>
 #include <nflib/flayout.h>
 #include <gui/guicontrol.h>
 #include <gui/button.h>
 #include <gui/edit.h>
+#include <gui/gui.h>
 #include <gui/popup.h>
 #include <gui/label.h>
 #include <gui/listbox.h>
@@ -1345,6 +1347,44 @@ uint32_t dform_selpath_size(const DForm *form)
 
 /*---------------------------------------------------------------------------*/
 
+const char_t* dform_cell_type(const celltype_t type)
+{
+    switch(type)
+    {
+    case ekCELL_TYPE_EMPTY:
+        return gui_text(TEXT_CELL_EMPTY);
+    case ekCELL_TYPE_LABEL:
+        return gui_text(TEXT_CELL_LABEL);
+    case ekCELL_TYPE_BUTTON:
+        return gui_text(TEXT_CELL_BUTTON);
+    case ekCELL_TYPE_CHECK:
+        return gui_text(TEXT_CELL_CHECK);
+    case ekCELL_TYPE_EDIT:
+        return gui_text(TEXT_CELL_EDIT);
+    case ekCELL_TYPE_TEXT:
+        return gui_text(TEXT_CELL_TEXT);
+    case ekCELL_TYPE_IMAGE:
+        return gui_text(TEXT_CELL_IMAGE);
+    case ekCELL_TYPE_SLIDER:
+        return gui_text(TEXT_CELL_SLIDER);
+    case ekCELL_TYPE_PROGRESS:
+        return gui_text(TEXT_CELL_PROGRESS);
+    case ekCELL_TYPE_POPUP:
+        return gui_text(TEXT_CELL_POPUP);
+    case ekCELL_TYPE_LISTBOX:
+        return gui_text(TEXT_CELL_LISTBOX);
+    case ekCELL_TYPE_TABLEVIEW:
+        return gui_text(TEXT_CELL_TABLE);
+    case ekCELL_TYPE_LAYOUT:
+        return gui_text(TEXT_CELL_LAYOUT);
+    cassert_default();
+    }
+
+    return "";
+}
+
+/*---------------------------------------------------------------------------*/
+
 const char_t *dform_selpath_caption(const DForm *form, const uint32_t col, const uint32_t row)
 {
     const DSelect *sel = NULL;
@@ -1361,7 +1401,7 @@ const char_t *dform_selpath_caption(const DForm *form, const uint32_t col, const
         if (col == 0)
             return tc(sel->flayout->name);
         else
-            return "Layout";
+            return gui_text(TEXT_LAYOUT);
     }
     /* Odd rows == cell */
     else
@@ -1374,40 +1414,9 @@ const char_t *dform_selpath_caption(const DForm *form, const uint32_t col, const
         else
         {
             cassert(col == 1);
-            switch(cell->type)
-            {
-            case ekCELL_TYPE_EMPTY:
-                return "EmptyCell";
-            case ekCELL_TYPE_LABEL:
-                return "LabelCell";
-            case ekCELL_TYPE_BUTTON:
-                return "ButtonCell";
-            case ekCELL_TYPE_CHECK:
-                return "CheckBoxCell";
-            case ekCELL_TYPE_EDIT:
-                return "EditBoxCell";
-            case ekCELL_TYPE_TEXT:
-                return "TextViewCell";
-            case ekCELL_TYPE_IMAGE:
-                return "ImageViewCell";
-            case ekCELL_TYPE_SLIDER:
-                return "SliderCell";
-            case ekCELL_TYPE_PROGRESS:
-                return "ProgressCell";
-            case ekCELL_TYPE_POPUP:
-                return "PopUpCell";
-            case ekCELL_TYPE_LISTBOX:
-                return "ListBoxCell";
-            case ekCELL_TYPE_TABLEVIEW:
-                return "TableCell";
-            case ekCELL_TYPE_LAYOUT:
-                return "LayoutCell";
-            cassert_default();
-            }
+            return dform_cell_type(cell->type);
         }
     }
-
-    return "";
 }
 
 /*---------------------------------------------------------------------------*/

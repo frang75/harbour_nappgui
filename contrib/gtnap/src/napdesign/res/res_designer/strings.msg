@@ -7,7 +7,7 @@ TEXT_LAYOUT_PROPS   Layout properties
 TEXT_COLUMN_PROPS   Column properties
 TEXT_ROW_PROPS      Row properties
 TEXT_CELL_PROPS     Cell properties
-TEXT_CELL_POS       Pos
+TEXT_LAYOUT         Layout
 TEXT_LAYOUTS        Layouts
 TEXT_BUTTONS        Buttons
 TEXT_TEXT_WIDGETS   Text Widgets
@@ -52,6 +52,19 @@ TEXT_LTYPE_SING     Single cell
 TEXT_LTYPE_VERT     Vertical with %d rows
 TEXT_LTYPE_HORZ     Horizontal with %d cols
 TEXT_LTYPE_GRID     Grid %d cols x %d rows
+TEXT_CELL_EMPTY     EmptyCell
+TEXT_CELL_LABEL     LabelCell
+TEXT_CELL_BUTTON    ButtonCell
+TEXT_CELL_CHECK     CheckBoxCell
+TEXT_CELL_EDIT      EditBoxCell
+TEXT_CELL_TEXT      TextViewCell
+TEXT_CELL_IMAGE     ImageViewCell
+TEXT_CELL_SLIDER    SliderCell
+TEXT_CELL_PROGRESS  ProgressCell
+TEXT_CELL_POPUP     PopUpCell
+TEXT_CELL_LISTBOX   ListBoxCell
+TEXT_CELL_TABLE     TableCell
+TEXT_CELL_LAYOUT    LayoutCell
 
 TIP_LAYOUT_NAME     Layout name. It will be useful to locate the layout at runtime.
 TIP_CELL_NAME       Cell name. It will be useful to locate the cell at runtime.

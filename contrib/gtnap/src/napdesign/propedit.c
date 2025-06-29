@@ -61,7 +61,7 @@ struct _propdata_t
     Cell *column_margin_cell;
     Cell *row_margin_cell;
     Label *layout_type_label;
-    Label *cell_pos_label;
+    Label *cell_type_label;
     PopUp *column_popup;
     PopUp *row_popup;
     Button *load_button;
@@ -142,6 +142,8 @@ static Layout *i_margin_layout(PropData *data)
     layout_layout(layout, val2, 1, 3);
     layout_layout(layout, val3, 1, 4);
     layout_layout(layout, val4, 1, 5);
+    layout_margin4(layout, 1, 0, 0, 0);
+    layout_vmargin(layout, 0, 1);
     layout_halign(layout, 1, 0, ekJUSTIFY);
     layout_hexpand(layout, 1);
     layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
@@ -1333,7 +1335,7 @@ static Panel *i_cell_props_panel(PropData *data)
     PopUp *popup1 = popup_create();
     PopUp *popup2 = popup_create();
     cassert_no_null(data);
-    label_text(label1, gui_text(TEXT_CELL_POS));
+    label_text(label1, gui_text(TEXT_TYPE));
     label_text(label2, gui_text(TEXT_NAME));
     label_text(label3, gui_text(TEXT_HALIGN));
     label_text(label4, gui_text(TEXT_VALIGN));
@@ -1348,11 +1350,12 @@ static Panel *i_cell_props_panel(PropData *data)
     layout_edit(layout, edit, 1, 1);
     layout_popup(layout, popup1, 1, 2);
     layout_popup(layout, popup2, 1, 3);
-    layout_margin4(layout, 0, 0, 1, 0);
+    layout_margin4(layout, 1, 0, 1, 0);
+    layout_vmargin(layout, 0, 1);
     layout_halign(layout, 1, 0, ekJUSTIFY);
     layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
     layout_hexpand(layout, 1);
-    data->cell_pos_label = label5;
+    data->cell_type_label = label5;
     cell_dbind(layout_cell(layout, 1, 1), FCell, String *, name);
     cell_dbind(layout_cell(layout, 1, 2), FCell, halign_t, halign);
     cell_dbind(layout_cell(layout, 1, 3), FCell, valign_t, valign);
@@ -1523,10 +1526,11 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
     /* i_cell_layout */
     else
     {
-        char_t text[64];
         FCell *cell = dform_sel_fcell(sel);
-        bstd_sprintf(text, sizeof(text), "(%d,%d)", sel->col, sel->row);
-        label_text(data->cell_pos_label, text);
+        const char_t *type = dform_cell_type(cell->type);
+        char_t text[64];
+        bstd_sprintf(text, sizeof(text), "%s (%d,%d)", type, sel->col, sel->row);
+        label_text(data->cell_type_label, text);
         panel_visible_layout(panel, 2);
         layout_dbind_obj(data->cell_layout, cell, FCell);
         if (cell->type == ekCELL_TYPE_EMPTY)

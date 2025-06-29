@@ -86,6 +86,8 @@ void dform_draw(const DForm *form, const widget_t swidget, const Image *add_icon
 
 uint32_t dform_selpath_size(const DForm *form);
 
+const char_t *dform_cell_type(const celltype_t type);
+
 const char_t *dform_selpath_caption(const DForm *form, const uint32_t col, const uint32_t row);
 
 void dform_inspect_select(DForm *form, Panel *propedit, const uint32_t row);
