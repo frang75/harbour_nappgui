@@ -2,6 +2,7 @@ TEXT_OK             Ok
 TEXT_CANCEL         Cancel
 TEXT_COLUMNS        Columns
 TEXT_ROWS           Rows
+TEXT_NEW_LABEL      A new label will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SUBLAYOUT  A new sublayout will be placed in cell (%d, %d) of '%s' layout
 TEXT_LAYOUT_PROPS   Layout properties
 TEXT_COLUMN_PROPS   Column properties
@@ -48,6 +49,8 @@ TEXT_COLUMN         Column
 TEXT_ROW            Row
 TEXT_HALIGN         HAlign
 TEXT_VALIGN         VAlign
+TEXT_TEXT           Text
+TEXT_MULTILINE      Multiline
 TEXT_LTYPE_SING     Single cell
 TEXT_LTYPE_VERT     Vertical with %d rows
 TEXT_LTYPE_HORZ     Horizontal with %d cols

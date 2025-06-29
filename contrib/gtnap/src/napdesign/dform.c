@@ -452,7 +452,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
             case ekWIDGET_LABEL:
             {
-                FLabel *flabel = dialog_new_label(window, &sel);
+                FLabel *flabel = dialog_new_label(window, font, &sel);
                 if (flabel != NULL)
                 {
                     Label *label = label_create();
