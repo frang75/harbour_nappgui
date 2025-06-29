@@ -54,6 +54,7 @@ TEXT_LTYPE_HORZ     Horizontal with %d cols
 TEXT_LTYPE_GRID     Grid %d cols x %d rows
 
 TIP_LAYOUT_NAME     Layout name. It will be useful to locate the layout at runtime.
+TIP_CELL_NAME       Cell name. It will be useful to locate the cell at runtime.
 TIP_TOP_MARGIN      Margin at top of layout (in px).
 TIP_LEFT_MARGIN     Margin at left of layout (in px).
 TIP_BOTTOM_MARGIN   Margin at bottom of layout (in px).
@@ -64,3 +65,5 @@ TIP_COLUMN_WIDTH    Column width (forced). If 0 will be set automatically.
 TIP_ROW             Index of the row will be edited (0-based).
 TIP_ROW_MARGIN      Internal margin at bottom of row (in px).
 TIP_ROW_HEIGHT      Row height (forced). If 0 will be set automatically.
+TIP_HALIGN          Horizontal alignment of the widget within the cell.
+TIP_VALIGN          Vertical alignment of the widget within the cell.

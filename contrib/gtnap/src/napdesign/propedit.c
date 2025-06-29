@@ -221,6 +221,7 @@ static Layout *i_column_layout(PropData *data)
     layout_popup(layout, popup, 1, 0);
     layout_layout(layout, val1, 1, 1);
     layout_layout(layout, val2, 1, 2);
+    layout_vmargin(layout, 0, 1);
     layout_hexpand(layout, 1);
     layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
     data->column_popup = popup;
@@ -253,6 +254,7 @@ static Layout *i_row_layout(PropData *data)
     layout_popup(layout, popup, 1, 0);
     layout_layout(layout, val1, 1, 1);
     layout_layout(layout, val2, 1, 2);
+    layout_vmargin(layout, 0, 1);
     layout_hexpand(layout, 1);
     layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
     data->row_popup = popup;
@@ -1335,6 +1337,9 @@ static Panel *i_cell_props_panel(PropData *data)
     label_text(label2, gui_text(TEXT_NAME));
     label_text(label3, gui_text(TEXT_HALIGN));
     label_text(label4, gui_text(TEXT_VALIGN));
+    edit_tooltip(edit, gui_text(TIP_CELL_NAME));
+    popup_tooltip(popup1, gui_text(TIP_HALIGN));
+    popup_tooltip(popup2, gui_text(TIP_VALIGN));
     layout_label(layout, label1, 0, 0);
     layout_label(layout, label2, 0, 1);
     layout_label(layout, label3, 0, 2);
@@ -1343,6 +1348,7 @@ static Panel *i_cell_props_panel(PropData *data)
     layout_edit(layout, edit, 1, 1);
     layout_popup(layout, popup1, 1, 2);
     layout_popup(layout, popup2, 1, 3);
+    layout_margin4(layout, 0, 0, 1, 0);
     layout_halign(layout, 1, 0, ekJUSTIFY);
     layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
     layout_hexpand(layout, 1);
