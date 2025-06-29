@@ -8,6 +8,7 @@ TEXT_LAYOUT_PROPS   Layout properties
 TEXT_COLUMN_PROPS   Column properties
 TEXT_ROW_PROPS      Row properties
 TEXT_CELL_PROPS     Cell properties
+TEXT_LABEL_PROPS    Label properties
 TEXT_LAYOUT         Layout
 TEXT_LAYOUTS        Layouts
 TEXT_BUTTONS        Buttons
@@ -47,6 +48,7 @@ TEXT_WIDTH          Width
 TEXT_HEIGHT         Height
 TEXT_COLUMN         Column
 TEXT_ROW            Row
+TEXT_ALIGN          Align
 TEXT_HALIGN         HAlign
 TEXT_VALIGN         VAlign
 TEXT_TEXT           Text
@@ -83,3 +85,8 @@ TIP_ROW_MARGIN      Internal margin at bottom of row (in px).
 TIP_ROW_HEIGHT      Row height (forced). If 0 will be set automatically.
 TIP_HALIGN          Horizontal alignment of the widget within the cell.
 TIP_VALIGN          Vertical alignment of the widget within the cell.
+TIP_LABEL_TEXT      The text that will be displayed on the label.
+TIP_LABEL_MLINE     If set, the text will expand over multiple lines.
+TIP_LABEL_MWIDTH    Text width. If 0 will be set automatically.
+TIP_LABEL_ALIGN     Text alignment, if label widget if wider than the text.
+

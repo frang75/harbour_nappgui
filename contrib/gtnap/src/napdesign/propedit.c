@@ -372,22 +372,14 @@ static Layout *i_layout_layout(PropData *data, const real32_t mright)
 
 static Layout *i_empty_cell_layout(void)
 {
-    Layout *layout = layout_create(1, 1);
-    Label *label = label_create();
-    label_text(label, "Empty cell");
-    layout_label(layout, label, 0, 0);
-    return layout;
+    return layout_create(1, 1);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static Layout *i_layout_cell_layout(void)
 {
-    Layout *layout = layout_create(1, 1);
-    Label *label = label_create();
-    label_text(label, "Layout cell");
-    layout_label(layout, label, 0, 0);
-    return layout;
+    return layout_create(1, 1);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -414,44 +406,51 @@ static void i_OnLabelNotify(PropData *data, Event *e)
 
 static Layout *i_label_layout(PropData *data)
 {
-    Layout *layout1 = layout_create(1, 3);
-    Layout *layout2 = layout_create(2, 4);
-    Layout *layout3 = i_value_updown_layout(NULL);
+    Layout *layout1 = layout_create(2, 4);
+    Layout *layout2 = i_value_updown_layout(gui_text(TIP_LABEL_MWIDTH));
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
     Label *label4 = label_create();
-    Label *label5 = label_create();
     Edit *edit = edit_create();
     Button *check = button_check();
     PopUp *popup = popup_create();
     cassert_no_null(data);
-    label_text(label1, "Label properties");
-    label_text(label2, "Text");
-    label_text(label3, "Multiline");
-    label_text(label4, "MWidth");
-    label_text(label5, "Align");
+    label_text(label1, gui_text(TEXT_TEXT));
+    label_text(label2, gui_text(TEXT_MULTILINE));
+    label_text(label3, gui_text(TEXT_WIDTH));
+    label_text(label4, gui_text(TEXT_ALIGN));
+    edit_tooltip(edit, gui_text(TIP_LABEL_TEXT));
+    button_tooltip(check, gui_text(TIP_LABEL_MLINE));
+    popup_tooltip(popup, gui_text(TIP_LABEL_ALIGN));
     layout_label(layout1, label1, 0, 0);
-    layout_label(layout2, label2, 0, 0);
-    layout_label(layout2, label3, 0, 1);
-    layout_label(layout2, label4, 0, 2);
-    layout_label(layout2, label5, 0, 3);
-    layout_edit(layout2, edit, 1, 0);
-    layout_button(layout2, check, 1, 1);
-    layout_layout(layout2, layout3, 1, 2);
-    layout_popup(layout2, popup, 1, 3);
-    layout_layout(layout1, layout2, 0, 1);
-    layout_vmargin(layout1, 0, i_HEADER_VMARGIN);
-    layout_hmargin(layout2, 0, i_GRID_HMARGIN);
-    layout_hexpand(layout2, 1);
-    layout_vexpand(layout1, 2);
-    cell_dbind(layout_cell(layout2, 1, 0), FLabel, String *, text);
-    cell_dbind(layout_cell(layout2, 1, 1), FLabel, bool_t, multiline);
-    cell_dbind(layout_cell(layout2, 1, 2), FLabel, real32_t, min_width);
-    cell_dbind(layout_cell(layout2, 1, 3), FLabel, halign_t, align);
+    layout_label(layout1, label2, 0, 1);
+    layout_label(layout1, label3, 0, 2);
+    layout_label(layout1, label4, 0, 3);
+    layout_edit(layout1, edit, 1, 0);
+    layout_button(layout1, check, 1, 1);
+    layout_layout(layout1, layout2, 1, 2);
+    layout_popup(layout1, popup, 1, 3);
+    layout_margin4(layout1, 0, 0, 1, 0);
+    layout_hexpand(layout1, 1);
+    layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
+    cell_dbind(layout_cell(layout1, 1, 0), FLabel, String *, text);
+    cell_dbind(layout_cell(layout1, 1, 1), FLabel, bool_t, multiline);
+    cell_dbind(layout_cell(layout1, 1, 2), FLabel, real32_t, min_width);
+    cell_dbind(layout_cell(layout1, 1, 3), FLabel, halign_t, align);
     layout_dbind(layout1, listener(data, i_OnLabelNotify, PropData), FLabel);
     data->label_layout = layout1;
-    return layout1;
+
+    /* Drawer */
+    {
+        Panel *panel = panel_create();
+        Panel *drawer = NULL;
+        Layout *layout = layout_create(1, 1);
+        panel_layout(panel, layout1);
+        drawer = designer_drawer(data->app, panel, ekDRAWER_LABEL_PROPS);
+        layout_panel(layout, drawer, 0, 0);
+        return layout;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
