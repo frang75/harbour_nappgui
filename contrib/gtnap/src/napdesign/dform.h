@@ -20,7 +20,7 @@ bool_t dform_need_save(const DForm *form);
 
 bool_t dform_OnMove(DForm *form, const real32_t mouse_x, const real32_t mouse_y);
 
-bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedit, const widget_t widget, const real32_t mouse_x, const real32_t mouse_y, const gui_mouse_t button);
+bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedit, const Font *font, const widget_t widget, const real32_t mouse_x, const real32_t mouse_y, const gui_mouse_t button);
 
 bool_t dform_OnExit(DForm *form);
 
@@ -85,6 +85,8 @@ FCell *dform_sel_fcell(const DSelect *sel);
 void dform_draw(const DForm *form, const widget_t swidget, const Image *add_icon, const Font *default_font, DCtx *ctx);
 
 uint32_t dform_selpath_size(const DForm *form);
+
+const char_t *dform_cell_type(const celltype_t type);
 
 const char_t *dform_selpath_caption(const DForm *form, const uint32_t col, const uint32_t row);
 

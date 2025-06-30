@@ -12,6 +12,7 @@
 #include <gui/comwin.h>
 #include <gui/button.h>
 #include <gui/edit.h>
+#include <gui/imageview.h>
 #include <gui/label.h>
 #include <gui/layout.h>
 #include <gui/listbox.h>
@@ -59,8 +60,8 @@ struct _propdata_t
     ListBox *table_list;
     Cell *column_margin_cell;
     Cell *row_margin_cell;
-    Label *layout_geom_label;
-    Label *cell_geom_label;
+    Label *layout_type_label;
+    Label *cell_type_label;
     PopUp *column_popup;
     PopUp *row_popup;
     Button *load_button;
@@ -70,6 +71,7 @@ struct _propdata_t
 
 static const real32_t i_GRID_HMARGIN = 5;
 static const real32_t i_HEADER_VMARGIN = 3;
+static const real32_t i_LABEL_COLUMN_WIDTH = 60;
 
 /*---------------------------------------------------------------------------*/
 
@@ -82,17 +84,21 @@ static void i_remove_elem(FElem *elem)
 
 static Layout *i_no_sel_layout(void)
 {
-    Layout *layout = layout_create(1, 1);
-    return layout;
+    return layout_create(1, 1);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_value_updown_layout(void)
+static Layout *i_value_updown_layout(const char_t *tooltip)
 {
     Layout *layout = layout_create(2, 1);
     Edit *edit = edit_create();
     UpDown *updown = updown_create();
+    
+    if (str_empty_c(tooltip) == FALSE)
+        edit_tooltip(edit, tooltip);
+
+    edit_align(edit, ekRIGHT);
     layout_edit(layout, edit, 0, 0);
     layout_updown(layout, updown, 1, 0);
     layout_hexpand(layout, 0);
@@ -112,17 +118,18 @@ static Layout *i_margin_layout(PropData *data)
     Label *label6 = label_create();
     Label *label7 = label_create();
     Edit *edit = edit_create();
-    Layout *val1 = i_value_updown_layout();
-    Layout *val2 = i_value_updown_layout();
-    Layout *val3 = i_value_updown_layout();
-    Layout *val4 = i_value_updown_layout();
+    Layout *val1 = i_value_updown_layout(gui_text(TIP_TOP_MARGIN));
+    Layout *val2 = i_value_updown_layout(gui_text(TIP_LEFT_MARGIN));
+    Layout *val3 = i_value_updown_layout(gui_text(TIP_BOTTOM_MARGIN));
+    Layout *val4 = i_value_updown_layout(gui_text(TIP_RIGHT_MARGIN));
     cassert_no_null(data);
-    label_text(label1, "Geom");
-    label_text(label2, "Name");
-    label_text(label3, "Top");
-    label_text(label4, "Left");
-    label_text(label5, "Bottom");
-    label_text(label6, "Right");
+    edit_tooltip(edit, gui_text(TIP_LAYOUT_NAME));
+    label_text(label1, gui_text(TEXT_TYPE));
+    label_text(label2, gui_text(TEXT_NAME));
+    label_text(label3, gui_text(TEXT_TOP));
+    label_text(label4, gui_text(TEXT_LEFT));
+    label_text(label5, gui_text(TEXT_BOTTOM));
+    label_text(label6, gui_text(TEXT_RIGHT));
     layout_label(layout, label1, 0, 0);
     layout_label(layout, label2, 0, 1);
     layout_label(layout, label3, 0, 2);
@@ -135,10 +142,12 @@ static Layout *i_margin_layout(PropData *data)
     layout_layout(layout, val2, 1, 3);
     layout_layout(layout, val3, 1, 4);
     layout_layout(layout, val4, 1, 5);
+    layout_margin4(layout, 1, 0, 0, 0);
+    layout_vmargin(layout, 0, 1);
     layout_halign(layout, 1, 0, ekJUSTIFY);
     layout_hexpand(layout, 1);
-    layout_hmargin(layout, 0, i_GRID_HMARGIN);
-    data->layout_geom_label = label7;
+    layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
+    data->layout_type_label = label7;
     cell_dbind(layout_cell(layout, 1, 1), FLayout, String *, name);
     cell_dbind(layout_cell(layout, 1, 2), FLayout, real32_t, margin_top);
     cell_dbind(layout_cell(layout, 1, 3), FLayout, real32_t, margin_left);
@@ -200,12 +209,13 @@ static Layout *i_column_layout(PropData *data)
     Label *label2 = label_create();
     Label *label3 = label_create();
     PopUp *popup = popup_create();
-    Layout *val1 = i_value_updown_layout();
-    Layout *val2 = i_value_updown_layout();
+    Layout *val1 = i_value_updown_layout(gui_text(TIP_COLUMN_MARGIN));
+    Layout *val2 = i_value_updown_layout(gui_text(TIP_COLUMN_WIDTH));
     cassert_no_null(data);
-    label_text(label1, "Column");
-    label_text(label2, "CRight");
-    label_text(label3, "FWidth");
+    label_text(label1, gui_text(TEXT_COLUMN));
+    label_text(label2, gui_text(TEXT_RIGHT));
+    label_text(label3, gui_text(TEXT_WIDTH));
+    popup_tooltip(popup, gui_text(TIP_COLUMN));
     popup_OnSelect(popup, listener(data, i_OnColumnSelect, PropData));
     layout_label(layout, label1, 0, 0);
     layout_label(layout, label2, 0, 1);
@@ -213,8 +223,9 @@ static Layout *i_column_layout(PropData *data)
     layout_popup(layout, popup, 1, 0);
     layout_layout(layout, val1, 1, 1);
     layout_layout(layout, val2, 1, 2);
+    layout_vmargin(layout, 0, 1);
     layout_hexpand(layout, 1);
-    layout_hmargin(layout, 0, i_GRID_HMARGIN);
+    layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
     data->column_popup = popup;
     data->column_margin_cell = layout_cell(layout, 1, 1);
     cell_dbind(layout_cell(layout, 1, 1), FColumn, real32_t, margin_right);
@@ -231,12 +242,13 @@ static Layout *i_row_layout(PropData *data)
     Label *label2 = label_create();
     Label *label3 = label_create();
     PopUp *popup = popup_create();
-    Layout *val1 = i_value_updown_layout();
-    Layout *val2 = i_value_updown_layout();
+    Layout *val1 = i_value_updown_layout(gui_text(TIP_ROW_MARGIN));
+    Layout *val2 = i_value_updown_layout(gui_text(TIP_ROW_HEIGHT));
     cassert_no_null(data);
-    label_text(label1, "Row");
-    label_text(label2, "RBottom");
-    label_text(label3, "RHeight");
+    label_text(label1, gui_text(TEXT_ROW));
+    label_text(label2, gui_text(TEXT_BOTTOM));
+    label_text(label3, gui_text(TEXT_HEIGHT));
+    popup_tooltip(popup, gui_text(TIP_ROW));
     popup_OnSelect(popup, listener(data, i_OnRowSelect, PropData));
     layout_label(layout, label1, 0, 0);
     layout_label(layout, label2, 0, 1);
@@ -244,8 +256,9 @@ static Layout *i_row_layout(PropData *data)
     layout_popup(layout, popup, 1, 0);
     layout_layout(layout, val1, 1, 1);
     layout_layout(layout, val2, 1, 2);
+    layout_vmargin(layout, 0, 1);
     layout_hexpand(layout, 1);
-    layout_hmargin(layout, 0, i_GRID_HMARGIN);
+    layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
     data->row_popup = popup;
     data->row_margin_cell = layout_cell(layout, 1, 1);
     cell_dbind(layout_cell(layout, 1, 1), FRow, real32_t, margin_bottom);
@@ -324,20 +337,28 @@ static void i_OnRowNotify(PropData *data, Event *e)
 
 static Layout *i_layout_layout(PropData *data, const real32_t mright)
 {
-    Layout *layout1 = layout_create(1, 5);
+    Layout *layout1 = layout_create(1, 4);
     Layout *layout2 = i_margin_layout(data);
     Layout *layout3 = i_column_layout(data);
     Layout *layout4 = i_row_layout(data);
-    Label *label = label_create();
+    Panel *panel1 = panel_create();
+    Panel *panel2 = panel_create();
+    Panel *panel3 = panel_create();
+    Panel *panel4 = NULL;
+    Panel *panel5 = NULL;
+    Panel *panel6 = NULL;
     cassert_no_null(data);
-    label_text(label, "Layout properties");
-    layout_label(layout1, label, 0, 0);
-    layout_layout(layout1, layout2, 0, 1);
-    layout_layout(layout1, layout3, 0, 2);
-    layout_layout(layout1, layout4, 0, 3);
+    panel_layout(panel1, layout2);
+    panel_layout(panel2, layout3);
+    panel_layout(panel3, layout4);
+    panel4 = designer_drawer(data->app, panel1, ekDRAWER_LAYOUT_PROPS);
+    panel5 = designer_drawer(data->app, panel2, ekDRAWER_COLUMN_PROPS);
+    panel6 = designer_drawer(data->app, panel3, ekDRAWER_ROW_PROPS);
+    layout_panel(layout1, panel4, 0, 0);
+    layout_panel(layout1, panel5, 0, 1);
+    layout_panel(layout1, panel6, 0, 2);
     layout_margin4(layout1, 0, mright, 0, 0);
-    layout_vmargin(layout1, 0, i_HEADER_VMARGIN);
-    layout_vexpand(layout1, 4);
+    layout_vexpand(layout1, 3);
     layout_dbind(layout2, listener(data, i_OnLayoutNotify, PropData), FLayout);
     layout_dbind(layout3, listener(data, i_OnColumnNotify, PropData), FColumn);
     layout_dbind(layout4, listener(data, i_OnRowNotify, PropData), FRow);
@@ -351,22 +372,14 @@ static Layout *i_layout_layout(PropData *data, const real32_t mright)
 
 static Layout *i_empty_cell_layout(void)
 {
-    Layout *layout = layout_create(1, 1);
-    Label *label = label_create();
-    label_text(label, "Empty cell");
-    layout_label(layout, label, 0, 0);
-    return layout;
+    return layout_create(1, 1);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static Layout *i_layout_cell_layout(void)
 {
-    Layout *layout = layout_create(1, 1);
-    Label *label = label_create();
-    label_text(label, "Layout cell");
-    layout_label(layout, label, 0, 0);
-    return layout;
+    return layout_create(1, 1);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -393,44 +406,51 @@ static void i_OnLabelNotify(PropData *data, Event *e)
 
 static Layout *i_label_layout(PropData *data)
 {
-    Layout *layout1 = layout_create(1, 3);
-    Layout *layout2 = layout_create(2, 4);
-    Layout *layout3 = i_value_updown_layout();
+    Layout *layout1 = layout_create(2, 4);
+    Layout *layout2 = i_value_updown_layout(gui_text(TIP_LABEL_MWIDTH));
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
     Label *label4 = label_create();
-    Label *label5 = label_create();
     Edit *edit = edit_create();
     Button *check = button_check();
     PopUp *popup = popup_create();
     cassert_no_null(data);
-    label_text(label1, "Label properties");
-    label_text(label2, "Text");
-    label_text(label3, "Multiline");
-    label_text(label4, "MWidth");
-    label_text(label5, "Align");
+    label_text(label1, gui_text(TEXT_TEXT));
+    label_text(label2, gui_text(TEXT_MULTILINE));
+    label_text(label3, gui_text(TEXT_WIDTH));
+    label_text(label4, gui_text(TEXT_ALIGN));
+    edit_tooltip(edit, gui_text(TIP_LABEL_TEXT));
+    button_tooltip(check, gui_text(TIP_LABEL_MLINE));
+    popup_tooltip(popup, gui_text(TIP_LABEL_ALIGN));
     layout_label(layout1, label1, 0, 0);
-    layout_label(layout2, label2, 0, 0);
-    layout_label(layout2, label3, 0, 1);
-    layout_label(layout2, label4, 0, 2);
-    layout_label(layout2, label5, 0, 3);
-    layout_edit(layout2, edit, 1, 0);
-    layout_button(layout2, check, 1, 1);
-    layout_layout(layout2, layout3, 1, 2);
-    layout_popup(layout2, popup, 1, 3);
-    layout_layout(layout1, layout2, 0, 1);
-    layout_vmargin(layout1, 0, i_HEADER_VMARGIN);
-    layout_hmargin(layout2, 0, i_GRID_HMARGIN);
-    layout_hexpand(layout2, 1);
-    layout_vexpand(layout1, 2);
-    cell_dbind(layout_cell(layout2, 1, 0), FLabel, String *, text);
-    cell_dbind(layout_cell(layout2, 1, 1), FLabel, bool_t, multiline);
-    cell_dbind(layout_cell(layout2, 1, 2), FLabel, real32_t, min_width);
-    cell_dbind(layout_cell(layout2, 1, 3), FLabel, halign_t, align);
+    layout_label(layout1, label2, 0, 1);
+    layout_label(layout1, label3, 0, 2);
+    layout_label(layout1, label4, 0, 3);
+    layout_edit(layout1, edit, 1, 0);
+    layout_button(layout1, check, 1, 1);
+    layout_layout(layout1, layout2, 1, 2);
+    layout_popup(layout1, popup, 1, 3);
+    layout_margin4(layout1, 0, 0, 1, 0);
+    layout_hexpand(layout1, 1);
+    layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
+    cell_dbind(layout_cell(layout1, 1, 0), FLabel, String *, text);
+    cell_dbind(layout_cell(layout1, 1, 1), FLabel, bool_t, multiline);
+    cell_dbind(layout_cell(layout1, 1, 2), FLabel, real32_t, min_width);
+    cell_dbind(layout_cell(layout1, 1, 3), FLabel, halign_t, align);
     layout_dbind(layout1, listener(data, i_OnLabelNotify, PropData), FLabel);
     data->label_layout = layout1;
-    return layout1;
+
+    /* Drawer */
+    {
+        Panel *panel = panel_create();
+        Panel *drawer = NULL;
+        Layout *layout = layout_create(1, 1);
+        panel_layout(panel, layout1);
+        drawer = designer_drawer(data->app, panel, ekDRAWER_LABEL_PROPS);
+        layout_panel(layout, drawer, 0, 0);
+        return layout;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -457,32 +477,36 @@ static void i_OnButtonNotify(PropData *data, Event *e)
 
 static Layout *i_button_layout(PropData *data)
 {
-    Layout *layout1 = layout_create(1, 3);
-    Layout *layout2 = layout_create(2, 2);
-    Layout *layout3 = i_value_updown_layout();
+    Layout *layout1 = layout_create(2, 2);
+    Layout *layout2 = i_value_updown_layout(gui_text(TIP_BUTTON_WIDTH));
     Label *label1 = label_create();
     Label *label2 = label_create();
-    Label *label3 = label_create();
     Edit *edit = edit_create();
     cassert_no_null(data);
-    label_text(label1, "Button properties");
-    label_text(label2, "Text");
-    label_text(label3, "MWidth");
+    label_text(label1, gui_text(TEXT_TEXT));
+    label_text(label2, gui_text(TEXT_WIDTH));
+    edit_tooltip(edit, gui_text(TIP_BUTTON_TEXT));
     layout_label(layout1, label1, 0, 0);
-    layout_label(layout2, label2, 0, 0);
-    layout_label(layout2, label3, 0, 1);
-    layout_edit(layout2, edit, 1, 0);
-    layout_layout(layout1, layout2, 0, 1);
-    layout_layout(layout2, layout3, 1, 1);
-    layout_vmargin(layout1, 0, i_HEADER_VMARGIN);
-    layout_hmargin(layout2, 0, i_GRID_HMARGIN);
-    layout_hexpand(layout2, 1);
-    layout_vexpand(layout1, 2);
-    cell_dbind(layout_cell(layout2, 1, 0), FButton, String *, text);
-    cell_dbind(layout_cell(layout2, 1, 1), FButton, real32_t, min_width);
+    layout_label(layout1, label2, 0, 1);
+    layout_edit(layout1, edit, 1, 0);
+    layout_layout(layout1, layout2, 1, 1);
+    layout_hexpand(layout1, 1);
+    layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
+    cell_dbind(layout_cell(layout1, 1, 0), FButton, String *, text);
+    cell_dbind(layout_cell(layout1, 1, 1), FButton, real32_t, min_width);
     layout_dbind(layout1, listener(data, i_OnButtonNotify, PropData), FButton);
     data->button_layout = layout1;
-    return layout1;
+
+    /* Drawer */
+    {
+        Panel *panel = panel_create();
+        Panel *drawer = NULL;
+        Layout *layout = layout_create(1, 1);
+        panel_layout(panel, layout1);
+        drawer = designer_drawer(data->app, panel, ekDRAWER_BUTTON_PROPS);
+        layout_panel(layout, drawer, 0, 0);
+        return layout;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -503,26 +527,30 @@ static void i_OnCheckNotify(PropData *data, Event *e)
 
 static Layout *i_check_layout(PropData *data)
 {
-    Layout *layout1 = layout_create(1, 3);
-    Layout *layout2 = layout_create(2, 1);
-    Label *label1 = label_create();
-    Label *label2 = label_create();
+    Layout *layout1 = layout_create(2, 1);
+    Label *label = label_create();
     Edit *edit = edit_create();
     cassert_no_null(data);
-    label_text(label1, "CheckBox properties");
-    label_text(label2, "Text");
-    layout_label(layout1, label1, 0, 0);
-    layout_label(layout2, label2, 0, 0);
-    layout_edit(layout2, edit, 1, 0);
-    layout_layout(layout1, layout2, 0, 1);
-    layout_vmargin(layout1, 0, i_HEADER_VMARGIN);
-    layout_hmargin(layout2, 0, i_GRID_HMARGIN);
-    layout_hexpand(layout2, 1);
-    layout_vexpand(layout1, 2);
-    cell_dbind(layout_cell(layout2, 1, 0), FCheck, String *, text);
+    label_text(label, gui_text(TEXT_TEXT));
+    edit_tooltip(edit, gui_text(TIP_CHECK_TEXT));
+    layout_label(layout1, label, 0, 0);
+    layout_edit(layout1, edit, 1, 0);
+    layout_hexpand(layout1, 1);
+    layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
+    cell_dbind(layout_cell(layout1, 1, 0), FCheck, String *, text);
     layout_dbind(layout1, listener(data, i_OnCheckNotify, PropData), FCheck);
     data->check_layout = layout1;
-    return layout1;
+
+    /* Drawer */
+    {
+        Panel *panel = panel_create();
+        Panel *drawer = NULL;
+        Layout *layout = layout_create(1, 1);
+        panel_layout(panel, layout1);
+        drawer = designer_drawer(data->app, panel, ekDRAWER_CHECKBOX_PROPS);
+        layout_panel(layout, drawer, 0, 0);
+        return layout;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -549,7 +577,7 @@ static Layout *i_edit_layout(PropData *data)
 {
     Layout *layout1 = layout_create(1, 5);
     Layout *layout2 = layout_create(2, 2);
-    Layout *layout3 = i_value_updown_layout();
+    Layout *layout3 = i_value_updown_layout(NULL);
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
@@ -607,8 +635,8 @@ static Layout *i_text_layout(PropData *data)
 {
     Layout *layout1 = layout_create(1, 4);
     Layout *layout2 = layout_create(2, 2);
-    Layout *layout3 = i_value_updown_layout();
-    Layout *layout4 = i_value_updown_layout();
+    Layout *layout3 = i_value_updown_layout(NULL);
+    Layout *layout4 = i_value_updown_layout(NULL);
     Button *button1 = button_check();
     Label *label1 = label_create();
     Label *label2 = label_create();
@@ -686,8 +714,8 @@ static Layout *i_image_layout(PropData *data)
 {
     Layout *layout1 = layout_create(1, 3);
     Layout *layout2 = layout_create(2, 4);
-    Layout *layout3 = i_value_updown_layout();
-    Layout *layout4 = i_value_updown_layout();
+    Layout *layout3 = i_value_updown_layout(NULL);
+    Layout *layout4 = i_value_updown_layout(NULL);
     PopUp *popup = popup_create();
     Button *button = button_push();
     Label *label1 = label_create();
@@ -746,7 +774,7 @@ static Layout *i_slider_layout(PropData *data)
 {
     Layout *layout1 = layout_create(1, 3);
     Layout *layout2 = layout_create(2, 1);
-    Layout *layout3 = i_value_updown_layout();
+    Layout *layout3 = i_value_updown_layout(NULL);
     Label *label1 = label_create();
     Label *label2 = label_create();
     cassert_no_null(data);
@@ -786,7 +814,7 @@ static Layout *i_progress_layout(PropData *data)
 {
     Layout *layout1 = layout_create(1, 3);
     Layout *layout2 = layout_create(2, 1);
-    Layout *layout3 = i_value_updown_layout();
+    Layout *layout3 = i_value_updown_layout(NULL);
     Label *label1 = label_create();
     Label *label2 = label_create();
     cassert_no_null(data);
@@ -1001,8 +1029,8 @@ static Layout *i_listbox_layout(PropData *data)
 {
     Layout *layout1 = layout_create(1, 6);
     Layout *layout2 = layout_create(2, 2);
-    Layout *layout3 = i_value_updown_layout();
-    Layout *layout4 = i_value_updown_layout();
+    Layout *layout3 = i_value_updown_layout(NULL);
+    Layout *layout4 = i_value_updown_layout(NULL);
     Layout *layout5 = layout_create(3, 1);
     Label *label1 = label_create();
     Label *label2 = label_create();
@@ -1118,9 +1146,9 @@ static void i_OnHeaderNotify(PropData *data, Event *e)
 static Layout *i_header_layout(void)
 {
     Layout *layout1 = layout_create(2, 7);
-    Layout *layout2 = i_value_updown_layout();
-    Layout *layout3 = i_value_updown_layout();
-    Layout *layout4 = i_value_updown_layout();
+    Layout *layout2 = i_value_updown_layout(NULL);
+    Layout *layout3 = i_value_updown_layout(NULL);
+    Layout *layout4 = i_value_updown_layout(NULL);
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
@@ -1181,8 +1209,8 @@ static Layout *i_table_layout(PropData *data)
 {
     Layout *layout1 = layout_create(1, 7);
     Layout *layout2 = layout_create(2, 2);
-    Layout *layout3 = i_value_updown_layout();
-    Layout *layout4 = i_value_updown_layout();
+    Layout *layout3 = i_value_updown_layout(NULL);
+    Layout *layout4 = i_value_updown_layout(NULL);
     Layout *layout5 = layout_create(3, 1);
     Layout *layout6 = i_header_layout();
     Label *label1 = label_create();
@@ -1274,42 +1302,6 @@ static Panel *i_cell_content_panel(PropData *data)
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_cell_props_layout(PropData *data)
-{
-    Layout *layout = layout_create(2, 4);
-    Label *label1 = label_create();
-    Label *label2 = label_create();
-    Label *label3 = label_create();
-    Label *label4 = label_create();
-    Label *label5 = label_create();
-    Edit *edit = edit_create();
-    PopUp *popup1 = popup_create();
-    PopUp *popup2 = popup_create();
-    cassert_no_null(data);
-    label_text(label1, "Coord");
-    label_text(label2, "Name");
-    label_text(label3, "HAlign");
-    label_text(label4, "VAlign");
-    layout_label(layout, label1, 0, 0);
-    layout_label(layout, label2, 0, 1);
-    layout_label(layout, label3, 0, 2);
-    layout_label(layout, label4, 0, 3);
-    layout_label(layout, label5, 1, 0);
-    layout_edit(layout, edit, 1, 1);
-    layout_popup(layout, popup1, 1, 2);
-    layout_popup(layout, popup2, 1, 3);
-    layout_halign(layout, 1, 0, ekJUSTIFY);
-    layout_hmargin(layout, 0, i_GRID_HMARGIN);
-    layout_hexpand(layout, 1);
-    data->cell_geom_label = label5;
-    cell_dbind(layout_cell(layout, 1, 1), FCell, String *, name);
-    cell_dbind(layout_cell(layout, 1, 2), FCell, halign_t, halign);
-    cell_dbind(layout_cell(layout, 1, 3), FCell, valign_t, valign);
-    return layout;
-}
-
-/*---------------------------------------------------------------------------*/
-
 static void i_OnCellNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
@@ -1337,23 +1329,64 @@ static void i_OnCellNotify(PropData *data, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static Panel *i_cell_props_panel(PropData *data)
+{
+    Panel *panel = panel_create();
+    Layout *layout = layout_create(2, 4);
+    Label *label1 = label_create();
+    Label *label2 = label_create();
+    Label *label3 = label_create();
+    Label *label4 = label_create();
+    Label *label5 = label_create();
+    Edit *edit = edit_create();
+    PopUp *popup1 = popup_create();
+    PopUp *popup2 = popup_create();
+    cassert_no_null(data);
+    label_text(label1, gui_text(TEXT_TYPE));
+    label_text(label2, gui_text(TEXT_NAME));
+    label_text(label3, gui_text(TEXT_HALIGN));
+    label_text(label4, gui_text(TEXT_VALIGN));
+    edit_tooltip(edit, gui_text(TIP_CELL_NAME));
+    popup_tooltip(popup1, gui_text(TIP_HALIGN));
+    popup_tooltip(popup2, gui_text(TIP_VALIGN));
+    layout_label(layout, label1, 0, 0);
+    layout_label(layout, label2, 0, 1);
+    layout_label(layout, label3, 0, 2);
+    layout_label(layout, label4, 0, 3);
+    layout_label(layout, label5, 1, 0);
+    layout_edit(layout, edit, 1, 1);
+    layout_popup(layout, popup1, 1, 2);
+    layout_popup(layout, popup2, 1, 3);
+    layout_margin4(layout, 1, 0, 1, 0);
+    layout_vmargin(layout, 0, 1);
+    layout_halign(layout, 1, 0, ekJUSTIFY);
+    layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
+    layout_hexpand(layout, 1);
+    data->cell_type_label = label5;
+    cell_dbind(layout_cell(layout, 1, 1), FCell, String *, name);
+    cell_dbind(layout_cell(layout, 1, 2), FCell, halign_t, halign);
+    cell_dbind(layout_cell(layout, 1, 3), FCell, valign_t, valign);
+    layout_dbind(layout, listener(data, i_OnCellNotify, PropData), FCell);
+    panel_layout(panel, layout);
+    data->cell_layout = layout;
+    return panel;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Layout *i_cell_layout(PropData *data, const real32_t mright)
 {
-    Layout *layout1 = layout_create(1, 4);
-    Layout *layout2 = i_cell_props_layout(data);
-    Label *label = label_create();
-    Panel *panel = i_cell_content_panel(data);
-    label_text(label, "Cell properties");
-    layout_label(layout1, label, 0, 0);
-    layout_layout(layout1, layout2, 0, 1);
-    layout_panel(layout1, panel, 0, 2);
-    layout_vmargin(layout1, 0, i_HEADER_VMARGIN);
-    layout_vmargin(layout1, 1, i_HEADER_VMARGIN);
-    layout_margin4(layout1, 0, mright, 0, 0);
-    layout_vexpand(layout1, 3);
-    layout_dbind(layout2, listener(data, i_OnCellNotify, PropData), FCell);
-    data->cell_layout = layout2;
-    return layout1;
+    Layout *layout = layout_create(1, 3);
+    Panel *panel1 = i_cell_props_panel(data);
+    Panel *panel2 = i_cell_content_panel(data);
+    Panel *panel3 = NULL;
+    cassert_no_null(data);
+    panel3 = designer_drawer(data->app, panel1, ekDRAWER_CELL_PROPS);
+    layout_panel(layout, panel3, 0, 0);
+    layout_panel(layout, panel2, 0, 1);
+    layout_margin4(layout, 0, mright, 0, 0);
+    layout_vexpand(layout, 2);
+    return layout;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1446,8 +1479,17 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
         char_t text[64];
         uint32_t ncols = flayout_ncols(sel->flayout);
         uint32_t nrows = flayout_nrows(sel->flayout);
-        bstd_sprintf(text, sizeof(text), "%d cols x %d rows", ncols, nrows);
-        label_text(data->layout_geom_label, text);
+
+        if (ncols == 1 && nrows == 1)
+            bstd_sprintf(text, sizeof(text), gui_text(TEXT_LTYPE_SING));
+        else if (ncols == 1)
+            bstd_sprintf(text, sizeof(text), gui_text(TEXT_LTYPE_VERT), nrows);
+        else if (nrows == 1)
+            bstd_sprintf(text, sizeof(text), gui_text(TEXT_LTYPE_HORZ), ncols);
+        else
+            bstd_sprintf(text, sizeof(text), gui_text(TEXT_LTYPE_GRID), ncols, nrows);
+        
+        label_text(data->layout_type_label, text);
 
         /* Column selector */
         {
@@ -1491,10 +1533,11 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
     /* i_cell_layout */
     else
     {
-        char_t text[64];
         FCell *cell = dform_sel_fcell(sel);
-        bstd_sprintf(text, sizeof(text), "(%d,%d)", sel->col, sel->row);
-        label_text(data->cell_geom_label, text);
+        const char_t *type = dform_cell_type(cell->type);
+        char_t text[64];
+        bstd_sprintf(text, sizeof(text), "%s (%d,%d)", type, sel->col, sel->row);
+        label_text(data->cell_type_label, text);
         panel_visible_layout(panel, 2);
         layout_dbind_obj(data->cell_layout, cell, FCell);
         if (cell->type == ekCELL_TYPE_EMPTY)

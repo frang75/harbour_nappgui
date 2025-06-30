@@ -6,11 +6,13 @@
 #include "dialogs.h"
 #include "inspect.h"
 #include "propedit.h"
+#include "res_designer.h"
 #include <nflib/flabel.h>
 #include <nflib/flayout.h>
 #include <gui/guicontrol.h>
 #include <gui/button.h>
 #include <gui/edit.h>
+#include <gui/gui.h>
 #include <gui/popup.h>
 #include <gui/label.h>
 #include <gui/listbox.h>
@@ -152,6 +154,33 @@ DForm *dform_empty(Designer *app)
 
 /*---------------------------------------------------------------------------*/
 
+static uint32_t i_num_cells(const FLayout *flayout)
+{
+    uint32_t n = 0;
+    cassert_no_null(flayout);
+    n = arrst_size(flayout->cells, FCell);
+    arrst_foreach_const(fcell, flayout->cells, FCell)
+        if (fcell->type == ekCELL_TYPE_LAYOUT)
+            n += i_num_cells(fcell->widget.layout);
+    arrst_end()
+    return n;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static uint32_t i_num_layouts(const FLayout *flayout)
+{
+    uint32_t n = 1;
+    cassert_no_null(flayout);
+    arrst_foreach_const(fcell, flayout->cells, FCell)
+        if (fcell->type == ekCELL_TYPE_LAYOUT)
+            n += i_num_layouts(fcell->widget.layout);
+    arrst_end()
+    return n;
+}
+
+/*---------------------------------------------------------------------------*/
+
 DForm *dform_read(Stream *stm, Designer *app)
 {
     FLayout *flayout = flayout_read(stm);
@@ -162,6 +191,8 @@ DForm *dform_read(Stream *stm, Designer *app)
         form->flayout = flayout;
         form->temp_path = arrst_create(DSelect);
         form->sel_path = arrst_create(DSelect);
+        form->cell_id = i_num_cells(flayout);
+        form->layout_id = i_num_layouts(flayout);
         return form;
     }
     else
@@ -404,7 +435,7 @@ static bool_t i_sel_empty_cell(const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedit, const widget_t widget, const real32_t mouse_x, const real32_t mouse_y, const gui_mouse_t mbutton)
+bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedit, const Font *font, const widget_t widget, const real32_t mouse_x, const real32_t mouse_y, const gui_mouse_t mbutton)
 {
     cassert_no_null(form);
     if (mbutton == ekGUI_MOUSE_LEFT)
@@ -421,7 +452,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
             case ekWIDGET_LABEL:
             {
-                FLabel *flabel = dialog_new_label(window, &sel);
+                FLabel *flabel = dialog_new_label(window, font, &sel);
                 if (flabel != NULL)
                 {
                     Label *label = label_create();
@@ -448,7 +479,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
             case ekWIDGET_PUSH_BUTTON:
             {
-                FButton *fbutton = dialog_new_button(window, &sel);
+                FButton *fbutton = dialog_new_button(window, font, &sel);
                 if (fbutton != NULL)
                 {
                     Button *button = button_push();
@@ -472,7 +503,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
             case ekWIDGET_CHECK_BUTTON:
             {
-                FCheck *fcheck = dialog_new_check(window, &sel);
+                FCheck *fcheck = dialog_new_check(window, font, &sel);
                 if (fcheck != NULL)
                 {
                     Button *check = button_check();
@@ -703,9 +734,18 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 }
             }
     
-			case ekWIDGET_GRID_LAYOUT:
+            case ekWIDGET_VERT_LAYOUT:
+            case ekWIDGET_HORZ_LAYOUT:
+            case ekWIDGET_GRID_LAYOUT:
             {
-                FLayout *fsublayout = dialog_new_layout(window, &sel);
+                FLayout *fsublayout = NULL;
+                if (widget == ekWIDGET_VERT_LAYOUT)
+                    fsublayout = dialog_vertical_layout(window, font, &sel);
+                else if (widget == ekWIDGET_HORZ_LAYOUT)
+                    fsublayout = dialog_horizontal_layout(window, font, &sel);
+                else
+                    fsublayout = dialog_grid_layout(window, font, &sel);
+
                 if (fsublayout != NULL)
                 {
                     const char_t *resource_path = designer_folder_path(form->app);
@@ -731,8 +771,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
             }
 
             /* Still not supported */
-            case ekWIDGET_VERT_LAYOUT:
-            case ekWIDGET_HORZ_LAYOUT:
             case ekWIDGET_TOOL_BUTTON:
             case ekWIDGET_RADIO_BUTTON:
             case ekWIDGET_COMBOBOX:
@@ -1309,6 +1347,44 @@ uint32_t dform_selpath_size(const DForm *form)
 
 /*---------------------------------------------------------------------------*/
 
+const char_t* dform_cell_type(const celltype_t type)
+{
+    switch(type)
+    {
+    case ekCELL_TYPE_EMPTY:
+        return gui_text(TEXT_CELL_EMPTY);
+    case ekCELL_TYPE_LABEL:
+        return gui_text(TEXT_CELL_LABEL);
+    case ekCELL_TYPE_BUTTON:
+        return gui_text(TEXT_CELL_BUTTON);
+    case ekCELL_TYPE_CHECK:
+        return gui_text(TEXT_CELL_CHECK);
+    case ekCELL_TYPE_EDIT:
+        return gui_text(TEXT_CELL_EDIT);
+    case ekCELL_TYPE_TEXT:
+        return gui_text(TEXT_CELL_TEXT);
+    case ekCELL_TYPE_IMAGE:
+        return gui_text(TEXT_CELL_IMAGE);
+    case ekCELL_TYPE_SLIDER:
+        return gui_text(TEXT_CELL_SLIDER);
+    case ekCELL_TYPE_PROGRESS:
+        return gui_text(TEXT_CELL_PROGRESS);
+    case ekCELL_TYPE_POPUP:
+        return gui_text(TEXT_CELL_POPUP);
+    case ekCELL_TYPE_LISTBOX:
+        return gui_text(TEXT_CELL_LISTBOX);
+    case ekCELL_TYPE_TABLEVIEW:
+        return gui_text(TEXT_CELL_TABLE);
+    case ekCELL_TYPE_LAYOUT:
+        return gui_text(TEXT_CELL_LAYOUT);
+    cassert_default();
+    }
+
+    return "";
+}
+
+/*---------------------------------------------------------------------------*/
+
 const char_t *dform_selpath_caption(const DForm *form, const uint32_t col, const uint32_t row)
 {
     const DSelect *sel = NULL;
@@ -1325,7 +1401,7 @@ const char_t *dform_selpath_caption(const DForm *form, const uint32_t col, const
         if (col == 0)
             return tc(sel->flayout->name);
         else
-            return "Layout";
+            return gui_text(TEXT_LAYOUT);
     }
     /* Odd rows == cell */
     else
@@ -1338,40 +1414,9 @@ const char_t *dform_selpath_caption(const DForm *form, const uint32_t col, const
         else
         {
             cassert(col == 1);
-            switch(cell->type)
-            {
-            case ekCELL_TYPE_EMPTY:
-                return "EmptyCell";
-            case ekCELL_TYPE_LABEL:
-                return "LabelCell";
-            case ekCELL_TYPE_BUTTON:
-                return "ButtonCell";
-            case ekCELL_TYPE_CHECK:
-                return "CheckBoxCell";
-            case ekCELL_TYPE_EDIT:
-                return "EditBoxCell";
-            case ekCELL_TYPE_TEXT:
-                return "TextViewCell";
-            case ekCELL_TYPE_IMAGE:
-                return "ImageViewCell";
-            case ekCELL_TYPE_SLIDER:
-                return "SliderCell";
-            case ekCELL_TYPE_PROGRESS:
-                return "ProgressCell";
-            case ekCELL_TYPE_POPUP:
-                return "PopUpCell";
-            case ekCELL_TYPE_LISTBOX:
-                return "ListBoxCell";
-            case ekCELL_TYPE_TABLEVIEW:
-                return "TableCell";
-            case ekCELL_TYPE_LAYOUT:
-                return "LayoutCell";
-            cassert_default();
-            }
+            return dform_cell_type(cell->type);
         }
     }
-
-    return "";
 }
 
 /*---------------------------------------------------------------------------*/
