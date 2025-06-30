@@ -10,7 +10,7 @@ FLabel *dialog_new_label(Window *parent, const Font *font, const DSelect *sel);
 
 FButton *dialog_new_button(Window *parent, const Font *font, const DSelect *sel);
 
-FCheck *dialog_new_check(Window *parent, const DSelect *sel);
+FCheck *dialog_new_check(Window *parent, const Font *font, const DSelect *sel);
 
 FEdit *dialog_new_edit(Window *parent, const DSelect *sel);
 

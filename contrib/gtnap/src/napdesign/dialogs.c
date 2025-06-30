@@ -353,46 +353,35 @@ FButton *dialog_new_button(Window *parent, const Font *font, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-FCheck *dialog_new_check(Window *parent, const DSelect *sel)
+FCheck *dialog_new_check(Window *parent, const Font *font, const DSelect *sel)
 {
     DialogData data = i_dialog_data();
-    Layout *layout1 = layout_create(1, 3);
-    Layout *layout2 = layout_create(2, 1);
-    Layout *layout3 = i_ok_cancel(&data, TRUE);
-    Label *label1 = label_create();
-    Label *label2 = label_create();
-    Edit *edit = edit_create();
-    Panel *panel = panel_create();
-    Window *window = window_create(ekWINDOW_STD | ekWINDOW_ESC);
+    Layout *layout = layout_create(2, 1);
     String *caption = NULL;
     FCheck *fcheck = dbind_create(FCheck);
     uint32_t ret = 0;
-    data.window = window;
     cassert_no_null(sel);
     cassert_no_null(sel->flayout);
-    caption = str_printf("New Checkbox widget in (%d, %d) of '%s'", sel->col, sel->row, tc(sel->flayout->name));
-    label_text(label1, tc(caption));
-    label_text(label2, "Text:");
-    layout_label(layout1, label1, 0, 0);
-    layout_label(layout2, label2, 0, 0);
-    layout_edit(layout2, edit, 1, 0);
-    layout_layout(layout1, layout2, 0, 1);
-    layout_layout(layout1, layout3, 0, 2);
-    layout_vmargin(layout1, 0, 5);
-    layout_vmargin(layout1, 1, 5);
-    panel_layout(panel, layout1);
-    cell_dbind(layout_cell(layout2, 1, 0), FCheck, String *, text);
-    layout_dbind(layout1, NULL, FCheck);
-    layout_dbind_obj(layout1, fcheck, FCheck);
-    window_panel(window, panel);
-    window_defbutton(window, data.defbutton);
-    i_center_window(parent, window);
-    ret = window_modal(window, parent);
+
+    /* Widget layout */
+    {
+        Label *label = label_create();
+        Edit *edit = edit_create();
+        label_text(label, gui_text(TEXT_TEXT));
+        layout_label(layout, label, 0, 0);
+        layout_edit(layout, edit, 1, 0);
+        layout_hmargin(layout, 0, 5);
+        cell_dbind(layout_cell(layout, 1, 0), FCheck, String *, text);
+        layout_dbind(layout, NULL, FCheck);
+        layout_dbind_obj(layout, fcheck, FCheck);
+    }
+
+    caption = str_printf(gui_text(TEXT_NEW_CHECK), sel->col, sel->row, tc(sel->flayout->name));
+    ret = i_modal_new_widget(parent, &data, layout, font, CHECBUT_PNG, TEXT_CHECK_BOX, tc(caption));
 
     if (ret != BUTTON_OK)
         dbind_destroy(&fcheck, FCheck);
 
-    window_destroy(&window);
     str_destroy(&caption);
     i_remove_dialog_data(&data);
     return fcheck;

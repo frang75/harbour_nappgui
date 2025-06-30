@@ -503,7 +503,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
             case ekWIDGET_CHECK_BUTTON:
             {
-                FCheck *fcheck = dialog_new_check(window, &sel);
+                FCheck *fcheck = dialog_new_check(window, font, &sel);
                 if (fcheck != NULL)
                 {
                     Button *check = button_check();
