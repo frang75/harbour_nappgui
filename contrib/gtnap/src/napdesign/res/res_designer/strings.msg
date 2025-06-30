@@ -12,6 +12,7 @@ TEXT_ROW_PROPS      Row properties
 TEXT_CELL_PROPS     Cell properties
 TEXT_LABEL_PROPS    Label properties
 TEXT_BUTTON_PROPS   Button properties
+TEXT_CHECK_PROPS    Checkbox properties
 TEXT_LAYOUT         Layout
 TEXT_LAYOUTS        Layouts
 TEXT_BUTTONS        Buttons
@@ -94,4 +95,5 @@ TIP_LABEL_MWIDTH    Text width. If 0 will be set automatically.
 TIP_LABEL_ALIGN     Text alignment, if label widget if wider than the text.
 TIP_BUTTON_TEXT     The text that will be displayed on the push button.
 TIP_BUTTON_WIDTH    Minimum width of the push button, as long as the text is visible.
+TIP_CHECK_TEXT      The text that will be displayed to the right of the checkbox.
 

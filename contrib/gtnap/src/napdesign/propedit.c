@@ -527,26 +527,30 @@ static void i_OnCheckNotify(PropData *data, Event *e)
 
 static Layout *i_check_layout(PropData *data)
 {
-    Layout *layout1 = layout_create(1, 3);
-    Layout *layout2 = layout_create(2, 1);
-    Label *label1 = label_create();
-    Label *label2 = label_create();
+    Layout *layout1 = layout_create(2, 1);
+    Label *label = label_create();
     Edit *edit = edit_create();
     cassert_no_null(data);
-    label_text(label1, "CheckBox properties");
-    label_text(label2, "Text");
-    layout_label(layout1, label1, 0, 0);
-    layout_label(layout2, label2, 0, 0);
-    layout_edit(layout2, edit, 1, 0);
-    layout_layout(layout1, layout2, 0, 1);
-    layout_vmargin(layout1, 0, i_HEADER_VMARGIN);
-    layout_hmargin(layout2, 0, i_GRID_HMARGIN);
-    layout_hexpand(layout2, 1);
-    layout_vexpand(layout1, 2);
-    cell_dbind(layout_cell(layout2, 1, 0), FCheck, String *, text);
+    label_text(label, gui_text(TEXT_TEXT));
+    edit_tooltip(edit, gui_text(TIP_CHECK_TEXT));
+    layout_label(layout1, label, 0, 0);
+    layout_edit(layout1, edit, 1, 0);
+    layout_hexpand(layout1, 1);
+    layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
+    cell_dbind(layout_cell(layout1, 1, 0), FCheck, String *, text);
     layout_dbind(layout1, listener(data, i_OnCheckNotify, PropData), FCheck);
     data->check_layout = layout1;
-    return layout1;
+
+    /* Drawer */
+    {
+        Panel *panel = panel_create();
+        Panel *drawer = NULL;
+        Layout *layout = layout_create(1, 1);
+        panel_layout(panel, layout1);
+        drawer = designer_drawer(data->app, panel, ekDRAWER_CHECKBOX_PROPS);
+        layout_panel(layout, drawer, 0, 0);
+        return layout;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
