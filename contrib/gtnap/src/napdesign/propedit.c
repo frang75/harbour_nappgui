@@ -477,32 +477,36 @@ static void i_OnButtonNotify(PropData *data, Event *e)
 
 static Layout *i_button_layout(PropData *data)
 {
-    Layout *layout1 = layout_create(1, 3);
-    Layout *layout2 = layout_create(2, 2);
-    Layout *layout3 = i_value_updown_layout(NULL);
+    Layout *layout1 = layout_create(2, 2);
+    Layout *layout2 = i_value_updown_layout(gui_text(TIP_BUTTON_WIDTH));
     Label *label1 = label_create();
     Label *label2 = label_create();
-    Label *label3 = label_create();
     Edit *edit = edit_create();
     cassert_no_null(data);
-    label_text(label1, "Button properties");
-    label_text(label2, "Text");
-    label_text(label3, "MWidth");
+    label_text(label1, gui_text(TEXT_TEXT));
+    label_text(label2, gui_text(TEXT_WIDTH));
+    edit_tooltip(edit, gui_text(TIP_BUTTON_TEXT));
     layout_label(layout1, label1, 0, 0);
-    layout_label(layout2, label2, 0, 0);
-    layout_label(layout2, label3, 0, 1);
-    layout_edit(layout2, edit, 1, 0);
-    layout_layout(layout1, layout2, 0, 1);
-    layout_layout(layout2, layout3, 1, 1);
-    layout_vmargin(layout1, 0, i_HEADER_VMARGIN);
-    layout_hmargin(layout2, 0, i_GRID_HMARGIN);
-    layout_hexpand(layout2, 1);
-    layout_vexpand(layout1, 2);
-    cell_dbind(layout_cell(layout2, 1, 0), FButton, String *, text);
-    cell_dbind(layout_cell(layout2, 1, 1), FButton, real32_t, min_width);
+    layout_label(layout1, label2, 0, 1);
+    layout_edit(layout1, edit, 1, 0);
+    layout_layout(layout1, layout2, 1, 1);
+    layout_hexpand(layout1, 1);
+    layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
+    cell_dbind(layout_cell(layout1, 1, 0), FButton, String *, text);
+    cell_dbind(layout_cell(layout1, 1, 1), FButton, real32_t, min_width);
     layout_dbind(layout1, listener(data, i_OnButtonNotify, PropData), FButton);
     data->button_layout = layout1;
-    return layout1;
+
+    /* Drawer */
+    {
+        Panel *panel = panel_create();
+        Panel *drawer = NULL;
+        Layout *layout = layout_create(1, 1);
+        panel_layout(panel, layout1);
+        drawer = designer_drawer(data->app, panel, ekDRAWER_BUTTON_PROPS);
+        layout_panel(layout, drawer, 0, 0);
+        return layout;
+    }
 }
 
 /*---------------------------------------------------------------------------*/

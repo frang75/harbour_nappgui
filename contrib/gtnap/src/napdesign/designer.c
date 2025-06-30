@@ -691,6 +691,7 @@ static bool_t i_is_widget_drawer(const drawer_t drawer)
     case ekDRAWER_ROW_PROPS:
     case ekDRAWER_CELL_PROPS:
     case ekDRAWER_LABEL_PROPS:
+    case ekDRAWER_BUTTON_PROPS:
         return FALSE;
         cassert_default();
     }
@@ -1435,6 +1436,7 @@ static Designer *i_app(void)
     i_add_drawer(app->wdrawers, ekDRAWER_ROW_PROPS, TEXT_ROW_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_CELL_PROPS, TEXT_CELL_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_LABEL_PROPS, TEXT_LABEL_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_BUTTON_PROPS, TEXT_BUTTON_PROPS);
     i_add_widget(app->bwidgets, ekWIDGET_SELECT, TEXT_SELECT, CURSOR_PNG, ekDRAWER_WIDGET_SELECT);
     i_add_widget(app->bwidgets, ekWIDGET_VERT_LAYOUT, TEXT_VERT_LAYOUT, VLAYOUT_PNG, ekDRAWER_WIDGET_LAYOUTS);
     i_add_widget(app->bwidgets, ekWIDGET_HORZ_LAYOUT, TEXT_HORZ_LAYOUT, HLAYOUT_PNG, ekDRAWER_WIDGET_LAYOUTS);
