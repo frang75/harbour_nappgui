@@ -3,6 +3,7 @@ TEXT_CANCEL         Cancel
 TEXT_COLUMNS        Columns
 TEXT_ROWS           Rows
 TEXT_NEW_LABEL      A new label will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_BUTTON     A new push button will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SUBLAYOUT  A new sublayout will be placed in cell (%d, %d) of '%s' layout
 TEXT_LAYOUT_PROPS   Layout properties
 TEXT_COLUMN_PROPS   Column properties

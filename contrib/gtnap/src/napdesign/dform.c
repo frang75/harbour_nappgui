@@ -479,7 +479,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
             case ekWIDGET_PUSH_BUTTON:
             {
-                FButton *fbutton = dialog_new_button(window, &sel);
+                FButton *fbutton = dialog_new_button(window, font, &sel);
                 if (fbutton != NULL)
                 {
                     Button *button = button_push();
