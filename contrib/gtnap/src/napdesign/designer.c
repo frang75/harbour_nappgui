@@ -49,6 +49,7 @@ struct _bwidget_t
     ResId labelid;
     ResId imageid;
     Button *button;
+    Label *label;
     bool_t opened;
 };
 
@@ -83,6 +84,7 @@ struct _desiger_t
     MenuItem *show_propedit;
     Image *add_icon;
     Font *default_font;
+    Font *bold_font;
     bool_t dragging;
     V2Df drag_mouse;
     V2Df drag_form;
@@ -579,10 +581,11 @@ static Layout *i_tools_layout(Designer *app)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_set_bwidget(const widget_t swidget, ArrSt(BWidget) *bwidgets)
+static void i_set_bwidget(const widget_t swidget, ArrSt(BWidget) *bwidgets, const Font *font, const Font *bold_font)
 {
     arrst_foreach(bwidget, bwidgets, BWidget)
         button_state(bwidget->button, bwidget->twidget == swidget ? ekGUI_ON : ekGUI_OFF);
+        label_font(bwidget->label, bwidget->twidget == swidget ? bold_font : font);
     arrst_end()
 }
 
@@ -600,7 +603,24 @@ static void i_OnWidgetButtonClick(Designer *app, Event *e)
         }
     arrst_end()
 
-    i_set_bwidget(app->config.swidget, app->bwidgets);
+    i_set_bwidget(app->config.swidget, app->bwidgets, app->default_font, app->bold_font);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnWidgetLabelClick(Designer *app, Event *e)
+{
+    Label *sender = event_sender(e, Label);
+    cassert_no_null(app);
+    arrst_foreach(bwidget, app->bwidgets, BWidget)
+        if (bwidget->label == sender)
+        {
+            app->config.swidget = bwidget->twidget;
+            break;
+        }
+    arrst_end()
+
+    i_set_bwidget(app->config.swidget, app->bwidgets, app->default_font, app->bold_font);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -626,17 +646,24 @@ static Panel *i_drawer_widget_panel(Designer *app, const drawer_t drawer)
                 Button *button = button_flatgle();
                 Label *label = label_create();
                 cassert(bwidget->button == NULL);
+                cassert(bwidget->label == NULL);
                 button_OnClick(button, listener(app, i_OnWidgetButtonClick, Designer));               
                 button_image(button, gui_image(bwidget->imageid));
+                button_vpadding(button, 0);
+                button_hpadding(button, 0);
                 label_text(label, gui_text(bwidget->labelid));
+                label_style_over(label, ekFUNDERLINE);
+                label_OnClick(label, listener(app, i_OnWidgetLabelClick, Designer));               
                 layout_button(layout, button, 0, i);
                 layout_label(layout, label, 1, i);
                 layout_tabstop(layout, 0, i, FALSE);
-                layout_halign(layout, 1, i, ekLEFT);
+                layout_halign(layout, 1, i, ekJUSTIFY);
                 bwidget->button = button;
+                bwidget->label = label;
                 i += 1;
             }
         arrst_end()
+        layout_margin4(layout, 0, 0, 0, 5);
         layout_hmargin(layout, 0, 10);
         layout_hexpand(layout, 1);
         panel_layout(panel, layout);
@@ -1371,7 +1398,7 @@ static void i_apply_config(Designer *app)
     window_origin(app->window, v2df(app->config.wx, app->config.wy));
     window_size(app->window, s2df(app->config.wwidth, app->config.wheight));
     i_restore_splits(app);
-    i_set_bwidget(app->config.swidget, app->bwidgets);
+    i_set_bwidget(app->config.swidget, app->bwidgets, app->default_font, app->bold_font);
     menuitem_state(app->show_forms, i_bool_state(app->config.show_forms));
     menuitem_state(app->show_widgets, i_bool_state(app->config.show_widgets));
     menuitem_state(app->show_inspectr, i_bool_state(app->config.show_inspectr));
@@ -1424,6 +1451,7 @@ static Designer *i_app(void)
     app->forms = arrpt_create(DForm);
     app->add_icon = image_copy(gui_image(PLUS16_PNG));
     app->default_font = font_system(font_regular_size(), 0);
+    app->bold_font = font_system(font_regular_size(), ekFBOLD);
     app->wdrawers = arrst_create(WDrawer);
     app->bwidgets = arrst_create(BWidget);
     i_add_drawer(app->wdrawers, ekDRAWER_WIDGET_SELECT, "");
@@ -1490,6 +1518,7 @@ static void i_destroy(Designer **app)
     i_remove_config(&(*app)->config);
     image_destroy(&(*app)->add_icon);
     font_destroy(&(*app)->default_font);
+    font_destroy(&(*app)->bold_font);
     arrst_destroy(&(*app)->wdrawers, NULL, WDrawer);
     arrst_destroy(&(*app)->bwidgets, NULL, BWidget);
     arrpt_destroy(&(*app)->forms, i_destroy_form_opt, DForm);
