@@ -127,7 +127,7 @@ static void i_destroy_form_opt(DForm **form)
 
 static ___INLINE const char_t *i_list_text(const ListBox *listbox, const uint32_t index)
 {
-    const char_t *name = listbox_text(listbox, index);
+    const char_t *name = listbox_get_text(listbox, index);
     if (str_is_prefix(name, i_SAVE_MARK) == TRUE)
         name += str_len_c(i_SAVE_MARK);
     return name;
@@ -137,7 +137,7 @@ static ___INLINE const char_t *i_list_text(const ListBox *listbox, const uint32_
 
 static ___INLINE bool_t i_with_save_mark(const ListBox *listbox, const uint32_t index)
 {
-    const char_t *name = listbox_text(listbox, index);
+    const char_t *name = listbox_get_text(listbox, index);
     return str_is_prefix(name, i_SAVE_MARK);
 }
 

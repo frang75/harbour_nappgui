@@ -24,6 +24,7 @@
 #include <core/event.h>
 #include <core/heap.h>
 #include <core/strings.h>
+#include <sewer/bmath.h>
 #include <sewer/cassert.h>
 
 #if !defined(__MACOS__)
@@ -40,6 +41,8 @@
     uint32_t flags;
     color_t color;
     color_t bgcolor;
+    align_t align;
+    real32_t width;
     NSTrackingArea *tracking_area;
     Listener *OnClick;
     Listener *OnMouseEntered;
@@ -81,15 +84,45 @@
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnClick(OSXLabel *label, NSEvent *theEvent, const gui_mouse_t button)
+{
+    cassert_no_null(label);
+    cassert_no_null(theEvent);
+    if (label->OnClick != NULL)
+    {
+        EvMouse params;
+        _oslistener_mouse_position_in_view_coordinates(label, [theEvent locationInWindow], &params.lx, &params.ly);
+        params.lx = bmath_roundf(params.lx);
+        params.ly = bmath_roundf(params.ly);
+        params.x = params.lx;
+        params.y = params.ly;
+        params.button = button;
+        params.count = (uint32_t)[theEvent clickCount];
+        params.modifiers = _osgui_modifiers([theEvent modifierFlags]);
+        params.tag = 0;
+        listener_event(label->OnClick, ekGUI_EVENT_LABEL, cast(label, OSLabel), &params, NULL, OSLabel, EvMouse, void);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 - (void)mouseUp:(NSEvent *)theEvent
 {
-    unref(theEvent);
-    if (self->OnClick != NULL)
-    {
-        EvText params;
-        params.text = NULL;
-        listener_event(self->OnClick, ekGUI_EVENT_LABEL, cast(self, OSLabel), &params, NULL, OSLabel, EvText, void);
-    }
+    i_OnClick(self, theEvent, ekGUI_MOUSE_LEFT);
+}
+
+/*---------------------------------------------------------------------------*/
+
+- (void)rightMouseUp:(NSEvent *)theEvent
+{
+    i_OnClick(self, theEvent, ekGUI_MOUSE_RIGHT);
+}
+
+/*---------------------------------------------------------------------------*/
+
+- (void)otherMouseUp:(NSEvent *)theEvent
+{
+    i_OnClick(self, theEvent, ekGUI_MOUSE_MIDDLE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -103,6 +136,7 @@
 
 - (void)drawRect:(NSRect)rect
 {
+    real32_t origin_x = 0;
     NSGraphicsContext *nscontext;
     unref(rect);
     cassert_no_null(self->ctx);
@@ -119,13 +153,30 @@
     else
         draw_text_color(self->ctx, ekSYSCOLOR_LABEL);
 
+    cassert(self->width > 0);
+
+    switch (self->align)
+    {
+    case ekLEFT:
+    case ekJUSTIFY:
+        origin_x = 0;
+        break;
+    case ekRIGHT:
+        origin_x = self->width;
+        break;
+    case ekCENTER:
+        origin_x = .5f * self->width;
+        break;
+        cassert_default();
+    }
+
     switch (label_get_type(self->flags))
     {
     case ekLABEL_SINGLE:
-        draw_text_single_line(self->ctx, tc(self->text), 0, 0);
+        draw_text_single_line(self->ctx, tc(self->text), origin_x, 0);
         break;
     case ekLABEL_MULTI:
-        draw_text(self->ctx, tc(self->text), 0, 0);
+        draw_text(self->ctx, tc(self->text), origin_x, 0);
         break;
         cassert_default();
     }
@@ -155,9 +206,11 @@ OSLabel *oslabel_create(const uint32_t flags)
     label->text = str_c("");
     label->color = kCOLOR_DEFAULT;
     label->bgcolor = kCOLOR_DEFAULT;
-    draw_text_align(label->ctx, ekLEFT, ekTOP);
-    draw_text_width(label->ctx, -1);
-    draw_text_halign(label->ctx, ekLEFT);
+    label->align = ekLEFT;
+    label->width = -1;
+    draw_text_align(label->ctx, label->align, ekTOP);
+    draw_text_halign(label->ctx, label->align);
+    draw_text_width(label->ctx, label->width);
     label->tracking_area = nil;
     label->OnClick = NULL;
     label->OnMouseEntered = NULL;
@@ -305,7 +358,9 @@ void oslabel_align(OSLabel *label, const align_t align)
 {
     OSXLabel *llabel = cast(label, OSXLabel);
     cassert_no_null(llabel);
-    draw_text_halign(llabel->ctx, align);
+    llabel->align = align;
+    draw_text_align(llabel->ctx, llabel->align, ekTOP);
+    draw_text_halign(llabel->ctx, llabel->align);
     [llabel setNeedsDisplay:YES];
 }
 
@@ -397,8 +452,9 @@ void oslabel_frame(OSLabel *label, const real32_t x, const real32_t y, const rea
 {
     OSXLabel *llabel = cast(label, OSXLabel);
     cassert_no_null(llabel);
+    llabel->width = width;
     _oscontrol_set_frame(llabel, x, y, width, height);
-    draw_text_width(llabel->ctx, width);
+    draw_text_width(llabel->ctx, llabel->width);
     i_update_tracking_area(llabel);
     [llabel setNeedsDisplay:YES];
 }

@@ -61,11 +61,11 @@ static gboolean i_OnEnter(GtkWidget *widget, GdkEventCrossing *event, OSLabel *l
     unref(widget);
     unref(event);
     cassert_no_null(label);
-    if (label->OnMouseEnter != NULL)
+    if (label->OnMouseEnter != NULL && event->mode == GDK_CROSSING_NORMAL)
     {
         EvMouse params;
-        params.x = (real32_t)event->x;
-        params.y = (real32_t)event->y;
+        params.x = bmath_roundf((real32_t)event->x);
+        params.y = bmath_roundf((real32_t)event->y);
         params.lx = params.x;
         params.ly = params.y;
         params.button = ENUM_MAX(gui_mouse_t);
@@ -85,7 +85,7 @@ static gboolean i_OnExit(GtkWidget *widget, GdkEventCrossing *event, OSLabel *la
     unref(widget);
     unref(event);
     cassert_no_null(label);
-    if (label->OnMouseExit != NULL)
+    if (label->OnMouseExit != NULL && event->mode == GDK_CROSSING_NORMAL)
         listener_event(label->OnMouseExit, ekGUI_EVENT_EXIT, label, NULL, NULL, OSLabel, void, void);
     return TRUE;
 }
@@ -99,9 +99,16 @@ static gboolean i_OnClick(GtkWidget *widget, GdkEventButton *event, OSLabel *lab
     cassert_no_null(label);
     if (label->OnClick != NULL)
     {
-        EvText params;
-        params.text = NULL;
-        listener_event(label->OnClick, ekGUI_EVENT_LABEL, label, &params, NULL, OSLabel, EvText, void);
+        EvMouse params;
+        params.lx = bmath_roundf((real32_t)event->x);
+        params.ly = bmath_roundf((real32_t)event->y);
+        params.x = params.lx;
+        params.y = params.ly;
+        params.button = _oslistener_button(event);
+        params.modifiers = _osgui_modifiers(event->state);
+        params.tag = 0;
+        params.count = _oslistener_click_count(event);
+        listener_event(label->OnClick, ekGUI_EVENT_LABEL, label, &params, NULL, OSLabel, EvMouse, void);
     }
 
     return TRUE;
@@ -159,6 +166,7 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSLabel *label)
         pango_layout_set_width(label->layout, (int)((label->control_width / xscale) * PANGO_SCALE));
         pango_layout_set_height(label->layout, -1);
         pango_layout_set_ellipsize(label->layout, label->ellipsis);
+        pango_layout_set_alignment(label->layout, _oscontrol_alignment(label->align));
         font_extents(label->font, tc(label->text), label->control_width / xscale, &label->text_width, &label->text_height);
         i_set_text(label);
         label->layout_updated = TRUE;
@@ -174,23 +182,6 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSLabel *label)
     }
 
     cairo_save(cr);
-
-    if (label->control_width > label->text_width)
-    {
-        switch (label->align)
-        {
-        case ekLEFT:
-        case ekJUSTIFY:
-            break;
-        case ekCENTER:
-            cairo_translate(cr, (double)((label->control_width - label->text_width) / 2), 0);
-            break;
-        case ekRIGHT:
-            cairo_translate(cr, (double)(label->control_width - label->text_width), 0);
-            break;
-        }
-    }
-
     cairo_scale(cr, xscale, 1);
     pango_cairo_show_layout(cr, label->layout);
     cairo_restore(cr);
