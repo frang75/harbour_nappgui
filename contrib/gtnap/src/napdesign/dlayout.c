@@ -752,17 +752,33 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
                 color_t color = i_is_cell_sel(hover, dlayout, i, j) ? i_SEL_COLOR : i_MAIN_COLOR;
                 const Label *glabel = cell_label(gcell);
                 const Font *gfont = label_get_font(glabel);
+                real32_t origin_x = 0;
                 draw_font(ctx, gfont);
                 draw_fill_color(ctx, i_BGCOLOR);
                 draw_text_color(ctx, color);
                 draw_rect(ctx, ekFILL, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
 
-                if (fcell->widget.label->min_width > 0)
-                    draw_text_width(ctx, fcell->widget.label->min_width);
+                draw_text_width(ctx, dcell->content_rect.size.width);
+
+                switch (fcell->widget.label->align)
+                {
+                case ekHALIGN_LEFT:
+                case ekHALIGN_JUSTIFY:
+                    draw_text_halign(ctx, ekLEFT);
+                    break;
+                case ekHALIGN_CENTER:
+                    draw_text_halign(ctx, ekCENTER);
+                    break;
+                case ekHALIGN_RIGHT:
+                    origin_x = - dcell->content_rect.size.width;
+                    draw_text_halign(ctx, ekRIGHT);
+                    break;
+                    cassert_default();                
+                }
 
                 if (fcell->widget.label->multiline == TRUE)
                 {
-                    draw_text(ctx, tc(fcell->widget.label->text), dcell->content_rect.pos.x, dcell->content_rect.pos.y);
+                    draw_text(ctx, tc(fcell->widget.label->text), origin_x + dcell->content_rect.pos.x, dcell->content_rect.pos.y);
                 }
                 else
                 {
@@ -770,9 +786,8 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
                     drawctrl_text(ctx, tc(fcell->widget.label->text), (int32_t)dcell->content_rect.pos.x, (int32_t)dcell->content_rect.pos.y, ekCTRL_STATE_NORMAL);
                 }
 
-                if (fcell->widget.label->min_width > 0)
-                    draw_text_width(ctx, 0);
-
+                draw_text_width(ctx, -1);
+                draw_text_halign(ctx, ekLEFT);
                 break;
             }
 
