@@ -484,6 +484,9 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 {
                     Button *button = button_push();
                     button_text(button, tc(fbutton->text));
+                    button_min_width(button, fbutton->min_width);
+                    button_hpadding(button, fbutton->hpadding);
+                    button_vpadding(button, fbutton->vpadding);
                     i_sel_remove_cell(&sel);
                     flayout_add_button(sel.flayout, fbutton, sel.col, sel.row);
                     layout_button(sel.glayout, button, sel.col, sel.row);
@@ -961,6 +964,8 @@ void dform_synchro_button(DForm *form, const DSelect *sel)
     i_need_save(form);
     button = layout_get_button(sel->glayout, sel->col, sel->row);
     button_min_width(button, cell->widget.button->min_width);
+    button_hpadding(button, cell->widget.button->hpadding);
+    button_vpadding(button, cell->widget.button->vpadding);
 }
 
 /*---------------------------------------------------------------------------*/

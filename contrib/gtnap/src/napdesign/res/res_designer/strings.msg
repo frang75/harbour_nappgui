@@ -49,6 +49,8 @@ TEXT_LEFT           Left
 TEXT_BOTTOM         Bottom
 TEXT_RIGHT          Right
 TEXT_WIDTH          Width
+TEXT_HPADDING       HorzPad
+TEXT_VPADDING       VertPad
 TEXT_HEIGHT         Height
 TEXT_COLUMN         Column
 TEXT_ROW            Row
@@ -95,5 +97,7 @@ TIP_LABEL_MWIDTH    Text width. If 0 will be set automatically.
 TIP_LABEL_ALIGN     Text alignment, if label widget if wider than the text.
 TIP_BUTTON_TEXT     The text that will be displayed on the push button.
 TIP_BUTTON_WIDTH    Minimum width of the push button, as long as the text is visible.
+TIP_BUTTON_HPAD     Horizontal padding of the push button, -1 as default.
+TIP_BUTTON_VPAD     Vertical padding of the push button, -1 as default.
 TIP_CHECK_TEXT      The text that will be displayed to the right of the checkbox.
 

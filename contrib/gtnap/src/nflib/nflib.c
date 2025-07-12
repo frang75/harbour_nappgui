@@ -57,6 +57,8 @@ static void i_dbind(void)
     dbind(FLabel, halign_t, align);
     dbind(FButton, String *, text);
     dbind(FButton, real32_t, min_width);
+    dbind(FButton, real32_t, hpadding);
+    dbind(FButton, real32_t, vpadding);
     dbind(FCheck, String *, text);
     dbind(FEdit, bool_t, passmode);
     dbind(FEdit, bool_t, autosel);
@@ -125,7 +127,15 @@ static void i_dbind(void)
     dbind_default(FButton, real32_t, min_width, 0);
     dbind_increment(FButton, real32_t, min_width, 1);
     dbind_precision(FButton, real32_t, min_width, 1);
-    dbind_range(FButton, real32_t, min_width, 10, 1000);
+    dbind_range(FButton, real32_t, min_width, 0, 1000);
+    dbind_default(FButton, real32_t, hpadding, -1);
+    dbind_increment(FButton, real32_t, hpadding, 1);
+    dbind_precision(FButton, real32_t, hpadding, 1);
+    dbind_range(FButton, real32_t, hpadding, -1, 1000);
+    dbind_default(FButton, real32_t, vpadding, -1);
+    dbind_increment(FButton, real32_t, vpadding, 1);
+    dbind_precision(FButton, real32_t, vpadding, 1);
+    dbind_range(FButton, real32_t, vpadding, -1, 1000);
 
     dbind_default(FLabel, bool_t, multiline, FALSE);
     dbind_default(FLabel, real32_t, min_width, 0);

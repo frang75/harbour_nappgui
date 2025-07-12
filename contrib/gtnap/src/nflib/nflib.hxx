@@ -83,6 +83,8 @@ struct _fbutton_t
 {
     String *text;
     real32_t min_width;
+    real32_t hpadding;
+    real32_t vpadding;
 };
 
 struct _fcheck_t

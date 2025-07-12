@@ -28,7 +28,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-static uint16_t i_VERSION = 3;
+static uint16_t i_VERSION = 4;
 static uint16_t i_STM_VERSION = 0;
 
 /*---------------------------------------------------------------------------*/
@@ -215,6 +215,18 @@ static FButton *i_read_button(Stream *stm)
         button->min_width = stm_read_r32(stm);
     else
         button->min_width = 0;
+
+    if (i_STM_VERSION >= 4)
+    {
+        button->hpadding = stm_read_r32(stm);
+        button->vpadding = stm_read_r32(stm);
+    }
+    else
+    {
+        button->hpadding = -1;
+        button->vpadding = -1;
+    }
+
     return button;
 }
 
@@ -466,6 +478,8 @@ static void i_write_buttom(Stream *stm, const FButton *button)
     cassert_no_null(button);
     str_write(stm, button->text);
     stm_write_r32(stm, button->min_width);
+    stm_write_r32(stm, button->hpadding);
+    stm_write_r32(stm, button->vpadding);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1162,6 +1176,9 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     FButton *fbutton = cells->widget.button;
                     Button *gbutton = button_push();
                     button_text(gbutton, tc(fbutton->text));
+                    button_min_width(gbutton, fbutton->min_width);
+                    button_hpadding(gbutton, fbutton->hpadding);
+                    button_vpadding(gbutton, fbutton->vpadding);
                     layout_button(glayout, gbutton, i, j);
                     break;
                 }
