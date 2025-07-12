@@ -315,3 +315,11 @@ const Image *nflib_default_image(void)
     return image_from_resource(i_RESPACK, NOIMAGE_PNG);
 }
 
+/*---------------------------------------------------------------------------*/
+
+const Image *nflib_default_icon(void)
+{
+    if (i_RESPACK == NULL)
+        i_RESPACK = nflib_res_respack("");
+    return image_from_resource(i_RESPACK, EMPTY24_PNG);
+}

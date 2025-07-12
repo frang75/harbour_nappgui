@@ -5,6 +5,7 @@ TEXT_ROWS           Rows
 TEXT_NEW_LABEL      A new label will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_BUTTON     A new push button will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_CHECK      A new check box will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_TOOL       A new tool button will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SUBLAYOUT  A new sublayout will be placed in cell (%d, %d) of '%s' layout
 TEXT_LAYOUT_PROPS   Layout properties
 TEXT_COLUMN_PROPS   Column properties
@@ -59,6 +60,10 @@ TEXT_HALIGN         HAlign
 TEXT_VALIGN         VAlign
 TEXT_TEXT           Text
 TEXT_MULTILINE      Multiline
+TEXT_ICON_PATH      Icon path
+TEXT_DEFAULT        default
+TEXT_LOAD_IMAGE     Load image
+TEXT_LOAD_ICON      Load icon
 TEXT_LTYPE_SING     Single cell
 TEXT_LTYPE_VERT     Vertical with %d rows
 TEXT_LTYPE_HORZ     Horizontal with %d cols

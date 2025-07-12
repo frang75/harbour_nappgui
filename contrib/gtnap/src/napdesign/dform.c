@@ -528,6 +528,32 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 }
             }
 
+            case ekWIDGET_TOOL_BUTTON:
+            {
+                const char_t *folder_path = designer_folder_path(form->app);
+                FTool *ftool = dialog_new_tool(window, font, &sel, folder_path);
+                if (ftool != NULL)
+                {
+                    Button *tool = button_flat();
+                    button_hpadding(tool, ftool->hpadding);
+                    button_vpadding(tool, ftool->vpadding);
+                    i_sel_remove_cell(&sel);
+                    flayout_add_tool(sel.flayout, ftool, sel.col, sel.row);
+                    layout_button(sel.glayout, tool, sel.col, sel.row);
+                    i_sel_synchro_cell(&sel);
+                    dform_compose(form);
+                    propedit_set(propedit, form, &sel);
+                    inspect_set(inspect, form);
+                    form->sel = sel;
+                    i_need_save(form);
+                    return TRUE;
+                }
+                else
+                {
+                    return FALSE;
+                }
+            }
+
             case ekWIDGET_EDITBOX:
             {
                 FEdit *fedit = dialog_new_edit(window, &sel);
@@ -774,7 +800,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
             }
 
             /* Still not supported */
-            case ekWIDGET_TOOL_BUTTON:
             case ekWIDGET_RADIO_BUTTON:
             case ekWIDGET_COMBOBOX:
             case ekWIDGET_VERT_SLIDER:

@@ -438,8 +438,8 @@ void layout_button(Layout *layout, Button *button, const uint32_t col, const uin
 
     case ekBUTTON_FLAT:
     case ekBUTTON_FLATGLE:
-        halign = ekJUSTIFY;
-        valign = ekJUSTIFY;
+        halign = ekCENTER;
+        valign = ekCENTER;
         break;
     cassert_default();
     }
