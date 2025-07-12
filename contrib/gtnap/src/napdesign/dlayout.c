@@ -835,6 +835,10 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
                 break;
             }
 
+            case ekCELL_TYPE_TOOL:
+                cassert(FALSE);
+                break;
+
             case ekCELL_TYPE_EDIT:
             {
                 color_t color = i_is_cell_sel(hover, dlayout, i, j) ? i_SEL_COLOR : i_MAIN_COLOR;

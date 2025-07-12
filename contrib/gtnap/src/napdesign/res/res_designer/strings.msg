@@ -67,6 +67,7 @@ TEXT_CELL_EMPTY     EmptyCell
 TEXT_CELL_LABEL     LabelCell
 TEXT_CELL_BUTTON    ButtonCell
 TEXT_CELL_CHECK     CheckBoxCell
+TEXT_CELL_TOOL      ToolButtonCell
 TEXT_CELL_EDIT      EditBoxCell
 TEXT_CELL_TEXT      TextViewCell
 TEXT_CELL_IMAGE     ImageViewCell

@@ -953,6 +953,23 @@ void dform_synchro_cell_image(DForm *form, const DSelect *sel, const Image *imag
 
 /*---------------------------------------------------------------------------*/
 
+void dform_synchro_label(DForm *form, const DSelect *sel)
+{
+    FCell *cell = i_sel_fcell(sel);
+    Label *label = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_LABEL);
+    i_need_save(form);
+    label = layout_get_label(sel->glayout, sel->col, sel->row);
+    label_multiline(label, cell->widget.label->multiline);
+    label_min_width(label, cell->widget.label->min_width);
+    label_align(label, i_halign(cell->widget.label->align));
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dform_synchro_button(DForm *form, const DSelect *sel)
 {
     FCell *cell = i_sel_fcell(sel);
@@ -970,19 +987,18 @@ void dform_synchro_button(DForm *form, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-void dform_synchro_label(DForm *form, const DSelect *sel)
+void dform_synchro_tool(DForm *form, const DSelect *sel)
 {
     FCell *cell = i_sel_fcell(sel);
-    Label *label = NULL;
+    Button *button = NULL;
     cassert_no_null(form);
     cassert_no_null(sel);
     cassert_no_null(cell);
-    cassert(cell->type == ekCELL_TYPE_LABEL);
+    cassert(cell->type == ekCELL_TYPE_TOOL);
     i_need_save(form);
-    label = layout_get_label(sel->glayout, sel->col, sel->row);
-    label_multiline(label, cell->widget.label->multiline);
-    label_min_width(label, cell->widget.label->min_width);
-    label_align(label, i_halign(cell->widget.label->align));
+    button = layout_get_button(sel->glayout, sel->col, sel->row);
+    button_hpadding(button, cell->widget.tool->hpadding);
+    button_vpadding(button, cell->widget.tool->vpadding);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1364,6 +1380,8 @@ const char_t* dform_cell_type(const celltype_t type)
         return gui_text(TEXT_CELL_BUTTON);
     case ekCELL_TYPE_CHECK:
         return gui_text(TEXT_CELL_CHECK);
+    case ekCELL_TYPE_TOOL:
+        return gui_text(TEXT_CELL_TOOL);        
     case ekCELL_TYPE_EDIT:
         return gui_text(TEXT_CELL_EDIT);
     case ekCELL_TYPE_TEXT:

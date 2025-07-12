@@ -34,9 +34,11 @@ void dform_synchro_cell_text(DForm *form, const DSelect *sel);
 
 void dform_synchro_cell_image(DForm *form, const DSelect *sel, const Image *image, const char_t *imgname);
 
+void dform_synchro_label(DForm *form, const DSelect *sel);
+
 void dform_synchro_button(DForm *form, const DSelect *sel);
 
-void dform_synchro_label(DForm *form, const DSelect *sel);
+void dform_synchro_tool(DForm *form, const DSelect *sel);
 
 void dform_synchro_edit(DForm *form, const DSelect *sel);
 

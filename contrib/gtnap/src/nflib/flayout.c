@@ -69,6 +69,10 @@ static void i_remove_cell(FCell *cell)
         dbind_destroy(&cell->widget.check, FCheck);
         break;
 
+    case ekCELL_TYPE_TOOL:
+        dbind_destroy(&cell->widget.tool, FTool);
+        break;
+
     case ekCELL_TYPE_EDIT:
         dbind_destroy(&cell->widget.edit, FEdit);
         break;
@@ -241,6 +245,17 @@ static FCheck *i_read_check(Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
+static FTool *i_read_tool(Stream *stm)
+{
+    FTool *tool = heap_new0(FTool);
+    tool->path = str_read(stm);
+    tool->hpadding = stm_read_r32(stm);
+    tool->vpadding = stm_read_r32(stm);
+    return tool;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static FEdit *i_read_edit(Stream *stm)
 {
     FEdit *edit = heap_new0(FEdit);
@@ -372,6 +387,9 @@ static void i_read_cell(Stream *stm, FCell *cell)
     case ekCELL_TYPE_CHECK:
         cell->widget.check = i_read_check(stm);
         break;
+    case ekCELL_TYPE_TOOL:
+        cell->widget.tool = i_read_tool(stm);
+        break;
     case ekCELL_TYPE_EDIT:
         cell->widget.edit = i_read_edit(stm);
         break;
@@ -488,6 +506,16 @@ static void i_write_check(Stream *stm, const FCheck *check)
 {
     cassert_no_null(check);
     str_write(stm, check->text);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_write_tool(Stream *stm, const FTool *tool)
+{
+    cassert_no_null(tool);
+    str_write(stm, tool->path);
+    stm_write_r32(stm, tool->hpadding);
+    stm_write_r32(stm, tool->vpadding);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -609,6 +637,9 @@ static void i_write_cell(Stream *stm, const FCell *cell)
         break;
     case ekCELL_TYPE_CHECK:
         i_write_check(stm, cell->widget.check);
+        break;
+    case ekCELL_TYPE_TOOL:
+        i_write_tool(stm, cell->widget.tool);
         break;
     case ekCELL_TYPE_EDIT:
         i_write_edit(stm, cell->widget.edit);
@@ -884,6 +915,20 @@ void flayout_add_check(FLayout *layout, FCheck *check, const uint32_t col, const
     cell->halign = ekHALIGN_LEFT;
     cell->valign = ekVALIGN_CENTER;
     cell->widget.check = check;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_add_tool(FLayout *layout, FTool *tool, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(tool);
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_TOOL;
+    cell->halign = ekHALIGN_JUSTIFY;
+    cell->valign = ekVALIGN_JUSTIFY;
+    cell->widget.tool = tool;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1192,6 +1237,16 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     break;
                 }
 
+                case ekCELL_TYPE_TOOL:
+                {
+                    FTool *ftool = cells->widget.tool;
+                    Button *gtool = button_flat();
+                    button_hpadding(gtool, ftool->hpadding);
+                    button_vpadding(gtool, ftool->vpadding);
+                    layout_button(glayout, gtool, i, j);
+                    break;
+                }
+
                 case ekCELL_TYPE_EDIT:
                 {
                     FEdit *fedit = cells->widget.edit;
@@ -1360,6 +1415,7 @@ GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout
                 case ekCELL_TYPE_LABEL:
                 case ekCELL_TYPE_BUTTON:
                 case ekCELL_TYPE_CHECK:
+                case ekCELL_TYPE_TOOL:
                 case ekCELL_TYPE_EDIT:
                 case ekCELL_TYPE_TEXT:
                 case ekCELL_TYPE_IMAGE:

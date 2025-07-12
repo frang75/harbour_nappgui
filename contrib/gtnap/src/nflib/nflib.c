@@ -30,6 +30,7 @@ static void i_dbind(void)
     dbind_enum(celltype_t, ekCELL_TYPE_LABEL, "");
     dbind_enum(celltype_t, ekCELL_TYPE_BUTTON, "");
     dbind_enum(celltype_t, ekCELL_TYPE_CHECK, "");
+    dbind_enum(celltype_t, ekCELL_TYPE_TOOL, "");
     dbind_enum(celltype_t, ekCELL_TYPE_EDIT, "");
     dbind_enum(celltype_t, ekCELL_TYPE_TEXT, "");
     dbind_enum(celltype_t, ekCELL_TYPE_IMAGE, "");
@@ -60,6 +61,9 @@ static void i_dbind(void)
     dbind(FButton, real32_t, hpadding);
     dbind(FButton, real32_t, vpadding);
     dbind(FCheck, String *, text);
+    dbind(FTool, String *, path);
+    dbind(FTool, real32_t, hpadding);
+    dbind(FTool, real32_t, vpadding);
     dbind(FEdit, bool_t, passmode);
     dbind(FEdit, bool_t, autosel);
     dbind(FEdit, halign_t, text_align);
@@ -106,23 +110,12 @@ static void i_dbind(void)
     dbind(FLayout, ArrSt(FRow) *, rows);
     dbind(FLayout, ArrSt(FCell) *, cells);
 
-    dbind_default(FColumn, real32_t, margin_right, 0);
-    dbind_default(FColumn, real32_t, forced_width, 0);
-    dbind_increment(FColumn, real32_t, margin_right, 1);
-    dbind_increment(FColumn, real32_t, forced_width, 1);
-    dbind_range(FColumn, real32_t, margin_right, 0, 100);
-    dbind_range(FColumn, real32_t, forced_width, 0, 1000);
-    dbind_precision(FColumn, real32_t, margin_right, 1);
-    dbind_precision(FColumn, real32_t, forced_width, 1);
-
-    dbind_default(FRow, real32_t, margin_bottom, 0);
-    dbind_default(FRow, real32_t, forced_height, 0);
-    dbind_increment(FRow, real32_t, margin_bottom, 1);
-    dbind_increment(FRow, real32_t, forced_height, 1);
-    dbind_range(FRow, real32_t, margin_bottom, 0, 100);
-    dbind_range(FRow, real32_t, forced_height, 0, 1000);
-    dbind_precision(FRow, real32_t, margin_bottom, 1);
-    dbind_precision(FRow, real32_t, forced_height, 1);
+    dbind_default(FLabel, bool_t, multiline, FALSE);
+    dbind_default(FLabel, real32_t, min_width, 0);
+    dbind_increment(FLabel, real32_t, min_width, 1);
+    dbind_precision(FLabel, real32_t, min_width, 1);
+    dbind_range(FLabel, real32_t, min_width, 0, 1000);
+    dbind_default(FLabel, halign_t, align, ekHALIGN_LEFT);
 
     dbind_default(FButton, real32_t, min_width, 0);
     dbind_increment(FButton, real32_t, min_width, 1);
@@ -137,12 +130,14 @@ static void i_dbind(void)
     dbind_precision(FButton, real32_t, vpadding, 1);
     dbind_range(FButton, real32_t, vpadding, -1, 1000);
 
-    dbind_default(FLabel, bool_t, multiline, FALSE);
-    dbind_default(FLabel, real32_t, min_width, 0);
-    dbind_increment(FLabel, real32_t, min_width, 1);
-    dbind_precision(FLabel, real32_t, min_width, 1);
-    dbind_range(FLabel, real32_t, min_width, 0, 1000);
-    dbind_default(FLabel, halign_t, align, ekHALIGN_LEFT);
+    dbind_default(FTool, real32_t, hpadding, -1);
+    dbind_increment(FTool, real32_t, hpadding, 1);
+    dbind_precision(FTool, real32_t, hpadding, 1);
+    dbind_range(FTool, real32_t, hpadding, -1, 1000);
+    dbind_default(FTool, real32_t, vpadding, -1);
+    dbind_increment(FTool, real32_t, vpadding, 1);
+    dbind_precision(FTool, real32_t, vpadding, 1);
+    dbind_range(FTool, real32_t, vpadding, -1, 1000);
 
     dbind_default(FEdit, real32_t, min_width, 100);
     dbind_increment(FEdit, real32_t, min_width, 1);
@@ -201,6 +196,7 @@ static void i_dbind(void)
     dbind_default(FHeader, real32_t, max_width, 1000);
     dbind_increment(FHeader, real32_t, max_width, 1);
     dbind_precision(FHeader, real32_t, max_width, 1);
+
     dbind_default(FTable, real32_t, min_width, 100);
     dbind_increment(FTable, real32_t, min_width, 1);
     dbind_precision(FTable, real32_t, min_width, 1);
@@ -209,6 +205,24 @@ static void i_dbind(void)
     dbind_increment(FTable, real32_t, min_height, 1);
     dbind_precision(FTable, real32_t, min_height, 1);
     dbind_range(FTable, real32_t, min_height, 10, 1000);
+
+    dbind_default(FColumn, real32_t, margin_right, 0);
+    dbind_default(FColumn, real32_t, forced_width, 0);
+    dbind_increment(FColumn, real32_t, margin_right, 1);
+    dbind_increment(FColumn, real32_t, forced_width, 1);
+    dbind_range(FColumn, real32_t, margin_right, 0, 100);
+    dbind_range(FColumn, real32_t, forced_width, 0, 1000);
+    dbind_precision(FColumn, real32_t, margin_right, 1);
+    dbind_precision(FColumn, real32_t, forced_width, 1);
+
+    dbind_default(FRow, real32_t, margin_bottom, 0);
+    dbind_default(FRow, real32_t, forced_height, 0);
+    dbind_increment(FRow, real32_t, margin_bottom, 1);
+    dbind_increment(FRow, real32_t, forced_height, 1);
+    dbind_range(FRow, real32_t, margin_bottom, 0, 100);
+    dbind_range(FRow, real32_t, forced_height, 0, 1000);
+    dbind_precision(FRow, real32_t, margin_bottom, 1);
+    dbind_precision(FRow, real32_t, forced_height, 1);
 
     dbind_default(FCell, celltype_t, type, ekCELL_TYPE_EMPTY);
     dbind_default(FCell, halign_t, halign, ekHALIGN_LEFT);
@@ -235,6 +249,7 @@ static void i_dbind(void)
     dbind(FWidget, FLabel *, label);
     dbind(FWidget, FButton *, button);
     dbind(FWidget, FCheck *, check);
+    dbind(FWidget, FTool *, tool);
     dbind(FWidget, FEdit *, edit);
     dbind(FWidget, FText *, text);
     dbind(FWidget, FImage *, image);

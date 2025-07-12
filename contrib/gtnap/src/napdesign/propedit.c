@@ -1576,6 +1576,10 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
             layout_dbind_obj(data->check_layout, cell->widget.check, FCheck);
             panel_visible_layout(data->cell_panel, 4);
         }
+        else if (cell->type == ekCELL_TYPE_TOOL)
+        {
+            cassert(FALSE);
+        }
         else if (cell->type == ekCELL_TYPE_EDIT)
         {
             layout_dbind_obj(data->edit_layout, cell->widget.edit, FEdit);
