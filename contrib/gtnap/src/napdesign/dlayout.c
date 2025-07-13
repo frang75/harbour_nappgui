@@ -2,8 +2,8 @@
 
 #include "dlayout.h"
 #include "imgproc.h"
+#include <nflib/nflib.h>
 #include <nflib/flayout.h>
-#include <gui/button.h>
 #include <gui/button.h>
 #include <gui/label.h>
 #include <gui/layout.h>
@@ -85,7 +85,24 @@ DLayout *dlayout_from_flayout(const FLayout *flayout, const char_t *resource_pat
         for (i = 0; i < ncols; ++i)
         {
             const FCell *fcell = flayout_ccell(flayout, i, j);
-            if (fcell->type == ekCELL_TYPE_IMAGE)
+            if (fcell->type == ekCELL_TYPE_TOOL)
+            {
+                String *path = str_printf("%s%s", resource_path, tc(fcell->widget.tool->path));
+                Image *image = image_from_file(tc(path), NULL);
+
+                if (image != NULL)
+                {
+                    dlayout_set_image(layout, image, i, j);
+                    image_destroy(&image);
+                }
+                else
+                {
+                    dlayout_set_image(layout, nflib_default_icon(), i, j);
+                }
+                    
+                str_destroy(&path);
+            }
+            else if (fcell->type == ekCELL_TYPE_IMAGE)
             {
                 Image *image = NULL;
                 if (str_empty(fcell->widget.image->path) == FALSE)
@@ -836,8 +853,23 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
             }
 
             case ekCELL_TYPE_TOOL:
-                //cassert(FALSE);
+            {
+                color_t color = i_is_cell_sel(hover, dlayout, i, j) ? i_SEL_COLOR : i_MAIN_COLOR;
+                const Image *image = i_get_image(dcell, 0, i_is_cell_sel(hover, dlayout, i, j));
+                real32_t iwidth = (real32_t)image_width(image);
+                real32_t iheight = (real32_t)image_height(image);
+                real32_t tx, ty;
+                draw_line_color(ctx, color);
+                draw_fill_color(ctx, i_BGCOLOR);
+                draw_line_width(ctx, 2);
+                draw_rect(ctx, ekFILLSK, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
+                draw_line_width(ctx, 1);
+                draw_line_color(ctx, i_MAIN_COLOR);
+                tx = dcell->content_rect.pos.x + ((dcell->content_rect.size.width - iwidth) / 2);
+                ty = dcell->content_rect.pos.y + ((dcell->content_rect.size.height - iheight) / 2);
+                drawctrl_image(ctx, image, (int32_t)tx, (int32_t)ty);
                 break;
+            }
 
             case ekCELL_TYPE_EDIT:
             {

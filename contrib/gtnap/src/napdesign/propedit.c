@@ -630,7 +630,7 @@ static void i_OnLoadIcon(PropData *data, Event *e)
                 cassert(FALSE);
             }
 
-            //dlayout_set_image(data->sel.dlayout, image, data->sel.col, data->sel.row);
+            dlayout_set_image(data->sel.dlayout, image, data->sel.col, data->sel.row);
             dform_compose(data->form);
             designer_canvas_update(data->app);
             str_destroy(&relpath);

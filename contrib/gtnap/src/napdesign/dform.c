@@ -542,9 +542,16 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     button_vpadding(tool, ftool->vpadding);
 
                     if (image != NULL)
+                    {
                         button_image(tool, image);
+                        dlayout_set_image(sel.dlayout, image, sel.col, sel.row);
+                    }
                     else
-                        button_image(tool, nflib_default_icon());
+                    {
+                        const Image *rimage = nflib_default_icon();
+                        button_image(tool, rimage);
+                        dlayout_set_image(sel.dlayout, rimage, sel.col, sel.row);
+                    }
 
                     i_sel_remove_cell(&sel);
                     flayout_add_tool(sel.flayout, ftool, sel.col, sel.row);
