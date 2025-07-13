@@ -1241,9 +1241,24 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                 {
                     FTool *ftool = cells->widget.tool;
                     Button *gtool = button_flat();
+                    String *path = str_cpath("%s/%s", resource_path, tc(ftool->path));
+                    Image *image = image_from_file(tc(path), NULL);
                     button_hpadding(gtool, ftool->hpadding);
                     button_vpadding(gtool, ftool->vpadding);
+
+                    if (image != NULL)
+                    {
+                        button_image(gtool, image);
+                        image_destroy(&image);
+                    }
+                    else
+                    {
+                        const Image *rimage = nflib_default_icon();
+                        button_image(gtool, rimage);
+                    }
+
                     layout_button(glayout, gtool, i, j);
+                    str_destroy(&path);
                     break;
                 }
 
