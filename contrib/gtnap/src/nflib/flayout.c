@@ -926,8 +926,8 @@ void flayout_add_tool(FLayout *layout, FTool *tool, const uint32_t col, const ui
     cassert_no_null(tool);
     cassert(cell->type == ekCELL_TYPE_EMPTY);
     cell->type = ekCELL_TYPE_TOOL;
-    cell->halign = ekHALIGN_JUSTIFY;
-    cell->valign = ekVALIGN_JUSTIFY;
+    cell->halign = ekHALIGN_CENTER;
+    cell->valign = ekVALIGN_CENTER;
     cell->widget.tool = tool;
 }
 

@@ -14,6 +14,7 @@ TEXT_CELL_PROPS     Cell properties
 TEXT_LABEL_PROPS    Label properties
 TEXT_BUTTON_PROPS   Button properties
 TEXT_CHECK_PROPS    Checkbox properties
+TEXT_TOOL_PROPS     Tool button properties
 TEXT_LAYOUT         Layout
 TEXT_LAYOUTS        Layouts
 TEXT_BUTTONS        Buttons
@@ -60,6 +61,7 @@ TEXT_HALIGN         HAlign
 TEXT_VALIGN         VAlign
 TEXT_TEXT           Text
 TEXT_MULTILINE      Multiline
+TEXT_ICON           Icon
 TEXT_ICON_PATH      Icon path
 TEXT_DEFAULT        default
 TEXT_LOAD_IMAGE     Load image

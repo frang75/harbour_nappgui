@@ -836,7 +836,7 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
             }
 
             case ekCELL_TYPE_TOOL:
-                cassert(FALSE);
+                //cassert(FALSE);
                 break;
 
             case ekCELL_TYPE_EDIT:

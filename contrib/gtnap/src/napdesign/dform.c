@@ -7,6 +7,7 @@
 #include "inspect.h"
 #include "propedit.h"
 #include "res_designer.h"
+#include <nflib/nflib.h>
 #include <nflib/flabel.h>
 #include <nflib/flayout.h>
 #include <gui/guicontrol.h>
@@ -535,8 +536,16 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 if (ftool != NULL)
                 {
                     Button *tool = button_flat();
+                    String *path = str_printf("%s%s", folder_path, tc(ftool->path));
+                    Image *image = image_from_file(tc(path), NULL);                    
                     button_hpadding(tool, ftool->hpadding);
                     button_vpadding(tool, ftool->vpadding);
+
+                    if (image != NULL)
+                        button_image(tool, image);
+                    else
+                        button_image(tool, nflib_default_icon());
+
                     i_sel_remove_cell(&sel);
                     flayout_add_tool(sel.flayout, ftool, sel.col, sel.row);
                     layout_button(sel.glayout, tool, sel.col, sel.row);
@@ -546,6 +555,8 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     inspect_set(inspect, form);
                     form->sel = sel;
                     i_need_save(form);
+                    ptr_destopt(image_destroy, &image, Image);
+                    str_destroy(&path);
                     return TRUE;
                 }
                 else
@@ -964,7 +975,13 @@ void dform_synchro_cell_image(DForm *form, const DSelect *sel, const Image *imag
     cassert_no_null(sel);
     cassert_no_null(cell);
     i_need_save(form);
-    if (cell->type == ekCELL_TYPE_IMAGE)
+    if (cell->type == ekCELL_TYPE_TOOL)
+    {
+        Button *tool = layout_get_button(sel->glayout, sel->col, sel->row);
+        button_image(tool, image);
+        str_upd(&cell->widget.tool->path, imgname);
+    }
+    else if (cell->type == ekCELL_TYPE_IMAGE)
     {
         ImageView *imgview = layout_get_imageview(sel->glayout, sel->col, sel->row);
         imageview_image(imgview, image);
