@@ -391,6 +391,42 @@ FCheck *dialog_new_check(Window *parent, const Font *font, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+FRadio *dialog_new_radio(Window *parent, const Font *font, const DSelect *sel)
+{
+    DialogData data = i_dialog_data();
+    Layout *layout = layout_create(2, 1);
+    String *caption = NULL;
+    FRadio *fradio = dbind_create(FRadio);
+    uint32_t ret = 0;
+    cassert_no_null(sel);
+    cassert_no_null(sel->flayout);
+
+    /* Widget layout */
+    {
+        Label *label = label_create();
+        Edit *edit = edit_create();
+        label_text(label, gui_text(TEXT_TEXT));
+        layout_label(layout, label, 0, 0);
+        layout_edit(layout, edit, 1, 0);
+        layout_hmargin(layout, 0, 5);
+        cell_dbind(layout_cell(layout, 1, 0), FRadio, String *, text);
+        layout_dbind(layout, NULL, FRadio);
+        layout_dbind_obj(layout, fradio, FRadio);
+    }
+
+    caption = str_printf(gui_text(TEXT_NEW_RADIO), sel->col, sel->row, tc(sel->flayout->name));
+    ret = i_modal_new_widget(parent, &data, layout, font, RADBUT_PNG, TEXT_RADIO_BUTTON, tc(caption));
+
+    if (ret != BUTTON_OK)
+        dbind_destroy(&fradio, FRadio);
+
+    str_destroy(&caption);
+    i_remove_dialog_data(&data);
+    return fradio;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnLoadImage(DialogData *data, Event *e)
 {
     const char_t *imgpath = NULL;

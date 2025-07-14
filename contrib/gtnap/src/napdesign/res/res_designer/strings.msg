@@ -5,6 +5,7 @@ TEXT_ROWS           Rows
 TEXT_NEW_LABEL      A new label will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_BUTTON     A new push button will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_CHECK      A new check box will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_RADIO      A new radio button will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_TOOL       A new tool button will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SUBLAYOUT  A new sublayout will be placed in cell (%d, %d) of '%s' layout
 TEXT_LAYOUT_PROPS   Layout properties
@@ -14,6 +15,7 @@ TEXT_CELL_PROPS     Cell properties
 TEXT_LABEL_PROPS    Label properties
 TEXT_BUTTON_PROPS   Button properties
 TEXT_CHECK_PROPS    Checkbox properties
+TEXT_RADIO_PROPS    Radio button properties
 TEXT_TOOL_PROPS     Tool button properties
 TEXT_LAYOUT         Layout
 TEXT_LAYOUTS        Layouts
@@ -26,9 +28,9 @@ TEXT_VERT_LAYOUT    Vertical Layout
 TEXT_HORZ_LAYOUT    Horizontal Layout
 TEXT_GRID_LAYOUT    Grid Layout
 TEXT_PUSH_BUTTON    Push Button
-TEXT_TOOL_BUTTON    Tool Button
-TEXT_RADIO_BUTTON   Radio Button
 TEXT_CHECK_BOX      Check Box
+TEXT_RADIO_BUTTON   Radio Button
+TEXT_TOOL_BUTTON    Tool Button
 TEXT_LABEL          Label
 TEXT_EDIT_BOX       Edit Box
 TEXT_COMBO_BOX      Combo Box

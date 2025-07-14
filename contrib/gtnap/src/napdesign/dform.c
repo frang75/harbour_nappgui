@@ -529,6 +529,30 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 }
             }
 
+            case ekWIDGET_RADIO_BUTTON:
+            {
+                FRadio *fradio = dialog_new_radio(window, font, &sel);
+                if (fradio != NULL)
+                {
+                    Button *radio = button_radio();
+                    button_text(radio, tc(fradio->text));
+                    i_sel_remove_cell(&sel);
+                    flayout_add_radio(sel.flayout, fradio, sel.col, sel.row);
+                    layout_button(sel.glayout, radio, sel.col, sel.row);
+                    i_sel_synchro_cell(&sel);
+                    dform_compose(form);
+                    propedit_set(propedit, form, &sel);
+                    inspect_set(inspect, form);
+                    form->sel = sel;
+                    i_need_save(form);
+                    return TRUE;
+                }
+                else
+                {
+                    return FALSE;
+                }
+            }
+
             case ekWIDGET_TOOL_BUTTON:
             {
                 const char_t *folder_path = designer_folder_path(form->app);
@@ -818,7 +842,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
             }
 
             /* Still not supported */
-            case ekWIDGET_RADIO_BUTTON:
             case ekWIDGET_COMBOBOX:
             case ekWIDGET_VERT_SLIDER:
                 break;

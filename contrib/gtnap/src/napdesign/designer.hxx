@@ -21,8 +21,8 @@ typedef enum _widget_t
     ekWIDGET_GRID_LAYOUT,
     ekWIDGET_PUSH_BUTTON,
     ekWIDGET_TOOL_BUTTON,
-    ekWIDGET_RADIO_BUTTON,
     ekWIDGET_CHECK_BUTTON,
+    ekWIDGET_RADIO_BUTTON,
     ekWIDGET_LABEL,
     ekWIDGET_EDITBOX,
     ekWIDGET_COMBOBOX,
@@ -51,6 +51,7 @@ typedef enum _drawer_t
     ekDRAWER_LABEL_PROPS,
     ekDRAWER_BUTTON_PROPS,
     ekDRAWER_CHECKBOX_PROPS,
+    ekDRAWER_RADIO_PROPS,
     ekDRAWER_TOOL_PROPS
 } drawer_t;
 
