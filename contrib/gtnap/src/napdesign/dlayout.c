@@ -737,7 +737,7 @@ static const Image *i_get_image(const DCell *cell, const uint32_t index, const b
 
 void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Image *add_icon, const Font *default_font, DCtx *ctx)
 {
-    uint32_t ncols, nrows, i, j;
+    uint32_t ncols, nrows, i, j, radio_i = 0;
     const DCell *dcell = NULL;
     cassert_no_null(dlayout);
     cassert_no_null(flayout);
@@ -853,7 +853,33 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
             }
 
             case ekCELL_TYPE_RADIO:
+            {
+                color_t color = i_is_cell_sel(hover, dlayout, i, j) ? i_SEL_COLOR : i_MAIN_COLOR;
+                const Button *gradio = cell_button(gcell);
+                const Font *gfont = button_get_font(gradio);
+                real32_t cradio = (real32_t)drawctrl_check_width(ctx) * .5f;
+                real32_t twidth, theight;
+                real32_t tx;
+                draw_font(ctx, gfont);
+                draw_line_color(ctx, color);
+                draw_text_color(ctx, color);
+                draw_fill_color(ctx, i_BGCOLOR);
+                font_extents(gfont, tc(fcell->widget.radio->text), -1.f, &twidth, &theight);
+                tx = dcell->content_rect.pos.x + (dcell->content_rect.size.width - twidth);
+                draw_rect(ctx, ekFILL, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
+                drawctrl_text(ctx, tc(fcell->widget.radio->text), (int32_t)tx, (int32_t)dcell->content_rect.pos.y, ekCTRL_STATE_NORMAL);
+                draw_circle(ctx, ekSTROKE, dcell->content_rect.pos.x + cradio, dcell->content_rect.pos.y + cradio, cradio - 2);
+
+                if (radio_i == 0)
+                {
+                    draw_fill_color(ctx, color);
+                    draw_circle(ctx, ekFILL, dcell->content_rect.pos.x + cradio, dcell->content_rect.pos.y + cradio, cradio - 4);
+                }
+
+                draw_line_color(ctx, i_MAIN_COLOR);
+                radio_i += 1;
                 break;
+            }
 
             case ekCELL_TYPE_TOOL:
             {
