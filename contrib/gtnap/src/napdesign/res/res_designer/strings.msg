@@ -111,4 +111,4 @@ TIP_BUTTON_WIDTH    Minimum width of the push button, as long as the text is vis
 TIP_BUTTON_HPAD     Horizontal padding of the push button, -1 as default.
 TIP_BUTTON_VPAD     Vertical padding of the push button, -1 as default.
 TIP_CHECK_TEXT      The text that will be displayed to the right of the checkbox.
-
+TIP_RADIO_TEXT      The text that will be displayed to the right of the radio button.

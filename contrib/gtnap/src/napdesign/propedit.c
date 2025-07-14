@@ -47,6 +47,7 @@ struct _propdata_t
     Layout *label_layout;
     Layout *button_layout;
     Layout *check_layout;
+    Layout *radio_layout;
     Layout *tool_layout;
     Layout *edit_layout;
     Layout *text_layout;
@@ -566,6 +567,50 @@ static Layout *i_check_layout(PropData *data)
         Layout *layout = layout_create(1, 1);
         panel_layout(panel, layout1);
         drawer = designer_drawer(data->app, panel, ekDRAWER_CHECKBOX_PROPS);
+        layout_panel(layout, drawer, 0, 0);
+        return layout;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnRadioNotify(PropData *data, Event *e)
+{
+    cassert_no_null(data);
+    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
+    if (evbind_modify(e, FRadio, String *, text) == TRUE)
+    {
+        dform_synchro_cell_text(data->form, &data->sel);
+        dform_compose(data->form);
+        designer_canvas_update(data->app);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Layout *i_radio_layout(PropData *data)
+{
+    Layout *layout1 = layout_create(2, 1);
+    Label *label = label_create();
+    Edit *edit = edit_create();
+    cassert_no_null(data);
+    label_text(label, gui_text(TEXT_TEXT));
+    edit_tooltip(edit, gui_text(TIP_RADIO_TEXT));
+    layout_label(layout1, label, 0, 0);
+    layout_edit(layout1, edit, 1, 0);
+    layout_hexpand(layout1, 1);
+    layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
+    cell_dbind(layout_cell(layout1, 1, 0), FRadio, String *, text);
+    layout_dbind(layout1, listener(data, i_OnRadioNotify, PropData), FRadio);
+    data->radio_layout = layout1;
+
+    /* Drawer */
+    {
+        Panel *panel = panel_create();
+        Panel *drawer = NULL;
+        Layout *layout = layout_create(1, 1);
+        panel_layout(panel, layout1);
+        drawer = designer_drawer(data->app, panel, ekDRAWER_RADIO_PROPS);
         layout_panel(layout, drawer, 0, 0);
         return layout;
     }
@@ -1440,15 +1485,16 @@ static Panel *i_cell_content_panel(PropData *data)
     Layout *layout3 = i_label_layout(data);
     Layout *layout4 = i_button_layout(data);
     Layout *layout5 = i_check_layout(data);
-    Layout *layout6 = i_tool_layout(data);
-    Layout *layout7 = i_edit_layout(data);
-    Layout *layout8 = i_text_layout(data);
-    Layout *layout9 = i_image_layout(data);
-    Layout *layout10 = i_slider_layout(data);
-    Layout *layout11 = i_progress_layout(data);
-    Layout *layout12 = i_popup_layout(data);
-    Layout *layout13 = i_listbox_layout(data);
-    Layout *layout14 = i_table_layout(data);
+    Layout *layout6 = i_radio_layout(data);
+    Layout *layout7 = i_tool_layout(data);
+    Layout *layout8 = i_edit_layout(data);
+    Layout *layout9 = i_text_layout(data);
+    Layout *layout10 = i_image_layout(data);
+    Layout *layout11 = i_slider_layout(data);
+    Layout *layout12 = i_progress_layout(data);
+    Layout *layout13 = i_popup_layout(data);
+    Layout *layout14 = i_listbox_layout(data);
+    Layout *layout15 = i_table_layout(data);
     Panel *panel = panel_create();
     cassert_no_null(data);
     panel_layout(panel, layout1);
@@ -1465,6 +1511,7 @@ static Panel *i_cell_content_panel(PropData *data)
     panel_layout(panel, layout12);
     panel_layout(panel, layout13);
     panel_layout(panel, layout14);
+    panel_layout(panel, layout15);
     panel_visible_layout(panel, 0);
     data->cell_panel = panel;
     return panel;
@@ -1735,59 +1782,60 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
         }
         else if (cell->type == ekCELL_TYPE_RADIO)
         {
-
+            layout_dbind_obj(data->radio_layout, cell->widget.radio, FRadio);
+            panel_visible_layout(data->cell_panel, 5);
         }    
         else if (cell->type == ekCELL_TYPE_TOOL)
         {
             const char_t *folder_path = designer_folder_path(data->app);
             layout_dbind_obj(data->tool_layout, cell->widget.tool, FTool);
             i_update_icon(data->icon_tool_view, data->label_tool_icon, data->load_tool_icon, folder_path, tc(cell->widget.tool->path));
-            panel_visible_layout(data->cell_panel, 5);
+            panel_visible_layout(data->cell_panel, 6);
         }
         else if (cell->type == ekCELL_TYPE_EDIT)
         {
             layout_dbind_obj(data->edit_layout, cell->widget.edit, FEdit);
-            panel_visible_layout(data->cell_panel, 6);
+            panel_visible_layout(data->cell_panel, 7);
         }
         else if (cell->type == ekCELL_TYPE_TEXT)
         {
             layout_dbind_obj(data->text_layout, cell->widget.text, FText);
-            panel_visible_layout(data->cell_panel, 7);
+            panel_visible_layout(data->cell_panel, 8);
         }
         else if (cell->type == ekCELL_TYPE_IMAGE)
         {
             layout_dbind_obj(data->image_layout, cell->widget.image, FImage);
-            panel_visible_layout(data->cell_panel, 8);
+            panel_visible_layout(data->cell_panel, 9);
             button_tooltip(data->load_button, tc(cell->widget.image->path));
         }
         else if (cell->type == ekCELL_TYPE_SLIDER)
         {
             layout_dbind_obj(data->slider_layout, cell->widget.slider, FSlider);
-            panel_visible_layout(data->cell_panel, 9);
+            panel_visible_layout(data->cell_panel, 10);
         }
         else if (cell->type == ekCELL_TYPE_PROGRESS)
         {
             layout_dbind_obj(data->progress_layout, cell->widget.progress, FProgress);
-            panel_visible_layout(data->cell_panel, 10);
+            panel_visible_layout(data->cell_panel, 11);
         }
         else if (cell->type == ekCELL_TYPE_POPUP)
         {
             const char_t *folder_path = designer_folder_path(data->app);
             layout_dbind_obj(data->popup_layout, cell->widget.popup, FPopUp);
-            panel_visible_layout(data->cell_panel, 11);
+            panel_visible_layout(data->cell_panel, 12);
             i_update_elem_list(cell->widget.popup->elems, data->popup_list, folder_path);
         }
         else if (cell->type == ekCELL_TYPE_LISTBOX)
         {
             const char_t *folder_path = designer_folder_path(data->app);
             layout_dbind_obj(data->listbox_layout, cell->widget.listbox, FListBox);
-            panel_visible_layout(data->cell_panel, 12);
+            panel_visible_layout(data->cell_panel, 13);
             i_update_elem_list(cell->widget.listbox->elems, data->listbox_list, folder_path);
         }
         else if (cell->type == ekCELL_TYPE_TABLEVIEW)
         {
             layout_dbind_obj(data->table_layout, cell->widget.table, FTable);
-            panel_visible_layout(data->cell_panel, 13);
+            panel_visible_layout(data->cell_panel, 14);
             i_update_header_list(cell->widget.table->headers, data->table_list, data->header_layout);
         }
         else

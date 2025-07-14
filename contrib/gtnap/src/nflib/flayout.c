@@ -119,6 +119,8 @@ static void i_remove_cell(FCell *cell)
     cassert(cell->widget.label == NULL);
     cassert(cell->widget.button == NULL);
     cassert(cell->widget.check == NULL);
+    cassert(cell->widget.radio == NULL);
+    cassert(cell->widget.tool == NULL);
     cassert(cell->widget.edit == NULL);
     cassert(cell->widget.text == NULL);
     cassert(cell->widget.image == NULL);
@@ -126,6 +128,7 @@ static void i_remove_cell(FCell *cell)
     cassert(cell->widget.progress == NULL);
     cassert(cell->widget.popup == NULL);
     cassert(cell->widget.listbox == NULL);
+    cassert(cell->widget.table == NULL);
     cassert(cell->widget.layout == NULL);
 }
 
@@ -1281,7 +1284,7 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                 case ekCELL_TYPE_RADIO:
                 {
                     FRadio *fradio = cells->widget.radio;
-                    Button *gradio = button_check();
+                    Button *gradio = button_radio();
                     button_text(gradio, tc(fradio->text));
                     layout_button(glayout, gradio, i, j);
                     break;
