@@ -30,6 +30,7 @@ static void i_dbind(void)
     dbind_enum(celltype_t, ekCELL_TYPE_LABEL, "");
     dbind_enum(celltype_t, ekCELL_TYPE_BUTTON, "");
     dbind_enum(celltype_t, ekCELL_TYPE_CHECK, "");
+    dbind_enum(celltype_t, ekCELL_TYPE_RADIO, "");
     dbind_enum(celltype_t, ekCELL_TYPE_TOOL, "");
     dbind_enum(celltype_t, ekCELL_TYPE_EDIT, "");
     dbind_enum(celltype_t, ekCELL_TYPE_TEXT, "");
@@ -61,6 +62,7 @@ static void i_dbind(void)
     dbind(FButton, real32_t, hpadding);
     dbind(FButton, real32_t, vpadding);
     dbind(FCheck, String *, text);
+    dbind(FRadio, String *, text);
     dbind(FTool, String *, path);
     dbind(FTool, real32_t, hpadding);
     dbind(FTool, real32_t, vpadding);
@@ -249,6 +251,7 @@ static void i_dbind(void)
     dbind(FWidget, FLabel *, label);
     dbind(FWidget, FButton *, button);
     dbind(FWidget, FCheck *, check);
+    dbind(FWidget, FRadio *, radio);
     dbind(FWidget, FTool *, tool);
     dbind(FWidget, FEdit *, edit);
     dbind(FWidget, FText *, text);
@@ -264,6 +267,8 @@ static void i_dbind(void)
     dbind_default(FWidget, FLabel *, label, NULL);
     dbind_default(FWidget, FButton *, button, NULL);
     dbind_default(FWidget, FCheck *, check, NULL);
+    dbind_default(FWidget, FRadio *, radio, NULL);
+    dbind_default(FWidget, FTool *, tool, NULL);
     dbind_default(FWidget, FEdit *, edit, NULL);
     dbind_default(FWidget, FText *, text, NULL);
     dbind_default(FWidget, FImage *, image, NULL);

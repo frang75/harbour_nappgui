@@ -1733,6 +1733,10 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
             layout_dbind_obj(data->check_layout, cell->widget.check, FCheck);
             panel_visible_layout(data->cell_panel, 4);
         }
+        else if (cell->type == ekCELL_TYPE_RADIO)
+        {
+
+        }    
         else if (cell->type == ekCELL_TYPE_TOOL)
         {
             const char_t *folder_path = designer_folder_path(data->app);

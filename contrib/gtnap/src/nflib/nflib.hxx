@@ -9,6 +9,7 @@
 typedef struct _flabel_t FLabel;
 typedef struct _fbutton_t FButton;
 typedef struct _fcheck_t FCheck;
+typedef struct _fradio_t FRadio;
 typedef struct _ftool_t FTool;
 typedef struct _fedit_t FEdit;
 typedef struct _ftext_t FText;
@@ -43,7 +44,8 @@ typedef enum _celltype_t
     ekCELL_TYPE_POPUP,
     ekCELL_TYPE_LISTBOX,
     ekCELL_TYPE_TABLEVIEW,
-    ekCELL_TYPE_TOOL
+    ekCELL_TYPE_TOOL,
+    ekCELL_TYPE_RADIO
 } celltype_t;
 
 /* Don't change the order. Add new values to end */
@@ -90,6 +92,11 @@ struct _fbutton_t
 };
 
 struct _fcheck_t
+{
+    String *text;
+};
+
+struct _fradio_t
 {
     String *text;
 };
@@ -187,6 +194,7 @@ struct _fwidget_t
     FLabel *label;
     FButton *button;
     FCheck *check;
+    FRadio *radio;
     FTool *tool;
     FEdit *edit;
     FText *text;

@@ -967,6 +967,11 @@ void dform_synchro_cell_text(DForm *form, const DSelect *sel)
         Button *button = layout_get_button(sel->glayout, sel->col, sel->row);
         button_text(button, tc(cell->widget.check->text));
     }
+    else if (cell->type == ekCELL_TYPE_RADIO)
+    {
+        Button *button = layout_get_button(sel->glayout, sel->col, sel->row);
+        button_text(button, tc(cell->widget.radio->text));
+    }
     else
     {
         cassert(FALSE);
@@ -1429,6 +1434,8 @@ const char_t* dform_cell_type(const celltype_t type)
         return gui_text(TEXT_CELL_BUTTON);
     case ekCELL_TYPE_CHECK:
         return gui_text(TEXT_CELL_CHECK);
+    case ekCELL_TYPE_RADIO:
+        return gui_text(TEXT_CELL_RADIO);
     case ekCELL_TYPE_TOOL:
         return gui_text(TEXT_CELL_TOOL);        
     case ekCELL_TYPE_EDIT:
