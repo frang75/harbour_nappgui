@@ -2,6 +2,7 @@
 
 #include "flayout.h"
 #include "nflib.h"
+#include "flabel.h"
 #include <gui/button.h>
 #include <gui/cell.h>
 #include <gui/label.h>
@@ -1251,12 +1252,9 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                 case ekCELL_TYPE_LABEL:
                 {
                     FLabel *flabel = cells->widget.label;
-                    Label *glabel = label_create();
-                    label_text(glabel, tc(flabel->text));
-                    label_multiline(glabel, flabel->multiline);
-                    label_min_width(glabel, flabel->min_width);
-                    label_align(glabel, i_halign(flabel->align));
-                    layout_label(glayout, glabel, i, j);
+                    Label *label = label_create();
+                    flabel_syncro(flabel, label);
+                    layout_label(glayout, label, i, j);
                     break;
                 }
 

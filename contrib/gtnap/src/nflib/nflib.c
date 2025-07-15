@@ -1,6 +1,7 @@
 /* NAppGUI forms common base */
 
 #include "nflib.h"
+#include "nflib.inl"
 #include "nflib_res.h"
 #include <gui/gui.h>
 #include <draw2d/image.h>
@@ -327,4 +328,22 @@ const Image *nflib_default_icon(void)
     if (i_RESPACK == NULL)
         i_RESPACK = nflib_res_respack("");
     return image_from_resource(i_RESPACK, EMPTY24_PNG);
+}
+
+/*---------------------------------------------------------------------------*/
+
+align_t _nflib_halign(const halign_t halign)
+{
+    switch(halign) {
+    case ekHALIGN_LEFT:
+        return ekLEFT;
+    case ekHALIGN_CENTER:
+        return ekCENTER;
+    case ekHALIGN_RIGHT:
+        return ekRIGHT;
+    case ekHALIGN_JUSTIFY:
+        return ekJUSTIFY;
+    cassert_default();
+    }
+    return ekLEFT;
 }

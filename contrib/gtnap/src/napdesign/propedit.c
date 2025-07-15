@@ -394,18 +394,9 @@ static void i_OnLabelNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
     cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
-    if (evbind_modify(e, FLabel, String *, text) == TRUE)
-    {
-        dform_synchro_cell_text(data->form, &data->sel);
-        dform_compose(data->form);
-        designer_canvas_update(data->app);
-    }
-    else if (evbind_modify(e, FLabel, bool_t, multiline) == TRUE || evbind_modify(e, FLabel, real32_t, min_width) == TRUE || evbind_modify(e, FLabel, halign_t, align) == TRUE)
-    {
-        dform_synchro_label(data->form, &data->sel);
-        dform_compose(data->form);
-        designer_canvas_update(data->app);
-    }
+    dform_synchro_label(data->form, &data->sel);
+    dform_compose(data->form);
+    designer_canvas_update(data->app);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -457,10 +457,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 if (flabel != NULL)
                 {
                     Label *label = label_create();
-                    label_text(label, tc(flabel->text));
-                    label_multiline(label, flabel->multiline);
-                    label_min_width(label, flabel->min_width);
-                    label_align(label, i_halign(flabel->align));
+                    flabel_syncro(flabel, label);
                     i_sel_remove_cell(&sel);
                     flayout_add_label(sel.flayout, flabel, sel.col, sel.row);
                     layout_label(sel.glayout, label, sel.col, sel.row);
@@ -975,12 +972,7 @@ void dform_synchro_cell_text(DForm *form, const DSelect *sel)
     cassert_no_null(sel);
     cassert_no_null(cell);
     i_need_save(form);
-    if (cell->type == ekCELL_TYPE_LABEL)
-    {
-        Label *label = layout_get_label(sel->glayout, sel->col, sel->row);
-        label_text(label, tc(cell->widget.label->text));
-    }
-    else if (cell->type == ekCELL_TYPE_BUTTON)
+    if (cell->type == ekCELL_TYPE_BUTTON)
     {
         Button *button = layout_get_button(sel->glayout, sel->col, sel->row);
         button_text(button, tc(cell->widget.button->text));
@@ -1040,9 +1032,7 @@ void dform_synchro_label(DForm *form, const DSelect *sel)
     cassert(cell->type == ekCELL_TYPE_LABEL);
     i_need_save(form);
     label = layout_get_label(sel->glayout, sel->col, sel->row);
-    label_multiline(label, cell->widget.label->multiline);
-    label_min_width(label, cell->widget.label->min_width);
-    label_align(label, i_halign(cell->widget.label->align));
+    flabel_syncro(cell->widget.label, label);
 }
 
 /*---------------------------------------------------------------------------*/
