@@ -30,8 +30,6 @@ V2Df dform_get_origin(const DForm *form);
 
 void dform_origin(DForm *form, const V2Df origin);
 
-void dform_synchro_cell_text(DForm *form, const DSelect *sel);
-
 void dform_synchro_cell_image(DForm *form, const DSelect *sel, const Image *image, const char_t *imgname);
 
 void dform_synchro_label(DForm *form, const DSelect *sel);
@@ -39,6 +37,8 @@ void dform_synchro_label(DForm *form, const DSelect *sel);
 void dform_synchro_button(DForm *form, const DSelect *sel);
 
 void dform_synchro_check(DForm *form, const DSelect *sel);
+
+void dform_synchro_radio(DForm *form, const DSelect *sel);
 
 void dform_synchro_tool(DForm *form, const DSelect *sel);
 

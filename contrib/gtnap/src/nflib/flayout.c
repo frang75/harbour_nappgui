@@ -2,8 +2,10 @@
 
 #include "flayout.h"
 #include "nflib.h"
+#include "fcheck.h"
 #include "fbutton.h"
 #include "flabel.h"
+#include "fradio.h"
 #include <gui/button.h>
 #include <gui/cell.h>
 #include <gui/label.h>
@@ -1276,10 +1278,9 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
 
                 case ekCELL_TYPE_RADIO:
                 {
-                    FRadio *fradio = cells->widget.radio;
-                    Button *gradio = button_radio();
-                    button_text(gradio, tc(fradio->text));
-                    layout_button(glayout, gradio, i, j);
+                    Button *button = button_radio();
+                    fradio_synchro(cells->widget.radio, button);
+                    layout_button(glayout, button, i, j);
                     break;
                 }
 

@@ -12,6 +12,7 @@
 #include <nflib/fcheck.h>
 #include <nflib/flabel.h>
 #include <nflib/flayout.h>
+#include <nflib/fradio.h>
 #include <gui/guicontrol.h>
 #include <gui/button.h>
 #include <gui/edit.h>
@@ -529,17 +530,12 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FRadio *fradio = dialog_new_radio(window, font, &sel);
                 if (fradio != NULL)
                 {
-                    Button *radio = button_radio();
-                    button_text(radio, tc(fradio->text));
+                    Button *button = button_radio();
+                    fradio_synchro(fradio, button);
                     i_sel_remove_cell(&sel);
                     flayout_add_radio(sel.flayout, fradio, sel.col, sel.row);
-                    layout_button(sel.glayout, radio, sel.col, sel.row);
-                    i_sel_synchro_cell(&sel);
-                    dform_compose(form);
-                    propedit_set(propedit, form, &sel);
-                    inspect_set(inspect, form);
-                    form->sel = sel;
-                    i_need_save(form);
+                    layout_button(sel.glayout, button, sel.col, sel.row);
+                    i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
                 else
@@ -963,26 +959,6 @@ static FCell *i_sel_fcell(const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-void dform_synchro_cell_text(DForm *form, const DSelect *sel)
-{
-    FCell *cell = i_sel_fcell(sel);
-    cassert_no_null(form);
-    cassert_no_null(sel);
-    cassert_no_null(cell);
-    i_need_save(form);
-    if (cell->type == ekCELL_TYPE_RADIO)
-    {
-        Button *button = layout_get_button(sel->glayout, sel->col, sel->row);
-        button_text(button, tc(cell->widget.radio->text));
-    }
-    else
-    {
-        cassert(FALSE);
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
 void dform_synchro_cell_image(DForm *form, const DSelect *sel, const Image *image, const char_t *imgname)
 {
     FCell *cell = i_sel_fcell(sel);
@@ -1051,6 +1027,21 @@ void dform_synchro_check(DForm *form, const DSelect *sel)
     i_need_save(form);
     button = layout_get_button(sel->glayout, sel->col, sel->row);
     fcheck_synchro(cell->widget.check, button);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dform_synchro_radio(DForm *form, const DSelect *sel)
+{
+    FCell *cell = i_sel_fcell(sel);
+    Button *button = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_RADIO);
+    i_need_save(form);
+    button = layout_get_button(sel->glayout, sel->col, sel->row);
+    fradio_synchro(cell->widget.radio, button);
 }
 
 /*---------------------------------------------------------------------------*/
