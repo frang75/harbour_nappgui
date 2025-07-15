@@ -456,19 +456,9 @@ static void i_OnButtonNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
     cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
-    if (evbind_modify(e, FButton, String *, text) == TRUE)
-    {
-        dform_synchro_cell_text(data->form, &data->sel);
-        dform_compose(data->form);
-        designer_canvas_update(data->app);
-    }
-    else if (evbind_modify(e, FButton, real32_t, min_width) == TRUE
-        || evbind_modify(e, FButton, real32_t, hpadding) == TRUE || evbind_modify(e, FButton, real32_t, vpadding) == TRUE)
-    {
-        dform_synchro_button(data->form, &data->sel);
-        dform_compose(data->form);
-        designer_canvas_update(data->app);
-    }
+    dform_synchro_button(data->form, &data->sel);
+    dform_compose(data->form);
+    designer_canvas_update(data->app);
 }
 
 /*---------------------------------------------------------------------------*/

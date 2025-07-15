@@ -2,6 +2,7 @@
 
 #include "flayout.h"
 #include "nflib.h"
+#include "fbutton.h"
 #include "flabel.h"
 #include <gui/button.h>
 #include <gui/cell.h>
@@ -1261,12 +1262,9 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                 case ekCELL_TYPE_BUTTON:
                 {
                     FButton *fbutton = cells->widget.button;
-                    Button *gbutton = button_push();
-                    button_text(gbutton, tc(fbutton->text));
-                    button_min_width(gbutton, fbutton->min_width);
-                    button_hpadding(gbutton, fbutton->hpadding);
-                    button_vpadding(gbutton, fbutton->vpadding);
-                    layout_button(glayout, gbutton, i, j);
+                    Button *button = button_push();
+                    fbutton_syncro(fbutton, button);
+                    layout_button(glayout, button, i, j);
                     break;
                 }
 

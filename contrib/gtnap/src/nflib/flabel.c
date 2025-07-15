@@ -2,10 +2,10 @@
 
 #include "flabel.h"
 #include "nflib.inl"
+#include <gui/label.h>
 #include <core/dbind.h>
 #include <core/strings.h>
 #include <sewer/cassert.h>
-#include <gui/label.h>
 
 /*---------------------------------------------------------------------------*/
 

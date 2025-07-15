@@ -8,6 +8,7 @@
 #include "propedit.h"
 #include "res_designer.h"
 #include <nflib/nflib.h>
+#include <nflib/fbutton.h>
 #include <nflib/flabel.h>
 #include <nflib/flayout.h>
 #include <gui/guicontrol.h>
@@ -481,10 +482,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 if (fbutton != NULL)
                 {
                     Button *button = button_push();
-                    button_text(button, tc(fbutton->text));
-                    button_min_width(button, fbutton->min_width);
-                    button_hpadding(button, fbutton->hpadding);
-                    button_vpadding(button, fbutton->vpadding);
+                    fbutton_syncro(fbutton, button);
                     i_sel_remove_cell(&sel);
                     flayout_add_button(sel.flayout, fbutton, sel.col, sel.row);
                     layout_button(sel.glayout, button, sel.col, sel.row);
@@ -972,12 +970,7 @@ void dform_synchro_cell_text(DForm *form, const DSelect *sel)
     cassert_no_null(sel);
     cassert_no_null(cell);
     i_need_save(form);
-    if (cell->type == ekCELL_TYPE_BUTTON)
-    {
-        Button *button = layout_get_button(sel->glayout, sel->col, sel->row);
-        button_text(button, tc(cell->widget.button->text));
-    }
-    else if (cell->type == ekCELL_TYPE_CHECK)
+    if (cell->type == ekCELL_TYPE_CHECK)
     {
         Button *button = layout_get_button(sel->glayout, sel->col, sel->row);
         button_text(button, tc(cell->widget.check->text));
@@ -1047,9 +1040,7 @@ void dform_synchro_button(DForm *form, const DSelect *sel)
     cassert(cell->type == ekCELL_TYPE_BUTTON);
     i_need_save(form);
     button = layout_get_button(sel->glayout, sel->col, sel->row);
-    button_min_width(button, cell->widget.button->min_width);
-    button_hpadding(button, cell->widget.button->hpadding);
-    button_vpadding(button, cell->widget.button->vpadding);
+    fbutton_syncro(cell->widget.button, button);
 }
 
 /*---------------------------------------------------------------------------*/
