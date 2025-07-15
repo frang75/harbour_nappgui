@@ -13,6 +13,7 @@
 #include <nflib/flabel.h>
 #include <nflib/flayout.h>
 #include <nflib/fradio.h>
+#include <nflib/ftool.h>
 #include <gui/guicontrol.h>
 #include <gui/button.h>
 #include <gui/edit.h>
@@ -550,35 +551,15 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FTool *ftool = dialog_new_tool(window, font, &sel, folder_path);
                 if (ftool != NULL)
                 {
-                    Button *tool = button_flat();
-                    String *path = str_printf("%s%s", folder_path, tc(ftool->path));
-                    Image *image = image_from_file(tc(path), NULL);                    
-                    button_hpadding(tool, ftool->hpadding);
-                    button_vpadding(tool, ftool->vpadding);
-
-                    if (image != NULL)
-                    {
-                        button_image(tool, image);
-                        dlayout_set_image(sel.dlayout, image, sel.col, sel.row);
-                    }
-                    else
-                    {
-                        const Image *rimage = nflib_default_icon();
-                        button_image(tool, rimage);
-                        dlayout_set_image(sel.dlayout, rimage, sel.col, sel.row);
-                    }
-
+                    Button *button = button_flat();
+                    const Image *image = NULL;
+                    ftool_synchro(ftool, button, folder_path);
                     i_sel_remove_cell(&sel);
                     flayout_add_tool(sel.flayout, ftool, sel.col, sel.row);
-                    layout_button(sel.glayout, tool, sel.col, sel.row);
-                    i_sel_synchro_cell(&sel);
-                    dform_compose(form);
-                    propedit_set(propedit, form, &sel);
-                    inspect_set(inspect, form);
-                    form->sel = sel;
-                    i_need_save(form);
-                    ptr_destopt(image_destroy, &image, Image);
-                    str_destroy(&path);
+                    layout_button(sel.glayout, button, sel.col, sel.row);
+                    image = button_get_image(button);
+                    dlayout_set_image(sel.dlayout, image, sel.col, sel.row);
+                    i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
                 else
@@ -966,13 +947,7 @@ void dform_synchro_cell_image(DForm *form, const DSelect *sel, const Image *imag
     cassert_no_null(sel);
     cassert_no_null(cell);
     i_need_save(form);
-    if (cell->type == ekCELL_TYPE_TOOL)
-    {
-        Button *tool = layout_get_button(sel->glayout, sel->col, sel->row);
-        button_image(tool, image);
-        str_upd(&cell->widget.tool->path, imgname);
-    }
-    else if (cell->type == ekCELL_TYPE_IMAGE)
+    if (cell->type == ekCELL_TYPE_IMAGE)
     {
         ImageView *imgview = layout_get_imageview(sel->glayout, sel->col, sel->row);
         imageview_image(imgview, image);
@@ -1056,8 +1031,7 @@ void dform_synchro_tool(DForm *form, const DSelect *sel)
     cassert(cell->type == ekCELL_TYPE_TOOL);
     i_need_save(form);
     button = layout_get_button(sel->glayout, sel->col, sel->row);
-    button_hpadding(button, cell->widget.tool->hpadding);
-    button_vpadding(button, cell->widget.tool->vpadding);
+    ftool_synchro(cell->widget.tool, button, NULL);
 }
 
 /*---------------------------------------------------------------------------*/

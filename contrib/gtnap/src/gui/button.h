@@ -61,4 +61,8 @@ _gui_api uint32_t button_get_tag(const Button *button);
 
 _gui_api real32_t button_get_height(const Button *button);
 
+_gui_api const Image *button_get_image(const Button *button);
+
+_gui_api const Image *button_get_image_alt(const Button *button);
+
 __END_C

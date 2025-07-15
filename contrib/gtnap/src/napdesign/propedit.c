@@ -638,10 +638,11 @@ static void i_OnLoadIcon(PropData *data, Event *e)
             String *relpath = str_relpath(ekLINUX, folder_path, imgpath);
             FCell *cell = dform_sel_fcell(&data->sel);
             cassert_no_null(cell);
-            dform_synchro_cell_image(data->form, &data->sel, image, tc(relpath));
-
             if (cell->type == ekCELL_TYPE_TOOL)
             {
+                Button *button = layout_get_button(data->sel.glayout, data->sel.col, data->sel.row);
+                button_image(button, image);
+                str_upd(&cell->widget.tool->path, tc(relpath));        
                 layout_dbind_obj(data->tool_layout, cell->widget.tool, FTool);
                 i_update_icon(data->icon_tool_view, data->label_tool_icon, data->load_tool_icon, folder_path, tc(cell->widget.tool->path));
             }
@@ -693,12 +694,9 @@ static void i_OnToolNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
     cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
-    if (evbind_modify(e, FTool, real32_t, hpadding) == TRUE || evbind_modify(e, FTool, real32_t, vpadding) == TRUE)
-    {
-        dform_synchro_tool(data->form, &data->sel);
-        dform_compose(data->form);
-        designer_canvas_update(data->app);
-    }
+    dform_synchro_tool(data->form, &data->sel);
+    dform_compose(data->form);
+    designer_canvas_update(data->app);
 }
 
 /*---------------------------------------------------------------------------*/

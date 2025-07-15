@@ -444,6 +444,22 @@ real32_t button_get_height(const Button *button)
 
 /*---------------------------------------------------------------------------*/
 
+const Image *button_get_image(const Button *button)
+{
+    cassert_no_null(button);
+    return button->image;
+}
+
+/*---------------------------------------------------------------------------*/
+
+const Image *button_get_image_alt(const Button *button)
+{
+    cassert_no_null(button);
+    return button->imalt;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _button_natural(Button *button, const uint32_t i, real32_t *dim0, real32_t *dim1)
 {
     cassert_no_null(button);
