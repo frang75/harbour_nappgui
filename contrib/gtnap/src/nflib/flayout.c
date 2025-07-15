@@ -1252,28 +1252,25 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
 
                 case ekCELL_TYPE_LABEL:
                 {
-                    FLabel *flabel = cells->widget.label;
                     Label *label = label_create();
-                    flabel_syncro(flabel, label);
+                    flabel_synchro(cells->widget.label, label);
                     layout_label(glayout, label, i, j);
                     break;
                 }
 
                 case ekCELL_TYPE_BUTTON:
                 {
-                    FButton *fbutton = cells->widget.button;
                     Button *button = button_push();
-                    fbutton_syncro(fbutton, button);
+                    fbutton_synchro(cells->widget.button, button);
                     layout_button(glayout, button, i, j);
                     break;
                 }
 
                 case ekCELL_TYPE_CHECK:
                 {
-                    FCheck *fcheck = cells->widget.check;
-                    Button *gcheck = button_check();
-                    button_text(gcheck, tc(fcheck->text));
-                    layout_button(glayout, gcheck, i, j);
+                    Button *button = button_check();
+                    fcheck_synchro(cells->widget.check, button);
+                    layout_button(glayout, button, i, j);
                     break;
                 }
 

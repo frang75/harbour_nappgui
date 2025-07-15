@@ -9,6 +9,7 @@
 #include "res_designer.h"
 #include <nflib/nflib.h>
 #include <nflib/fbutton.h>
+#include <nflib/fcheck.h>
 #include <nflib/flabel.h>
 #include <nflib/flayout.h>
 #include <gui/guicontrol.h>
@@ -437,6 +438,20 @@ static bool_t i_sel_empty_cell(const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_after_new_widget(DForm *form, Panel *inspect, Panel *propedit, DSelect *sel)
+{
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    i_sel_synchro_cell(sel);
+    dform_compose(form);
+    propedit_set(propedit, form, sel);
+    inspect_set(inspect, form);
+    form->sel = *sel;
+    i_need_save(form);
+}
+    
+/*---------------------------------------------------------------------------*/
+
 bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedit, const Font *font, const widget_t widget, const real32_t mouse_x, const real32_t mouse_y, const gui_mouse_t mbutton)
 {
     cassert_no_null(form);
@@ -458,16 +473,11 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 if (flabel != NULL)
                 {
                     Label *label = label_create();
-                    flabel_syncro(flabel, label);
+                    flabel_synchro(flabel, label);
                     i_sel_remove_cell(&sel);
                     flayout_add_label(sel.flayout, flabel, sel.col, sel.row);
                     layout_label(sel.glayout, label, sel.col, sel.row);
-                    i_sel_synchro_cell(&sel);
-                    dform_compose(form);
-                    propedit_set(propedit, form, &sel);
-                    inspect_set(inspect, form);
-                    form->sel = sel;
-                    i_need_save(form);
+                    i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
                 else
@@ -482,16 +492,11 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 if (fbutton != NULL)
                 {
                     Button *button = button_push();
-                    fbutton_syncro(fbutton, button);
+                    fbutton_synchro(fbutton, button);
                     i_sel_remove_cell(&sel);
                     flayout_add_button(sel.flayout, fbutton, sel.col, sel.row);
                     layout_button(sel.glayout, button, sel.col, sel.row);
-                    i_sel_synchro_cell(&sel);
-                    dform_compose(form);
-                    propedit_set(propedit, form, &sel);
-                    inspect_set(inspect, form);
-                    form->sel = sel;
-                    i_need_save(form);
+                    i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
                 else
@@ -505,17 +510,12 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FCheck *fcheck = dialog_new_check(window, font, &sel);
                 if (fcheck != NULL)
                 {
-                    Button *check = button_check();
-                    button_text(check, tc(fcheck->text));
+                    Button *button = button_check();
+                    fcheck_synchro(fcheck, button);
                     i_sel_remove_cell(&sel);
                     flayout_add_check(sel.flayout, fcheck, sel.col, sel.row);
-                    layout_button(sel.glayout, check, sel.col, sel.row);
-                    i_sel_synchro_cell(&sel);
-                    dform_compose(form);
-                    propedit_set(propedit, form, &sel);
-                    inspect_set(inspect, form);
-                    form->sel = sel;
-                    i_need_save(form);
+                    layout_button(sel.glayout, button, sel.col, sel.row);
+                    i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
                 else
@@ -970,12 +970,7 @@ void dform_synchro_cell_text(DForm *form, const DSelect *sel)
     cassert_no_null(sel);
     cassert_no_null(cell);
     i_need_save(form);
-    if (cell->type == ekCELL_TYPE_CHECK)
-    {
-        Button *button = layout_get_button(sel->glayout, sel->col, sel->row);
-        button_text(button, tc(cell->widget.check->text));
-    }
-    else if (cell->type == ekCELL_TYPE_RADIO)
+    if (cell->type == ekCELL_TYPE_RADIO)
     {
         Button *button = layout_get_button(sel->glayout, sel->col, sel->row);
         button_text(button, tc(cell->widget.radio->text));
@@ -1025,7 +1020,7 @@ void dform_synchro_label(DForm *form, const DSelect *sel)
     cassert(cell->type == ekCELL_TYPE_LABEL);
     i_need_save(form);
     label = layout_get_label(sel->glayout, sel->col, sel->row);
-    flabel_syncro(cell->widget.label, label);
+    flabel_synchro(cell->widget.label, label);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1040,7 +1035,22 @@ void dform_synchro_button(DForm *form, const DSelect *sel)
     cassert(cell->type == ekCELL_TYPE_BUTTON);
     i_need_save(form);
     button = layout_get_button(sel->glayout, sel->col, sel->row);
-    fbutton_syncro(cell->widget.button, button);
+    fbutton_synchro(cell->widget.button, button);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dform_synchro_check(DForm *form, const DSelect *sel)
+{
+    FCell *cell = i_sel_fcell(sel);
+    Button *button = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_CHECK);
+    i_need_save(form);
+    button = layout_get_button(sel->glayout, sel->col, sel->row);
+    fcheck_synchro(cell->widget.check, button);
 }
 
 /*---------------------------------------------------------------------------*/

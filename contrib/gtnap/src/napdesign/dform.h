@@ -38,6 +38,8 @@ void dform_synchro_label(DForm *form, const DSelect *sel);
 
 void dform_synchro_button(DForm *form, const DSelect *sel);
 
+void dform_synchro_check(DForm *form, const DSelect *sel);
+
 void dform_synchro_tool(DForm *form, const DSelect *sel);
 
 void dform_synchro_edit(DForm *form, const DSelect *sel);

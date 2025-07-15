@@ -16,7 +16,7 @@ FLabel *flabel_create(void)
 
 /*---------------------------------------------------------------------------*/
 
-void flabel_syncro(const FLabel *flabel, Label *label)
+void flabel_synchro(const FLabel *flabel, Label *label)
 {
     cassert_no_null(flabel);
     label_text(label, tc(flabel->text));

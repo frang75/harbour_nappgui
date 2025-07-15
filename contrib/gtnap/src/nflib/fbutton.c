@@ -15,7 +15,7 @@ FButton *fbutton_create(void)
 
 /*---------------------------------------------------------------------------*/
 
-void fbutton_syncro(const FButton *fbutton, Button *button)
+void fbutton_synchro(const FButton *fbutton, Button *button)
 {
     cassert_no_null(fbutton);
     button_text(button, tc(fbutton->text));
