@@ -34,7 +34,7 @@ endif()
 get_filename_component(NAPPGUI_ROOT_PATH "${CMAKE_CURRENT_LIST_DIR}" DIRECTORY)
 set(NAPPGUI_INCLUDE_PATH "${NAPPGUI_ROOT_PATH}/inc")
 set(NAPPGUI_NRC "${NAPPGUI_ROOT_PATH}/bin/nrc${CMAKE_EXECUTABLE_SUFFIX}")
-set(NAPPGUI_LIBRARIES "nappgui::osapp;nappgui::gui;nappgui::osgui;nappgui::draw2d;nappgui::geom2d;nappgui::core;nappgui::osbs;nappgui::sewer")
+set(NAPPGUI_LIBRARIES "nappgui::osapp;nappgui::encode;nappgui::gui;nappgui::osgui;nappgui::draw2d;nappgui::geom2d;nappgui::core;nappgui::osbs;nappgui::sewer")
 
 # Welcome and options
 message(STATUS "Found NAppGUI at '${NAPPGUI_ROOT_PATH}'")
@@ -48,14 +48,22 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
         message(FATAL_ERROR "DEPLOYMENT_TARGET_OSX is not set")
     endif()
 
-    if (NOT CMAKE_OSX_SYSROOT)
-        message(FATAL_ERROR "CMAKE_OSX_SYSROOT is not set")
+    # Get the Base SDK
+    set(OSX_SYSROOT ${CMAKE_OSX_SYSROOT})
+
+    # In CMake 4, CMAKE_OSX_SYSROOT is empty by default
+    if (NOT OSX_SYSROOT)
+        execute_process(COMMAND xcrun --sdk macosx --show-sdk-path OUTPUT_VARIABLE OSX_SYSROOT)
+    endif()
+
+    if (NOT OSX_SYSROOT)
+        message(FATAL_ERROR "OSX_SYSROOT is not set")
     endif()
 
     # Set COCOA_LIB paths
-    set(COCOA_LIB ${CMAKE_OSX_SYSROOT}/System/Library/Frameworks/Cocoa.framework)
+    set(COCOA_LIB ${OSX_SYSROOT}/System/Library/Frameworks/Cocoa.framework)
     if (DEPLOYMENT_TARGET_OSX VERSION_GREATER 11.9999)
-        set(COCOA_LIB ${COCOA_LIB};${CMAKE_OSX_SYSROOT}/System/Library/Frameworks/UniformTypeIdentifiers.framework)
+        set(COCOA_LIB ${COCOA_LIB};${OSX_SYSROOT}/System/Library/Frameworks/UniformTypeIdentifiers.framework)
     endif()
 
 endif()

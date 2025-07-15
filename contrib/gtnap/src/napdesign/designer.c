@@ -49,6 +49,7 @@ struct _bwidget_t
     ResId labelid;
     ResId imageid;
     Button *button;
+    Label *label;
     bool_t opened;
 };
 
@@ -83,6 +84,7 @@ struct _desiger_t
     MenuItem *show_propedit;
     Image *add_icon;
     Font *default_font;
+    Font *bold_font;
     bool_t dragging;
     V2Df drag_mouse;
     V2Df drag_form;
@@ -127,7 +129,7 @@ static void i_destroy_form_opt(DForm **form)
 
 static ___INLINE const char_t *i_list_text(const ListBox *listbox, const uint32_t index)
 {
-    const char_t *name = listbox_text(listbox, index);
+    const char_t *name = listbox_get_text(listbox, index);
     if (str_is_prefix(name, i_SAVE_MARK) == TRUE)
         name += str_len_c(i_SAVE_MARK);
     return name;
@@ -137,7 +139,7 @@ static ___INLINE const char_t *i_list_text(const ListBox *listbox, const uint32_
 
 static ___INLINE bool_t i_with_save_mark(const ListBox *listbox, const uint32_t index)
 {
-    const char_t *name = listbox_text(listbox, index);
+    const char_t *name = listbox_get_text(listbox, index);
     return str_is_prefix(name, i_SAVE_MARK);
 }
 
@@ -579,10 +581,11 @@ static Layout *i_tools_layout(Designer *app)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_set_bwidget(const widget_t swidget, ArrSt(BWidget) *bwidgets)
+static void i_set_bwidget(const widget_t swidget, ArrSt(BWidget) *bwidgets, const Font *font, const Font *bold_font)
 {
     arrst_foreach(bwidget, bwidgets, BWidget)
         button_state(bwidget->button, bwidget->twidget == swidget ? ekGUI_ON : ekGUI_OFF);
+        label_font(bwidget->label, bwidget->twidget == swidget ? bold_font : font);
     arrst_end()
 }
 
@@ -600,7 +603,24 @@ static void i_OnWidgetButtonClick(Designer *app, Event *e)
         }
     arrst_end()
 
-    i_set_bwidget(app->config.swidget, app->bwidgets);
+    i_set_bwidget(app->config.swidget, app->bwidgets, app->default_font, app->bold_font);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnWidgetLabelClick(Designer *app, Event *e)
+{
+    Label *sender = event_sender(e, Label);
+    cassert_no_null(app);
+    arrst_foreach(bwidget, app->bwidgets, BWidget)
+        if (bwidget->label == sender)
+        {
+            app->config.swidget = bwidget->twidget;
+            break;
+        }
+    arrst_end()
+
+    i_set_bwidget(app->config.swidget, app->bwidgets, app->default_font, app->bold_font);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -626,17 +646,24 @@ static Panel *i_drawer_widget_panel(Designer *app, const drawer_t drawer)
                 Button *button = button_flatgle();
                 Label *label = label_create();
                 cassert(bwidget->button == NULL);
+                cassert(bwidget->label == NULL);
                 button_OnClick(button, listener(app, i_OnWidgetButtonClick, Designer));               
                 button_image(button, gui_image(bwidget->imageid));
+                button_vpadding(button, 0);
+                button_hpadding(button, 0);
                 label_text(label, gui_text(bwidget->labelid));
+                label_style_over(label, ekFUNDERLINE);
+                label_OnClick(label, listener(app, i_OnWidgetLabelClick, Designer));               
                 layout_button(layout, button, 0, i);
                 layout_label(layout, label, 1, i);
                 layout_tabstop(layout, 0, i, FALSE);
-                layout_halign(layout, 1, i, ekLEFT);
+                layout_halign(layout, 1, i, ekJUSTIFY);
                 bwidget->button = button;
+                bwidget->label = label;
                 i += 1;
             }
         arrst_end()
+        layout_margin4(layout, 0, 0, 0, 5);
         layout_hmargin(layout, 0, 10);
         layout_hexpand(layout, 1);
         panel_layout(panel, layout);
@@ -693,6 +720,8 @@ static bool_t i_is_widget_drawer(const drawer_t drawer)
     case ekDRAWER_LABEL_PROPS:
     case ekDRAWER_BUTTON_PROPS:
     case ekDRAWER_CHECKBOX_PROPS:
+    case ekDRAWER_RADIO_PROPS:
+    case ekDRAWER_TOOL_PROPS:
         return FALSE;
         cassert_default();
     }
@@ -1371,7 +1400,7 @@ static void i_apply_config(Designer *app)
     window_origin(app->window, v2df(app->config.wx, app->config.wy));
     window_size(app->window, s2df(app->config.wwidth, app->config.wheight));
     i_restore_splits(app);
-    i_set_bwidget(app->config.swidget, app->bwidgets);
+    i_set_bwidget(app->config.swidget, app->bwidgets, app->default_font, app->bold_font);
     menuitem_state(app->show_forms, i_bool_state(app->config.show_forms));
     menuitem_state(app->show_widgets, i_bool_state(app->config.show_widgets));
     menuitem_state(app->show_inspectr, i_bool_state(app->config.show_inspectr));
@@ -1424,6 +1453,7 @@ static Designer *i_app(void)
     app->forms = arrpt_create(DForm);
     app->add_icon = image_copy(gui_image(PLUS16_PNG));
     app->default_font = font_system(font_regular_size(), 0);
+    app->bold_font = font_system(font_regular_size(), ekFBOLD);
     app->wdrawers = arrst_create(WDrawer);
     app->bwidgets = arrst_create(BWidget);
     i_add_drawer(app->wdrawers, ekDRAWER_WIDGET_SELECT, "");
@@ -1439,14 +1469,16 @@ static Designer *i_app(void)
     i_add_drawer(app->wdrawers, ekDRAWER_LABEL_PROPS, TEXT_LABEL_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_BUTTON_PROPS, TEXT_BUTTON_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_CHECKBOX_PROPS, TEXT_CHECK_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_RADIO_PROPS, TEXT_RADIO_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_TOOL_PROPS, TEXT_TOOL_PROPS);
     i_add_widget(app->bwidgets, ekWIDGET_SELECT, TEXT_SELECT, CURSOR_PNG, ekDRAWER_WIDGET_SELECT);
     i_add_widget(app->bwidgets, ekWIDGET_VERT_LAYOUT, TEXT_VERT_LAYOUT, VLAYOUT_PNG, ekDRAWER_WIDGET_LAYOUTS);
     i_add_widget(app->bwidgets, ekWIDGET_HORZ_LAYOUT, TEXT_HORZ_LAYOUT, HLAYOUT_PNG, ekDRAWER_WIDGET_LAYOUTS);
     i_add_widget(app->bwidgets, ekWIDGET_GRID_LAYOUT, TEXT_GRID_LAYOUT, GLAYOUT_PNG, ekDRAWER_WIDGET_LAYOUTS);
     i_add_widget(app->bwidgets, ekWIDGET_PUSH_BUTTON, TEXT_PUSH_BUTTON, PUSHBUT_PNG, ekDRAWER_WIDGET_BUTTONS);
-    i_add_widget(app->bwidgets, ekWIDGET_TOOL_BUTTON, TEXT_TOOL_BUTTON, TOOLBUT_PNG, ekDRAWER_WIDGET_BUTTONS);
-    i_add_widget(app->bwidgets, ekWIDGET_RADIO_BUTTON, TEXT_RADIO_BUTTON, RADBUT_PNG, ekDRAWER_WIDGET_BUTTONS);
     i_add_widget(app->bwidgets, ekWIDGET_CHECK_BUTTON, TEXT_CHECK_BOX, CHECBUT_PNG, ekDRAWER_WIDGET_BUTTONS);
+    i_add_widget(app->bwidgets, ekWIDGET_RADIO_BUTTON, TEXT_RADIO_BUTTON, RADBUT_PNG, ekDRAWER_WIDGET_BUTTONS);
+    i_add_widget(app->bwidgets, ekWIDGET_TOOL_BUTTON, TEXT_TOOL_BUTTON, TOOLBUT_PNG, ekDRAWER_WIDGET_BUTTONS);
     i_add_widget(app->bwidgets, ekWIDGET_LABEL, TEXT_LABEL, LABEL_PNG, ekDRAWER_WIDGET_TEXT);
     i_add_widget(app->bwidgets, ekWIDGET_EDITBOX, TEXT_EDIT_BOX, EDITBOX_PNG, ekDRAWER_WIDGET_TEXT);
     i_add_widget(app->bwidgets, ekWIDGET_COMBOBOX, TEXT_COMBO_BOX, COMBOBOX_PNG, ekDRAWER_WIDGET_TEXT);
@@ -1490,6 +1522,7 @@ static void i_destroy(Designer **app)
     i_remove_config(&(*app)->config);
     image_destroy(&(*app)->add_icon);
     font_destroy(&(*app)->default_font);
+    font_destroy(&(*app)->bold_font);
     arrst_destroy(&(*app)->wdrawers, NULL, WDrawer);
     arrst_destroy(&(*app)->bwidgets, NULL, BWidget);
     arrpt_destroy(&(*app)->forms, i_destroy_form_opt, DForm);

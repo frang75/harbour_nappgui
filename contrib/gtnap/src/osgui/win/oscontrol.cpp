@@ -383,7 +383,7 @@ DWORD _oscontrol_ellipsis(const ellipsis_t ellipsis)
     case ekELLIPMLINE:
         return 0;
     case ekELLIPBEGIN:
-        return SS_ENDELLIPSIS;
+        return SS_WORDELLIPSIS;
     case ekELLIPEND:
         return SS_ENDELLIPSIS;
     case ekELLIPMIDDLE:

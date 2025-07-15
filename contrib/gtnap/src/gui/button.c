@@ -263,7 +263,7 @@ void button_OnClick(Button *button, Listener *listener)
 void button_min_width(Button *button, const real32_t width)
 {
     cassert_no_null(button);
-    cassert(width > 0);
+    cassert(width >= 0);
     button->min_width = width;
 }
 
@@ -274,7 +274,6 @@ static void i_update_text(Button *button)
     switch (button_get_type(button->flags))
     {
     case ekBUTTON_PUSH:
-    case ekBUTTON_HEADER:
     case ekBUTTON_CHECK2:
     case ekBUTTON_CHECK3:
     case ekBUTTON_RADIO:
@@ -332,14 +331,6 @@ void button_font(Button *button, const Font *font)
 
 /*---------------------------------------------------------------------------*/
 
-const Font *button_get_font(const Button *button)
-{
-    cassert_no_null(button);
-    return button->font;
-}
-
-/*---------------------------------------------------------------------------*/
-
 void button_image(Button *button, const Image *image)
 {
     const Image *limage = _gui_respack_image((ResId)image, NULL);
@@ -392,6 +383,15 @@ void button_tag(Button *button, const uint32_t tag)
 
 /*---------------------------------------------------------------------------*/
 
+void button_hpadding(Button *button, const real32_t padding)
+{
+    cassert_no_null(button);
+    cassert_no_nullf(button->component.context->func_button_set_hpadding);
+    button->component.context->func_button_set_hpadding(button->component.ositem, padding);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void button_vpadding(Button *button, const real32_t padding)
 {
     cassert_no_null(button);
@@ -405,6 +405,22 @@ gui_state_t button_get_state(const Button *button)
 {
     cassert_no_null(button);
     return (gui_state_t)button->component.context->func_button_get_state(button->component.ositem);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t *button_get_text(const Button *button)
+{
+    cassert_no_null(button);
+    return tc(button->text);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const Font *button_get_font(const Button *button)
+{
+    cassert_no_null(button);
+    return button->font;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -424,6 +440,22 @@ real32_t button_get_height(const Button *button)
     _button_natural(cast(button, Button), 0, &width, &height);
     _button_natural(cast(button, Button), 1, &width, &height);
     return height;
+}
+
+/*---------------------------------------------------------------------------*/
+
+const Image *button_get_image(const Button *button)
+{
+    cassert_no_null(button);
+    return button->image;
+}
+
+/*---------------------------------------------------------------------------*/
+
+const Image *button_get_image_alt(const Button *button)
+{
+    cassert_no_null(button);
+    return button->imalt;
 }
 
 /*---------------------------------------------------------------------------*/

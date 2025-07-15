@@ -2,8 +2,8 @@
 
 #include "dlayout.h"
 #include "imgproc.h"
+#include <nflib/nflib.h>
 #include <nflib/flayout.h>
-#include <gui/button.h>
 #include <gui/button.h>
 #include <gui/label.h>
 #include <gui/layout.h>
@@ -85,7 +85,24 @@ DLayout *dlayout_from_flayout(const FLayout *flayout, const char_t *resource_pat
         for (i = 0; i < ncols; ++i)
         {
             const FCell *fcell = flayout_ccell(flayout, i, j);
-            if (fcell->type == ekCELL_TYPE_IMAGE)
+            if (fcell->type == ekCELL_TYPE_TOOL)
+            {
+                String *path = str_printf("%s%s", resource_path, tc(fcell->widget.tool->path));
+                Image *image = image_from_file(tc(path), NULL);
+
+                if (image != NULL)
+                {
+                    dlayout_set_image(layout, image, i, j);
+                    image_destroy(&image);
+                }
+                else
+                {
+                    dlayout_set_image(layout, nflib_default_icon(), i, j);
+                }
+                    
+                str_destroy(&path);
+            }
+            else if (fcell->type == ekCELL_TYPE_IMAGE)
             {
                 Image *image = NULL;
                 if (str_empty(fcell->widget.image->path) == FALSE)
@@ -720,7 +737,7 @@ static const Image *i_get_image(const DCell *cell, const uint32_t index, const b
 
 void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Image *add_icon, const Font *default_font, DCtx *ctx)
 {
-    uint32_t ncols, nrows, i, j;
+    uint32_t ncols, nrows, i, j, radio_i = 0;
     const DCell *dcell = NULL;
     cassert_no_null(dlayout);
     cassert_no_null(flayout);
@@ -752,17 +769,33 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
                 color_t color = i_is_cell_sel(hover, dlayout, i, j) ? i_SEL_COLOR : i_MAIN_COLOR;
                 const Label *glabel = cell_label(gcell);
                 const Font *gfont = label_get_font(glabel);
+                real32_t origin_x = 0;
                 draw_font(ctx, gfont);
                 draw_fill_color(ctx, i_BGCOLOR);
                 draw_text_color(ctx, color);
                 draw_rect(ctx, ekFILL, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
 
-                if (fcell->widget.label->min_width > 0)
-                    draw_text_width(ctx, fcell->widget.label->min_width);
+                draw_text_width(ctx, dcell->content_rect.size.width);
+
+                switch (fcell->widget.label->align)
+                {
+                case ekHALIGN_LEFT:
+                case ekHALIGN_JUSTIFY:
+                    draw_text_halign(ctx, ekLEFT);
+                    break;
+                case ekHALIGN_CENTER:
+                    draw_text_halign(ctx, ekCENTER);
+                    break;
+                case ekHALIGN_RIGHT:
+                    origin_x = - dcell->content_rect.size.width;
+                    draw_text_halign(ctx, ekRIGHT);
+                    break;
+                    cassert_default();                
+                }
 
                 if (fcell->widget.label->multiline == TRUE)
                 {
-                    draw_text(ctx, tc(fcell->widget.label->text), dcell->content_rect.pos.x, dcell->content_rect.pos.y);
+                    draw_text(ctx, tc(fcell->widget.label->text), origin_x + dcell->content_rect.pos.x, dcell->content_rect.pos.y);
                 }
                 else
                 {
@@ -770,9 +803,8 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
                     drawctrl_text(ctx, tc(fcell->widget.label->text), (int32_t)dcell->content_rect.pos.x, (int32_t)dcell->content_rect.pos.y, ekCTRL_STATE_NORMAL);
                 }
 
-                if (fcell->widget.label->min_width > 0)
-                    draw_text_width(ctx, 0);
-
+                draw_text_width(ctx, -1);
+                draw_text_halign(ctx, ekLEFT);
                 break;
             }
 
@@ -817,6 +849,54 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
                 drawctrl_text(ctx, tc(fcell->widget.check->text), (int32_t)tx, (int32_t)dcell->content_rect.pos.y, ekCTRL_STATE_NORMAL);
                 draw_rect(ctx, ekSTROKE, dcell->content_rect.pos.x, dcell->content_rect.pos.y, cwidth, cheight);
                 draw_line_color(ctx, i_MAIN_COLOR);
+                break;
+            }
+
+            case ekCELL_TYPE_RADIO:
+            {
+                color_t color = i_is_cell_sel(hover, dlayout, i, j) ? i_SEL_COLOR : i_MAIN_COLOR;
+                const Button *gradio = cell_button(gcell);
+                const Font *gfont = button_get_font(gradio);
+                real32_t cradio = (real32_t)drawctrl_check_width(ctx) * .5f;
+                real32_t twidth, theight;
+                real32_t tx;
+                draw_font(ctx, gfont);
+                draw_line_color(ctx, color);
+                draw_text_color(ctx, color);
+                draw_fill_color(ctx, i_BGCOLOR);
+                font_extents(gfont, tc(fcell->widget.radio->text), -1.f, &twidth, &theight);
+                tx = dcell->content_rect.pos.x + (dcell->content_rect.size.width - twidth);
+                draw_rect(ctx, ekFILL, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
+                drawctrl_text(ctx, tc(fcell->widget.radio->text), (int32_t)tx, (int32_t)dcell->content_rect.pos.y, ekCTRL_STATE_NORMAL);
+                draw_circle(ctx, ekSTROKE, dcell->content_rect.pos.x + cradio, dcell->content_rect.pos.y + cradio, cradio - 2);
+
+                if (radio_i == 0)
+                {
+                    draw_fill_color(ctx, color);
+                    draw_circle(ctx, ekFILL, dcell->content_rect.pos.x + cradio, dcell->content_rect.pos.y + cradio, cradio - 4);
+                }
+
+                draw_line_color(ctx, i_MAIN_COLOR);
+                radio_i += 1;
+                break;
+            }
+
+            case ekCELL_TYPE_TOOL:
+            {
+                color_t color = i_is_cell_sel(hover, dlayout, i, j) ? i_SEL_COLOR : i_MAIN_COLOR;
+                const Image *image = i_get_image(dcell, 0, i_is_cell_sel(hover, dlayout, i, j));
+                real32_t iwidth = (real32_t)image_width(image);
+                real32_t iheight = (real32_t)image_height(image);
+                real32_t tx, ty;
+                draw_line_color(ctx, color);
+                draw_fill_color(ctx, i_BGCOLOR);
+                draw_line_width(ctx, 2);
+                draw_rect(ctx, ekFILLSK, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
+                draw_line_width(ctx, 1);
+                draw_line_color(ctx, i_MAIN_COLOR);
+                tx = dcell->content_rect.pos.x + ((dcell->content_rect.size.width - iwidth) / 2);
+                ty = dcell->content_rect.pos.y + ((dcell->content_rect.size.height - iheight) / 2);
+                drawctrl_image(ctx, image, (int32_t)tx, (int32_t)ty);
                 break;
             }
 

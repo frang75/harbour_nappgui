@@ -13,7 +13,6 @@
 #include "osbutton_win.inl"
 #include "osgui_win.inl"
 #include "oscontrol_win.inl"
-#include "osdrawctrl_win.inl"
 #include "ospanel_win.inl"
 #include "oswindow_win.inl"
 #include "osimg.inl"
@@ -45,6 +44,7 @@ struct _osbutton_t
     vkey_t key;
     Font *font;
     Image *image;
+    uint32_t hpadding;
     uint32_t vpadding;
     Listener *OnClick;
 };
@@ -149,53 +149,6 @@ static void i_draw_flat_button(HWND hwnd, const Image *image)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_draw_header_button(HWND hwnd, const Font *font, const Image *image)
-{
-    HDC hdc = NULL;
-    PAINTSTRUCT ps;
-    RECT rect;
-    BOOL enabled;
-    HFONT hfont;
-    WCHAR text[WCHAR_BUFFER_SIZE];
-    int state = 0;
-    cassert_no_null(hwnd);
-    hdc = BeginPaint(hwnd, &ps);
-    GetClientRect(hwnd, &rect);
-    enabled = IsWindowEnabled(hwnd);
-
-    if (enabled == FALSE)
-    {
-        state = HIS_NORMAL;
-    }
-    else if (SendMessage(hwnd, BM_GETCHECK, (WPARAM)0, (LPARAM)0) == BST_CHECKED)
-    {
-        state = HIS_PRESSED;
-    }
-    else if (_osgui_hit_test(hwnd) == TRUE)
-    {
-        if ((GetKeyState(VK_LBUTTON) & 0x100) != 0)
-            state = HIS_PRESSED;
-        else
-            state = HIS_HOT;
-    }
-    else
-    {
-        state = HIS_NORMAL;
-    }
-
-    hfont = (HFONT)font_native(font);
-    SendMessage(hwnd, WM_GETTEXT, (WPARAM)WCHAR_BUFFER_SIZE, (LPARAM)text);
-
-    _osdrawctrl_header_button(hwnd, hdc, hfont, &rect, state, text, ekRIGHT, image);
-
-    {
-        BOOL ok = EndPaint(hwnd, &ps);
-        cassert_unref(ok != 0, ok);
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     OSButton *button = cast(GetWindowLongPtr(hwnd, GWLP_USERDATA), OSButton);
@@ -210,12 +163,6 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         if (button_get_type(button->flags) == ekBUTTON_FLAT || button_get_type(button->flags) == ekBUTTON_FLATGLE)
         {
             i_draw_flat_button(button->control.hwnd, button->image);
-            if (GetFocus() == button->control.hwnd)
-                _oscontrol_draw_focus(hwnd, 3, 3, 3, 3);
-        }
-        else if (button_get_type(button->flags) == ekBUTTON_HEADER)
-        {
-            i_draw_header_button(button->control.hwnd, button->font, button->image);
             if (GetFocus() == button->control.hwnd)
                 _oscontrol_draw_focus(hwnd, 3, 3, 3, 3);
         }
@@ -269,7 +216,6 @@ static DWORD i_button_skin(const button_flag_t flags)
     {
     case ekBUTTON_PUSH:
     case ekBUTTON_FLAT:
-    case ekBUTTON_HEADER:
         return BS_PUSHBUTTON;
     case ekBUTTON_CHECK2:
     case ekBUTTON_FLATGLE:
@@ -327,6 +273,7 @@ OSButton *osbutton_create(const uint32_t flags)
     button->flags = flags;
     button->is_default = FALSE;
     button->can_focus = TRUE;
+    button->hpadding = UINT32_MAX;
     button->vpadding = UINT32_MAX;
     button->key = ENUM_MAX(vkey_t);
     button->id = _osgui_unique_child_id();
@@ -508,7 +455,6 @@ static gui_state_t i_get_state(const button_flag_t flags, HWND hwnd)
     {
     case ekBUTTON_PUSH:
     case ekBUTTON_FLAT:
-    case ekBUTTON_HEADER:
         return ekGUI_ON;
 
     case ekBUTTON_CHECK2:
@@ -548,16 +494,24 @@ gui_state_t osbutton_get_state(const OSButton *button)
 
 /*---------------------------------------------------------------------------*/
 
+void osbutton_hpadding(OSButton *button, const real32_t padding)
+{
+    cassert_no_null(button);
+    if (padding >= 0)
+        button->hpadding = (uint32_t)padding;
+    else
+        button->hpadding = UINT32_MAX;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osbutton_vpadding(OSButton *button, const real32_t padding)
 {
     cassert_no_null(button);
-    if (button_get_type(button->flags) == ekBUTTON_PUSH)
-    {
-        if (padding >= 0)
-            button->vpadding = (uint32_t)padding;
-        else
-            button->vpadding = UINT32_MAX;
-    }
+    if (padding >= 0)
+        button->vpadding = (uint32_t)padding;
+    else
+        button->vpadding = UINT32_MAX;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -571,19 +525,23 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
     switch (button_get_type(button->flags))
     {
     case ekBUTTON_PUSH:
-    case ekBUTTON_HEADER:
     {
-        real32_t woff, hoff;
         real32_t fheight;
+        real32_t woff, hoff;
         font_extents(button->font, text, -1.f, width, &fheight);
-
-        /* Image is higher than text */
-        if (refheight > fheight)
-            *height = refheight;
-        else
-            *height = fheight;
-
         font_extents(button->font, "O", -1.f, &woff, &hoff);
+
+        if (button->hpadding == UINT32_MAX)
+        {
+            *width += 3 * woff;
+        }
+        else
+        {
+            if (button->hpadding < woff)
+                *width += woff;
+            else
+                *width += (real32_t)button->hpadding;
+        }
 
         /* Image width */
         if (refwidth > 0.f)
@@ -592,7 +550,11 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
             *width += (real32_t)(2 * GetSystemMetrics(SM_CXEDGE));
         }
 
-        *width += 2 * woff;
+        /* Image is higher than text */
+        if (refheight > fheight)
+            *height = refheight;
+        else
+            *height = fheight;
 
         if (button->vpadding == UINT32_MAX)
         {
@@ -625,8 +587,15 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
 
     case ekBUTTON_FLAT:
     case ekBUTTON_FLATGLE:
-        *width = (real32_t)(uint32_t)((refwidth * 1.5f) + .5f);
-        *height = (real32_t)(uint32_t)((refheight * 1.5f) + .5f);
+        if (button->hpadding == UINT32_MAX)
+            *width = (real32_t)(uint32_t)((refwidth * 1.5f) + .5f);
+        else
+            *width = refwidth + (real32_t)button->hpadding;
+
+        if (button->vpadding == UINT32_MAX)
+            *height = (real32_t)(uint32_t)((refheight * 1.5f) + .5f);
+        else
+            *height = refheight + (real32_t)button->vpadding;
         break;
 
         cassert_default();

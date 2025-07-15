@@ -111,6 +111,7 @@ add_subdirectory(${NAPPGUI_ROOT_PATH}/src/draw2d)
 add_subdirectory(${NAPPGUI_ROOT_PATH}/src/osgui)
 add_subdirectory(${NAPPGUI_ROOT_PATH}/src/gui)
 add_subdirectory(${NAPPGUI_ROOT_PATH}/src/osapp)
+add_subdirectory(${NAPPGUI_ROOT_PATH}/src/encode)
 add_subdirectory(${NAPPGUI_ROOT_PATH}/src/inet)
 
 # Debugger

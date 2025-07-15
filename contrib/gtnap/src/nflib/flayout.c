@@ -2,6 +2,11 @@
 
 #include "flayout.h"
 #include "nflib.h"
+#include "fcheck.h"
+#include "fbutton.h"
+#include "flabel.h"
+#include "fradio.h"
+#include "ftool.h"
 #include <gui/button.h>
 #include <gui/cell.h>
 #include <gui/label.h>
@@ -28,7 +33,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-static uint16_t i_VERSION = 3;
+static uint16_t i_VERSION = 4;
 static uint16_t i_STM_VERSION = 0;
 
 /*---------------------------------------------------------------------------*/
@@ -67,6 +72,14 @@ static void i_remove_cell(FCell *cell)
 
     case ekCELL_TYPE_CHECK:
         dbind_destroy(&cell->widget.check, FCheck);
+        break;
+
+    case ekCELL_TYPE_RADIO:
+        dbind_destroy(&cell->widget.radio, FRadio);
+        break;
+
+    case ekCELL_TYPE_TOOL:
+        dbind_destroy(&cell->widget.tool, FTool);
         break;
 
     case ekCELL_TYPE_EDIT:
@@ -111,6 +124,8 @@ static void i_remove_cell(FCell *cell)
     cassert(cell->widget.label == NULL);
     cassert(cell->widget.button == NULL);
     cassert(cell->widget.check == NULL);
+    cassert(cell->widget.radio == NULL);
+    cassert(cell->widget.tool == NULL);
     cassert(cell->widget.edit == NULL);
     cassert(cell->widget.text == NULL);
     cassert(cell->widget.image == NULL);
@@ -118,6 +133,7 @@ static void i_remove_cell(FCell *cell)
     cassert(cell->widget.progress == NULL);
     cassert(cell->widget.popup == NULL);
     cassert(cell->widget.listbox == NULL);
+    cassert(cell->widget.table == NULL);
     cassert(cell->widget.layout == NULL);
 }
 
@@ -215,6 +231,18 @@ static FButton *i_read_button(Stream *stm)
         button->min_width = stm_read_r32(stm);
     else
         button->min_width = 0;
+
+    if (i_STM_VERSION >= 4)
+    {
+        button->hpadding = stm_read_r32(stm);
+        button->vpadding = stm_read_r32(stm);
+    }
+    else
+    {
+        button->hpadding = -1;
+        button->vpadding = -1;
+    }
+
     return button;
 }
 
@@ -225,6 +253,26 @@ static FCheck *i_read_check(Stream *stm)
     FCheck *check = heap_new0(FCheck);
     check->text = str_read(stm);
     return check;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static FRadio *i_read_radio(Stream *stm)
+{
+    FRadio *radio = heap_new0(FRadio);
+    radio->text = str_read(stm);
+    return radio;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static FTool *i_read_tool(Stream *stm)
+{
+    FTool *tool = heap_new0(FTool);
+    tool->path = str_read(stm);
+    tool->hpadding = stm_read_r32(stm);
+    tool->vpadding = stm_read_r32(stm);
+    return tool;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -360,6 +408,12 @@ static void i_read_cell(Stream *stm, FCell *cell)
     case ekCELL_TYPE_CHECK:
         cell->widget.check = i_read_check(stm);
         break;
+    case ekCELL_TYPE_RADIO:
+        cell->widget.radio = i_read_radio(stm);
+        break;
+    case ekCELL_TYPE_TOOL:
+        cell->widget.tool = i_read_tool(stm);
+        break;
     case ekCELL_TYPE_EDIT:
         cell->widget.edit = i_read_edit(stm);
         break;
@@ -466,6 +520,8 @@ static void i_write_buttom(Stream *stm, const FButton *button)
     cassert_no_null(button);
     str_write(stm, button->text);
     stm_write_r32(stm, button->min_width);
+    stm_write_r32(stm, button->hpadding);
+    stm_write_r32(stm, button->vpadding);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -474,6 +530,24 @@ static void i_write_check(Stream *stm, const FCheck *check)
 {
     cassert_no_null(check);
     str_write(stm, check->text);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_write_radio(Stream *stm, const FRadio *radio)
+{
+    cassert_no_null(radio);
+    str_write(stm, radio->text);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_write_tool(Stream *stm, const FTool *tool)
+{
+    cassert_no_null(tool);
+    str_write(stm, tool->path);
+    stm_write_r32(stm, tool->hpadding);
+    stm_write_r32(stm, tool->vpadding);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -595,6 +669,12 @@ static void i_write_cell(Stream *stm, const FCell *cell)
         break;
     case ekCELL_TYPE_CHECK:
         i_write_check(stm, cell->widget.check);
+        break;
+    case ekCELL_TYPE_RADIO:
+        i_write_radio(stm, cell->widget.radio);
+        break;
+    case ekCELL_TYPE_TOOL:
+        i_write_tool(stm, cell->widget.tool);
         break;
     case ekCELL_TYPE_EDIT:
         i_write_edit(stm, cell->widget.edit);
@@ -874,6 +954,34 @@ void flayout_add_check(FLayout *layout, FCheck *check, const uint32_t col, const
 
 /*---------------------------------------------------------------------------*/
 
+void flayout_add_radio(FLayout *layout, FRadio *radio, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(radio);
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_RADIO;
+    cell->halign = ekHALIGN_LEFT;
+    cell->valign = ekVALIGN_CENTER;
+    cell->widget.radio = radio;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_add_tool(FLayout *layout, FTool *tool, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(tool);
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_TOOL;
+    cell->halign = ekHALIGN_CENTER;
+    cell->valign = ekVALIGN_CENTER;
+    cell->widget.tool = tool;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void flayout_add_edit(FLayout *layout, FEdit *edit, const uint32_t col, const uint32_t row)
 {
     FCell *cell = i_cell(layout, col, row);
@@ -1147,31 +1255,41 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
 
                 case ekCELL_TYPE_LABEL:
                 {
-                    FLabel *flabel = cells->widget.label;
-                    Label *glabel = label_create();
-                    label_text(glabel, tc(flabel->text));
-                    label_multiline(glabel, flabel->multiline);
-                    label_min_width(glabel, flabel->min_width);
-                    label_align(glabel, i_halign(flabel->align));
-                    layout_label(glayout, glabel, i, j);
+                    Label *label = label_create();
+                    flabel_synchro(cells->widget.label, label);
+                    layout_label(glayout, label, i, j);
                     break;
                 }
 
                 case ekCELL_TYPE_BUTTON:
                 {
-                    FButton *fbutton = cells->widget.button;
-                    Button *gbutton = button_push();
-                    button_text(gbutton, tc(fbutton->text));
-                    layout_button(glayout, gbutton, i, j);
+                    Button *button = button_push();
+                    fbutton_synchro(cells->widget.button, button);
+                    layout_button(glayout, button, i, j);
                     break;
                 }
 
                 case ekCELL_TYPE_CHECK:
                 {
-                    FCheck *fcheck = cells->widget.check;
-                    Button *gcheck = button_check();
-                    button_text(gcheck, tc(fcheck->text));
-                    layout_button(glayout, gcheck, i, j);
+                    Button *button = button_check();
+                    fcheck_synchro(cells->widget.check, button);
+                    layout_button(glayout, button, i, j);
+                    break;
+                }
+
+                case ekCELL_TYPE_RADIO:
+                {
+                    Button *button = button_radio();
+                    fradio_synchro(cells->widget.radio, button);
+                    layout_button(glayout, button, i, j);
+                    break;
+                }
+
+                case ekCELL_TYPE_TOOL:
+                {
+                    Button *button = button_flat();
+                    ftool_synchro(cells->widget.tool, button, resource_path);
+                    layout_button(glayout, button, i, j);
                     break;
                 }
 
@@ -1343,6 +1461,8 @@ GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout
                 case ekCELL_TYPE_LABEL:
                 case ekCELL_TYPE_BUTTON:
                 case ekCELL_TYPE_CHECK:
+                case ekCELL_TYPE_RADIO:
+                case ekCELL_TYPE_TOOL:
                 case ekCELL_TYPE_EDIT:
                 case ekCELL_TYPE_TEXT:
                 case ekCELL_TYPE_IMAGE:

@@ -12,6 +12,10 @@ FButton *dialog_new_button(Window *parent, const Font *font, const DSelect *sel)
 
 FCheck *dialog_new_check(Window *parent, const Font *font, const DSelect *sel);
 
+FRadio *dialog_new_radio(Window *parent, const Font *font, const DSelect *sel);
+
+FTool *dialog_new_tool(Window *parent, const Font *font, const DSelect *sel, const char_t *folder_path);
+
 FEdit *dialog_new_edit(Window *parent, const DSelect *sel);
 
 FText *dialog_new_text(Window *parent, const DSelect *sel);

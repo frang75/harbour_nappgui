@@ -38,9 +38,11 @@ struct _dialogdata_t
     const char_t *path;
     FImage *fimage;
     FElem *felem;
+    FTool *ftool;
     Button *defbutton;
     Label *label;
-    ImageView *imgview;
+    ImageView *imageview;
+    Button *toolbutton;
     Window *window;
     Edit *edit;
 };
@@ -389,6 +391,153 @@ FCheck *dialog_new_check(Window *parent, const Font *font, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+FRadio *dialog_new_radio(Window *parent, const Font *font, const DSelect *sel)
+{
+    DialogData data = i_dialog_data();
+    Layout *layout = layout_create(2, 1);
+    String *caption = NULL;
+    FRadio *fradio = dbind_create(FRadio);
+    uint32_t ret = 0;
+    cassert_no_null(sel);
+    cassert_no_null(sel->flayout);
+
+    /* Widget layout */
+    {
+        Label *label = label_create();
+        Edit *edit = edit_create();
+        label_text(label, gui_text(TEXT_TEXT));
+        layout_label(layout, label, 0, 0);
+        layout_edit(layout, edit, 1, 0);
+        layout_hmargin(layout, 0, 5);
+        cell_dbind(layout_cell(layout, 1, 0), FRadio, String *, text);
+        layout_dbind(layout, NULL, FRadio);
+        layout_dbind_obj(layout, fradio, FRadio);
+    }
+
+    caption = str_printf(gui_text(TEXT_NEW_RADIO), sel->col, sel->row, tc(sel->flayout->name));
+    ret = i_modal_new_widget(parent, &data, layout, font, RADBUT_PNG, TEXT_RADIO_BUTTON, tc(caption));
+
+    if (ret != BUTTON_OK)
+        dbind_destroy(&fradio, FRadio);
+
+    str_destroy(&caption);
+    i_remove_dialog_data(&data);
+    return fradio;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnLoadImage(DialogData *data, Event *e)
+{
+    const char_t *imgpath = NULL;
+    cassert_no_null(data);
+    cassert_no_null(data->path);
+    imgpath = comwin_open_file(data->window, NULL, 0, data->path);
+    if (imgpath != NULL)
+    {
+        Image *image = image_from_file(imgpath, NULL);
+        if (image != NULL)
+        {
+            String **path = NULL;
+            if (data->imageview != NULL)
+            {
+                cassert(data->toolbutton == NULL);
+                imageview_image(data->imageview, image);
+            }
+            else
+            {
+                cassert(data->toolbutton != NULL);
+                button_image(data->toolbutton, image);
+            }
+
+            if (data->ftool != NULL)
+            {
+                cassert(data->fimage == NULL);
+                cassert(data->felem == NULL);
+                path = &data->ftool->path;
+            }
+            else if (data->fimage != NULL)
+            {
+                cassert(data->felem == NULL);
+                path = &data->fimage->path;
+            }
+            else
+            {
+                cassert_no_null(data->felem);
+                path = &data->felem->iconpath;
+            }
+
+            str_destroy(path);
+            *path = str_relpath(ekLINUX, data->path, imgpath);
+            label_text(data->label, tc(*path));
+            window_update(data->window);
+            image_destroy(&image);
+        }
+    }
+    unref(e);
+}
+
+/*---------------------------------------------------------------------------*/
+
+FTool *dialog_new_tool(Window *parent, const Font *font, const DSelect *sel, const char_t *folder_path)
+{
+    DialogData data = i_dialog_data();
+    Layout *layout1 = layout_create(2, 2);
+    String *caption = NULL;
+    FTool *ftool = dbind_create(FTool);
+    uint32_t ret = 0;
+    cassert_no_null(sel);
+    cassert_no_null(sel->flayout);
+    data.path = folder_path;
+    data.ftool = ftool;
+
+    /* Widget layout */
+    {
+        Layout *layout2 = layout_create(2, 1);
+        Label *label1 = label_create();
+        Label *label2 = label_create();
+        Label *label3 = label_create();
+        Button *button1 = button_flat();
+        Button *button2 = button_push();
+        const Image *image = nflib_default_icon();
+        label_text(label1, gui_text(TEXT_TOOL_BUTTON));
+        label_text(label2, gui_text(TEXT_ICON_PATH));
+        label_text(label3, gui_text(TEXT_DEFAULT));
+        label_ellipsis(label3, ekELLIPBEGIN);
+        label_min_width(label3, 150);
+        button_image(button1, image);
+        button_text(button2, "...");
+        button_tooltip(button2, gui_text(TEXT_LOAD_ICON));
+        button_hpadding(button2, 20);
+        button_OnClick(button2, listener(&data, i_OnLoadImage, DialogData));
+        layout_label(layout1, label1, 0, 0);
+        layout_label(layout1, label2, 0, 1);
+        layout_button(layout2, button1, 0, 0);
+        layout_button(layout2, button2, 1, 0);
+        layout_layout(layout1, layout2, 1, 0);
+        layout_label(layout1, label3, 1, 1);
+        layout_tabstop(layout2, 0, 0, FALSE);
+        layout_hmargin(layout1, 0, 5);
+        layout_hmargin(layout2, 0, 5);
+        layout_hexpand(layout1, 1);
+        layout_halign(layout1, 1, 0, ekLEFT);
+        data.label = label3;
+        data.toolbutton = button1;
+    }
+
+    caption = str_printf(gui_text(TEXT_NEW_TOOL), sel->col, sel->row, tc(sel->flayout->name));
+    ret = i_modal_new_widget(parent, &data, layout1, font, TOOLBUT_PNG, TEXT_TOOL_BUTTON, tc(caption));
+
+    if (ret != BUTTON_OK)
+        dbind_destroy(&ftool, FTool);
+
+    str_destroy(&caption);
+    i_remove_dialog_data(&data);
+    return ftool;
+}
+
+/*---------------------------------------------------------------------------*/
+
 FEdit *dialog_new_edit(Window *parent, const DSelect *sel)
 {
     DialogData data = i_dialog_data();
@@ -510,41 +659,6 @@ FText *dialog_new_text(Window *parent, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnLoadImage(DialogData *data, Event *e)
-{
-    const char_t *imgpath = NULL;
-    cassert_no_null(data);
-    cassert_no_null(data->path);
-    imgpath = comwin_open_file(data->window, NULL, 0, data->path);
-    if (imgpath != NULL)
-    {
-        Image *image = image_from_file(imgpath, NULL);
-        if (image != NULL)
-        {
-            String **path = NULL;
-            imageview_image(data->imgview, image);
-            if (data->fimage != NULL)
-            {
-                cassert(data->felem == NULL);
-                path = &data->fimage->path;
-            }
-            else
-            {
-                cassert_no_null(data->felem);
-                path = &data->felem->iconpath;
-            }
-            str_destroy(path);
-            *path = str_relpath(ekLINUX, data->path, imgpath);
-            label_text(data->label, tc(*path));
-            window_update(data->window);
-            image_destroy(&image);
-        }
-    }
-    unref(e);
-}
-
-/*---------------------------------------------------------------------------*/
-
 static Layout *i_image_layout(DialogData *data)
 {
     Layout *layout = layout_create(1, 3);
@@ -564,7 +678,7 @@ static Layout *i_image_layout(DialogData *data)
     layout_button(layout, button, 0, 2);
     layout_halign(layout, 0, 1, ekJUSTIFY);
     data->label = label;
-    data->imgview = view;
+    data->imageview = view;
     return layout;
 }
 

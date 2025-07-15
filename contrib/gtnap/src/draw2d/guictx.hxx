@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: guictx.hxx
+ * https://nappgui.com/en/draw2d/guictx.html
  *
  */
 
@@ -287,7 +288,6 @@ typedef enum _button_flag_t
     ekBUTTON_RADIO = 3,
     ekBUTTON_FLAT = 4,
     ekBUTTON_FLATGLE = 5,
-    ekBUTTON_HEADER = 6,
     ekBUTTON_TYPE = 7
 } button_flag_t;
 
@@ -718,6 +718,7 @@ struct _guictx_t
     FPtr_gctx_set_cptr func_button_set_image;
     FPtr_gctx_set_enum func_button_set_state;
     FPtr_gctx_get_enum func_button_get_state;
+    FPtr_gctx_set_real32 func_button_set_hpadding;
     FPtr_gctx_set_real32 func_button_set_vpadding;
     FPtr_gctx_bounds2 func_button_bounds;
 

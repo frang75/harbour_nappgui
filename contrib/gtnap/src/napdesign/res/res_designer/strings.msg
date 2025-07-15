@@ -5,6 +5,8 @@ TEXT_ROWS           Rows
 TEXT_NEW_LABEL      A new label will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_BUTTON     A new push button will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_CHECK      A new check box will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_RADIO      A new radio button will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_TOOL       A new tool button will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SUBLAYOUT  A new sublayout will be placed in cell (%d, %d) of '%s' layout
 TEXT_LAYOUT_PROPS   Layout properties
 TEXT_COLUMN_PROPS   Column properties
@@ -13,6 +15,8 @@ TEXT_CELL_PROPS     Cell properties
 TEXT_LABEL_PROPS    Label properties
 TEXT_BUTTON_PROPS   Button properties
 TEXT_CHECK_PROPS    Checkbox properties
+TEXT_RADIO_PROPS    Radio button properties
+TEXT_TOOL_PROPS     Tool button properties
 TEXT_LAYOUT         Layout
 TEXT_LAYOUTS        Layouts
 TEXT_BUTTONS        Buttons
@@ -24,9 +28,9 @@ TEXT_VERT_LAYOUT    Vertical Layout
 TEXT_HORZ_LAYOUT    Horizontal Layout
 TEXT_GRID_LAYOUT    Grid Layout
 TEXT_PUSH_BUTTON    Push Button
-TEXT_TOOL_BUTTON    Tool Button
-TEXT_RADIO_BUTTON   Radio Button
 TEXT_CHECK_BOX      Check Box
+TEXT_RADIO_BUTTON   Radio Button
+TEXT_TOOL_BUTTON    Tool Button
 TEXT_LABEL          Label
 TEXT_EDIT_BOX       Edit Box
 TEXT_COMBO_BOX      Combo Box
@@ -49,6 +53,8 @@ TEXT_LEFT           Left
 TEXT_BOTTOM         Bottom
 TEXT_RIGHT          Right
 TEXT_WIDTH          Width
+TEXT_HPADDING       HorzPad
+TEXT_VPADDING       VertPad
 TEXT_HEIGHT         Height
 TEXT_COLUMN         Column
 TEXT_ROW            Row
@@ -57,6 +63,11 @@ TEXT_HALIGN         HAlign
 TEXT_VALIGN         VAlign
 TEXT_TEXT           Text
 TEXT_MULTILINE      Multiline
+TEXT_ICON           Icon
+TEXT_ICON_PATH      Icon path
+TEXT_DEFAULT        default
+TEXT_LOAD_IMAGE     Load image
+TEXT_LOAD_ICON      Load icon
 TEXT_LTYPE_SING     Single cell
 TEXT_LTYPE_VERT     Vertical with %d rows
 TEXT_LTYPE_HORZ     Horizontal with %d cols
@@ -65,6 +76,8 @@ TEXT_CELL_EMPTY     EmptyCell
 TEXT_CELL_LABEL     LabelCell
 TEXT_CELL_BUTTON    ButtonCell
 TEXT_CELL_CHECK     CheckBoxCell
+TEXT_CELL_RADIO     RadioButtonCell
+TEXT_CELL_TOOL      ToolButtonCell
 TEXT_CELL_EDIT      EditBoxCell
 TEXT_CELL_TEXT      TextViewCell
 TEXT_CELL_IMAGE     ImageViewCell
@@ -95,5 +108,7 @@ TIP_LABEL_MWIDTH    Text width. If 0 will be set automatically.
 TIP_LABEL_ALIGN     Text alignment, if label widget if wider than the text.
 TIP_BUTTON_TEXT     The text that will be displayed on the push button.
 TIP_BUTTON_WIDTH    Minimum width of the push button, as long as the text is visible.
+TIP_BUTTON_HPAD     Horizontal padding of the push button, -1 as default.
+TIP_BUTTON_VPAD     Vertical padding of the push button, -1 as default.
 TIP_CHECK_TEXT      The text that will be displayed to the right of the checkbox.
-
+TIP_RADIO_TEXT      The text that will be displayed to the right of the radio button.
