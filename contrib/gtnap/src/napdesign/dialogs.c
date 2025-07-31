@@ -538,6 +538,19 @@ FTool *dialog_new_tool(Window *parent, const Font *font, const DSelect *sel, con
 
 /*---------------------------------------------------------------------------*/
 
+static Layout *i_value_updown_layout(void)
+{
+    Layout *layout = layout_create(2, 1);
+    Edit *edit = edit_create();
+    UpDown *updown = updown_create();
+    layout_edit(layout, edit, 0, 0);
+    layout_updown(layout, updown, 1, 0);
+    layout_hexpand(layout, 0);
+    return layout;
+}
+
+/*---------------------------------------------------------------------------*/
+
 FEdit *dialog_new_edit(Window *parent, const DSelect *sel)
 {
     DialogData data = i_dialog_data();
@@ -593,15 +606,56 @@ FEdit *dialog_new_edit(Window *parent, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_value_updown_layout(void)
+FCombo *dialog_new_combo(Window *parent, const Font *font, const DSelect *sel)
 {
-    Layout *layout = layout_create(2, 1);
-    Edit *edit = edit_create();
-    UpDown *updown = updown_create();
-    layout_edit(layout, edit, 0, 0);
-    layout_updown(layout, updown, 1, 0);
-    layout_hexpand(layout, 0);
-    return layout;
+    DialogData data = i_dialog_data();
+    Layout *layout1 = layout_create(2, 4);
+    String *caption = NULL;
+    FCombo *fcombo = dbind_create(FCombo);
+    uint32_t ret = 0;
+    cassert_no_null(sel);
+    cassert_no_null(sel->flayout);
+
+    /* Widget layout */
+    {
+        Label *label1 = label_create();
+        Label *label2 = label_create();
+        Label *label3 = label_create();
+        Label *label4 = label_create();        
+        Button *button1 = button_check();
+        Button *button2 = button_check();
+        PopUp *popup = popup_create();
+        Layout *layout2 = i_value_updown_layout();
+        label_text(label1, gui_text(TEXT_AUTOSELECT));
+        label_text(label2, gui_text(TEXT_PASSMODE));
+        label_text(label3, gui_text(TEXT_TEXT_ALIGN));
+        label_text(label4, gui_text(TEXT_MIN_WIDTH));
+        layout_label(layout1, label1, 0, 0);
+        layout_label(layout1, label2, 0, 1);
+        layout_label(layout1, label3, 0, 2);
+        layout_label(layout1, label4, 0, 3);
+        layout_button(layout1, button1, 1, 0);
+        layout_button(layout1, button2, 1, 1);
+        layout_popup(layout1, popup, 1, 2);
+        layout_layout(layout1, layout2, 1, 3);
+        layout_hmargin(layout1, 0, 5);
+        cell_dbind(layout_cell(layout1, 1, 0), FCombo, bool_t, passmode);
+        cell_dbind(layout_cell(layout1, 1, 1), FCombo, bool_t, autosel);
+        cell_dbind(layout_cell(layout1, 1, 2), FCombo, halign_t, text_align);
+        cell_dbind(layout_cell(layout1, 1, 3), FCombo, real32_t, min_width);
+        layout_dbind(layout1, NULL, FCombo);
+        layout_dbind_obj(layout1, fcombo, FCombo);
+    }
+
+    caption = str_printf(gui_text(TEXT_NEW_COMBO), sel->col, sel->row, tc(sel->flayout->name));
+    ret = i_modal_new_widget(parent, &data, layout1, font, COMBOBOX_PNG, TEXT_COMBO_BOX, tc(caption));
+
+    if (ret != BUTTON_OK)
+        dbind_destroy(&fcombo, FCombo);
+
+    str_destroy(&caption);
+    i_remove_dialog_data(&data);
+    return fcombo;
 }
 
 /*---------------------------------------------------------------------------*/

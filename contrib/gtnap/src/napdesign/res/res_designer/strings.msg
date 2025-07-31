@@ -7,6 +7,7 @@ TEXT_NEW_BUTTON     A new push button will be placed in cell (%d, %d) of '%s' la
 TEXT_NEW_CHECK      A new check box will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_RADIO      A new radio button will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_TOOL       A new tool button will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_COMBO      A new combo box will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SUBLAYOUT  A new sublayout will be placed in cell (%d, %d) of '%s' layout
 TEXT_LAYOUT_PROPS   Layout properties
 TEXT_COLUMN_PROPS   Column properties
@@ -63,6 +64,10 @@ TEXT_HALIGN         HAlign
 TEXT_VALIGN         VAlign
 TEXT_TEXT           Text
 TEXT_MULTILINE      Multiline
+TEXT_AUTOSELECT     Autoselect
+TEXT_PASSMODE       Password mode
+TEXT_TEXT_ALIGN     Text align
+TEXT_MIN_WIDTH      Min width
 TEXT_ICON           Icon
 TEXT_ICON_PATH      Icon path
 TEXT_DEFAULT        default

@@ -18,6 +18,7 @@
 #include <gui/guicontrol.h>
 #include <gui/button.h>
 #include <gui/edit.h>
+#include <gui/combo.h>
 #include <gui/gui.h>
 #include <gui/popup.h>
 #include <gui/label.h>
@@ -596,6 +597,25 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 }
             }
 
+            case ekWIDGET_COMBOBOX:
+            {
+                FCombo *fcombo = dialog_new_combo(window, font, &sel);
+                if (fcombo != NULL)
+                {
+                    Combo *combo = combo_create();
+                    fcombo_synchro(fcombo, combo);
+                    i_sel_remove_cell(&sel);
+                    flayout_add_combo(sel.flayout, fcombo, sel.col, sel.row);
+                    layout_combo(sel.glayout, combo, sel.col, sel.row);
+                    i_after_new_widget(form, inspect, propedit, &sel);
+                    return TRUE;
+                }
+                else
+                {
+                    return FALSE;
+                }
+            }
+
             case ekWIDGET_TEXTVIEW:
             {
                 FText *ftext = dialog_new_text(window, &sel);
@@ -815,7 +835,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
             }
 
             /* Still not supported */
-            case ekWIDGET_COMBOBOX:
             case ekWIDGET_VERT_SLIDER:
                 break;
 
