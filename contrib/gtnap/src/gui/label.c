@@ -34,7 +34,6 @@ struct _label_t
     ResId textid;
     String *text;
     uint32_t flags;
-    ellipsis_t ellipsis;
     align_t halign;
     Font *font;
     Font *over_font;
@@ -70,7 +69,6 @@ static Label *i_create(const uint32_t flags, const align_t halign, const ellipsi
     label->text = str_c("");
     label->width = 0;
     label->flags = flags;
-    label->ellipsis = ellipsis;
     label->halign = halign;
     label->color = gui_label_color();
     label->over_color = gui_label_color();
@@ -222,18 +220,7 @@ void label_multiline(Label *label, const bool_t multiline)
     cassert_no_null(label);
     label->flags = multiline ? ekLABEL_MULTI : ekLABEL_SINGLE;
     label->component.context->func_label_set_flags(label->component.ositem, label->flags);
-    label->component.context->func_label_set_ellipsis(label->component.ositem, multiline ? (enum_t)ekELLIPMLINE : (enum_t)label->ellipsis);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void label_ellipsis(Label *label, const ellipsis_t ellipsis)
-{
-    bool_t multiline = FALSE;
-    cassert_no_null(label);
-    multiline = label_get_type(label->flags) == ekLABEL_MULTI ? TRUE : FALSE;
-    label->ellipsis = ellipsis;
-    label->component.context->func_label_set_ellipsis(label->component.ositem, multiline ? (enum_t)ekELLIPMLINE : (enum_t)label->ellipsis);
+    label->component.context->func_label_set_ellipsis(label->component.ositem, multiline ? (enum_t)ekELLIPMLINE : (enum_t)ekELLIPEND);
 }
 
 /*---------------------------------------------------------------------------*/

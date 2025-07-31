@@ -326,7 +326,6 @@ void oscombo_align(OSCombo *combo, const align_t align)
 {
     unref(combo);
     unref(align);
-    cassert_msg(FALSE, "Not implemented");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -335,7 +334,31 @@ void oscombo_passmode(OSCombo *combo, const bool_t passmode)
 {
     unref(combo);
     unref(passmode);
-    cassert_msg(FALSE, "Not implemented");
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oscombo_editable(OSCombo *combo, const bool_t is_editable)
+{
+    unref(combo);
+    unref(is_editable);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oscombo_autoselect(OSCombo *combo, const bool_t autoselect)
+{
+    unref(combo);
+    unref(autoselect);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oscombo_select(OSCombo *combo, const int32_t start, const int32_t end)
+{
+    unref(combo);
+    unref(start);
+    unref(end);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -405,11 +428,18 @@ void oscombo_elem(OSCombo *combo, const ctrl_op_t op, const uint32_t index, cons
 
 /*---------------------------------------------------------------------------*/
 
+void oscombo_list_height(OSCombo *combo, const uint32_t num_elems)
+{
+    unref(combo);
+    unref(num_elems);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void oscombo_selected(OSCombo *combo, const uint32_t index)
 {
     unref(combo);
     unref(index);
-    cassert_msg(FALSE, "Not implemented");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -417,7 +447,6 @@ void oscombo_selected(OSCombo *combo, const uint32_t index)
 uint32_t oscombo_get_selected(const OSCombo *combo)
 {
     unref(combo);
-    cassert_msg(FALSE, "Not implemented");
     return 0;
 }
 
@@ -433,6 +462,14 @@ void oscombo_bounds(const OSCombo *combo, const real32_t refwidth, real32_t *wid
     gtk_widget_get_preferred_size(combo->control.widget, &minsize, NULL);
     *width = refwidth;
     *height = (real32_t)minsize.height;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oscombo_clipboard(OSCombo *combo, const clipboard_t clipboard)
+{
+    unref(combo);
+    unref(clipboard);
 }
 
 /*---------------------------------------------------------------------------*/

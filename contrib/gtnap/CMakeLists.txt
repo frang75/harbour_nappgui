@@ -5,7 +5,9 @@
 #------------------------------------------------------------------------------
 
 # https://gitlab.kitware.com/cmake/cmake/-/issues/25196
-if(${CMAKE_VERSION} VERSION_GREATER "3.26.999")
+if(${CMAKE_VERSION} VERSION_GREATER "3.99.999")
+    cmake_minimum_required(VERSION 3.10)
+elseif(${CMAKE_VERSION} VERSION_GREATER "3.26.999")
     cmake_minimum_required(VERSION 3.5)
 else()
     cmake_minimum_required(VERSION 3.0)
@@ -39,7 +41,6 @@ nap_check_webview_support()
 nap_build_opt("VERSION" "${NAPPGUI_MAJOR}.${NAPPGUI_MINOR}.${NAPPGUI_PATCH}.${NAPPGUI_BUILD}")
 nap_build_opt("GENERATOR" "${CMAKE_GENERATOR}")
 nap_build_opt("BUILD_SHARED" "${NAPPGUI_SHARED}")
-
 nap_build_opt("COMPILER" "${CMAKE_CXX_COMPILER_ID}")
 nap_build_opt("COMPILER_VERSION" "${CMAKE_CXX_COMPILER_VERSION}")
 nap_build_opt("WEB_SUPPORT" "${WEB_SUPPORT}")

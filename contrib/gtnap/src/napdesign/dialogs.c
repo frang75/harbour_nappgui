@@ -503,7 +503,7 @@ FTool *dialog_new_tool(Window *parent, const Font *font, const DSelect *sel, con
         label_text(label1, gui_text(TEXT_TOOL_BUTTON));
         label_text(label2, gui_text(TEXT_ICON_PATH));
         label_text(label3, gui_text(TEXT_DEFAULT));
-        label_ellipsis(label3, ekELLIPBEGIN);
+        // label_ellipsis(label3, ekELLIPBEGIN); When NAppGUI supports
         label_min_width(label3, 150);
         button_image(button1, image);
         button_text(button2, "...");
