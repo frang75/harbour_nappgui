@@ -917,7 +917,6 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
             }
 
             case ekCELL_TYPE_COMBO:
-                cassert(FALSE);
                 break;
 
             case ekCELL_TYPE_TEXT:

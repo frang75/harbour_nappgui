@@ -722,6 +722,7 @@ static bool_t i_is_widget_drawer(const drawer_t drawer)
     case ekDRAWER_CHECKBOX_PROPS:
     case ekDRAWER_RADIO_PROPS:
     case ekDRAWER_TOOL_PROPS:
+    case ekDRAWER_COMBO_PROPS:
         return FALSE;
         cassert_default();
     }
@@ -1471,6 +1472,7 @@ static Designer *i_app(void)
     i_add_drawer(app->wdrawers, ekDRAWER_CHECKBOX_PROPS, TEXT_CHECK_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_RADIO_PROPS, TEXT_RADIO_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_TOOL_PROPS, TEXT_TOOL_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_COMBO_PROPS, TEXT_COMBO_PROPS);
     i_add_widget(app->bwidgets, ekWIDGET_SELECT, TEXT_SELECT, CURSOR_PNG, ekDRAWER_WIDGET_SELECT);
     i_add_widget(app->bwidgets, ekWIDGET_VERT_LAYOUT, TEXT_VERT_LAYOUT, VLAYOUT_PNG, ekDRAWER_WIDGET_LAYOUTS);
     i_add_widget(app->bwidgets, ekWIDGET_HORZ_LAYOUT, TEXT_HORZ_LAYOUT, HLAYOUT_PNG, ekDRAWER_WIDGET_LAYOUTS);

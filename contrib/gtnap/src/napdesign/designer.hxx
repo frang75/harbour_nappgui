@@ -52,7 +52,8 @@ typedef enum _drawer_t
     ekDRAWER_BUTTON_PROPS,
     ekDRAWER_CHECKBOX_PROPS,
     ekDRAWER_RADIO_PROPS,
-    ekDRAWER_TOOL_PROPS
+    ekDRAWER_TOOL_PROPS,
+    ekDRAWER_COMBO_PROPS
 } drawer_t;
 
 typedef enum _layelem_t
