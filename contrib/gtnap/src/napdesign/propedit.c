@@ -671,7 +671,7 @@ static Layout *i_icon_layout(PropData *data)
     cassert_no_null(data);
     imageview_size(view, s2df(16, 16));
     imageview_scale(view, ekGUI_SCALE_ASPECT);
-    // label_ellipsis(label, ekELLIPBEGIN); When NAppGUI supports
+    /* label_ellipsis(label, ekELLIPBEGIN);    When NAppGUI supports */
     button_text(button, "...");
     button_tooltip(button, gui_text(TEXT_LOAD_ICON));
     button_OnClick(button, listener(data, i_OnLoadIcon, PropData));
@@ -1770,6 +1770,10 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
             layout_dbind_obj(data->edit_layout, cell->widget.edit, FEdit);
             panel_visible_layout(data->cell_panel, 7);
         }
+        else if (cell->type == ekCELL_TYPE_COMBO)
+        {
+            cassert(FALSE);
+        }    
         else if (cell->type == ekCELL_TYPE_TEXT)
         {
             layout_dbind_obj(data->text_layout, cell->widget.text, FText);

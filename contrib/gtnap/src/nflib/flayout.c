@@ -3,12 +3,14 @@
 #include "flayout.h"
 #include "nflib.h"
 #include "fcheck.h"
+#include "fcombo.h"
 #include "fbutton.h"
 #include "flabel.h"
 #include "fradio.h"
 #include "ftool.h"
 #include <gui/button.h>
 #include <gui/cell.h>
+#include <gui/combo.h>
 #include <gui/label.h>
 #include <gui/layout.h>
 #include <gui/layouth.h>
@@ -84,6 +86,10 @@ static void i_remove_cell(FCell *cell)
 
     case ekCELL_TYPE_EDIT:
         dbind_destroy(&cell->widget.edit, FEdit);
+        break;
+
+    case ekCELL_TYPE_COMBO:
+        dbind_destroy(&cell->widget.combo, FCombo);
         break;
 
     case ekCELL_TYPE_LAYOUT:
@@ -294,6 +300,18 @@ static FEdit *i_read_edit(Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
+static FCombo *i_read_combo(Stream *stm)
+{
+    FCombo *combo = heap_new0(FCombo);
+    combo->passmode = stm_read_bool(stm);
+    combo->autosel = stm_read_bool(stm);
+    combo->text_align = stm_read_enum(stm, halign_t);
+    combo->min_width = stm_read_r32(stm);
+    return combo;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static FText *i_read_text(Stream *stm)
 {
     FText *text = heap_new0(FText);
@@ -416,6 +434,9 @@ static void i_read_cell(Stream *stm, FCell *cell)
         break;
     case ekCELL_TYPE_EDIT:
         cell->widget.edit = i_read_edit(stm);
+        break;
+    case ekCELL_TYPE_COMBO:
+        cell->widget.combo = i_read_combo(stm);
         break;
     case ekCELL_TYPE_TEXT:
         cell->widget.text = i_read_text(stm);
@@ -563,6 +584,17 @@ static void i_write_edit(Stream *stm, const FEdit *edit)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_write_combo(Stream *stm, const FCombo *combo)
+{
+    cassert_no_null(combo);
+    stm_write_bool(stm, combo->passmode);
+    stm_write_bool(stm, combo->autosel);
+    stm_write_enum(stm, combo->text_align, halign_t);
+    stm_write_r32(stm, combo->min_width);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_write_text(Stream *stm, const FText *text)
 {
     cassert_no_null(text);
@@ -678,6 +710,9 @@ static void i_write_cell(Stream *stm, const FCell *cell)
         break;
     case ekCELL_TYPE_EDIT:
         i_write_edit(stm, cell->widget.edit);
+        break;
+    case ekCELL_TYPE_COMBO:
+        i_write_combo(stm, cell->widget.combo);
         break;
     case ekCELL_TYPE_TEXT:
         i_write_text(stm, cell->widget.text);
@@ -996,6 +1031,20 @@ void flayout_add_edit(FLayout *layout, FEdit *edit, const uint32_t col, const ui
 
 /*---------------------------------------------------------------------------*/
 
+void flayout_add_combo(FLayout *layout, FCombo *combo, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(combo);
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_COMBO;
+    cell->halign = ekHALIGN_JUSTIFY;
+    cell->valign = ekVALIGN_CENTER;
+    cell->widget.combo = combo;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void flayout_add_text(FLayout *layout, FText *text, const uint32_t col, const uint32_t row)
 {
     FCell *cell = i_cell(layout, col, row);
@@ -1305,6 +1354,14 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     break;
                 }
 
+                case ekCELL_TYPE_COMBO:
+                {
+                    Combo *combo = combo_create();
+                    fcombo_synchro(cells->widget.combo, combo);
+                    layout_combo(glayout, combo, i, j);
+                    break;
+                }
+
                 case ekCELL_TYPE_TEXT:
                 {
                     FText *ftext = cells->widget.text;
@@ -1464,6 +1521,7 @@ GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout
                 case ekCELL_TYPE_RADIO:
                 case ekCELL_TYPE_TOOL:
                 case ekCELL_TYPE_EDIT:
+                case ekCELL_TYPE_COMBO:
                 case ekCELL_TYPE_TEXT:
                 case ekCELL_TYPE_IMAGE:
                 case ekCELL_TYPE_SLIDER:

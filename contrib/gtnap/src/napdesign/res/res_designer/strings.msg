@@ -79,6 +79,7 @@ TEXT_CELL_CHECK     CheckBoxCell
 TEXT_CELL_RADIO     RadioButtonCell
 TEXT_CELL_TOOL      ToolButtonCell
 TEXT_CELL_EDIT      EditBoxCell
+TEXT_CELL_COMBO     ComboBoxCell
 TEXT_CELL_TEXT      TextViewCell
 TEXT_CELL_IMAGE     ImageViewCell
 TEXT_CELL_SLIDER    SliderCell

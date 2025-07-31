@@ -10,6 +10,7 @@
 #include <nflib/nflib.h>
 #include <nflib/fbutton.h>
 #include <nflib/fcheck.h>
+#include <nflib/fcombo.h>
 #include <nflib/flabel.h>
 #include <nflib/flayout.h>
 #include <nflib/fradio.h>
@@ -1054,6 +1055,21 @@ void dform_synchro_edit(DForm *form, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+void dform_synchro_combo(DForm *form, const DSelect *sel)
+{
+    FCell *cell = i_sel_fcell(sel);
+    Combo *combo = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_COMBO);
+    i_need_save(form);
+    combo = layout_get_combo(sel->glayout, sel->col, sel->row);
+    fcombo_synchro(cell->widget.combo, combo);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dform_synchro_textview(DForm *form, const DSelect *sel)
 {
     FCell *cell = i_sel_fcell(sel);
@@ -1419,6 +1435,8 @@ const char_t* dform_cell_type(const celltype_t type)
         return gui_text(TEXT_CELL_TOOL);        
     case ekCELL_TYPE_EDIT:
         return gui_text(TEXT_CELL_EDIT);
+    case ekCELL_TYPE_COMBO:
+        return gui_text(TEXT_CELL_COMBO);
     case ekCELL_TYPE_TEXT:
         return gui_text(TEXT_CELL_TEXT);
     case ekCELL_TYPE_IMAGE:

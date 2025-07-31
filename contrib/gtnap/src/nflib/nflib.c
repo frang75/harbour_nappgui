@@ -34,6 +34,7 @@ static void i_dbind(void)
     dbind_enum(celltype_t, ekCELL_TYPE_RADIO, "");
     dbind_enum(celltype_t, ekCELL_TYPE_TOOL, "");
     dbind_enum(celltype_t, ekCELL_TYPE_EDIT, "");
+    dbind_enum(celltype_t, ekCELL_TYPE_COMBO, "");
     dbind_enum(celltype_t, ekCELL_TYPE_TEXT, "");
     dbind_enum(celltype_t, ekCELL_TYPE_IMAGE, "");
     dbind_enum(celltype_t, ekCELL_TYPE_SLIDER, "");
@@ -71,6 +72,10 @@ static void i_dbind(void)
     dbind(FEdit, bool_t, autosel);
     dbind(FEdit, halign_t, text_align);
     dbind(FEdit, real32_t, min_width);
+    dbind(FCombo, bool_t, passmode);
+    dbind(FCombo, bool_t, autosel);
+    dbind(FCombo, halign_t, text_align);
+    dbind(FCombo, real32_t, min_width);
     dbind(FText, bool_t, read_only);
     dbind(FText, real32_t, min_width);
     dbind(FText, real32_t, min_height);
@@ -146,6 +151,11 @@ static void i_dbind(void)
     dbind_increment(FEdit, real32_t, min_width, 1);
     dbind_precision(FEdit, real32_t, min_width, 1);
     dbind_range(FEdit, real32_t, min_width, 10, 1000);
+
+    dbind_default(FCombo, real32_t, min_width, 100);
+    dbind_increment(FCombo, real32_t, min_width, 1);
+    dbind_precision(FCombo, real32_t, min_width, 1);
+    dbind_range(FCombo, real32_t, min_width, 10, 1000);
 
     dbind_default(FText, bool_t, read_only, FALSE);
     dbind_default(FText, real32_t, min_width, 100);
@@ -255,6 +265,7 @@ static void i_dbind(void)
     dbind(FWidget, FRadio *, radio);
     dbind(FWidget, FTool *, tool);
     dbind(FWidget, FEdit *, edit);
+    dbind(FWidget, FCombo *, combo);
     dbind(FWidget, FText *, text);
     dbind(FWidget, FImage *, image);
     dbind(FWidget, FSlider *, slider);
