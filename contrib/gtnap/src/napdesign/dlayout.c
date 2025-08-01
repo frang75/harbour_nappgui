@@ -735,6 +735,20 @@ static const Image *i_get_image(const DCell *cell, const uint32_t index, const b
 
 /*---------------------------------------------------------------------------*/
 
+static void i_draw_arrow(DCtx *ctx, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
+{
+    V2Df points[3];
+    points[0].x = x + width - 5;
+    points[0].y = y + height / 2 - 4;
+    points[1].x = points[0].x - 8;
+    points[1].y = points[0].y;
+    points[2].x = (points[0].x + points[1].x) / 2;
+    points[2].y = points[0].y + 6;
+    draw_polygon(ctx, ekFILL, points, 3);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Image *add_icon, const Font *default_font, DCtx *ctx)
 {
     uint32_t ncols, nrows, i, j, radio_i = 0;
@@ -774,7 +788,6 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
                 draw_fill_color(ctx, i_BGCOLOR);
                 draw_text_color(ctx, color);
                 draw_rect(ctx, ekFILL, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
-
                 draw_text_width(ctx, dcell->content_rect.size.width);
 
                 switch (fcell->widget.label->align)
@@ -917,7 +930,22 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
             }
 
             case ekCELL_TYPE_COMBO:
+            {
+                color_t color = i_is_cell_sel(hover, dlayout, i, j) ? i_SEL_COLOR : i_MAIN_COLOR;
+                real32_t pattern[2] = {1, 2};
+                draw_line_color(ctx, color);
+                draw_fill_color(ctx, i_BGCOLOR);
+                draw_line_width(ctx, 2);
+                draw_rect(ctx, ekFILLSK, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
+                draw_line_width(ctx, 1);
+                draw_line_dash(ctx, pattern, 2);
+                draw_rect(ctx, ekSTROKE, dcell->content_rect.pos.x + 5, dcell->content_rect.pos.y + 5, dcell->content_rect.size.width - 20, dcell->content_rect.size.height - 10);
+                draw_line_dash(ctx, NULL, 0);
+                draw_fill_color(ctx, color);
+                i_draw_arrow(ctx, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
+                draw_line_color(ctx, i_MAIN_COLOR);
                 break;
+            }
 
             case ekCELL_TYPE_TEXT:
             {
@@ -1040,19 +1068,8 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
                     drawctrl_text(ctx, tc(elem->text), (int32_t)tx, (int32_t)ty, ekCTRL_STATE_NORMAL);
                 }
 
-                /* PopUp arrow */
-                {
-                    V2Df points[3];
-                    points[0].x = dcell->content_rect.pos.x + dcell->content_rect.size.width - 5;
-                    points[0].y = dcell->content_rect.pos.y + dcell->content_rect.size.height / 2 - 4;
-                    points[1].x = points[0].x - 8;
-                    points[1].y = points[0].y;
-                    points[2].x = (points[0].x + points[1].x) / 2;
-                    points[2].y = points[0].y + 6;
-                    draw_fill_color(ctx, color);
-                    draw_polygon(ctx, ekFILL, points, 3);
-                }
-
+                draw_fill_color(ctx, color);
+                i_draw_arrow(ctx, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
                 draw_line_color(ctx, i_MAIN_COLOR);
                 break;
             }
