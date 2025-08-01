@@ -441,7 +441,7 @@ void layout_button(Layout *layout, Button *button, const uint32_t col, const uin
         halign = ekCENTER;
         valign = ekCENTER;
         break;
-    cassert_default();
+        cassert_default();
     }
 
     cell = i_set_component(layout, cast(button, GuiComponent), col, row, halign, valign);

@@ -48,6 +48,8 @@ _nflib_api void flayout_add_tool(FLayout *layout, FTool *tool, const uint32_t co
 
 _nflib_api void flayout_add_edit(FLayout *layout, FEdit *edit, const uint32_t col, const uint32_t row);
 
+_nflib_api void flayout_add_combo(FLayout *layout, FCombo *combo, const uint32_t col, const uint32_t row);
+
 _nflib_api void flayout_add_text(FLayout *layout, FText *text, const uint32_t col, const uint32_t row);
 
 _nflib_api void flayout_add_image(FLayout *layout, FImage *image, const uint32_t col, const uint32_t row);

@@ -356,7 +356,7 @@ void _oscontrol_draw_focus(HWND hwnd, const INT left_offset, const INT right_off
 
 /*---------------------------------------------------------------------------*/
 
-DWORD _oscontrol_halign(const align_t halign)
+DWORD _oscontrol_ss_halign(const align_t halign)
 {
     switch (halign)
     {
@@ -375,6 +375,25 @@ DWORD _oscontrol_halign(const align_t halign)
 
 /*---------------------------------------------------------------------------*/
 
+DWORD _oscontrol_es_halign(const align_t halign)
+{
+    switch (halign)
+    {
+    case ekLEFT:
+        return ES_LEFT;
+    case ekCENTER:
+    case ekJUSTIFY:
+        return ES_CENTER;
+    case ekRIGHT:
+        return ES_RIGHT;
+        cassert_default();
+    }
+
+    return UINT32_MAX;
+}
+
+/*---------------------------------------------------------------------------*/
+
 DWORD _oscontrol_ellipsis(const ellipsis_t ellipsis)
 {
     switch (ellipsis)
@@ -383,7 +402,7 @@ DWORD _oscontrol_ellipsis(const ellipsis_t ellipsis)
     case ekELLIPMLINE:
         return 0;
     case ekELLIPBEGIN:
-        return SS_WORDELLIPSIS;
+        return SS_ENDELLIPSIS;
     case ekELLIPEND:
         return SS_ENDELLIPSIS;
     case ekELLIPMIDDLE:
@@ -407,6 +426,24 @@ COLORREF _oscontrol_colorref(const color_t color)
 color_t _oscontrol_from_colorref(const COLORREF color)
 {
     return color_rgb(GetRValue(color), GetGValue(color), GetBValue(color));
+}
+
+/*---------------------------------------------------------------------------*/
+
+HBRUSH _oscontrol_ctl_color_edit(HDC hdc, COLORREF color, COLORREF bgcolor, HBRUSH brush, HBRUSH defbrush)
+{
+    if (color != kCOLOR_DEFAULT)
+        SetTextColor(hdc, color);
+
+    if (brush != NULL)
+    {
+        SetBkColor(hdc, bgcolor);
+        return brush;
+    }
+    else
+    {
+        return defbrush;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -438,6 +475,25 @@ void _oscontrol_destroy_brush(HBRUSH *brush)
         BOOL ok = DeleteObject(*brush);
         cassert_unref(ok != 0, ok);
         *brush = NULL;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _oscontrol_clipboard(HWND hwnd, const clipboard_t clipboard)
+{
+    switch (clipboard)
+    {
+    case ekCLIPBOARD_COPY:
+        SendMessage(hwnd, WM_COPY, (WPARAM)0, (LPARAM)0);
+        break;
+    case ekCLIPBOARD_PASTE:
+        SendMessage(hwnd, WM_PASTE, (WPARAM)0, (LPARAM)0);
+        break;
+    case ekCLIPBOARD_CUT:
+        SendMessage(hwnd, WM_CUT, (WPARAM)0, (LPARAM)0);
+        break;
+        cassert_default();
     }
 }
 

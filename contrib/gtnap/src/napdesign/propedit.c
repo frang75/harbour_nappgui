@@ -50,6 +50,7 @@ struct _propdata_t
     Layout *radio_layout;
     Layout *tool_layout;
     Layout *edit_layout;
+    Layout *combo_layout;
     Layout *text_layout;
     Layout *image_layout;
     Layout *slider_layout;
@@ -77,7 +78,8 @@ struct _propdata_t
 
 static const real32_t i_GRID_HMARGIN = 5;
 static const real32_t i_HEADER_VMARGIN = 3;
-static const real32_t i_LABEL_COLUMN_WIDTH = 60;
+//static const real32_t i_LABEL_COLUMN_WIDTH = 60;
+static const real32_t i_LABEL_COLUMN_MARGIN = 5;
 
 /*---------------------------------------------------------------------------*/
 
@@ -152,7 +154,8 @@ static Layout *i_margin_layout(PropData *data)
     layout_vmargin(layout, 0, 1);
     layout_halign(layout, 1, 0, ekJUSTIFY);
     layout_hexpand(layout, 1);
-    layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
+    //layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
+    layout_hmargin(layout, 0, i_LABEL_COLUMN_MARGIN);
     data->layout_type_label = label7;
     cell_dbind(layout_cell(layout, 1, 1), FLayout, String *, name);
     cell_dbind(layout_cell(layout, 1, 2), FLayout, real32_t, margin_top);
@@ -231,7 +234,8 @@ static Layout *i_column_layout(PropData *data)
     layout_layout(layout, val2, 1, 2);
     layout_vmargin(layout, 0, 1);
     layout_hexpand(layout, 1);
-    layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
+    //layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
+    layout_hmargin(layout, 0, i_LABEL_COLUMN_MARGIN);
     data->column_popup = popup;
     data->column_margin_cell = layout_cell(layout, 1, 1);
     cell_dbind(layout_cell(layout, 1, 1), FColumn, real32_t, margin_right);
@@ -264,7 +268,8 @@ static Layout *i_row_layout(PropData *data)
     layout_layout(layout, val2, 1, 2);
     layout_vmargin(layout, 0, 1);
     layout_hexpand(layout, 1);
-    layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
+    //layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
+    layout_hmargin(layout, 0, i_LABEL_COLUMN_MARGIN);
     data->row_popup = popup;
     data->row_margin_cell = layout_cell(layout, 1, 1);
     cell_dbind(layout_cell(layout, 1, 1), FRow, real32_t, margin_bottom);
@@ -430,7 +435,8 @@ static Layout *i_label_layout(PropData *data)
     layout_popup(layout1, popup, 1, 3);
     layout_margin4(layout1, 0, 0, 1, 0);
     layout_hexpand(layout1, 1);
-    layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
+    //layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
     cell_dbind(layout_cell(layout1, 1, 0), FLabel, String *, text);
     cell_dbind(layout_cell(layout1, 1, 1), FLabel, bool_t, multiline);
     cell_dbind(layout_cell(layout1, 1, 2), FLabel, real32_t, min_width);
@@ -489,7 +495,9 @@ static Layout *i_button_layout(PropData *data)
     layout_layout(layout1, layout3, 1, 2);
     layout_layout(layout1, layout4, 1, 3);
     layout_hexpand(layout1, 1);
-    layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
+    //layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
+
     cell_dbind(layout_cell(layout1, 1, 0), FButton, String *, text);
     cell_dbind(layout_cell(layout1, 1, 1), FButton, real32_t, min_width);
     cell_dbind(layout_cell(layout1, 1, 2), FButton, real32_t, hpadding);
@@ -533,7 +541,8 @@ static Layout *i_check_layout(PropData *data)
     layout_label(layout1, label, 0, 0);
     layout_edit(layout1, edit, 1, 0);
     layout_hexpand(layout1, 1);
-    layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
+    //layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
     cell_dbind(layout_cell(layout1, 1, 0), FCheck, String *, text);
     layout_dbind(layout1, listener(data, i_OnCheckNotify, PropData), FCheck);
     data->check_layout = layout1;
@@ -574,7 +583,9 @@ static Layout *i_radio_layout(PropData *data)
     layout_label(layout1, label, 0, 0);
     layout_edit(layout1, edit, 1, 0);
     layout_hexpand(layout1, 1);
-    layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
+    //layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
+
     cell_dbind(layout_cell(layout1, 1, 0), FRadio, String *, text);
     layout_dbind(layout1, listener(data, i_OnRadioNotify, PropData), FRadio);
     data->radio_layout = layout1;
@@ -671,7 +682,7 @@ static Layout *i_icon_layout(PropData *data)
     cassert_no_null(data);
     imageview_size(view, s2df(16, 16));
     imageview_scale(view, ekGUI_SCALE_ASPECT);
-    label_ellipsis(label, ekELLIPBEGIN);
+    /* label_ellipsis(label, ekELLIPBEGIN);    When NAppGUI supports */
     button_text(button, "...");
     button_tooltip(button, gui_text(TEXT_LOAD_ICON));
     button_OnClick(button, listener(data, i_OnLoadIcon, PropData));
@@ -721,7 +732,8 @@ static Layout *i_tool_layout(PropData *data)
     layout_layout(layout1, layout3, 1, 1);
     layout_layout(layout1, layout4, 1, 2);
     layout_hexpand(layout1, 1);
-    layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
+    //layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
     cell_dbind(layout_cell(layout1, 1, 1), FTool, real32_t, hpadding);
     cell_dbind(layout_cell(layout1, 1, 2), FTool, real32_t, vpadding);
     layout_dbind(layout1, listener(data, i_OnToolNotify, PropData), FTool);
@@ -795,6 +807,68 @@ static Layout *i_edit_layout(PropData *data)
     layout_dbind(layout1, listener(data, i_OnEditNotify, PropData), FEdit);
     data->edit_layout = layout1;
     return layout1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnComboNotify(PropData *data, Event *e)
+{
+    cassert_no_null(data);
+    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
+    dform_synchro_combo(data->form, &data->sel);
+    dform_compose(data->form);
+    designer_canvas_update(data->app);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Layout *i_combo_layout(PropData *data)
+{
+    Layout *layout1 = layout_create(2, 4);
+    Layout *layout2 = i_value_updown_layout(gui_text(TIP_COMBO_MWIDTH));
+    Label *label1 = label_create();
+    Label *label2 = label_create();
+    Label *label3 = label_create();
+    Label *label4 = label_create();
+    Button *check1 = button_check();
+    Button *check2 = button_check();
+    PopUp *popup = popup_create();
+    cassert_no_null(data);
+    label_text(label1, gui_text(TEXT_AUTOSELECT));
+    label_text(label2, gui_text(TEXT_PASSMODE));
+    label_text(label3, gui_text(TEXT_TEXT_ALIGN));
+    label_text(label4, gui_text(TEXT_MIN_WIDTH));
+    button_tooltip(check1, gui_text(TIP_COMBO_AUTOSEL));
+    button_tooltip(check2, gui_text(TIP_COMBO_PASSMODE));
+    popup_tooltip(popup, gui_text(TIP_COMBO_ALIGN));
+    layout_label(layout1, label1, 0, 0);
+    layout_label(layout1, label2, 0, 1);
+    layout_label(layout1, label3, 0, 2);
+    layout_label(layout1, label4, 0, 3);
+    layout_button(layout1, check1, 1, 0);
+    layout_button(layout1, check2, 1, 1);
+    layout_popup(layout1, popup, 1, 2);
+    layout_layout(layout1, layout2, 1, 3);
+    layout_hexpand(layout1, 1);
+    //layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
+    cell_dbind(layout_cell(layout1, 1, 0), FCombo, bool_t, autosel);
+    cell_dbind(layout_cell(layout1, 1, 1), FCombo, bool_t, passmode);
+    cell_dbind(layout_cell(layout1, 1, 2), FCombo, halign_t, text_align);
+    cell_dbind(layout_cell(layout1, 1, 3), FCombo, real32_t, min_width);
+    layout_dbind(layout1, listener(data, i_OnComboNotify, PropData), FCombo);
+    data->combo_layout = layout1;
+
+    /* Drawer */
+    {
+        Panel *panel = panel_create();
+        Panel *drawer = NULL;
+        Layout *layout = layout_create(1, 1);
+        panel_layout(panel, layout1);
+        drawer = designer_drawer(data->app, panel, ekDRAWER_COMBO_PROPS);
+        layout_panel(layout, drawer, 0, 0);
+        return layout;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1461,13 +1535,14 @@ static Panel *i_cell_content_panel(PropData *data)
     Layout *layout6 = i_radio_layout(data);
     Layout *layout7 = i_tool_layout(data);
     Layout *layout8 = i_edit_layout(data);
-    Layout *layout9 = i_text_layout(data);
-    Layout *layout10 = i_image_layout(data);
-    Layout *layout11 = i_slider_layout(data);
-    Layout *layout12 = i_progress_layout(data);
-    Layout *layout13 = i_popup_layout(data);
-    Layout *layout14 = i_listbox_layout(data);
-    Layout *layout15 = i_table_layout(data);
+    Layout *layout9 = i_combo_layout(data);
+    Layout *layout10 = i_text_layout(data);
+    Layout *layout11 = i_image_layout(data);
+    Layout *layout12 = i_slider_layout(data);
+    Layout *layout13 = i_progress_layout(data);
+    Layout *layout14 = i_popup_layout(data);
+    Layout *layout15 = i_listbox_layout(data);
+    Layout *layout16 = i_table_layout(data);
     Panel *panel = panel_create();
     cassert_no_null(data);
     panel_layout(panel, layout1);
@@ -1485,6 +1560,7 @@ static Panel *i_cell_content_panel(PropData *data)
     panel_layout(panel, layout13);
     panel_layout(panel, layout14);
     panel_layout(panel, layout15);
+    panel_layout(panel, layout16);
     panel_visible_layout(panel, 0);
     data->cell_panel = panel;
     return panel;
@@ -1550,7 +1626,8 @@ static Panel *i_cell_props_panel(PropData *data)
     layout_margin4(layout, 1, 0, 1, 0);
     layout_vmargin(layout, 0, 1);
     layout_halign(layout, 1, 0, ekJUSTIFY);
-    layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
+    //layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
+    layout_hmargin(layout, 0, i_LABEL_COLUMN_MARGIN);
     layout_hexpand(layout, 1);
     data->cell_type_label = label5;
     cell_dbind(layout_cell(layout, 1, 1), FCell, String *, name);
@@ -1770,6 +1847,11 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
             layout_dbind_obj(data->edit_layout, cell->widget.edit, FEdit);
             panel_visible_layout(data->cell_panel, 7);
         }
+        else if (cell->type == ekCELL_TYPE_COMBO)
+        {
+            layout_dbind_obj(data->combo_layout, cell->widget.combo, FCombo);
+            panel_visible_layout(data->cell_panel, 8);
+        }    
         else if (cell->type == ekCELL_TYPE_TEXT)
         {
             layout_dbind_obj(data->text_layout, cell->widget.text, FText);

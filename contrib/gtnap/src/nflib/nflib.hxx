@@ -12,6 +12,7 @@ typedef struct _fcheck_t FCheck;
 typedef struct _fradio_t FRadio;
 typedef struct _ftool_t FTool;
 typedef struct _fedit_t FEdit;
+typedef struct _fcombo_t FCombo;
 typedef struct _ftext_t FText;
 typedef struct _fimage_t FImage;
 typedef struct _fslider_t FSlider;
@@ -45,7 +46,8 @@ typedef enum _celltype_t
     ekCELL_TYPE_LISTBOX,
     ekCELL_TYPE_TABLEVIEW,
     ekCELL_TYPE_TOOL,
-    ekCELL_TYPE_RADIO
+    ekCELL_TYPE_RADIO,
+    ekCELL_TYPE_COMBO
 } celltype_t;
 
 /* Don't change the order. Add new values to end */
@@ -109,6 +111,14 @@ struct _ftool_t
 };
 
 struct _fedit_t
+{
+    bool_t passmode;
+    bool_t autosel;
+    halign_t text_align;
+    real32_t min_width;
+};
+
+struct _fcombo_t
 {
     bool_t passmode;
     bool_t autosel;
@@ -197,6 +207,7 @@ struct _fwidget_t
     FRadio *radio;
     FTool *tool;
     FEdit *edit;
+    FCombo *combo;
     FText *text;
     FImage *image;
     FSlider *slider;

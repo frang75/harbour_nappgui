@@ -108,7 +108,6 @@ static void i_OnClick(Button *button, Event *event)
 {
     EvButton *params = NULL;
     Button *sender = button;
-
     cassert_no_null(button);
     cassert(button->component.ositem == event_sender_imp(event, NULL));
     cassert_no_null(event);
@@ -425,6 +424,22 @@ const Font *button_get_font(const Button *button)
 
 /*---------------------------------------------------------------------------*/
 
+const Image *button_get_image(const Button *button)
+{
+    cassert_no_null(button);
+    return button->image;
+}
+
+/*---------------------------------------------------------------------------*/
+
+const Image *button_get_image_alt(const Button *button)
+{
+    cassert_no_null(button);
+    return button->imalt;
+}
+
+/*---------------------------------------------------------------------------*/
+
 uint32_t button_get_tag(const Button *button)
 {
     cassert_no_null(button);
@@ -440,22 +455,6 @@ real32_t button_get_height(const Button *button)
     _button_natural(cast(button, Button), 0, &width, &height);
     _button_natural(cast(button, Button), 1, &width, &height);
     return height;
-}
-
-/*---------------------------------------------------------------------------*/
-
-const Image *button_get_image(const Button *button)
-{
-    cassert_no_null(button);
-    return button->image;
-}
-
-/*---------------------------------------------------------------------------*/
-
-const Image *button_get_image_alt(const Button *button)
-{
-    cassert_no_null(button);
-    return button->imalt;
 }
 
 /*---------------------------------------------------------------------------*/

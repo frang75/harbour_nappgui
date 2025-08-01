@@ -18,6 +18,8 @@ FTool *dialog_new_tool(Window *parent, const Font *font, const DSelect *sel, con
 
 FEdit *dialog_new_edit(Window *parent, const DSelect *sel);
 
+FCombo *dialog_new_combo(Window *parent, const Font *font, const DSelect *sel);
+
 FText *dialog_new_text(Window *parent, const DSelect *sel);
 
 FImage *dialog_new_image(Window *parent, const DSelect *sel, const char_t *folder_path);

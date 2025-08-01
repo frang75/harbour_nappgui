@@ -7,6 +7,7 @@ TEXT_NEW_BUTTON     A new push button will be placed in cell (%d, %d) of '%s' la
 TEXT_NEW_CHECK      A new check box will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_RADIO      A new radio button will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_TOOL       A new tool button will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_COMBO      A new combo box will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SUBLAYOUT  A new sublayout will be placed in cell (%d, %d) of '%s' layout
 TEXT_LAYOUT_PROPS   Layout properties
 TEXT_COLUMN_PROPS   Column properties
@@ -17,6 +18,7 @@ TEXT_BUTTON_PROPS   Button properties
 TEXT_CHECK_PROPS    Checkbox properties
 TEXT_RADIO_PROPS    Radio button properties
 TEXT_TOOL_PROPS     Tool button properties
+TEXT_COMBO_PROPS    Combobox properties
 TEXT_LAYOUT         Layout
 TEXT_LAYOUTS        Layouts
 TEXT_BUTTONS        Buttons
@@ -63,6 +65,10 @@ TEXT_HALIGN         HAlign
 TEXT_VALIGN         VAlign
 TEXT_TEXT           Text
 TEXT_MULTILINE      Multiline
+TEXT_AUTOSELECT     Autoselect
+TEXT_PASSMODE       Passmode
+TEXT_TEXT_ALIGN     Text align
+TEXT_MIN_WIDTH      Min width
 TEXT_ICON           Icon
 TEXT_ICON_PATH      Icon path
 TEXT_DEFAULT        default
@@ -79,6 +85,7 @@ TEXT_CELL_CHECK     CheckBoxCell
 TEXT_CELL_RADIO     RadioButtonCell
 TEXT_CELL_TOOL      ToolButtonCell
 TEXT_CELL_EDIT      EditBoxCell
+TEXT_CELL_COMBO     ComboBoxCell
 TEXT_CELL_TEXT      TextViewCell
 TEXT_CELL_IMAGE     ImageViewCell
 TEXT_CELL_SLIDER    SliderCell
@@ -112,3 +119,7 @@ TIP_BUTTON_HPAD     Horizontal padding of the push button, -1 as default.
 TIP_BUTTON_VPAD     Vertical padding of the push button, -1 as default.
 TIP_CHECK_TEXT      The text that will be displayed to the right of the checkbox.
 TIP_RADIO_TEXT      The text that will be displayed to the right of the radio button.
+TIP_COMBO_AUTOSEL   If set, the text will be selected automatically when recibes the focus.
+TIP_COMBO_PASSMODE  If set, the text will be hidden will be hidden by asterisks.
+TIP_COMBO_ALIGN     Text alignment inside the combobox.
+TIP_COMBO_MWIDTH    Combobox width. If 0 will be set automatically.

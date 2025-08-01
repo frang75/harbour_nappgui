@@ -10,6 +10,7 @@
 #include <nflib/nflib.h>
 #include <nflib/fbutton.h>
 #include <nflib/fcheck.h>
+#include <nflib/fcombo.h>
 #include <nflib/flabel.h>
 #include <nflib/flayout.h>
 #include <nflib/fradio.h>
@@ -17,6 +18,7 @@
 #include <gui/guicontrol.h>
 #include <gui/button.h>
 #include <gui/edit.h>
+#include <gui/combo.h>
 #include <gui/gui.h>
 #include <gui/popup.h>
 #include <gui/label.h>
@@ -595,6 +597,25 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 }
             }
 
+            case ekWIDGET_COMBOBOX:
+            {
+                FCombo *fcombo = dialog_new_combo(window, font, &sel);
+                if (fcombo != NULL)
+                {
+                    Combo *combo = combo_create();
+                    fcombo_synchro(fcombo, combo);
+                    i_sel_remove_cell(&sel);
+                    flayout_add_combo(sel.flayout, fcombo, sel.col, sel.row);
+                    layout_combo(sel.glayout, combo, sel.col, sel.row);
+                    i_after_new_widget(form, inspect, propedit, &sel);
+                    return TRUE;
+                }
+                else
+                {
+                    return FALSE;
+                }
+            }
+
             case ekWIDGET_TEXTVIEW:
             {
                 FText *ftext = dialog_new_text(window, &sel);
@@ -814,7 +835,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
             }
 
             /* Still not supported */
-            case ekWIDGET_COMBOBOX:
             case ekWIDGET_VERT_SLIDER:
                 break;
 
@@ -1050,6 +1070,21 @@ void dform_synchro_edit(DForm *form, const DSelect *sel)
     edit_autoselect(edit, cell->widget.edit->autosel);
     edit_align(edit, i_halign(cell->widget.edit->text_align));
     edit_min_width(edit, cell->widget.edit->min_width);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dform_synchro_combo(DForm *form, const DSelect *sel)
+{
+    FCell *cell = i_sel_fcell(sel);
+    Combo *combo = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_COMBO);
+    i_need_save(form);
+    combo = layout_get_combo(sel->glayout, sel->col, sel->row);
+    fcombo_synchro(cell->widget.combo, combo);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1419,6 +1454,8 @@ const char_t* dform_cell_type(const celltype_t type)
         return gui_text(TEXT_CELL_TOOL);        
     case ekCELL_TYPE_EDIT:
         return gui_text(TEXT_CELL_EDIT);
+    case ekCELL_TYPE_COMBO:
+        return gui_text(TEXT_CELL_COMBO);
     case ekCELL_TYPE_TEXT:
         return gui_text(TEXT_CELL_TEXT);
     case ekCELL_TYPE_IMAGE:

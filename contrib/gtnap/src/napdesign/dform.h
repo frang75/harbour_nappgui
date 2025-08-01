@@ -44,6 +44,8 @@ void dform_synchro_tool(DForm *form, const DSelect *sel);
 
 void dform_synchro_edit(DForm *form, const DSelect *sel);
 
+void dform_synchro_combo(DForm *form, const DSelect *sel);
+
 void dform_synchro_textview(DForm *form, const DSelect *sel);
 
 void dform_synchro_imageview(DForm *form, const DSelect *sel);
