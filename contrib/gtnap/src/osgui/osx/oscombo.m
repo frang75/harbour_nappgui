@@ -13,10 +13,13 @@
 #include "oscombo_osx.inl"
 #include "oscontrol_osx.inl"
 #include "ospanel_osx.inl"
+#include "oswindow_osx.inl"
 #include "ostextfield.inl"
 #include "../oscombo.h"
 #include "../oscombo.inl"
+#include "../osgui.inl"
 #include <core/event.h>
+#include <core/strings.h>
 #include <sewer/cassert.h>
 
 /*---------------------------------------------------------------------------*/
@@ -25,53 +28,83 @@
 {
   @public
     OSTextField *field;
+    bool_t launch_OnSelect;
     Listener *OnSelect;
 }
 @end
 
 /*---------------------------------------------------------------------------*/
 
+#if defined(MAC_OS_X_VERSION_10_5) && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
+@interface OSXComboDelegate : NSObject < NSComboBoxDelegate >
+#else
+@interface OSXComboDelegate : NSObject
+#endif
+{
+    uint32_t dummy;
+}
+
+@end
+
+/*---------------------------------------------------------------------------*/
+
 @implementation OSXCombo
 
-- (BOOL)acceptsFirstResponder
+/*---------------------------------------------------------------------------*/
+
+- (void)textDidChange:(NSNotification *)notification
 {
-    return YES;
+    unref(notification);
+    _ostextfield_textDidChange(self->field);
 }
 
 /*---------------------------------------------------------------------------*/
 
-- (BOOL)makeFirstResponder:(NSResponder *)responder
+- (void)textDidEndEditing:(NSNotification *)notification
 {
-    unref(responder);
-    return YES;
+    _ostextfield_textDidEndEditing(self->field, notification);
 }
 
 /*---------------------------------------------------------------------------*/
 
-- (BOOL)becomeFirstResponder
+- (void)mouseDown:(NSEvent *)theEvent
 {
-    return _ostextfield_becomeFirstResponder(self->field);
+    if (_oswindow_mouse_down(cast(self, OSControl)) == TRUE)
+        [super mouseDown:theEvent];
 }
+
+@end
 
 /*---------------------------------------------------------------------------*/
 
-- (BOOL)resignFirstResponder
-{
-    return _ostextfield_resignFirstResponder(self->field);
-}
+@implementation OSXComboDelegate
 
 /*---------------------------------------------------------------------------*/
 
-- (IBAction)onSelectionChange:(id)sender
+- (void)comboBoxSelectionDidChange:(NSNotification *)notification
 {
-    cassert(sender == self);
-    if ([self isEnabled] == YES && self->OnSelect != NULL)
+    OSXCombo *combo = [notification object];
+    cassert_no_null(combo);
+    unref(notification);
+    if (combo->launch_OnSelect == TRUE)
     {
-        EvButton params;
-        params.state = ekGUI_ON;
-        params.index = (uint16_t)[self indexOfSelectedItem];
-        params.text = NULL;
-        listener_event(self->OnSelect, ekGUI_EVENT_BUTTON, cast(sender, OSCombo), &params, NULL, OSCombo, EvButton, void);
+        NSString *text = [combo objectValueOfSelectedItem];
+        if (text != nil)
+        {
+            const char_t *utf8 = cast_const([text UTF8String], char_t);
+            _ostextfield_text(combo->field, utf8);
+        }
+
+        _ostextfield_textDidChange(combo->field);
+
+        if ([combo isEnabled] == YES && combo->OnSelect != NULL)
+        {
+            EvButton params;
+            params.state = ekGUI_ON;
+            params.index = (uint32_t)[combo indexOfSelectedItem];
+            params.text = NULL;
+            listener_event(combo->OnSelect, ekGUI_EVENT_BUTTON, cast(combo, OSCombo), &params, NULL, OSCombo, EvButton, void);
+        }
     }
 }
 
@@ -82,17 +115,21 @@
 OSCombo *oscombo_create(const uint32_t flags)
 {
     OSXCombo *combo = nil;
-    heap_auditor_add("OSXCombo");
+    OSXComboDelegate *delegate = [[OSXComboDelegate alloc] init];
     unref(flags);
+    heap_auditor_add("OSXCombo");
     combo = [[OSXCombo alloc] initWithFrame:NSZeroRect];
-    combo->field = _ostextfield_create(combo, TRUE, "OSCombo");
+    combo->field = _ostextfield_from_combo(combo);
+    combo->OnSelect = NULL;
+    combo->launch_OnSelect = TRUE;
+    _oscontrol_init(combo);
+    [combo setStringValue:@""];
     [combo setUsesDataSource:NO];
     [combo setEditable:YES];
     [combo setSelectable:YES];
     [combo setHasVerticalScroller:YES];
-    [combo setTarget:combo];
-    [combo setAction:@selector(onSelectionChange:)];
-    _oscontrol_init(combo);
+    [combo setNumberOfVisibleItems:10];
+    [combo setDelegate:delegate];
     return cast(combo, OSCombo);
 }
 
@@ -104,8 +141,8 @@ void oscombo_destroy(OSCombo **combo)
     cassert_no_null(combo);
     lcombo = *dcast(combo, OSXCombo);
     cassert_no_null(lcombo);
-    _ostextfield_destroy(&lcombo->field);
     listener_destroy(&lcombo->OnSelect);
+    _ostextfield_destroy(&lcombo->field);
     [lcombo release];
     *combo = NULL;
     heap_auditor_delete("OSXCombo");
@@ -186,9 +223,12 @@ void oscombo_align(OSCombo *combo, const align_t align)
 
 void oscombo_passmode(OSCombo *combo, const bool_t passmode)
 {
-    cassert_no_null(combo);
-    cassert([cast(combo, NSObject) isKindOfClass:[OSXCombo class]] == YES);
-    _ostextfield_passmode(cast(combo, OSXCombo)->field, passmode);
+    /*
+     * Native NSComboBox doesn't support passmode.
+     * A custom control have to be created.
+     */
+    unref(combo);
+    unref(passmode);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -243,6 +283,7 @@ void oscombo_elem(OSCombo *combo, const ctrl_op_t op, const uint32_t idx, const 
     OSXCombo *lcombo = cast(combo, OSXCombo);
     cassert_no_null(lcombo);
     unref(image);
+    lcombo->launch_OnSelect = FALSE;
     if (op != ekCTRL_OP_DEL)
     {
         NSString *str = [[NSString alloc] initWithUTF8String:cast_const(text, char)];
@@ -251,14 +292,25 @@ void oscombo_elem(OSCombo *combo, const ctrl_op_t op, const uint32_t idx, const 
         {
         case ekCTRL_OP_ADD:
             [lcombo addItemWithObjectValue:str];
+            if (oscombo_get_selected(combo) == UINT32_MAX && str_empty_c(_ostextfield_get_text(lcombo->field)) == TRUE)
+            {
+                oscombo_selected(combo, 0);
+            }
             break;
+
         case ekCTRL_OP_INS:
             [lcombo insertItemWithObjectValue:str atIndex:(NSInteger)idx];
+            if (oscombo_get_selected(combo) == UINT32_MAX && str_empty_c(_ostextfield_get_text(lcombo->field)) == TRUE)
+            {
+                oscombo_selected(combo, 0);
+            }
             break;
+
         case ekCTRL_OP_SET:
             [lcombo removeItemAtIndex:(NSInteger)idx];
             [lcombo insertItemWithObjectValue:str atIndex:(NSInteger)idx];
             break;
+
         case ekCTRL_OP_DEL:
             cassert_default();
         }
@@ -269,6 +321,8 @@ void oscombo_elem(OSCombo *combo, const ctrl_op_t op, const uint32_t idx, const 
     {
         [lcombo removeItemAtIndex:(NSInteger)idx];
     }
+
+    lcombo->launch_OnSelect = TRUE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -276,6 +330,7 @@ void oscombo_elem(OSCombo *combo, const ctrl_op_t op, const uint32_t idx, const 
 void oscombo_list_height(OSCombo *combo, const uint32_t num_elems)
 {
     cassert_no_null(combo);
+    cassert([cast(combo, NSObject) isKindOfClass:[OSXCombo class]] == YES);
     [cast(combo, OSXCombo) setNumberOfVisibleItems:(NSInteger)num_elems];
 }
 
@@ -407,4 +462,13 @@ void _oscombo_focus(OSCombo *combo, const bool_t focus)
 BOOL _oscombo_is(NSView *view)
 {
     return [view isKindOfClass:[OSXCombo class]];
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t _oscombo_is_enabled(NSView *combo)
+{
+    cassert_no_null(combo);
+    cassert([cast(combo, NSObject) isKindOfClass:[OSXCombo class]] == YES);
+    return _ostextfield_is_enabled(cast_const(combo, OSXCombo)->field);
 }

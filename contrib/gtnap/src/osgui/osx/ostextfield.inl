@@ -14,11 +14,17 @@
 
 __EXTERN_C
 
-OSTextField *_ostextfield_create(NSView *control, const bool_t single_line, const char_t *type);
+OSTextField *_ostextfield_from_edit(NSView *control, const bool_t single_line);
+
+OSTextField *_ostextfield_from_combo(NSView *control);
 
 BOOL _ostextfield_becomeFirstResponder(OSTextField *field);
 
 BOOL _ostextfield_resignFirstResponder(OSTextField *field);
+
+void _ostextfield_textDidChange(OSTextField *field);
+
+void _ostextfield_textDidEndEditing(OSTextField *field, NSNotification *notification);
 
 void _ostextfield_wpadding(OSTextField *field, CGFloat wpadding);
 
@@ -54,7 +60,13 @@ void _ostextfield_enabled(OSTextField *field, const bool_t enabled);
 
 bool_t _ostextfield_resign_focus(const OSTextField *field);
 
+const char_t *_ostextfield_get_text(const OSTextField *field);
+
 const Font *_ostextfield_get_font(const OSTextField *field);
+
+bool_t _ostextfield_is_focused(const OSTextField *field);
+
+bool_t _ostextfield_is_enabled(const OSTextField *field);
 
 NSView *_ostextfield_get_impl(OSTextField *field);
 
