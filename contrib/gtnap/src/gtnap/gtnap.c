@@ -1187,6 +1187,38 @@ static uint8_t i_utf8_to_cp_char(const uint32_t codepoint)
 
 /*---------------------------------------------------------------------------*/
 
+static S2Df i_resolution(void)
+{
+    S2Df screen = s2df(0, 0);
+    const char_t *opt = "--res:";
+    uint32_t i, argc = hb_cmdargARGC();
+    const char_t **argv = dcast(hb_cmdargARGV(), char_t);
+
+    for (i = 0; i < argc; ++i)
+    {
+        if (str_is_prefix(argv[i], opt) == TRUE)
+        {
+            String *width = NULL, *height = NULL;
+            if (str_split(argv[i] + str_len_c(opt), "x", &width, &height) == TRUE)
+            {
+                screen.width = (real32_t)str_to_u32(tc(width), 10, NULL);
+                screen.height = (real32_t)str_to_u32(tc(height), 10, NULL);
+            }
+            str_destroy(&width);
+            str_destroy(&height);
+            break;
+        }
+    }
+
+    /* Minimum resolution accepted */
+    if (screen.width < 1024 || screen.height < 768)
+        globals_resolution(&screen);
+
+    return screen;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static GtNap *i_gtnap_create(void)
 {
     S2Df screen;
@@ -1223,7 +1255,7 @@ static GtNap *i_gtnap_create(void)
         GTNAP_GLOBAL->debugger = NULL;
     }
 
-    globals_resolution(&screen);
+    screen = i_resolution();
     i_compute_font_size(screen.width, screen.height, GTNAP_GLOBAL);
     deblib_init_colors(i_COLORS);
 
