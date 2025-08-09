@@ -3830,6 +3830,7 @@ uint32_t hb_gtnap_textview(const uint32_t wid, const int32_t top, const int32_t 
     cassert_no_null(gtwin);
     textview_family(view, font_family(GTNAP_GLOBAL->global_font));
     textview_fsize(view, font_size(GTNAP_GLOBAL->global_font));
+    textview_units(view, font_units(GTNAP_GLOBAL->global_font));
     textview_apply_all(view);
     size.width = (real32_t)(right - left + 1) * GTNAP_GLOBAL->cell_x_sizef;
     size.height = (real32_t)(bottom - top + 1) * GTNAP_GLOBAL->cell_y_sizef;
