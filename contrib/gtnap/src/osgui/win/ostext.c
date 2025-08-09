@@ -40,7 +40,6 @@ struct _ostext_t
     uint32_t funits;
     uint32_t fstyle;
     real32_t fsize;
-    //DWORD dwEffects;
     COLORREF crTextColor;
     COLORREF crBackColor;
     WORD wAlignment;
@@ -207,20 +206,20 @@ static LONG i_font_yHeight(HWND hwnd, const WCHAR *szFaceName, const real32_t fs
         int height_px = 0;
         HDC hdc = GetDC(hwnd);
         HFONT font = CreateFont(
-                        (int)fsize, 
-                        PARAM(nWidth, 0),
-                        PARAM(nEscapement, 0),
-                        PARAM(nOrientation, 0),
-                        (fstyle & ekFBOLD) == ekFBOLD ? FW_BOLD : FW_MEDIUM,
-                        (DWORD)((fstyle & ekFITALIC) == ekFITALIC ? TRUE : FALSE),
-                        (DWORD)((fstyle & ekFUNDERLINE) == ekFUNDERLINE ? TRUE : FALSE),
-                        (DWORD)((fstyle & ekFSTRIKEOUT) == ekFSTRIKEOUT ? TRUE : FALSE),
-                        PARAM(fdwCharSet, ANSI_CHARSET),
-                        PARAM(fdwOutputPrecision, OUT_TT_PRECIS),
-                        PARAM(fdwClipPrecision, CLIP_DEFAULT_PRECIS),
-                        PARAM(fdwQuality, DEFAULT_QUALITY),
-                        PARAM(fdwPitchAndFamily, DEFAULT_PITCH | FF_DONTCARE),            
-                        szFaceName);
+            (int)fsize,
+            PARAM(nWidth, 0),
+            PARAM(nEscapement, 0),
+            PARAM(nOrientation, 0),
+            (fstyle & ekFBOLD) == ekFBOLD ? FW_BOLD : FW_MEDIUM,
+            (DWORD)((fstyle & ekFITALIC) == ekFITALIC ? TRUE : FALSE),
+            (DWORD)((fstyle & ekFUNDERLINE) == ekFUNDERLINE ? TRUE : FALSE),
+            (DWORD)((fstyle & ekFSTRIKEOUT) == ekFSTRIKEOUT ? TRUE : FALSE),
+            PARAM(fdwCharSet, ANSI_CHARSET),
+            PARAM(fdwOutputPrecision, OUT_TT_PRECIS),
+            PARAM(fdwClipPrecision, CLIP_DEFAULT_PRECIS),
+            PARAM(fdwQuality, DEFAULT_QUALITY),
+            PARAM(fdwPitchAndFamily, DEFAULT_PITCH | FF_DONTCARE),
+            szFaceName);
         HFONT ofont = (HFONT)SelectObject(hdc, font);
         TEXTMETRIC tm;
 
@@ -241,7 +240,7 @@ static LONG i_font_yHeight(HWND hwnd, const WCHAR *szFaceName, const real32_t fs
         return (LONG)(fsize * kTWIPS_PER_PIXEL_GUI);
     }
 }
-    
+
 /*---------------------------------------------------------------------------*/
 
 static void i_apply_format(OSText *view, WPARAM char_sel)
@@ -253,7 +252,7 @@ static void i_apply_format(OSText *view, WPARAM char_sel)
     format.cbSize = sizeof(CHARFORMAT2);
     format.dwMask = CFM_FACE | CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE | CFM_STRIKEOUT | CFM_SUBSCRIPT | CFM_SIZE | CFM_COLOR | CFM_BACKCOLOR;
     format.yHeight = i_font_yHeight(view->control.hwnd, view->szFaceName, view->fsize, view->funits, view->fstyle);
-       
+
     format.dwEffects = 0;
     if (view->fstyle & ekFBOLD)
         format.dwEffects |= CFE_BOLD;

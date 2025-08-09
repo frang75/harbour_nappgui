@@ -946,12 +946,11 @@ static bool_t i_compute_font_size(const real32_t screen_width, const real32_t sc
 {
     bool_t ok = TRUE;
     const char_t *ffamily = NULL;
-    real32_t cell_width = 0;
     real32_t cell_height = 0;
     real32_t cell_height_tolerance = 0;
     real32_t fsize = 0;
     /*
-     *    Common resolutions: 
+     *    Common resolutions:
      *    Height          Width
      *    >= 1024         >= 1680
      *    >= 1024         >= 1440
@@ -966,10 +965,10 @@ static bool_t i_compute_font_size(const real32_t screen_width, const real32_t sc
     if (screen_height <= 600)
     {
         /*
-         * Practical tests have shown that, at low vertical resolution (height), 
+         * Practical tests have shown that, at low vertical resolution (height),
          * the "Courier New" font presents a jagged edge that makes the letters difficult to read.
          * In this situation, "Lucida Console" looks much better.
-         * 
+         *
          * "Lucida Console" isn't available on Linux or macOS. In these cases, we've left
          * the system default monospace font.
          */
@@ -981,12 +980,12 @@ static bool_t i_compute_font_size(const real32_t screen_width, const real32_t sc
     }
     else
     {
-        /* 
-         * At high vertical resolution, "Courier New" no longer displays the aliasing 
-         * and looks better. The downside of "Lucida Console" in this case is that it 
+        /*
+         * At high vertical resolution, "Courier New" no longer displays the aliasing
+         * and looks better. The downside of "Lucida Console" in this case is that it
          * becomes too wide, looking heavy and ugly.
          *
-         * "Courier New" is available on virtually all operating systems, including Linux 
+         * "Courier New" is available on virtually all operating systems, including Linux
          * and macOS. If it isn't available, the default monospace font will be selected.
          */
         ffamily = "Courier New";
@@ -995,7 +994,6 @@ static bool_t i_compute_font_size(const real32_t screen_width, const real32_t sc
     if (ffamily != NULL)
         draw2d_preferred_monospace(ffamily);
 
-    cell_width = bmath_floorf(screen_width / (real32_t)INIT_COLS);
     cell_height = bmath_floorf(screen_height / (real32_t)INIT_ROWS);
     cell_height_tolerance = i_MAX_SCREEN_HEIGHT_TOLERANCE_PX / (real32_t)INIT_ROWS;
     fsize = cell_height;
@@ -1012,16 +1010,16 @@ static bool_t i_compute_font_size(const real32_t screen_width, const real32_t sc
     if (fsize <= i_MINIMAL_FONT_SIZE)
         ok = FALSE;
 
-    /* 
+    /*
      * Try to find a button font size that fits the required screen height.
-     * Button font size will be slightly small than cell font. 
+     * Button font size will be slightly small than cell font.
      */
     if (ok == TRUE)
         ok = i_button_fit_height(gtnap, fsize, cell_height, cell_height_tolerance);
 
-    /* 
+    /*
      * Try to find a edit font size that fits the required screen height.
-     * Edit font size will be slightly small than cell font. 
+     * Edit font size will be slightly small than cell font.
      */
     if (ok == TRUE)
         ok = i_edit_fit_height(gtnap, fsize, cell_height, cell_height_tolerance);
@@ -1176,7 +1174,7 @@ static S2Df i_resolution(void)
     S2Df screen = s2df(0, 0);
     const char_t *opt = "--res:";
     uint32_t i, argc = hb_cmdargARGC();
-    const char_t **argv = dcast(hb_cmdargARGV(), char_t);
+    const char_t **argv = dcast_const(hb_cmdargARGV(), char_t);
 
     for (i = 0; i < argc; ++i)
     {
@@ -5046,7 +5044,7 @@ static void i_farea_refresh(GtNapFArea *area)
     arrst_clear(area->records, NULL, uint32_t);
 
     /* Generate the record index for TableView */
-    //if (area->while_block == NULL)
+    // if (area->while_block == NULL)
     {
         HB_BOOL fEof;
         SELF_GOTOP(area->area);
@@ -5060,15 +5058,15 @@ static void i_farea_refresh(GtNapFArea *area)
             SELF_EOF(area->area, &fEof);
         }
     }
-    //else
+    // else
     //{
-    //    HB_BOOL fEof;
-    //    SELF_GOTOP(area->area);
-    //    SELF_EOF(area->area, &fEof);
-    //    while (fEof == HB_FALSE)
-    //    {
-    //        HB_ULONG uiRecNo = 0;
-    //        SELF_RECNO(area->area, &uiRecNo);
+    //     HB_BOOL fEof;
+    //     SELF_GOTOP(area->area);
+    //     SELF_EOF(area->area, &fEof);
+    //     while (fEof == HB_FALSE)
+    //     {
+    //         HB_ULONG uiRecNo = 0;
+    //         SELF_RECNO(area->area, &uiRecNo);
 
     //        {
     //            PHB_ITEM ritem = hb_itemDo(area->while_block, 0);
@@ -5110,12 +5108,12 @@ static void i_farea_select_row(GtNapFArea *area)
 {
     HB_ULONG ulCurRec;
     uint32_t sel_row;
-    //TableView *view;
+    // TableView *view;
 
     cassert_no_null(area);
-    //cassert_no_null(gtarea->gtobj);
-    //cassert(gtarea->gtobj->type == ekOBJ_TABLEVIEW);
-    //view = (TableView *)gtarea->gtobj->component;
+    // cassert_no_null(gtarea->gtobj);
+    // cassert(gtarea->gtobj->type == ekOBJ_TABLEVIEW);
+    // view = (TableView *)gtarea->gtobj->component;
 
     /* Current selected */
     SELF_RECNO(area->area, &ulCurRec);
@@ -5123,24 +5121,24 @@ static void i_farea_select_row(GtNapFArea *area)
     sel_row = i_frow_from_recno(area, (uint32_t)ulCurRec);
 
     /* In multisel table, the selected rows comes from  VN_Selecio */
-    //if (gtarea->gtobj->multisel == TRUE)
+    // if (gtarea->gtobj->multisel == TRUE)
     //{
-    //    if (tableview_get_focus_row(view) == UINT32_MAX)
-    //    {
-    //        /* We use RECNO for focused row */
-    //        if (sel_row != UINT32_MAX)
-    //        {
-    //            tableview_focus_row(view, sel_row, ekTOP);
-    //        }
-    //        else
-    //        {
-    //            uint32_t nrecs = arrst_size(gtarea->records, uint32_t);
-    //            sel_row = tableview_get_focus_row(view);
-    //            /* We move recno to current focused row */
-    //            if (sel_row >= nrecs)
-    //            {
-    //                sel_row = 0;
-    //            }
+    //     if (tableview_get_focus_row(view) == UINT32_MAX)
+    //     {
+    //         /* We use RECNO for focused row */
+    //         if (sel_row != UINT32_MAX)
+    //         {
+    //             tableview_focus_row(view, sel_row, ekTOP);
+    //         }
+    //         else
+    //         {
+    //             uint32_t nrecs = arrst_size(gtarea->records, uint32_t);
+    //             sel_row = tableview_get_focus_row(view);
+    //             /* We move recno to current focused row */
+    //             if (sel_row >= nrecs)
+    //             {
+    //                 sel_row = 0;
+    //             }
 
     //            if (sel_row < nrecs)
     //            {
@@ -5151,7 +5149,7 @@ static void i_farea_select_row(GtNapFArea *area)
     //        }
     //    }
     //}
-    //else
+    // else
     {
         tableview_deselect_all(area->table);
 
@@ -5623,7 +5621,7 @@ static Listener *i_gtnap_menu_listener(HB_ITEM *block, GtNapMenuItem *item)
     callback->block = block ? hb_itemNew(block) : NULL;
     callback->menuitem = item;
     callback->key = INT32_MAX;
-    callback->autoclose_id = UINT32_MAX;    
+    callback->autoclose_id = UINT32_MAX;
     arrpt_append(GTNAP_GLOBAL->menu_callbacks, callback, GtNapCallback);
     return listener(callback, i_OnMenuClick, GtNapCallback);
 }

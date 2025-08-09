@@ -29,6 +29,7 @@
 #include <core/heap.h>
 #include <core/strings.h>
 #include <sewer/bstd.h>
+#include <sewer/blib.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
@@ -78,7 +79,6 @@ struct _propdata_t
 
 static const real32_t i_GRID_HMARGIN = 5;
 static const real32_t i_HEADER_VMARGIN = 3;
-//static const real32_t i_LABEL_COLUMN_WIDTH = 60;
 static const real32_t i_LABEL_COLUMN_MARGIN = 5;
 
 /*---------------------------------------------------------------------------*/
@@ -102,7 +102,7 @@ static Layout *i_value_updown_layout(const char_t *tooltip)
     Layout *layout = layout_create(2, 1);
     Edit *edit = edit_create();
     UpDown *updown = updown_create();
-    
+
     if (str_empty_c(tooltip) == FALSE)
         edit_tooltip(edit, tooltip);
 
@@ -154,7 +154,6 @@ static Layout *i_margin_layout(PropData *data)
     layout_vmargin(layout, 0, 1);
     layout_halign(layout, 1, 0, ekJUSTIFY);
     layout_hexpand(layout, 1);
-    //layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
     layout_hmargin(layout, 0, i_LABEL_COLUMN_MARGIN);
     data->layout_type_label = label7;
     cell_dbind(layout_cell(layout, 1, 1), FLayout, String *, name);
@@ -234,7 +233,6 @@ static Layout *i_column_layout(PropData *data)
     layout_layout(layout, val2, 1, 2);
     layout_vmargin(layout, 0, 1);
     layout_hexpand(layout, 1);
-    //layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
     layout_hmargin(layout, 0, i_LABEL_COLUMN_MARGIN);
     data->column_popup = popup;
     data->column_margin_cell = layout_cell(layout, 1, 1);
@@ -268,7 +266,6 @@ static Layout *i_row_layout(PropData *data)
     layout_layout(layout, val2, 1, 2);
     layout_vmargin(layout, 0, 1);
     layout_hexpand(layout, 1);
-    //layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
     layout_hmargin(layout, 0, i_LABEL_COLUMN_MARGIN);
     data->row_popup = popup;
     data->row_margin_cell = layout_cell(layout, 1, 1);
@@ -435,7 +432,6 @@ static Layout *i_label_layout(PropData *data)
     layout_popup(layout1, popup, 1, 3);
     layout_margin4(layout1, 0, 0, 1, 0);
     layout_hexpand(layout1, 1);
-    //layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
     layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
     cell_dbind(layout_cell(layout1, 1, 0), FLabel, String *, text);
     cell_dbind(layout_cell(layout1, 1, 1), FLabel, bool_t, multiline);
@@ -495,9 +491,7 @@ static Layout *i_button_layout(PropData *data)
     layout_layout(layout1, layout3, 1, 2);
     layout_layout(layout1, layout4, 1, 3);
     layout_hexpand(layout1, 1);
-    //layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
     layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
-
     cell_dbind(layout_cell(layout1, 1, 0), FButton, String *, text);
     cell_dbind(layout_cell(layout1, 1, 1), FButton, real32_t, min_width);
     cell_dbind(layout_cell(layout1, 1, 2), FButton, real32_t, hpadding);
@@ -541,7 +535,6 @@ static Layout *i_check_layout(PropData *data)
     layout_label(layout1, label, 0, 0);
     layout_edit(layout1, edit, 1, 0);
     layout_hexpand(layout1, 1);
-    //layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
     layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
     cell_dbind(layout_cell(layout1, 1, 0), FCheck, String *, text);
     layout_dbind(layout1, listener(data, i_OnCheckNotify, PropData), FCheck);
@@ -583,9 +576,7 @@ static Layout *i_radio_layout(PropData *data)
     layout_label(layout1, label, 0, 0);
     layout_edit(layout1, edit, 1, 0);
     layout_hexpand(layout1, 1);
-    //layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
     layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
-
     cell_dbind(layout_cell(layout1, 1, 0), FRadio, String *, text);
     layout_dbind(layout1, listener(data, i_OnRadioNotify, PropData), FRadio);
     data->radio_layout = layout1;
@@ -653,7 +644,7 @@ static void i_OnLoadIcon(PropData *data, Event *e)
             {
                 Button *button = layout_get_button(data->sel.glayout, data->sel.col, data->sel.row);
                 button_image(button, image);
-                str_upd(&cell->widget.tool->path, tc(relpath));        
+                str_upd(&cell->widget.tool->path, tc(relpath));
                 layout_dbind_obj(data->tool_layout, cell->widget.tool, FTool);
                 i_update_icon(data->icon_tool_view, data->label_tool_icon, data->load_tool_icon, folder_path, tc(cell->widget.tool->path));
             }
@@ -732,7 +723,6 @@ static Layout *i_tool_layout(PropData *data)
     layout_layout(layout1, layout3, 1, 1);
     layout_layout(layout1, layout4, 1, 2);
     layout_hexpand(layout1, 1);
-    //layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
     layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
     cell_dbind(layout_cell(layout1, 1, 1), FTool, real32_t, hpadding);
     cell_dbind(layout_cell(layout1, 1, 2), FTool, real32_t, vpadding);
@@ -850,7 +840,6 @@ static Layout *i_combo_layout(PropData *data)
     layout_popup(layout1, popup, 1, 2);
     layout_layout(layout1, layout2, 1, 3);
     layout_hexpand(layout1, 1);
-    //layout_hsize(layout1, 0, i_LABEL_COLUMN_WIDTH);
     layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
     cell_dbind(layout_cell(layout1, 1, 0), FCombo, bool_t, autosel);
     cell_dbind(layout_cell(layout1, 1, 1), FCombo, bool_t, passmode);
@@ -1626,7 +1615,6 @@ static Panel *i_cell_props_panel(PropData *data)
     layout_margin4(layout, 1, 0, 1, 0);
     layout_vmargin(layout, 0, 1);
     layout_halign(layout, 1, 0, ekJUSTIFY);
-    //layout_hsize(layout, 0, i_LABEL_COLUMN_WIDTH);
     layout_hmargin(layout, 0, i_LABEL_COLUMN_MARGIN);
     layout_hexpand(layout, 1);
     data->cell_type_label = label5;
@@ -1748,14 +1736,14 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
         uint32_t nrows = flayout_nrows(sel->flayout);
 
         if (ncols == 1 && nrows == 1)
-            bstd_sprintf(text, sizeof(text), gui_text(TEXT_LTYPE_SING));
+            blib_strcpy(text, sizeof(text), gui_text(TEXT_LTYPE_SING));
         else if (ncols == 1)
             bstd_sprintf(text, sizeof(text), gui_text(TEXT_LTYPE_VERT), nrows);
         else if (nrows == 1)
             bstd_sprintf(text, sizeof(text), gui_text(TEXT_LTYPE_HORZ), ncols);
         else
             bstd_sprintf(text, sizeof(text), gui_text(TEXT_LTYPE_GRID), ncols, nrows);
-        
+
         label_text(data->layout_type_label, text);
 
         /* Column selector */
@@ -1834,7 +1822,7 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
         {
             layout_dbind_obj(data->radio_layout, cell->widget.radio, FRadio);
             panel_visible_layout(data->cell_panel, 5);
-        }    
+        }
         else if (cell->type == ekCELL_TYPE_TOOL)
         {
             const char_t *folder_path = designer_folder_path(data->app);
@@ -1851,7 +1839,7 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
         {
             layout_dbind_obj(data->combo_layout, cell->widget.combo, FCombo);
             panel_visible_layout(data->cell_panel, 8);
-        }    
+        }
         else if (cell->type == ekCELL_TYPE_TEXT)
         {
             layout_dbind_obj(data->text_layout, cell->widget.text, FText);
