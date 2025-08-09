@@ -398,7 +398,7 @@ static Layout *i_layout_cell_layout(void)
 static void i_OnLabelNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
-    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
+    cassert_unref(event_type(e) == ekGUI_EVENT_OBJCHANGE, e);
     dform_synchro_label(data->form, &data->sel);
     dform_compose(data->form);
     designer_canvas_update(data->app);
@@ -461,7 +461,7 @@ static Layout *i_label_layout(PropData *data)
 static void i_OnButtonNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
-    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
+    cassert_unref(event_type(e) == ekGUI_EVENT_OBJCHANGE, e);
     dform_synchro_button(data->form, &data->sel);
     dform_compose(data->form);
     designer_canvas_update(data->app);
@@ -522,7 +522,7 @@ static Layout *i_button_layout(PropData *data)
 static void i_OnCheckNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
-    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
+    cassert_unref(event_type(e) == ekGUI_EVENT_OBJCHANGE, e);
     dform_synchro_check(data->form, &data->sel);
     dform_compose(data->form);
     designer_canvas_update(data->app);
@@ -564,7 +564,7 @@ static Layout *i_check_layout(PropData *data)
 static void i_OnRadioNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
-    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
+    cassert_unref(event_type(e) == ekGUI_EVENT_OBJCHANGE, e);
     dform_synchro_radio(data->form, &data->sel);
     dform_compose(data->form);
     designer_canvas_update(data->app);
@@ -704,7 +704,7 @@ static Layout *i_icon_layout(PropData *data)
 static void i_OnToolNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
-    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
+    cassert_unref(event_type(e) == ekGUI_EVENT_OBJCHANGE, e);
     dform_synchro_tool(data->form, &data->sel);
     dform_compose(data->form);
     designer_canvas_update(data->app);
@@ -814,7 +814,7 @@ static Layout *i_edit_layout(PropData *data)
 static void i_OnComboNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
-    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
+    cassert_unref(event_type(e) == ekGUI_EVENT_OBJCHANGE, e);
     dform_synchro_combo(data->form, &data->sel);
     dform_compose(data->form);
     designer_canvas_update(data->app);
