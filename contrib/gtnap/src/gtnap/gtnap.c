@@ -4164,7 +4164,7 @@ void hb_gtnap_tableview_column(const uint32_t wid, const uint32_t id, const uint
     hnchars = i_header_char_width(tc(col->title), &col->header_lines);
     col->fixed_chars = width;
     col->widthf = i_col_widthf(col->fixed_chars, hnchars, GTNAP_GLOBAL);
-    col->align = ekLEFT;
+    col->align = ekJUSTIFY;
     col->block = hb_itemNew(eval_block);
 
     arrst_foreach(c, obj->columns, GtNapColumn)
@@ -4174,6 +4174,7 @@ void hb_gtnap_tableview_column(const uint32_t wid, const uint32_t id, const uint
 
     tableview_header_title((TableView *)obj->component, cid, tc(col->title));
     tableview_column_width((TableView *)obj->component, cid, col->widthf);
+    tableview_column_align((TableView *)obj->component, cid, col->align);
     tableview_header_align((TableView *)obj->component, cid, col->align);
     tableview_header_height((TableView *)obj->component, (real32_t)nlines * GTNAP_GLOBAL->cell_y_sizef);
 }
