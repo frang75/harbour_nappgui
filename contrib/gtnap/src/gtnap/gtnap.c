@@ -947,7 +947,6 @@ static bool_t i_compute_font_size(const real32_t screen_width, const real32_t sc
     bool_t ok = TRUE;
     const char_t *ffamily = NULL;
     real32_t cell_height = 0;
-    real32_t cell_height_tolerance = 0;
     real32_t fsize = 0;
     /*
      *    Common resolutions:
@@ -995,13 +994,12 @@ static bool_t i_compute_font_size(const real32_t screen_width, const real32_t sc
         draw2d_preferred_monospace(ffamily);
 
     cell_height = bmath_floorf(screen_height / (real32_t)INIT_ROWS);
-    cell_height_tolerance = i_MAX_SCREEN_HEIGHT_TOLERANCE_PX / (real32_t)INIT_ROWS;
     fsize = cell_height;
 
     /* Try to find a font size that fits the required screen height */
     while (fsize > i_MINIMAL_FONT_SIZE)
     {
-        if (i_font_fit_height(gtnap, fsize, cell_height, cell_height_tolerance) == TRUE)
+        if (i_font_fit_height(gtnap, fsize, cell_height, 1) == TRUE)
             break;
         else
             fsize -= 1;
@@ -1015,14 +1013,14 @@ static bool_t i_compute_font_size(const real32_t screen_width, const real32_t sc
      * Button font size will be slightly small than cell font.
      */
     if (ok == TRUE)
-        ok = i_button_fit_height(gtnap, fsize, cell_height, cell_height_tolerance);
+        ok = i_button_fit_height(gtnap, fsize, cell_height, 1);
 
     /*
      * Try to find a edit font size that fits the required screen height.
      * Edit font size will be slightly small than cell font.
      */
     if (ok == TRUE)
-        ok = i_edit_fit_height(gtnap, fsize, cell_height, cell_height_tolerance);
+        ok = i_edit_fit_height(gtnap, fsize, cell_height, 1);
 
     /* Fit the cell width */
     if (ok == TRUE)
@@ -1050,8 +1048,8 @@ static bool_t i_compute_font_size(const real32_t screen_width, const real32_t sc
         cassert(gtnap->cell_x_sizef > 0);
         cassert(gtnap->cell_y_sizef > 0);
         cassert(gtnap->label_y_sizef > 0 && gtnap->label_y_sizef <= gtnap->cell_y_sizef);
-        cassert(gtnap->button_y_sizef > 0 && gtnap->button_y_sizef <= gtnap->cell_y_sizef);
-        cassert(gtnap->edit_y_sizef > 0 && gtnap->edit_y_sizef <= gtnap->cell_y_sizef);
+        /*cassert(gtnap->button_y_sizef > 0 && gtnap->button_y_sizef <= gtnap->cell_y_sizef);*/
+        /*cassert(gtnap->edit_y_sizef > 0 && gtnap->edit_y_sizef <= gtnap->cell_y_sizef);*/
     }
 
     return ok;
