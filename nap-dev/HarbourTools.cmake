@@ -10,6 +10,10 @@ message(" - Generating '${prjName}' C files")
 # Clean destiny of C files
 file(REMOVE_RECURSE ${destCPath})
 file(MAKE_DIRECTORY ${destCPath})
+file(MAKE_DIRECTORY ${destCPath}/res)
+file(COPY "${NAPPGUI_ROOT_PATH}/prj/templates/logo256.ico" DESTINATION "${destCPath}/res")
+file(COPY "${NAPPGUI_ROOT_PATH}/prj/templates/logo48.ico" DESTINATION "${destCPath}/res")
+file(COPY "${NAPPGUI_ROOT_PATH}/prj/templates/logo.icns" DESTINATION "${destCPath}/res")
 
 # Select Harbour compiler
 if (WIN32)
