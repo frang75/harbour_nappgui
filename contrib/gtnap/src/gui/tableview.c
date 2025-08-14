@@ -198,7 +198,7 @@ static void i_draw_cell(const EvTbCell *cell, DCtx *ctx, const Column *col, cons
         if (width > i_COLUMN_MIN_DISPLAY)
         {
             draw_font(ctx, col->font);
-            
+
             if (cell->align != ekJUSTIFY)
                 draw_text_width(ctx, (real32_t)(width - i_COLUMN_LEFT_PADDING - i_COLUMN_RIGHT_PADDING));
 
