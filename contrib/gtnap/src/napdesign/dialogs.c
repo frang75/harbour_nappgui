@@ -5,6 +5,7 @@
 #include "res_designer.h"
 #include <nflib/nflib.h>
 #include <nflib/fbutton.h>
+#include <nflib/fcheck.h>
 #include <nflib/flabel.h>
 #include <nflib/flayout.h>
 #include <gui/button.h>
@@ -362,7 +363,7 @@ FCheck *dialog_new_check(Window *parent, const Font *font, const DSelect *sel)
     DialogData data = i_dialog_data();
     Layout *layout = layout_create(2, 1);
     String *caption = NULL;
-    FCheck *fcheck = dbind_create(FCheck);
+    FCheck *fcheck = fcheck_create();
     uint32_t ret = 0;
     cassert_no_null(sel);
     cassert_no_null(sel->flayout);
@@ -384,7 +385,7 @@ FCheck *dialog_new_check(Window *parent, const Font *font, const DSelect *sel)
     ret = i_modal_new_widget(parent, &data, layout, font, CHECBUT_PNG, TEXT_CHECK_BOX, tc(caption));
 
     if (ret != BUTTON_OK)
-        dbind_destroy(&fcheck, FCheck);
+        fcheck_destroy(&fcheck);
 
     str_destroy(&caption);
     i_remove_dialog_data(&data);

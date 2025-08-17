@@ -73,7 +73,7 @@ static void i_remove_cell(FCell *cell)
         break;
 
     case ekCELL_TYPE_CHECK:
-        dbind_destroy(&cell->widget.check, FCheck);
+        fcheck_destroy(&cell->widget.check);
         break;
 
     case ekCELL_TYPE_RADIO:
