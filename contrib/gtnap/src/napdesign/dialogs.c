@@ -6,6 +6,7 @@
 #include <nflib/nflib.h>
 #include <nflib/fbutton.h>
 #include <nflib/fcheck.h>
+#include <nflib/fradio.h>
 #include <nflib/flabel.h>
 #include <nflib/flayout.h>
 #include <gui/button.h>
@@ -362,8 +363,8 @@ FCheck *dialog_new_check(Window *parent, const Font *font, const DSelect *sel)
 {
     DialogData data = i_dialog_data();
     Layout *layout = layout_create(2, 1);
-    String *caption = NULL;
     FCheck *fcheck = fcheck_create();
+    String *caption = NULL;
     uint32_t ret = 0;
     cassert_no_null(sel);
     cassert_no_null(sel->flayout);
@@ -398,8 +399,8 @@ FRadio *dialog_new_radio(Window *parent, const Font *font, const DSelect *sel)
 {
     DialogData data = i_dialog_data();
     Layout *layout = layout_create(2, 1);
+    FRadio *fradio = fradio_create();
     String *caption = NULL;
-    FRadio *fradio = dbind_create(FRadio);
     uint32_t ret = 0;
     cassert_no_null(sel);
     cassert_no_null(sel->flayout);
@@ -421,7 +422,7 @@ FRadio *dialog_new_radio(Window *parent, const Font *font, const DSelect *sel)
     ret = i_modal_new_widget(parent, &data, layout, font, RADBUT_PNG, TEXT_RADIO_BUTTON, tc(caption));
 
     if (ret != BUTTON_OK)
-        dbind_destroy(&fradio, FRadio);
+        fradio_destroy(&fradio);
 
     str_destroy(&caption);
     i_remove_dialog_data(&data);
