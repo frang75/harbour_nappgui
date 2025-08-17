@@ -7,6 +7,8 @@ TEXT_NEW_BUTTON     A new push button will be placed in cell (%d, %d) of '%s' la
 TEXT_NEW_CHECK      A new check box will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_RADIO      A new radio button will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_TOOL       A new tool button will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_POPUP      A new popup button will be placed in cell (%d, %d) of '%s' layout
+
 TEXT_NEW_COMBO      A new combo box will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SUBLAYOUT  A new sublayout will be placed in cell (%d, %d) of '%s' layout
 TEXT_LAYOUT_PROPS   Layout properties
@@ -33,6 +35,7 @@ TEXT_PUSH_BUTTON    Push Button
 TEXT_CHECK_BOX      Check Box
 TEXT_RADIO_BUTTON   Radio Button
 TEXT_TOOL_BUTTON    Tool Button
+TEXT_POPUP_BUTTON   PopUp Button
 TEXT_LABEL          Label
 TEXT_EDIT_BOX       Edit Box
 TEXT_COMBO_BOX      Combo Box

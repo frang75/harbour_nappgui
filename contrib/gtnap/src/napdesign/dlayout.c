@@ -12,6 +12,7 @@
 #include <gui/tableviewh.h>
 #include <gui/edit.h>
 #include <gui/cell.h>
+#include <gui/popup.h>
 #include <gui/drawctrl.inl>
 #include <draw2d/color.h>
 #include <draw2d/dctx.h>
@@ -321,6 +322,20 @@ void dlayout_clear_images(DLayout *layout, const uint32_t col, const uint32_t ro
     {
         cassert(cell->simages == NULL);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dlayout_synchro_popup(DLayout *layout, const uint32_t col, const uint32_t row, const PopUp *popup)
+{
+    uint32_t i, n = popup_count(popup);
+    dlayout_clear_images(layout, col, row);
+
+    for (i = 0; i < n; ++i)
+    {
+        const Image *image = popup_get_image(popup, i);
+        dlayout_add_image(layout, image, col, row);
+    }    
 }
 
 /*---------------------------------------------------------------------------*/

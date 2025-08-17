@@ -10,6 +10,7 @@
 #include <nflib/ftool.h>
 #include <nflib/flabel.h>
 #include <nflib/flayout.h>
+#include <nflib/fpopup.h>
 #include <gui/button.h>
 #include <gui/cell.h>
 #include <gui/comwin.h>
@@ -543,6 +544,30 @@ FTool *dialog_new_tool(Window *parent, const Font *font, const DSelect *sel, con
 
 /*---------------------------------------------------------------------------*/
 
+FPopUp *dialog_new_popup(Window *parent, const Font *font, const DSelect *sel, const char_t *folder_path)
+{
+    DialogData data = i_dialog_data();
+    Layout *layout = layout_create(1, 1);
+    FPopUp *fpopup = fpopup_create();
+    String *caption = NULL;
+    uint32_t ret = 0;
+    cassert_no_null(sel);
+    cassert_no_null(sel->flayout);
+    unref(folder_path);
+
+    caption = str_printf(gui_text(TEXT_NEW_POPUP), sel->col, sel->row, tc(sel->flayout->name));
+    ret = i_modal_new_widget(parent, &data, layout, font, POPUP_PNG, TEXT_POPUP_BUTTON, tc(caption));
+
+    if (ret != BUTTON_OK)
+        fpopup_destroy(&fpopup);
+
+    str_destroy(&caption);
+    i_remove_dialog_data(&data);
+    return fpopup;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Layout *i_value_updown_layout(void)
 {
     Layout *layout = layout_create(2, 1);
@@ -868,42 +893,6 @@ FProgress *dialog_new_progress(Window *parent, const DSelect *sel)
     str_destroy(&caption);
     i_remove_dialog_data(&data);
     return fprogress;
-}
-
-/*---------------------------------------------------------------------------*/
-
-FPopUp *dialog_new_popup(Window *parent, const DSelect *sel)
-{
-    DialogData data = i_dialog_data();
-    Layout *layout1 = layout_create(1, 2);
-    Layout *layout2 = i_ok_cancel(&data, TRUE);
-    Label *label1 = label_create();
-    Panel *panel = panel_create();
-    Window *window = window_create(ekWINDOW_STD | ekWINDOW_ESC);
-    String *caption = NULL;
-    FPopUp *fpopup = dbind_create(FPopUp);
-    uint32_t ret = 0;
-    data.window = window;
-    cassert_no_null(sel);
-    cassert_no_null(sel->flayout);
-    caption = str_printf("New Popup widget in (%d, %d) of '%s'", sel->col, sel->row, tc(sel->flayout->name));
-    label_text(label1, tc(caption));
-    layout_label(layout1, label1, 0, 0);
-    layout_layout(layout1, layout2, 0, 1);
-    layout_vmargin(layout1, 0, 5);
-    panel_layout(panel, layout1);
-    window_panel(window, panel);
-    window_defbutton(window, data.defbutton);
-    i_center_window(parent, window);
-    ret = window_modal(window, parent);
-
-    if (ret != BUTTON_OK)
-        dbind_destroy(&fpopup, FPopUp);
-
-    window_destroy(&window);
-    str_destroy(&caption);
-    i_remove_dialog_data(&data);
-    return fpopup;
 }
 
 /*---------------------------------------------------------------------------*/

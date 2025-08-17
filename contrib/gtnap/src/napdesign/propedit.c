@@ -1523,13 +1523,13 @@ static Panel *i_cell_content_panel(PropData *data)
     Layout *layout5 = i_check_layout(data);
     Layout *layout6 = i_radio_layout(data);
     Layout *layout7 = i_tool_layout(data);
-    Layout *layout8 = i_edit_layout(data);
-    Layout *layout9 = i_combo_layout(data);
-    Layout *layout10 = i_text_layout(data);
-    Layout *layout11 = i_image_layout(data);
-    Layout *layout12 = i_slider_layout(data);
-    Layout *layout13 = i_progress_layout(data);
-    Layout *layout14 = i_popup_layout(data);
+    Layout *layout8 = i_popup_layout(data);
+    Layout *layout9 = i_edit_layout(data);
+    Layout *layout10 = i_combo_layout(data);
+    Layout *layout11 = i_text_layout(data);
+    Layout *layout12 = i_image_layout(data);
+    Layout *layout13 = i_slider_layout(data);
+    Layout *layout14 = i_progress_layout(data);
     Layout *layout15 = i_listbox_layout(data);
     Layout *layout16 = i_table_layout(data);
     Panel *panel = panel_create();
@@ -1830,55 +1830,55 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
             i_update_icon(data->icon_tool_view, data->label_tool_icon, data->load_tool_icon, folder_path, tc(cell->widget.tool->path));
             panel_visible_layout(data->cell_panel, 6);
         }
+        else if (cell->type == ekCELL_TYPE_POPUP)
+        {
+            const char_t *folder_path = designer_folder_path(data->app);
+            layout_dbind_obj(data->popup_layout, cell->widget.popup, FPopUp);
+            panel_visible_layout(data->cell_panel, 7);
+            i_update_elem_list(cell->widget.popup->elems, data->popup_list, folder_path);
+        }
         else if (cell->type == ekCELL_TYPE_EDIT)
         {
             layout_dbind_obj(data->edit_layout, cell->widget.edit, FEdit);
-            panel_visible_layout(data->cell_panel, 7);
+            panel_visible_layout(data->cell_panel, 8);
         }
         else if (cell->type == ekCELL_TYPE_COMBO)
         {
             layout_dbind_obj(data->combo_layout, cell->widget.combo, FCombo);
-            panel_visible_layout(data->cell_panel, 8);
+            panel_visible_layout(data->cell_panel, 9);
         }
         else if (cell->type == ekCELL_TYPE_TEXT)
         {
             layout_dbind_obj(data->text_layout, cell->widget.text, FText);
-            panel_visible_layout(data->cell_panel, 8);
+            panel_visible_layout(data->cell_panel, 10);
         }
         else if (cell->type == ekCELL_TYPE_IMAGE)
         {
             layout_dbind_obj(data->image_layout, cell->widget.image, FImage);
-            panel_visible_layout(data->cell_panel, 9);
+            panel_visible_layout(data->cell_panel, 11);
             button_tooltip(data->load_button, tc(cell->widget.image->path));
         }
         else if (cell->type == ekCELL_TYPE_SLIDER)
         {
             layout_dbind_obj(data->slider_layout, cell->widget.slider, FSlider);
-            panel_visible_layout(data->cell_panel, 10);
+            panel_visible_layout(data->cell_panel, 12);
         }
         else if (cell->type == ekCELL_TYPE_PROGRESS)
         {
             layout_dbind_obj(data->progress_layout, cell->widget.progress, FProgress);
-            panel_visible_layout(data->cell_panel, 11);
-        }
-        else if (cell->type == ekCELL_TYPE_POPUP)
-        {
-            const char_t *folder_path = designer_folder_path(data->app);
-            layout_dbind_obj(data->popup_layout, cell->widget.popup, FPopUp);
-            panel_visible_layout(data->cell_panel, 12);
-            i_update_elem_list(cell->widget.popup->elems, data->popup_list, folder_path);
+            panel_visible_layout(data->cell_panel, 13);
         }
         else if (cell->type == ekCELL_TYPE_LISTBOX)
         {
             const char_t *folder_path = designer_folder_path(data->app);
             layout_dbind_obj(data->listbox_layout, cell->widget.listbox, FListBox);
-            panel_visible_layout(data->cell_panel, 13);
+            panel_visible_layout(data->cell_panel, 14);
             i_update_elem_list(cell->widget.listbox->elems, data->listbox_list, folder_path);
         }
         else if (cell->type == ekCELL_TYPE_TABLEVIEW)
         {
             layout_dbind_obj(data->table_layout, cell->widget.table, FTable);
-            panel_visible_layout(data->cell_panel, 14);
+            panel_visible_layout(data->cell_panel, 15);
             i_update_header_list(cell->widget.table->headers, data->table_list, data->header_layout);
         }
         else

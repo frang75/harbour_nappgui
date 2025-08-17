@@ -15,6 +15,7 @@
 #include <nflib/flayout.h>
 #include <nflib/fradio.h>
 #include <nflib/ftool.h>
+#include <nflib/fpopup.h>
 #include <gui/guicontrol.h>
 #include <gui/button.h>
 #include <gui/edit.h>
@@ -570,6 +571,27 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 }
             }
 
+            case ekWIDGET_POPUP:
+            {
+                const char_t *folder_path = designer_folder_path(form->app);
+                FPopUp *fpopup = dialog_new_popup(window, font, &sel, folder_path);
+                if (fpopup != NULL)
+                {
+                    PopUp *popup = popup_create();
+                    fpopup_synchro(fpopup, popup, folder_path);
+                    dlayout_synchro_popup(sel.dlayout, sel.col, sel.row, popup);
+                    i_sel_remove_cell(&sel);
+                    flayout_add_popup(sel.flayout, fpopup, sel.col, sel.row);
+                    layout_popup(sel.glayout, popup, sel.col, sel.row);
+                    i_after_new_widget(form, inspect, propedit, &sel);
+                    return TRUE;
+                }
+                else
+                {
+                    return FALSE;
+                }
+            }
+
             case ekWIDGET_EDITBOX:
             {
                 FEdit *fedit = dialog_new_edit(window, &sel);
@@ -709,30 +731,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     i_sel_remove_cell(&sel);
                     flayout_add_progress(sel.flayout, fprogress, sel.col, sel.row);
                     layout_progress(sel.glayout, progress, sel.col, sel.row);
-                    i_sel_synchro_cell(&sel);
-                    dform_compose(form);
-                    propedit_set(propedit, form, &sel);
-                    inspect_set(inspect, form);
-                    form->sel = sel;
-                    i_need_save(form);
-                    return TRUE;
-                }
-                else
-                {
-                    return FALSE;
-                }
-            }
-
-            case ekWIDGET_POPUP:
-            {
-                FPopUp *fpopup = dialog_new_popup(window, &sel);
-                if (fpopup != NULL)
-                {
-                    PopUp *popup = popup_create();
-                    cassert(arrst_size(fpopup->elems, FElem) == 0);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_popup(sel.flayout, fpopup, sel.col, sel.row);
-                    layout_popup(sel.glayout, popup, sel.col, sel.row);
                     i_sel_synchro_cell(&sel);
                     dform_compose(form);
                     propedit_set(propedit, form, &sel);
