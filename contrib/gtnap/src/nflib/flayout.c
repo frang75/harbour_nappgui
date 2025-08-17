@@ -77,11 +77,11 @@ static void i_remove_cell(FCell *cell)
         break;
 
     case ekCELL_TYPE_RADIO:
-        dbind_destroy(&cell->widget.radio, FRadio);
+        fradio_destroy(&cell->widget.radio);
         break;
 
     case ekCELL_TYPE_TOOL:
-        dbind_destroy(&cell->widget.tool, FTool);
+        ftool_destroy(&cell->widget.tool);
         break;
 
     case ekCELL_TYPE_EDIT:

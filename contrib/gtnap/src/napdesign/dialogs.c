@@ -7,6 +7,7 @@
 #include <nflib/fbutton.h>
 #include <nflib/fcheck.h>
 #include <nflib/fradio.h>
+#include <nflib/ftool.h>
 #include <nflib/flabel.h>
 #include <nflib/flayout.h>
 #include <gui/button.h>
@@ -487,8 +488,8 @@ FTool *dialog_new_tool(Window *parent, const Font *font, const DSelect *sel, con
 {
     DialogData data = i_dialog_data();
     Layout *layout1 = layout_create(2, 2);
+    FTool *ftool = ftool_create();
     String *caption = NULL;
-    FTool *ftool = dbind_create(FTool);
     uint32_t ret = 0;
     cassert_no_null(sel);
     cassert_no_null(sel->flayout);
@@ -533,7 +534,7 @@ FTool *dialog_new_tool(Window *parent, const Font *font, const DSelect *sel, con
     ret = i_modal_new_widget(parent, &data, layout1, font, TOOLBUT_PNG, TEXT_TOOL_BUTTON, tc(caption));
 
     if (ret != BUTTON_OK)
-        dbind_destroy(&ftool, FTool);
+        ftool_destroy(&ftool);
 
     str_destroy(&caption);
     i_remove_dialog_data(&data);
