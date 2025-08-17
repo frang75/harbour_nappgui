@@ -28,7 +28,7 @@ void dlayout_del_image(DLayout *layout, const uint32_t index, const uint32_t col
 
 void dlayout_clear_images(DLayout *layout, const uint32_t col, const uint32_t row);
 
-void dlayout_synchro_popup(DLayout *layout, const uint32_t col, const uint32_t row, const PopUp *popup);
+void dlayout_synchro_elems(DLayout *layout, const uint32_t col, const uint32_t row, const ArrSt(FElem) *elems, const char_t *resource_path);
 
 void dlayout_synchro_visual(DLayout *dlayout, const Layout *glayout, const V2Df origin);
 

@@ -20,6 +20,7 @@ TEXT_BUTTON_PROPS   Button properties
 TEXT_CHECK_PROPS    Checkbox properties
 TEXT_RADIO_PROPS    Radio button properties
 TEXT_TOOL_PROPS     Tool button properties
+TEXT_POPUP_PROPS    Popup properties
 TEXT_COMBO_PROPS    Combobox properties
 TEXT_LAYOUT         Layout
 TEXT_LAYOUTS        Layouts
@@ -74,6 +75,7 @@ TEXT_TEXT_ALIGN     Text align
 TEXT_MIN_WIDTH      Min width
 TEXT_ICON           Icon
 TEXT_ICON_PATH      Icon path
+TEXT_ELEMENTS       Elements
 TEXT_DEFAULT        default
 TEXT_LOAD_IMAGE     Load image
 TEXT_LOAD_ICON      Load icon
@@ -126,3 +128,6 @@ TIP_COMBO_AUTOSEL   If set, the text will be selected automatically when recibes
 TIP_COMBO_PASSMODE  If set, the text will be hidden will be hidden by asterisks.
 TIP_COMBO_ALIGN     Text alignment inside the combobox.
 TIP_COMBO_MWIDTH    Combobox width. If 0 will be set automatically.
+TIP_ELEMENT_ADD     Add a new element
+TIP_ELEMENT_REMOVE  Remove current element
+TIP_ELEMENT_CLEAR   Clear all elements

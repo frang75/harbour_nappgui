@@ -42,6 +42,8 @@ void dform_synchro_radio(DForm *form, const DSelect *sel);
 
 void dform_synchro_tool(DForm *form, const DSelect *sel);
 
+void dform_synchro_popup(DForm *form, const DSelect *sel, const char_t *resource_path);
+
 void dform_synchro_edit(DForm *form, const DSelect *sel);
 
 void dform_synchro_combo(DForm *form, const DSelect *sel);
@@ -53,10 +55,6 @@ void dform_synchro_imageview(DForm *form, const DSelect *sel);
 void dform_synchro_slider(DForm *form, const DSelect *sel);
 
 void dform_synchro_progress(DForm *form, const DSelect *sel);
-
-void dform_synchro_popup_add(DForm *form, const DSelect *sel, const Image *image);
-
-void dform_synchro_popup_clear(DForm *form, const DSelect *sel);
 
 void dform_synchro_listbox(DForm *form, const DSelect *sel);
 

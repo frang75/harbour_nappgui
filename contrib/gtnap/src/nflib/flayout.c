@@ -8,6 +8,7 @@
 #include "flabel.h"
 #include "fradio.h"
 #include "ftool.h"
+#include "fpopup.h"
 #include <gui/button.h>
 #include <gui/cell.h>
 #include <gui/combo.h>
@@ -84,6 +85,10 @@ static void i_remove_cell(FCell *cell)
         ftool_destroy(&cell->widget.tool);
         break;
 
+    case ekCELL_TYPE_POPUP:
+        fpopup_destroy(&cell->widget.popup);
+        break;
+
     case ekCELL_TYPE_EDIT:
         dbind_destroy(&cell->widget.edit, FEdit);
         break;
@@ -110,10 +115,6 @@ static void i_remove_cell(FCell *cell)
 
     case ekCELL_TYPE_PROGRESS:
         dbind_destroy(&cell->widget.progress, FProgress);
-        break;
-
-    case ekCELL_TYPE_POPUP:
-        dbind_destroy(&cell->widget.popup, FPopUp);
         break;
 
     case ekCELL_TYPE_LISTBOX:
@@ -1342,6 +1343,14 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     break;
                 }
 
+                case ekCELL_TYPE_POPUP:
+                {
+                    PopUp *popup = popup_create();
+                    fpopup_synchro(cells->widget.popup, popup, resource_path);
+                    layout_popup(glayout, popup, i, j);
+                    break;
+                }
+
                 case ekCELL_TYPE_EDIT:
                 {
                     FEdit *fedit = cells->widget.edit;
@@ -1414,27 +1423,6 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     Progress *gprogress = progress_create();
                     progress_min_width(gprogress, fprogress->min_width);
                     layout_progress(glayout, gprogress, i, j);
-                    break;
-                }
-
-                case ekCELL_TYPE_POPUP:
-                {
-                    FPopUp *fpopup = cells->widget.popup;
-                    PopUp *gpopup = popup_create();
-
-                    arrst_foreach_const(elem, fpopup->elems, FElem)
-                        Image *image = NULL;
-                        if (str_empty(elem->iconpath) == FALSE)
-                        {
-                            String *path = str_cpath("%s/%s", resource_path, tc(elem->iconpath));
-                            image = image_from_file(tc(path), NULL);
-                            str_destroy(&path);
-                        }
-                        popup_add_elem(gpopup, tc(elem->text), image);
-                        ptr_destopt(image_destroy, &image, Image);
-                    arrst_end()
-
-                    layout_popup(glayout, gpopup, i, j);
                     break;
                 }
 
