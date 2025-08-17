@@ -4,6 +4,8 @@
 #include "dgui.h"
 #include "res_designer.h"
 #include <nflib/nflib.h>
+#include <nflib/fbutton.h>
+#include <nflib/flabel.h>
 #include <nflib/flayout.h>
 #include <gui/button.h>
 #include <gui/cell.h>
@@ -280,8 +282,8 @@ FLabel *dialog_new_label(Window *parent, const Font *font, const DSelect *sel)
 {
     DialogData data = i_dialog_data();
     Layout *layout = layout_create(2, 2);
+    FLabel *flabel = flabel_create();
     String *caption = NULL;
-    FLabel *flabel = dbind_create(FLabel);
     uint32_t ret = 0;
     cassert_no_null(sel);
     cassert_no_null(sel->flayout);
@@ -310,7 +312,7 @@ FLabel *dialog_new_label(Window *parent, const Font *font, const DSelect *sel)
     ret = i_modal_new_widget(parent, &data, layout, font, LABEL_PNG, TEXT_LABEL, tc(caption));
 
     if (ret != BUTTON_OK && ret != ekGUI_CLOSE_INTRO)
-        dbind_destroy(&flabel, FLabel);
+        flabel_destroy(&flabel);
 
     str_destroy(&caption);
     i_remove_dialog_data(&data);
@@ -323,8 +325,8 @@ FButton *dialog_new_button(Window *parent, const Font *font, const DSelect *sel)
 {
     DialogData data = i_dialog_data();
     Layout *layout = layout_create(2, 1);
+    FButton *fbutton = fbutton_create();
     String *caption = NULL;
-    FButton *fbutton = dbind_create(FButton);
     uint32_t ret = 0;
     cassert_no_null(sel);
     cassert_no_null(sel->flayout);
@@ -346,7 +348,7 @@ FButton *dialog_new_button(Window *parent, const Font *font, const DSelect *sel)
     ret = i_modal_new_widget(parent, &data, layout, font, PUSHBUT_PNG, TEXT_PUSH_BUTTON, tc(caption));
 
     if (ret != BUTTON_OK && ret != ekGUI_CLOSE_INTRO)
-        dbind_destroy(&fbutton, FButton);
+        fbutton_destroy(&fbutton);
 
     str_destroy(&caption);
     i_remove_dialog_data(&data);

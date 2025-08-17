@@ -16,6 +16,13 @@ FLabel *flabel_create(void)
 
 /*---------------------------------------------------------------------------*/
 
+void flabel_destroy(FLabel **flabel)
+{
+    dbind_destroy(flabel, FLabel);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void flabel_synchro(const FLabel *flabel, Label *label)
 {
     cassert_no_null(flabel);

@@ -65,11 +65,11 @@ static void i_remove_cell(FCell *cell)
         break;
 
     case ekCELL_TYPE_LABEL:
-        dbind_destroy(&cell->widget.label, FLabel);
+        flabel_destroy(&cell->widget.label);
         break;
 
     case ekCELL_TYPE_BUTTON:
-        dbind_destroy(&cell->widget.button, FButton);
+        fbutton_destroy(&cell->widget.button);
         break;
 
     case ekCELL_TYPE_CHECK:
