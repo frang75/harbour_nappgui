@@ -15,6 +15,13 @@ FButton *fbutton_create(void)
 
 /*---------------------------------------------------------------------------*/
 
+void fbutton_destroy(FButton **fbutton)
+{
+    dbind_destroy(fbutton, FButton);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void fbutton_synchro(const FButton *fbutton, Button *button)
 {
     cassert_no_null(fbutton);

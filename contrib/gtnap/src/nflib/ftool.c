@@ -17,6 +17,13 @@ FTool *ftool_create(void)
 
 /*---------------------------------------------------------------------------*/
 
+void ftool_destroy(FTool **ftool)
+{
+    dbind_destroy(ftool, FTool);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void ftool_synchro(const FTool *ftool, Button *button, const char_t *resource_path)
 {
     cassert_no_null(ftool);

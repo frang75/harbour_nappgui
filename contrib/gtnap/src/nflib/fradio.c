@@ -15,6 +15,13 @@ FRadio *fradio_create(void)
 
 /*---------------------------------------------------------------------------*/
 
+void fradio_destroy(FRadio **fradio)
+{
+    dbind_destroy(fradio, FRadio);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void fradio_synchro(const FRadio *fradio, Button *button)
 {
     cassert_no_null(fradio);

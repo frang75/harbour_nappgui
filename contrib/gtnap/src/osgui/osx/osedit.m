@@ -13,6 +13,7 @@
 #include "osedit_osx.inl"
 #include "oscontrol_osx.inl"
 #include "ospanel_osx.inl"
+#include "oswindow_osx.inl"
 #include "ostextfield.inl"
 #include "../osedit.h"
 #include "../osedit.inl"
@@ -68,13 +69,21 @@
 
 /*---------------------------------------------------------------------------*/
 
+- (void)mouseDown:(NSEvent *)theEvent
+{
+    if (_oswindow_mouse_down(cast(self, OSControl)) == TRUE)
+        [super mouseDown:theEvent];
+}
+
+/*---------------------------------------------------------------------------*/
+
 #if (defined MAC_OS_X_VERSION_10_6 && MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_6) || (defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14)
 #else
 
 - (void)drawRect:(NSRect)rect
 {
     /* Draw focus ring in older mac OSX */
-    if (self->focused == TRUE)
+    if (_ostextfield_is_focused(self->field) == TRUE)
     {
         NSSetFocusRingStyle(NSFocusRingOnly);
         NSRectFill(rect);
@@ -131,7 +140,7 @@ OSEdit *osedit_create(const uint32_t flags)
     bool_t single_line = edit_get_type(flags) == ekEDIT_SINGLE;
     heap_auditor_add("OSXEdit");
     edit = [[OSXEdit alloc] initWithFrame:NSZeroRect];
-    edit->field = _ostextfield_create(edit, single_line, "OSEdit");
+    edit->field = _ostextfield_from_edit(edit, single_line);
     edit->flags = flags;
     edit->vpadding = UINT32_MAX;
     _oscontrol_init(edit);
@@ -391,4 +400,13 @@ void _osedit_focus(OSEdit *edit, const bool_t focus)
 BOOL _osedit_is(NSView *view)
 {
     return [view isKindOfClass:[OSXEdit class]];
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t _osedit_is_enabled(NSView *edit)
+{
+    cassert_no_null(edit);
+    cassert([cast(edit, NSObject) isKindOfClass:[OSXEdit class]] == YES);
+    return _ostextfield_is_enabled(cast_const(edit, OSXEdit)->field);
 }

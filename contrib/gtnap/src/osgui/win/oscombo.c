@@ -445,7 +445,7 @@ void oscombo_selected(OSCombo *combo, const uint32_t index)
     else
     {
         LRESULT ret = SendMessage(combo->control.hwnd, CB_SETCURSEL, (WPARAM)-1, (LPARAM)0);
-        cassert_unref(ret == (LRESULT)-1, ret);
+        cassert_unref(ret == (LRESULT)CB_ERR, ret);
     }
     combo->launch_event = TRUE;
 }
@@ -454,8 +454,10 @@ void oscombo_selected(OSCombo *combo, const uint32_t index)
 
 uint32_t oscombo_get_selected(const OSCombo *combo)
 {
+    LRESULT res = 0;
     cassert_no_null(combo);
-    return (uint32_t)SendMessage(combo->control.hwnd, CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
+    res = SendMessage(combo->control.hwnd, CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
+    return (res != CB_ERR) ? (uint32_t)res : UINT32_MAX;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -583,6 +585,7 @@ void _oscombo_command(OSCombo *combo, WPARAM wParam)
             EvButton params;
             params.state = ekGUI_ON;
             params.index = (uint16_t)SendMessage(combo->control.hwnd, CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
+            params.text = NULL;
             listener_event(combo->OnSelect, ekGUI_EVENT_BUTTON, combo, &params, NULL, OSCombo, EvButton, void);
         }
     }

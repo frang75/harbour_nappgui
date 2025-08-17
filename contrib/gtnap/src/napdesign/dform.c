@@ -15,6 +15,7 @@
 #include <nflib/flayout.h>
 #include <nflib/fradio.h>
 #include <nflib/ftool.h>
+#include <nflib/fpopup.h>
 #include <gui/guicontrol.h>
 #include <gui/button.h>
 #include <gui/edit.h>
@@ -570,6 +571,27 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 }
             }
 
+            case ekWIDGET_POPUP:
+            {
+                const char_t *folder_path = designer_folder_path(form->app);
+                FPopUp *fpopup = dialog_new_popup(window, font, &sel, folder_path);
+                if (fpopup != NULL)
+                {
+                    PopUp *popup = popup_create();
+                    fpopup_synchro(fpopup, popup, folder_path);
+                    dlayout_synchro_elems(sel.dlayout, sel.col, sel.row, fpopup->elems, folder_path);
+                    i_sel_remove_cell(&sel);
+                    flayout_add_popup(sel.flayout, fpopup, sel.col, sel.row);
+                    layout_popup(sel.glayout, popup, sel.col, sel.row);
+                    i_after_new_widget(form, inspect, propedit, &sel);
+                    return TRUE;
+                }
+                else
+                {
+                    return FALSE;
+                }
+            }
+
             case ekWIDGET_EDITBOX:
             {
                 FEdit *fedit = dialog_new_edit(window, &sel);
@@ -709,30 +731,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     i_sel_remove_cell(&sel);
                     flayout_add_progress(sel.flayout, fprogress, sel.col, sel.row);
                     layout_progress(sel.glayout, progress, sel.col, sel.row);
-                    i_sel_synchro_cell(&sel);
-                    dform_compose(form);
-                    propedit_set(propedit, form, &sel);
-                    inspect_set(inspect, form);
-                    form->sel = sel;
-                    i_need_save(form);
-                    return TRUE;
-                }
-                else
-                {
-                    return FALSE;
-                }
-            }
-
-            case ekWIDGET_POPUP:
-            {
-                FPopUp *fpopup = dialog_new_popup(window, &sel);
-                if (fpopup != NULL)
-                {
-                    PopUp *popup = popup_create();
-                    cassert(arrst_size(fpopup->elems, FElem) == 0);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_popup(sel.flayout, fpopup, sel.col, sel.row);
-                    layout_popup(sel.glayout, popup, sel.col, sel.row);
                     i_sel_synchro_cell(&sel);
                     dform_compose(form);
                     propedit_set(propedit, form, &sel);
@@ -1056,6 +1054,21 @@ void dform_synchro_tool(DForm *form, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+void dform_synchro_popup(DForm *form, const DSelect *sel, const char_t *resource_path)
+{
+    FCell *cell = i_sel_fcell(sel);
+    PopUp *popup = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_POPUP);
+    i_need_save(form);
+    popup = layout_get_popup(sel->glayout, sel->col, sel->row);
+    fpopup_synchro(cell->widget.popup, popup, resource_path);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dform_synchro_edit(DForm *form, const DSelect *sel)
 {
     FCell *cell = i_sel_fcell(sel);
@@ -1149,40 +1162,6 @@ void dform_synchro_progress(DForm *form, const DSelect *sel)
     progress = layout_get_progress(sel->glayout, sel->col, sel->row);
     progress_min_width(progress, cell->widget.progress->min_width);
     progress_value(progress, .5f);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dform_synchro_popup_add(DForm *form, const DSelect *sel, const Image *image)
-{
-    FCell *cell = i_sel_fcell(sel);
-    PopUp *popup = NULL;
-    const FElem *elem = NULL;
-    cassert_no_null(form);
-    cassert_no_null(sel);
-    cassert_no_null(cell);
-    cassert(cell->type == ekCELL_TYPE_POPUP);
-    i_need_save(form);
-    popup = layout_get_popup(sel->glayout, sel->col, sel->row);
-    elem = arrst_last_const(cell->widget.popup->elems, FElem);
-    popup_add_elem(popup, tc(elem->text), image);
-    dlayout_add_image(sel->dlayout, image, sel->col, sel->row);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dform_synchro_popup_clear(DForm *form, const DSelect *sel)
-{
-    FCell *cell = i_sel_fcell(sel);
-    PopUp *popup = NULL;
-    cassert_no_null(form);
-    cassert_no_null(sel);
-    cassert_no_null(cell);
-    cassert(cell->type == ekCELL_TYPE_POPUP);
-    i_need_save(form);
-    popup = layout_get_popup(sel->glayout, sel->col, sel->row);
-    popup_clear(popup);
-    dlayout_clear_images(sel->dlayout, sel->col, sel->row);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -375,8 +375,9 @@ static const bool_t i_FULL_HBFUNCS = FALSE;
 
 /* Harbour colors sensible to light/dark themes */
 static color_t i_COLORS[16];
-
-static const real32_t i_FONT_SIZE_DIFF = 0.7f;
+static const real32_t i_MINIMAL_FONT_SIZE = 5;
+static const real32_t i_MAX_SCREEN_HEIGHT_TOLERANCE_PX = 30;
+static const char_t *i_FONT_REF_TEXT = "exibicao/edicao de texto em memoria";
 
 /*---------------------------------------------------------------------------*/
 
@@ -865,89 +866,91 @@ static real32_t i_edit_size(const Font *font)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_compute_cell_size(GtNap *gtnap, const real32_t size, const real32_t width)
+static bool_t i_font_fit_height(GtNap *gtnap, const real32_t fsize, const real32_t height, const real32_t tolerance)
 {
-    real32_t fw = 0, fh = 0;
-    real32_t bs = 0, es = 0;
-    real32_t bh = 0, eh = 0;
-
+    real32_t w = 0, h = 0;
     cassert_no_null(gtnap);
     ptr_destopt(font_destroy, &gtnap->global_font, Font);
-    gtnap->global_font = font_monospace(size, ekFCELL);
-    if (width > 0)
-    {
-        Font *font = font_with_width(gtnap->global_font, width);
-        font_destroy(&gtnap->global_font);
-        gtnap->global_font = font;
-    }
+    gtnap->global_font = font_monospace(fsize, ekFCELL);
 
     /* Compute the real size of a cell, based on font */
+    font_extents(gtnap->global_font, i_FONT_REF_TEXT, -1, &w, &h);
+    if (h <= height + tolerance)
     {
-        real32_t w, h;
-        const char_t *reftext = "exibicao/edicao de texto em memoria";
-        font_extents(gtnap->global_font, reftext, -1, &w, &h);
-        fw = w / str_len_c(reftext);
-        fh = h;
+        gtnap->label_y_sizef = h;
+        gtnap->cell_y_sizef = h;
+        gtnap->cell_x_sizef = w / (real32_t)unicode_nchars(i_FONT_REF_TEXT, ekUTF8);
+        return TRUE;
     }
-
-    /*
-     * We need to set a font size for buttons, where the button
-     * height doesn't exceed the cell height
-     */
-    bs = size;
-    bh = 1e8f;
-    while (bh - fh > i_FONT_SIZE_DIFF)
+    else
     {
-        bs -= 1;
-        ptr_destopt(font_destroy, &gtnap->button_font, Font);
-        gtnap->button_font = font_monospace(bs, ekFCELL);
-        bh = i_button_size(gtnap->button_font);
+        return FALSE;
     }
-
-    /*
-     * We need to set a font size for edits, where the edit
-     * height doesn't exceed the cell height
-     */
-    es = size;
-    eh = 1e8f;
-    while (eh - fh > i_FONT_SIZE_DIFF)
-    {
-        es -= 1;
-        ptr_destopt(font_destroy, &gtnap->edit_font, Font);
-        gtnap->edit_font = font_monospace(es, ekFCELL);
-        eh = i_edit_size(gtnap->edit_font);
-    }
-
-    /* Final cell sizes */
-    gtnap->cell_x_sizef = fw;
-    gtnap->cell_y_sizef = fh;
-    gtnap->label_y_sizef = fh;
-    gtnap->button_y_sizef = bh;
-    gtnap->edit_y_sizef = eh;
-    cassert(gtnap->label_y_sizef <= gtnap->cell_y_sizef);
-    cassert(gtnap->button_y_sizef <= gtnap->cell_y_sizef);
-    cassert(gtnap->edit_y_sizef <= gtnap->cell_y_sizef);
 }
 
 /*---------------------------------------------------------------------------*/
 
-/*
- * This function to select the font size has been cloned from original
- * 'cuademo::outros.prg', working under GTWVW.
- */
-static void i_compute_font_size(const real32_t screen_width, const real32_t screen_height, GtNap *gtnap)
+static bool_t i_button_fit_height(GtNap *gtnap, const real32_t fsize, const real32_t height, const real32_t tolerance)
 {
-    real32_t N_HeightMin = 0; /* altura  mínima que, com certeza, cabe na menor resolução */
-    real32_t N_WidthMin = 0;  /* largura mínima que, com certeza, cabe na menor resolução */
-    real32_t N_HeightMax = 0; /* altura  máxima que ultrapassa a maior resolução */
-    real32_t N_WidthMax = 0;  /* largura máxima que ultrapassa a maior resolução */
-    real32_t N_HeightTemp = 0;
-    real32_t N_WidthTemp = 0;
-    const char_t *C_Fonte = NULL;
+    real32_t bsize = fsize;
+    cassert_no_null(gtnap);
+    while (bsize > i_MINIMAL_FONT_SIZE)
+    {
+        real32_t bheight = 0;
+        ptr_destopt(font_destroy, &gtnap->button_font, Font);
+        gtnap->button_font = font_monospace(bsize, ekFCELL);
+        bheight = i_button_size(gtnap->button_font);
+        if (bheight > height + tolerance)
+        {
+            bsize -= 1;
+        }
+        else
+        {
+            gtnap->button_y_sizef = bheight;
+            break;
+        }
+    }
 
+    return (bool_t)(bsize >= i_MINIMAL_FONT_SIZE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_edit_fit_height(GtNap *gtnap, const real32_t fsize, const real32_t height, const real32_t tolerance)
+{
+    real32_t esize = fsize;
+    cassert_no_null(gtnap);
+    while (esize > i_MINIMAL_FONT_SIZE)
+    {
+        real32_t eheight = 0;
+        ptr_destopt(font_destroy, &gtnap->edit_font, Font);
+        gtnap->edit_font = font_monospace(esize, ekFCELL);
+        eheight = i_edit_size(gtnap->edit_font);
+        if (eheight > height + tolerance)
+        {
+            esize -= 1;
+        }
+        else
+        {
+            gtnap->edit_y_sizef = eheight;
+            break;
+        }
+    }
+
+    return (bool_t)(esize >= i_MINIMAL_FONT_SIZE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_compute_font_size(const real32_t screen_width, const real32_t screen_height, GtNap *gtnap)
+{
+    bool_t ok = TRUE;
+    const char_t *ffamily = NULL;
+    real32_t cell_height = 0;
+    real32_t fsize = 0;
     /*
-     * Resoluções mais comuns:
-     * N_ScreenHeight   N_ScreenWidth
+     *    Common resolutions:
+     *    Height          Width
      *    >= 1024         >= 1680
      *    >= 1024         >= 1440
      *    >= 1024         >= 1280
@@ -961,118 +964,95 @@ static void i_compute_font_size(const real32_t screen_width, const real32_t scre
     if (screen_height <= 600)
     {
         /*
-         * Testes práticos mostraram que, em resolução vertical baixa (altura),
-         * o fonte "Courier New" apresenta um serrilhado que torna a leitura das letras
-         * difícil. Nesta situação, o "Lucida Console" tem aparência bem melhor.
-         */
-
-        /*
-         * Lucida Console não está presente no Linux ou macOS. Nestes casos,
-         * deixamos a fonte monoespaçada como padrão.
+         * Practical tests have shown that, at low vertical resolution (height),
+         * the "Courier New" font presents a jagged edge that makes the letters difficult to read.
+         * In this situation, "Lucida Console" looks much better.
+         *
+         * "Lucida Console" isn't available on Linux or macOS. In these cases, we've left
+         * the system default monospace font.
          */
 #if defined(__WINDOWS__)
-        C_Fonte = "Lucida Console";
+        ffamily = "Lucida Console";
 #else
-        C_Fonte = NULL;
+        ffamily = NULL;
 #endif
     }
     else
     {
         /*
-         * Já em resolução vertical alta, o "Courier New" não apresenta mais
-         * o serrilhado, e tem aparência melhor.
-         * A desvantagem do "Lucida Console", neste caso, é que fica muito largo,
-         * com aparência pesada e feia.
+         * At high vertical resolution, "Courier New" no longer displays the aliasing
+         * and looks better. The downside of "Lucida Console" in this case is that it
+         * becomes too wide, looking heavy and ugly.
+         *
+         * "Courier New" is available on virtually all operating systems, including Linux
+         * and macOS. If it isn't available, the default monospace font will be selected.
          */
-
-        /*
-         * "Courier New" está presente em praticamente todos os sistemas, incluindo
-         * Linux e macOS. Se não estiver presente, a fonte monoespaçada padrão será
-         * selecionada.
-         */
-        C_Fonte = "Courier New";
+        ffamily = "Courier New";
     }
 
-    if (C_Fonte != NULL)
-        draw2d_preferred_monospace(C_Fonte);
+    if (ffamily != NULL)
+        draw2d_preferred_monospace(ffamily);
 
-    /*
-     * - Os valores abaixo foram obtidos por via prática, num computador com
-     *   Windows 7 e resolução 600 x 800 (SuperVGA)
-     * - Isto é importante, porque a SetMode() só consegue funcionar se o
-     *   fonte escolhido efetivamente couber na resolução e tamanhos especificados
-     *
-     * Usar o valores mínimos para permitir que a SetMode() mude a quantidade de
-     * linhas para 35 e colunas para 110, até mesmo na resolução 600 X 800
-     */
-    N_HeightMin = 6.f;
-    N_WidthMin = 5.f;
+    cell_height = bmath_floorf(screen_height / (real32_t)INIT_ROWS);
+    fsize = cell_height;
 
-    /*
-     * Usar os valores máximos para ir reduzindo o tamanho até que
-     * caiba na resolução da tela (a maior tela até agora foi a 1024 x 1860)
-     */
-    N_HeightMax = 24.f + 1.f; /* em teste real, só coube 23 */
-    N_WidthMax = 15.f + 1.f;  /* em teste real, só coube 15 */
-
-    /*
-     * Setar a maior altura de fonte possível, que ainda caiba 35 linhas.
-     * Se WVW_MAXMAXROW() continuar com o mesmo valor, é porque não coube
-     * na tela, sendo necessário reduzir ainda mais a altura do fonte.
-     */
-    i_compute_cell_size(gtnap, N_HeightMax, -1);
-    N_HeightTemp = N_HeightMax;
-    for (;;)
+    /* Try to find a font size that fits the required screen height */
+    while (fsize > i_MINIMAL_FONT_SIZE)
     {
-        /* The font computed by the system has not the desired height */
-        if (gtnap->cell_y_sizef - N_HeightMax > i_FONT_SIZE_DIFF)
-        {
-            N_HeightTemp -= 1;
-            i_compute_cell_size(gtnap, N_HeightTemp, -1);
-        }
-        /* The total height exceeds the screen limits */
-        else if (gtnap->cell_y_sizef * gtnap->rows > screen_height && N_HeightMax > N_HeightMin)
-        {
-            N_HeightMax -= 1.f;
-            N_HeightTemp -= N_HeightMax;
-            i_compute_cell_size(gtnap, N_HeightMax, -1);
-        }
-        else
-        {
+        if (i_font_fit_height(gtnap, fsize, cell_height, 1) == TRUE)
             break;
-        }
+        else
+            fsize -= 1;
     }
 
-    if (N_HeightTemp < N_HeightMax)
-        N_HeightMax = N_HeightTemp;
+    if (fsize <= i_MINIMAL_FONT_SIZE)
+        ok = FALSE;
 
     /*
-     * Setar a maior largura de fonte possível, que ainda caiba 110 colunas.
-     * Se WVW_MAXMAXCOL() continuar com o mesmo valor, é porque não coube
-     * na tela, sendo necessário reduzir ainda mais a largura do fonte.
+     * Try to find a button font size that fits the required screen height.
+     * Button font size will be slightly small than cell font.
      */
-    i_compute_cell_size(gtnap, N_HeightMax, N_WidthMax);
-    N_WidthTemp = N_WidthMax;
-    for (;;)
+    if (ok == TRUE)
+        ok = i_button_fit_height(gtnap, fsize, cell_height, 1);
+
+    /*
+     * Try to find a edit font size that fits the required screen height.
+     * Edit font size will be slightly small than cell font.
+     */
+    if (ok == TRUE)
+        ok = i_edit_fit_height(gtnap, fsize, cell_height, 1);
+
+    /* Fit the cell width */
+    if (ok == TRUE)
     {
-        /* The font computed by the system has not the desired width */
-        if (gtnap->cell_x_sizef - N_WidthMax > i_FONT_SIZE_DIFF)
+        real32_t current_width = INIT_COLS * gtnap->cell_x_sizef;
+        if (bmath_absf(current_width - screen_width) > i_MAX_SCREEN_HEIGHT_TOLERANCE_PX)
         {
-            N_WidthTemp -= 1;
-            i_compute_cell_size(gtnap, N_HeightMax, N_WidthTemp);
-        }
-        /* The total width exceeds the screen limits */
-        else if (gtnap->cell_x_sizef * gtnap->cols > screen_width && N_WidthMax > N_WidthMin)
-        {
-            N_WidthMax -= 1.f;
-            N_WidthTemp = N_WidthMax;
-            i_compute_cell_size(gtnap, N_HeightMax, N_WidthMax);
-        }
-        else
-        {
-            break;
+            real32_t scale = screen_width / current_width;
+            Font *global_font = font_with_xscale(gtnap->global_font, scale);
+            Font *button_font = font_with_xscale(gtnap->button_font, scale);
+            Font *edit_font = font_with_xscale(gtnap->edit_font, scale);
+            font_destroy(&gtnap->global_font);
+            font_destroy(&gtnap->button_font);
+            font_destroy(&gtnap->edit_font);
+            gtnap->global_font = global_font;
+            gtnap->button_font = button_font;
+            gtnap->edit_font = edit_font;
+            gtnap->cell_x_sizef = screen_width / (real32_t)INIT_COLS;
         }
     }
+
+    /* Final cell sizes */
+    if (ok == TRUE)
+    {
+        cassert(gtnap->cell_x_sizef > 0);
+        cassert(gtnap->cell_y_sizef > 0);
+        cassert(gtnap->label_y_sizef > 0 && gtnap->label_y_sizef <= gtnap->cell_y_sizef);
+        /*cassert(gtnap->button_y_sizef > 0 && gtnap->button_y_sizef <= gtnap->cell_y_sizef);*/
+        /*cassert(gtnap->edit_y_sizef > 0 && gtnap->edit_y_sizef <= gtnap->cell_y_sizef);*/
+    }
+
+    return ok;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1187,6 +1167,38 @@ static uint8_t i_utf8_to_cp_char(const uint32_t codepoint)
 
 /*---------------------------------------------------------------------------*/
 
+static S2Df i_resolution(void)
+{
+    S2Df screen = s2df(0, 0);
+    const char_t *opt = "--res:";
+    uint32_t i, argc = hb_cmdargARGC();
+    const char_t **argv = dcast_const(hb_cmdargARGV(), char_t);
+
+    for (i = 0; i < argc; ++i)
+    {
+        if (str_is_prefix(argv[i], opt) == TRUE)
+        {
+            String *width = NULL, *height = NULL;
+            if (str_split(argv[i] + str_len_c(opt), "x", &width, &height) == TRUE)
+            {
+                screen.width = (real32_t)str_to_u32(tc(width), 10, NULL);
+                screen.height = (real32_t)str_to_u32(tc(height), 10, NULL);
+            }
+            str_destroy(&width);
+            str_destroy(&height);
+            break;
+        }
+    }
+
+    /* Minimum resolution accepted */
+    if (screen.width < 800 || screen.height < 600)
+        globals_resolution(&screen);
+
+    return screen;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static GtNap *i_gtnap_create(void)
 {
     S2Df screen;
@@ -1223,19 +1235,23 @@ static GtNap *i_gtnap_create(void)
         GTNAP_GLOBAL->debugger = NULL;
     }
 
-    globals_resolution(&screen);
-    i_compute_font_size(screen.width, screen.height, GTNAP_GLOBAL);
-    deblib_init_colors(i_COLORS);
-
+    screen = i_resolution();
+    if (i_compute_font_size(screen.width, screen.height, GTNAP_GLOBAL) == TRUE)
     {
-        PHB_ITEM ritem = hb_itemDo(INIT_CODEBLOCK, 0);
+        PHB_ITEM ritem = NULL;
+        deblib_init_colors(i_COLORS);
+        ritem = hb_itemDo(INIT_CODEBLOCK, 0);
         hb_itemRelease(ritem);
-        hb_itemRelease(INIT_CODEBLOCK);
+    }
+    else
+    {
+        log_printf("Program can't init because invalid resolution %gx%g", screen.width, screen.height);
+        osapp_finish();
     }
 
+    hb_itemRelease(INIT_CODEBLOCK);
     INIT_TITLE[0] = 0;
     INIT_CODEBLOCK = NULL;
-
     return GTNAP_GLOBAL;
 }
 
@@ -3810,6 +3826,8 @@ uint32_t hb_gtnap_textview(const uint32_t wid, const int32_t top, const int32_t 
     cassert_no_null(gtwin);
     textview_family(view, font_family(GTNAP_GLOBAL->global_font));
     textview_fsize(view, font_size(GTNAP_GLOBAL->global_font));
+    textview_units(view, font_units(GTNAP_GLOBAL->global_font));
+    textview_apply_all(view);
     size.width = (real32_t)(right - left + 1) * GTNAP_GLOBAL->cell_x_sizef;
     size.height = (real32_t)(bottom - top + 1) * GTNAP_GLOBAL->cell_y_sizef;
     id = i_add_object(ekOBJ_TEXTVIEW, top - gtwin->top, left - gtwin->left, GTNAP_GLOBAL->cell_x_sizef, GTNAP_GLOBAL->cell_y_sizef, &size, in_scroll, (GuiComponent *)view, gtwin);
@@ -4144,7 +4162,7 @@ void hb_gtnap_tableview_column(const uint32_t wid, const uint32_t id, const uint
     hnchars = i_header_char_width(tc(col->title), &col->header_lines);
     col->fixed_chars = width;
     col->widthf = i_col_widthf(col->fixed_chars, hnchars, GTNAP_GLOBAL);
-    col->align = ekLEFT;
+    col->align = ekJUSTIFY;
     col->block = hb_itemNew(eval_block);
 
     arrst_foreach(c, obj->columns, GtNapColumn)
@@ -4154,6 +4172,7 @@ void hb_gtnap_tableview_column(const uint32_t wid, const uint32_t id, const uint
 
     tableview_header_title((TableView *)obj->component, cid, tc(col->title));
     tableview_column_width((TableView *)obj->component, cid, col->widthf);
+    tableview_column_align((TableView *)obj->component, cid, col->align);
     tableview_header_align((TableView *)obj->component, cid, col->align);
     tableview_header_height((TableView *)obj->component, (real32_t)nlines * GTNAP_GLOBAL->cell_y_sizef);
 }
@@ -5024,7 +5043,7 @@ static void i_farea_refresh(GtNapFArea *area)
     arrst_clear(area->records, NULL, uint32_t);
 
     /* Generate the record index for TableView */
-    //if (area->while_block == NULL)
+    // if (area->while_block == NULL)
     {
         HB_BOOL fEof;
         SELF_GOTOP(area->area);
@@ -5038,15 +5057,15 @@ static void i_farea_refresh(GtNapFArea *area)
             SELF_EOF(area->area, &fEof);
         }
     }
-    //else
+    // else
     //{
-    //    HB_BOOL fEof;
-    //    SELF_GOTOP(area->area);
-    //    SELF_EOF(area->area, &fEof);
-    //    while (fEof == HB_FALSE)
-    //    {
-    //        HB_ULONG uiRecNo = 0;
-    //        SELF_RECNO(area->area, &uiRecNo);
+    //     HB_BOOL fEof;
+    //     SELF_GOTOP(area->area);
+    //     SELF_EOF(area->area, &fEof);
+    //     while (fEof == HB_FALSE)
+    //     {
+    //         HB_ULONG uiRecNo = 0;
+    //         SELF_RECNO(area->area, &uiRecNo);
 
     //        {
     //            PHB_ITEM ritem = hb_itemDo(area->while_block, 0);
@@ -5088,12 +5107,12 @@ static void i_farea_select_row(GtNapFArea *area)
 {
     HB_ULONG ulCurRec;
     uint32_t sel_row;
-    //TableView *view;
+    // TableView *view;
 
     cassert_no_null(area);
-    //cassert_no_null(gtarea->gtobj);
-    //cassert(gtarea->gtobj->type == ekOBJ_TABLEVIEW);
-    //view = (TableView *)gtarea->gtobj->component;
+    // cassert_no_null(gtarea->gtobj);
+    // cassert(gtarea->gtobj->type == ekOBJ_TABLEVIEW);
+    // view = (TableView *)gtarea->gtobj->component;
 
     /* Current selected */
     SELF_RECNO(area->area, &ulCurRec);
@@ -5101,24 +5120,24 @@ static void i_farea_select_row(GtNapFArea *area)
     sel_row = i_frow_from_recno(area, (uint32_t)ulCurRec);
 
     /* In multisel table, the selected rows comes from  VN_Selecio */
-    //if (gtarea->gtobj->multisel == TRUE)
+    // if (gtarea->gtobj->multisel == TRUE)
     //{
-    //    if (tableview_get_focus_row(view) == UINT32_MAX)
-    //    {
-    //        /* We use RECNO for focused row */
-    //        if (sel_row != UINT32_MAX)
-    //        {
-    //            tableview_focus_row(view, sel_row, ekTOP);
-    //        }
-    //        else
-    //        {
-    //            uint32_t nrecs = arrst_size(gtarea->records, uint32_t);
-    //            sel_row = tableview_get_focus_row(view);
-    //            /* We move recno to current focused row */
-    //            if (sel_row >= nrecs)
-    //            {
-    //                sel_row = 0;
-    //            }
+    //     if (tableview_get_focus_row(view) == UINT32_MAX)
+    //     {
+    //         /* We use RECNO for focused row */
+    //         if (sel_row != UINT32_MAX)
+    //         {
+    //             tableview_focus_row(view, sel_row, ekTOP);
+    //         }
+    //         else
+    //         {
+    //             uint32_t nrecs = arrst_size(gtarea->records, uint32_t);
+    //             sel_row = tableview_get_focus_row(view);
+    //             /* We move recno to current focused row */
+    //             if (sel_row >= nrecs)
+    //             {
+    //                 sel_row = 0;
+    //             }
 
     //            if (sel_row < nrecs)
     //            {
@@ -5129,7 +5148,7 @@ static void i_farea_select_row(GtNapFArea *area)
     //        }
     //    }
     //}
-    //else
+    // else
     {
         tableview_deselect_all(area->table);
 
@@ -5601,7 +5620,7 @@ static Listener *i_gtnap_menu_listener(HB_ITEM *block, GtNapMenuItem *item)
     callback->block = block ? hb_itemNew(block) : NULL;
     callback->menuitem = item;
     callback->key = INT32_MAX;
-    callback->autoclose_id = UINT32_MAX;    
+    callback->autoclose_id = UINT32_MAX;
     arrpt_append(GTNAP_GLOBAL->menu_callbacks, callback, GtNapCallback);
     return listener(callback, i_OnMenuClick, GtNapCallback);
 }

@@ -53,6 +53,7 @@ typedef enum _drawer_t
     ekDRAWER_CHECKBOX_PROPS,
     ekDRAWER_RADIO_PROPS,
     ekDRAWER_TOOL_PROPS,
+    ekDRAWER_POPUP_PROPS,
     ekDRAWER_COMBO_PROPS
 } drawer_t;
 

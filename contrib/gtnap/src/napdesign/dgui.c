@@ -143,7 +143,7 @@ static void i_OnHeaderMove(HeaderData *data, Event *e)
     if (data->over != over_close)
     {
         data->over = over_close;
-        
+
         if (data->over == FALSE)
             data->on_down = FALSE;
 
@@ -225,7 +225,7 @@ static void i_OnDrawerDraw(HeaderData *data, Event *e)
     draw_font(p->ctx, data->font);
     text_ypos = (int32_t)((p->height - font_height(data->font)) / 2);
 
-    ///* Background */
+    /* Background */
     draw_fill_linear(p->ctx, i_DRAWER_GRADIENT, stop, 2, 0, 0, 0, p->height);
     draw_rect(p->ctx, ekFILL, 0.f, 0.f, p->width, p->height);
 
@@ -236,7 +236,7 @@ static void i_OnDrawerDraw(HeaderData *data, Event *e)
         draw_text_halign(p->ctx, ekCENTER);
         draw_text_trim(p->ctx, ekELLIPEND);
         drawctrl_text(p->ctx, tc(data->title), (int32_t)(i_HEADER_TEXT_MARGIN + i_DRAWER_TRIANGLE_WIDTH), text_ypos, ekCTRL_STATE_NORMAL);
-        draw_text_halign(p->ctx, ekLEFT);        
+        draw_text_halign(p->ctx, ekLEFT);
         draw_text_color(p->ctx, data->over ? gui_link_color() : kCOLOR_DEFAULT);
         drawctrl_text(p->ctx, data->open ? i_UTF8_DOWN_ARROW : i_UTF8_RIGHT_ARROW, (int32_t)i_HEADER_TEXT_MARGIN, text_ypos, ekCTRL_STATE_HOT);
     }
@@ -326,7 +326,7 @@ static View *i_drawer_header(const char_t *title, const Font *font)
     view_data(view, &data, i_destroy_header_data, HeaderData);
     return view;
 }
-    
+
 /*---------------------------------------------------------------------------*/
 
 Panel *dgui_drawer(const char_t *title, const Font *font, Panel *child, const bool_t open, Listener *OnChange)

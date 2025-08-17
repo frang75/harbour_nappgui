@@ -7,6 +7,8 @@ TEXT_NEW_BUTTON     A new push button will be placed in cell (%d, %d) of '%s' la
 TEXT_NEW_CHECK      A new check box will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_RADIO      A new radio button will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_TOOL       A new tool button will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_POPUP      A new popup button will be placed in cell (%d, %d) of '%s' layout
+
 TEXT_NEW_COMBO      A new combo box will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SUBLAYOUT  A new sublayout will be placed in cell (%d, %d) of '%s' layout
 TEXT_LAYOUT_PROPS   Layout properties
@@ -18,6 +20,7 @@ TEXT_BUTTON_PROPS   Button properties
 TEXT_CHECK_PROPS    Checkbox properties
 TEXT_RADIO_PROPS    Radio button properties
 TEXT_TOOL_PROPS     Tool button properties
+TEXT_POPUP_PROPS    Popup properties
 TEXT_COMBO_PROPS    Combobox properties
 TEXT_LAYOUT         Layout
 TEXT_LAYOUTS        Layouts
@@ -33,6 +36,7 @@ TEXT_PUSH_BUTTON    Push Button
 TEXT_CHECK_BOX      Check Box
 TEXT_RADIO_BUTTON   Radio Button
 TEXT_TOOL_BUTTON    Tool Button
+TEXT_POPUP_BUTTON   PopUp Button
 TEXT_LABEL          Label
 TEXT_EDIT_BOX       Edit Box
 TEXT_COMBO_BOX      Combo Box
@@ -71,6 +75,7 @@ TEXT_TEXT_ALIGN     Text align
 TEXT_MIN_WIDTH      Min width
 TEXT_ICON           Icon
 TEXT_ICON_PATH      Icon path
+TEXT_ELEMENTS       Elements
 TEXT_DEFAULT        default
 TEXT_LOAD_IMAGE     Load image
 TEXT_LOAD_ICON      Load icon
@@ -123,3 +128,6 @@ TIP_COMBO_AUTOSEL   If set, the text will be selected automatically when recibes
 TIP_COMBO_PASSMODE  If set, the text will be hidden will be hidden by asterisks.
 TIP_COMBO_ALIGN     Text alignment inside the combobox.
 TIP_COMBO_MWIDTH    Combobox width. If 0 will be set automatically.
+TIP_ELEMENT_ADD     Add a new element
+TIP_ELEMENT_REMOVE  Remove current element
+TIP_ELEMENT_CLEAR   Clear all elements

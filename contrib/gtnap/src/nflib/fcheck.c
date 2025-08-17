@@ -15,6 +15,13 @@ FCheck *fcheck_create(void)
 
 /*---------------------------------------------------------------------------*/
 
+void fcheck_destroy(FCheck **fcheck)
+{
+    dbind_destroy(fcheck, FCheck);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void fcheck_synchro(const FCheck *fcheck, Button *button)
 {
     cassert_no_null(fcheck);

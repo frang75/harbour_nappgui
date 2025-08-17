@@ -12,6 +12,7 @@
 #include <gui/tableviewh.h>
 #include <gui/edit.h>
 #include <gui/cell.h>
+#include <gui/popup.h>
 #include <gui/drawctrl.inl>
 #include <draw2d/color.h>
 #include <draw2d/dctx.h>
@@ -116,17 +117,7 @@ DLayout *dlayout_from_flayout(const FLayout *flayout, const char_t *resource_pat
             }
             else if (fcell->type == ekCELL_TYPE_POPUP)
             {
-                arrst_foreach_const(elem, fcell->widget.popup->elems, FElem)
-                    Image *image = NULL;
-                    if (str_empty(elem->iconpath) == FALSE)
-                    {
-                        String *path = str_printf("%s%s", resource_path, tc(elem->iconpath));
-                        image = image_from_file(tc(path), NULL);
-                        str_destroy(&path);
-                    }
-                    dlayout_add_image(layout, image, i, j);
-                    ptr_destopt(image_destroy, &image, Image);
-                arrst_end()
+                dlayout_synchro_elems(layout, i, j, fcell->widget.popup->elems, resource_path);
             }
             else if (fcell->type == ekCELL_TYPE_LISTBOX)
             {
@@ -321,6 +312,25 @@ void dlayout_clear_images(DLayout *layout, const uint32_t col, const uint32_t ro
     {
         cassert(cell->simages == NULL);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dlayout_synchro_elems(DLayout *layout, const uint32_t col, const uint32_t row, const ArrSt(FElem) *elems, const char_t *resource_path)
+{
+    dlayout_clear_images(layout, col, row);
+    arrst_foreach_const(elem, elems, FElem)
+        Image *image = NULL;
+        if (str_empty(elem->iconpath) == FALSE)
+        {
+            String *path = str_cpath("%s/%s", resource_path, tc(elem->iconpath));
+            image = image_from_file(tc(path), NULL);
+            str_destroy(&path);
+        }
+
+        dlayout_add_image(layout, image, col, row);
+        ptr_destopt(image_destroy, &image, Image);
+    arrst_end()
 }
 
 /*---------------------------------------------------------------------------*/
@@ -913,6 +923,45 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
                 break;
             }
 
+            case ekCELL_TYPE_POPUP:
+            {
+                color_t color = i_is_cell_sel(hover, dlayout, i, j) ? i_SEL_COLOR : i_MAIN_COLOR;
+                draw_line_color(ctx, color);
+                draw_fill_color(ctx, i_BGCOLOR);
+                draw_line_width(ctx, 3);
+                draw_rect(ctx, ekFILLSK, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
+                draw_line_width(ctx, 1);
+
+                if (arrst_size(fcell->widget.popup->elems, FElem) > 0)
+                {
+                    const Image *image = i_get_image(dcell, 0, i_is_cell_sel(hover, dlayout, i, j));
+                    const FElem *elem = arrst_first_const(fcell->widget.popup->elems, FElem);
+                    real32_t xoffset = 4;
+                    real32_t twidth, theight;
+                    real32_t tx, ty;
+
+                    if (image != NULL)
+                    {
+                        real32_t imgwidth = (real32_t)image_width(image);
+                        real32_t imgheight = (real32_t)image_height(image);
+                        real32_t yoffset = (dcell->content_rect.size.height - imgheight) / 2;
+                        draw_image(ctx, image, dcell->content_rect.pos.x + xoffset, dcell->content_rect.pos.y + yoffset);
+                        xoffset += imgwidth + 4;
+                    }
+
+                    draw_text_color(ctx, color);
+                    font_extents(default_font, tc(elem->text), -1.f, &twidth, &theight);
+                    tx = dcell->content_rect.pos.x + xoffset;
+                    ty = dcell->content_rect.pos.y + ((dcell->content_rect.size.height - theight) / 2);
+                    drawctrl_text(ctx, tc(elem->text), (int32_t)tx, (int32_t)ty, ekCTRL_STATE_NORMAL);
+                }
+
+                draw_fill_color(ctx, color);
+                i_draw_arrow(ctx, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
+                draw_line_color(ctx, i_MAIN_COLOR);
+                break;
+            }
+
             case ekCELL_TYPE_EDIT:
             {
                 color_t color = i_is_cell_sel(hover, dlayout, i, j) ? i_SEL_COLOR : i_MAIN_COLOR;
@@ -1032,45 +1081,6 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
                     draw_rect(ctx, ekFILL, dcell->content_rect.pos.x + x, dcell->content_rect.pos.y + margin, step_width, dcell->content_rect.size.height - 2 * margin);
                     x += step_width + margin;
                 }
-                break;
-            }
-
-            case ekCELL_TYPE_POPUP:
-            {
-                color_t color = i_is_cell_sel(hover, dlayout, i, j) ? i_SEL_COLOR : i_MAIN_COLOR;
-                draw_line_color(ctx, color);
-                draw_fill_color(ctx, i_BGCOLOR);
-                draw_line_width(ctx, 3);
-                draw_rect(ctx, ekFILLSK, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
-                draw_line_width(ctx, 1);
-
-                if (arrst_size(fcell->widget.popup->elems, FElem) > 0)
-                {
-                    const Image *image = i_get_image(dcell, 0, i_is_cell_sel(hover, dlayout, i, j));
-                    const FElem *elem = arrst_first_const(fcell->widget.popup->elems, FElem);
-                    real32_t xoffset = 4;
-                    real32_t twidth, theight;
-                    real32_t tx, ty;
-
-                    if (image != NULL)
-                    {
-                        real32_t imgwidth = (real32_t)image_width(image);
-                        real32_t imgheight = (real32_t)image_height(image);
-                        real32_t yoffset = (dcell->content_rect.size.height - imgheight) / 2;
-                        draw_image(ctx, image, dcell->content_rect.pos.x + xoffset, dcell->content_rect.pos.y + yoffset);
-                        xoffset += imgwidth + 4;
-                    }
-
-                    draw_text_color(ctx, color);
-                    font_extents(default_font, tc(elem->text), -1.f, &twidth, &theight);
-                    tx = dcell->content_rect.pos.x + xoffset;
-                    ty = dcell->content_rect.pos.y + ((dcell->content_rect.size.height - theight) / 2);
-                    drawctrl_text(ctx, tc(elem->text), (int32_t)tx, (int32_t)ty, ekCTRL_STATE_NORMAL);
-                }
-
-                draw_fill_color(ctx, color);
-                i_draw_arrow(ctx, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
-                draw_line_color(ctx, i_MAIN_COLOR);
                 break;
             }
 
