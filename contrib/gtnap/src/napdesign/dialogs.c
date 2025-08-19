@@ -544,6 +544,68 @@ FTool *dialog_new_tool(Window *parent, const Font *font, const DSelect *sel, con
 
 /*---------------------------------------------------------------------------*/
 
+FElem *dialog_new_elem(Window *parent, const Font *font, const char_t *caption, const ResId iconId, const ResId headerId, const char_t *folder_path)
+{
+    DialogData data = i_dialog_data();
+    Layout *layout1 = layout_create(2, 3);
+    FElem *felem = dbind_create(FElem);
+    uint32_t ret = 0;
+    data.path = folder_path;
+    data.felem = felem;
+
+    /* Widget layout */
+    {
+        Layout *layout2 = layout_create(2, 1);
+        Label *label1 = label_create();
+        Label *label2 = label_create();
+        Label *label3 = label_create();
+        Label *label4 = label_create();
+        Button *button1 = button_flat();
+        Button *button2 = button_push();
+        Edit *edit = edit_create();
+        const Image *image = nflib_default_icon();
+        label_text(label1, gui_text(TEXT_TEXT));
+        label_text(label2, gui_text(TEXT_ICON));
+        label_text(label3, gui_text(TEXT_ICON_PATH));
+        label_text(label4, gui_text(TEXT_DEFAULT));
+        /* label_ellipsis(label3, ekELLIPBEGIN); When NAppGUI supports */
+        label_min_width(label4, 150);
+        button_image(button1, image);
+        button_text(button2, "...");
+        button_tooltip(button2, gui_text(TEXT_LOAD_ICON));
+        button_hpadding(button2, 20);
+        button_OnClick(button2, listener(&data, i_OnLoadImage, DialogData));
+        layout_label(layout1, label1, 0, 0);
+        layout_label(layout1, label2, 0, 1);
+        layout_label(layout1, label3, 0, 2);
+        layout_edit(layout1, edit, 1, 0);
+        layout_button(layout2, button1, 0, 0);
+        layout_button(layout2, button2, 1, 0);
+        layout_layout(layout1, layout2, 1, 1);
+        layout_label(layout1, label4, 1, 2);
+        layout_tabstop(layout2, 0, 0, FALSE);
+        layout_hmargin(layout1, 0, 5);
+        layout_hmargin(layout2, 0, 5);
+        layout_hexpand(layout1, 1);
+        layout_halign(layout1, 1, 1, ekLEFT);
+        cell_dbind(layout_cell(layout1, 1, 0), FElem, String *, text);
+        layout_dbind(layout1, NULL, FElem);
+        layout_dbind_obj(layout1, felem, FElem);
+        data.label = label4;
+        data.toolbutton = button1;
+    }
+
+    ret = i_modal_new_widget(parent, &data, layout1, font, iconId, headerId, caption);
+
+    if (ret != BUTTON_OK)
+        dbind_destroy(&felem, FElem);
+
+    i_remove_dialog_data(&data);
+    return felem;
+}
+
+/*---------------------------------------------------------------------------*/
+
 FPopUp *dialog_new_popup(Window *parent, const Font *font, const DSelect *sel, const char_t *folder_path)
 {
     DialogData data = i_dialog_data();
@@ -946,57 +1008,6 @@ FListBox *dialog_new_listbox(Window *parent, const DSelect *sel)
     str_destroy(&caption);
     i_remove_dialog_data(&data);
     return flistbox;
-}
-
-/*---------------------------------------------------------------------------*/
-
-FElem *dialog_new_elem(Window *parent, const char_t *folder_path)
-{
-    DialogData data = i_dialog_data();
-    Layout *layout1 = layout_create(1, 4);
-    Layout *layout2 = layout_create(2, 1);
-    Layout *layout3 = i_image_layout(&data);
-    Layout *layout4 = i_ok_cancel(&data, TRUE);
-    Label *label1 = label_create();
-    Label *label2 = label_create();
-    Edit *edit = edit_create();
-    Panel *panel = panel_create();
-    Window *window = window_create(ekWINDOW_STD | ekWINDOW_ESC);
-    String *caption = NULL;
-    FElem *felem = dbind_create(FElem);
-    uint32_t ret = 0;
-    data.path = folder_path;
-    data.felem = felem;
-    data.window = window;
-    caption = str_printf("Add new elem to Popup");
-    label_text(label1, tc(caption));
-    label_text(label2, "Text");
-    layout_label(layout1, label1, 0, 0);
-    layout_label(layout2, label2, 0, 0);
-    layout_edit(layout2, edit, 1, 0);
-    layout_layout(layout1, layout2, 0, 1);
-    layout_layout(layout1, layout3, 0, 2);
-    layout_layout(layout1, layout4, 0, 3);
-    panel_layout(panel, layout1);
-    window_panel(window, panel);
-    window_defbutton(window, data.defbutton);
-    i_center_window(parent, window);
-    ret = window_modal(window, parent);
-
-    if (ret == BUTTON_OK)
-    {
-        const char_t *text = edit_get_text(edit);
-        str_upd(&felem->text, text);
-    }
-    else
-    {
-        dbind_destroy(&felem, FElem);
-    }
-
-    window_destroy(&window);
-    str_destroy(&caption);
-    i_remove_dialog_data(&data);
-    return felem;
 }
 
 /*---------------------------------------------------------------------------*/

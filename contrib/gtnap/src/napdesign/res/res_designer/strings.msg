@@ -8,7 +8,7 @@ TEXT_NEW_CHECK      A new check box will be placed in cell (%d, %d) of '%s' layo
 TEXT_NEW_RADIO      A new radio button will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_TOOL       A new tool button will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_POPUP      A new popup button will be placed in cell (%d, %d) of '%s' layout
-
+TEXT_NEW_ELEM_POPUP A new element will be added to popup in cell '%s'
 TEXT_NEW_COMBO      A new combo box will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SUBLAYOUT  A new sublayout will be placed in cell (%d, %d) of '%s' layout
 TEXT_LAYOUT_PROPS   Layout properties
@@ -42,7 +42,7 @@ TEXT_EDIT_BOX       Edit Box
 TEXT_COMBO_BOX      Combo Box
 TEXT_TEXT_VIEW      Text View
 TEXT_LIST_BOX       List Box
-TEXT_POPUP_BUTTON   PopUp Button
+TEXT_ELEM_POPUP     PopUp Add Element
 TEXT_TABLE_VIEW     Table View
 TEXT_IMAGE_VIEW     Image View
 TEXT_HORZ_SLIDER    Horizontal Slider

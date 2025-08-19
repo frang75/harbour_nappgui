@@ -727,17 +727,36 @@ static void i_update_elem_list(const ArrSt(FElem) *elems, ListBox *list, const c
 static void i_OnElementAdd(PropData *data, Event *e)
 {
     Window *window = NULL;
+    FCell *cell = NULL;    
     const char_t *folder_path = NULL;
+    const Font *font = NULL;
+    ResId iconId = NULL;
+    ResId headerId = NULL;
+    String *caption = NULL;
     FElem *elem = NULL;
     cassert_no_null(data);
     unref(e);
     window = designer_main_window(data->app);
+    cell = dform_sel_fcell(&data->sel);
     folder_path = designer_folder_path(data->app);
-    elem = dialog_new_elem(window, folder_path);
+    font = designer_default_font(data->app);
+    cassert_no_null(cell);
+
+    if (cell->type == ekCELL_TYPE_POPUP)
+    {
+        iconId = POPUP_PNG;
+        headerId = TEXT_ELEM_POPUP;
+        caption = str_printf(gui_text(TEXT_NEW_ELEM_POPUP), tc(cell->name));
+    }
+    else
+    {
+        cassert(FALSE);
+    }
+
+    elem = dialog_new_elem(window, font, tc(caption), iconId, headerId, folder_path);
+
     if (elem != NULL)
     {
-        FCell *cell = dform_sel_fcell(&data->sel);
-        cassert_no_null(cell);
         if (cell->type == ekCELL_TYPE_POPUP)
         {
             FPopUp *fpopup = layout_dbind_get_obj(data->popup_layout, FPopUp);
@@ -757,6 +776,8 @@ static void i_OnElementAdd(PropData *data, Event *e)
         designer_canvas_update(data->app);
         dbind_destroy(&elem, FElem);
     }
+
+    str_destopt(&caption);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1216,11 +1237,13 @@ static void i_OnListBoxAdd(PropData *data, Event *e)
 {
     Window *window = NULL;
     const char_t *folder_path = NULL;
+    const Font *font = NULL;
     FElem *elem = NULL;
     cassert_no_null(data);
     window = designer_main_window(data->app);
     folder_path = designer_folder_path(data->app);
-    elem = dialog_new_elem(window, folder_path);
+    font = designer_default_font(data->app);
+    elem = dialog_new_elem(window, font, "------------", LISTVIEW_PNG, TEXT_ELEM_POPUP, folder_path);
     if (elem != NULL)
     {
         FListBox *flistbox = layout_dbind_get_obj(data->listbox_layout, FListBox);

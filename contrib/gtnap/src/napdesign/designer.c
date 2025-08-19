@@ -1590,6 +1590,14 @@ const char_t *designer_folder_path(const Designer *app)
 
 /*---------------------------------------------------------------------------*/
 
+const Font *designer_default_font(const Designer *app)
+{
+    cassert_no_null(app);
+    return app->default_font;
+}
+
+/*---------------------------------------------------------------------------*/
+
 Window *designer_main_window(const Designer *app)
 {
     cassert_no_null(app);

@@ -16,6 +16,8 @@ FRadio *dialog_new_radio(Window *parent, const Font *font, const DSelect *sel);
 
 FTool *dialog_new_tool(Window *parent, const Font *font, const DSelect *sel, const char_t *folder_path);
 
+FElem *dialog_new_elem(Window *parent, const Font *font, const char_t *caption, const ResId iconId, const ResId headerId, const char_t *folder_path);
+
 FPopUp *dialog_new_popup(Window *parent, const Font *font, const DSelect *sel, const char_t *folder_path);
 
 
@@ -34,8 +36,6 @@ FSlider *dialog_new_slider(Window *parent, const DSelect *sel);
 FProgress *dialog_new_progress(Window *parent, const DSelect *sel);
 
 FListBox *dialog_new_listbox(Window *parent, const DSelect *sel);
-
-FElem *dialog_new_elem(Window *parent, const char_t *folder_path);
 
 FTable *dialog_new_table(Window *parent, const DSelect *sel);
 
