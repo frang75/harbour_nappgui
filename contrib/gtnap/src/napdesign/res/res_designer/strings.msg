@@ -22,6 +22,7 @@ TEXT_CHECK_PROPS    Checkbox properties
 TEXT_RADIO_PROPS    Radio button properties
 TEXT_TOOL_PROPS     Tool button properties
 TEXT_POPUP_PROPS    Popup properties
+TEXT_EDIT_PROPS     Editbox properties
 TEXT_COMBO_PROPS    Combobox properties
 TEXT_LAYOUT         Layout
 TEXT_LAYOUTS        Layouts
@@ -125,6 +126,7 @@ TIP_BUTTON_HPAD     Horizontal padding of the push button, -1 as default.
 TIP_BUTTON_VPAD     Vertical padding of the push button, -1 as default.
 TIP_CHECK_TEXT      The text that will be displayed to the right of the checkbox.
 TIP_RADIO_TEXT      The text that will be displayed to the right of the radio button.
+TIP_EDIT_MWIDTH     Editbox width. If 0 will be set automatically.
 TIP_COMBO_AUTOSEL   If set, the text will be selected automatically when recibes the focus.
 TIP_COMBO_PASSMODE  If set, the text will be hidden will be hidden by asterisks.
 TIP_COMBO_ALIGN     Text alignment inside the combobox.
