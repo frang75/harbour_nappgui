@@ -595,7 +595,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
             case ekWIDGET_EDITBOX:
             {
-                FEdit *fedit = dialog_new_edit(window, &sel);
+                FEdit *fedit = dialog_new_edit(window, font, &sel);
                 if (fedit != NULL)
                 {
                     Edit *edit = edit_create();

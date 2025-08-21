@@ -9,6 +9,7 @@ TEXT_NEW_RADIO      A new radio button will be placed in cell (%d, %d) of '%s' l
 TEXT_NEW_TOOL       A new tool button will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_POPUP      A new popup button will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_ELEM_POPUP A new element will be added to popup in cell '%s'
+TEXT_NEW_EDIT       A new editbox will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_COMBO      A new combo box will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SUBLAYOUT  A new sublayout will be placed in cell (%d, %d) of '%s' layout
 TEXT_LAYOUT_PROPS   Layout properties

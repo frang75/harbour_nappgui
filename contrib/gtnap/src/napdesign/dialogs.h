@@ -20,10 +20,11 @@ FElem *dialog_new_elem(Window *parent, const Font *font, const char_t *caption, 
 
 FPopUp *dialog_new_popup(Window *parent, const Font *font, const DSelect *sel, const char_t *folder_path);
 
+FEdit *dialog_new_edit(Window *parent, const Font *font, const DSelect *sel);
 
 
 
-FEdit *dialog_new_edit(Window *parent, const DSelect *sel);
+
 
 FCombo *dialog_new_combo(Window *parent, const Font *font, const DSelect *sel);
 

@@ -6,6 +6,7 @@
 #include <nflib/nflib.h>
 #include <nflib/fbutton.h>
 #include <nflib/fcheck.h>
+#include <nflib/fedit.h>
 #include <nflib/fradio.h>
 #include <nflib/ftool.h>
 #include <nflib/flabel.h>
@@ -643,54 +644,49 @@ static Layout *i_value_updown_layout(void)
 
 /*---------------------------------------------------------------------------*/
 
-FEdit *dialog_new_edit(Window *parent, const DSelect *sel)
+FEdit *dialog_new_edit(Window *parent, const Font *font, const DSelect *sel)
 {
     DialogData data = i_dialog_data();
-    Layout *layout1 = layout_create(1, 5);
-    Layout *layout2 = layout_create(2, 1);
-    Layout *layout3 = i_ok_cancel(&data, TRUE);
-    Label *label1 = label_create();
-    Label *label2 = label_create();
-    Button *button1 = button_check();
-    Button *button2 = button_check();
-    PopUp *popup = popup_create();
-    Panel *panel = panel_create();
-    Window *window = window_create(ekWINDOW_STD | ekWINDOW_ESC);
+    Layout *layout = layout_create(2, 3);
+    FEdit *fedit = fedit_create();
     String *caption = NULL;
-    FEdit *fedit = dbind_create(FEdit);
     uint32_t ret = 0;
-    data.window = window;
     cassert_no_null(sel);
     cassert_no_null(sel->flayout);
-    caption = str_printf("New Editbox widget in (%d, %d) of '%s'", sel->col, sel->row, tc(sel->flayout->name));
-    label_text(label1, tc(caption));
-    label_text(label2, "Text align");
-    button_text(button1, "Passmode");
-    button_text(button2, "Autosel");
-    layout_label(layout1, label1, 0, 0);
-    layout_button(layout1, button1, 0, 1);
-    layout_button(layout1, button2, 0, 2);
-    layout_label(layout2, label2, 0, 0);
-    layout_popup(layout2, popup, 1, 0);
-    layout_layout(layout1, layout2, 0, 3);
-    layout_layout(layout1, layout3, 0, 4);
-    layout_vmargin(layout1, 0, 5);
-    layout_vmargin(layout1, 1, 5);
-    panel_layout(panel, layout1);
-    cell_dbind(layout_cell(layout1, 0, 1), FEdit, bool_t, passmode);
-    cell_dbind(layout_cell(layout1, 0, 2), FEdit, bool_t, autosel);
-    cell_dbind(layout_cell(layout2, 1, 0), FEdit, halign_t, text_align);
-    layout_dbind(layout1, NULL, FEdit);
-    layout_dbind_obj(layout1, fedit, FEdit);
-    window_panel(window, panel);
-    window_defbutton(window, data.defbutton);
-    i_center_window(parent, window);
-    ret = window_modal(window, parent);
+
+    /* Widget layout */
+    {
+        Label *label1 = label_create();
+        Label *label2 = label_create();
+        Label *label3 = label_create();
+        Button *button1 = button_check();
+        Button *button2 = button_check();
+        PopUp *popup = popup_create();
+        label_text(label1, gui_text(TEXT_TEXT_ALIGN));
+        label_text(label2, gui_text(TEXT_PASSMODE));
+        label_text(label3, gui_text(TEXT_AUTOSELECT));
+        layout_label(layout, label1, 0, 0);
+        layout_label(layout, label2, 0, 1);
+        layout_label(layout, label3, 0, 2);
+        layout_popup(layout, popup, 1, 0);
+        layout_button(layout, button1, 1, 1);
+        layout_button(layout, button2, 1, 2);
+        layout_hmargin(layout, 0, 5);
+        layout_vmargin(layout, 0, 2);
+        layout_vmargin(layout, 1, 2);
+        cell_dbind(layout_cell(layout, 1, 0), FEdit, halign_t, text_align);
+        cell_dbind(layout_cell(layout, 1, 1), FEdit, bool_t, passmode);
+        cell_dbind(layout_cell(layout, 1, 2), FEdit, bool_t, autosel);
+        layout_dbind(layout, NULL, FEdit);
+        layout_dbind_obj(layout, fedit, FEdit);
+    }
+
+    caption = str_printf(gui_text(TEXT_NEW_EDIT), sel->col, sel->row, tc(sel->flayout->name));
+    ret = i_modal_new_widget(parent, &data, layout, font, EDITBOX_PNG, TEXT_EDIT_BOX, tc(caption));
 
     if (ret != BUTTON_OK)
-        dbind_destroy(&fedit, FEdit);
+        fedit_destroy(&fedit);
 
-    window_destroy(&window);
     str_destroy(&caption);
     i_remove_dialog_data(&data);
     return fedit;
