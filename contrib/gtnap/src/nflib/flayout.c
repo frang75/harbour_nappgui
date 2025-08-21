@@ -95,7 +95,7 @@ static void i_remove_cell(FCell *cell)
         break;
 
     case ekCELL_TYPE_COMBO:
-        dbind_destroy(&cell->widget.combo, FCombo);
+        fcombo_destroy(&cell->widget.combo);
         break;
 
     case ekCELL_TYPE_LAYOUT:

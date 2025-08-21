@@ -6,6 +6,7 @@
 #include <nflib/nflib.h>
 #include <nflib/fbutton.h>
 #include <nflib/fcheck.h>
+#include <nflib/fcombo.h>
 #include <nflib/fedit.h>
 #include <nflib/fradio.h>
 #include <nflib/ftool.h>
@@ -647,7 +648,7 @@ static Layout *i_value_updown_layout(void)
 FEdit *dialog_new_edit(Window *parent, const Font *font, const DSelect *sel)
 {
     DialogData data = i_dialog_data();
-    Layout *layout = layout_create(2, 3);
+    Layout *layout1 = layout_create(2, 4);
     FEdit *fedit = fedit_create();
     String *caption = NULL;
     uint32_t ret = 0;
@@ -659,30 +660,34 @@ FEdit *dialog_new_edit(Window *parent, const Font *font, const DSelect *sel)
         Label *label1 = label_create();
         Label *label2 = label_create();
         Label *label3 = label_create();
+        Label *label4 = label_create();        
+        PopUp *popup = popup_create();
         Button *button1 = button_check();
         Button *button2 = button_check();
-        PopUp *popup = popup_create();
+        Layout *layout2 = i_value_updown_layout();
         label_text(label1, gui_text(TEXT_TEXT_ALIGN));
-        label_text(label2, gui_text(TEXT_PASSMODE));
-        label_text(label3, gui_text(TEXT_AUTOSELECT));
-        layout_label(layout, label1, 0, 0);
-        layout_label(layout, label2, 0, 1);
-        layout_label(layout, label3, 0, 2);
-        layout_popup(layout, popup, 1, 0);
-        layout_button(layout, button1, 1, 1);
-        layout_button(layout, button2, 1, 2);
-        layout_hmargin(layout, 0, 5);
-        layout_vmargin(layout, 0, 2);
-        layout_vmargin(layout, 1, 2);
-        cell_dbind(layout_cell(layout, 1, 0), FEdit, halign_t, text_align);
-        cell_dbind(layout_cell(layout, 1, 1), FEdit, bool_t, passmode);
-        cell_dbind(layout_cell(layout, 1, 2), FEdit, bool_t, autosel);
-        layout_dbind(layout, NULL, FEdit);
-        layout_dbind_obj(layout, fedit, FEdit);
+        label_text(label2, gui_text(TEXT_MIN_WIDTH));
+        label_text(label3, gui_text(TEXT_PASSMODE));
+        label_text(label4, gui_text(TEXT_AUTOSELECT));
+        layout_label(layout1, label1, 0, 0);
+        layout_label(layout1, label2, 0, 1);
+        layout_label(layout1, label3, 0, 2);
+        layout_label(layout1, label4, 0, 3);
+        layout_popup(layout1, popup, 1, 0);
+        layout_layout(layout1, layout2, 1, 1);
+        layout_button(layout1, button1, 1, 2);
+        layout_button(layout1, button2, 1, 3);
+        layout_hmargin(layout1, 0, 5);
+        cell_dbind(layout_cell(layout1, 1, 0), FEdit, halign_t, text_align);
+        cell_dbind(layout_cell(layout1, 1, 1), FEdit, real32_t, min_width);
+        cell_dbind(layout_cell(layout1, 1, 2), FEdit, bool_t, passmode);
+        cell_dbind(layout_cell(layout1, 1, 3), FEdit, bool_t, autosel);
+        layout_dbind(layout1, NULL, FEdit);
+        layout_dbind_obj(layout1, fedit, FEdit);
     }
 
     caption = str_printf(gui_text(TEXT_NEW_EDIT), sel->col, sel->row, tc(sel->flayout->name));
-    ret = i_modal_new_widget(parent, &data, layout, font, EDITBOX_PNG, TEXT_EDIT_BOX, tc(caption));
+    ret = i_modal_new_widget(parent, &data, layout1, font, EDITBOX_PNG, TEXT_EDIT_BOX, tc(caption));
 
     if (ret != BUTTON_OK)
         fedit_destroy(&fedit);
@@ -698,8 +703,8 @@ FCombo *dialog_new_combo(Window *parent, const Font *font, const DSelect *sel)
 {
     DialogData data = i_dialog_data();
     Layout *layout1 = layout_create(2, 4);
+    FCombo *fcombo = fcombo_create();    
     String *caption = NULL;
-    FCombo *fcombo = dbind_create(FCombo);
     uint32_t ret = 0;
     cassert_no_null(sel);
     cassert_no_null(sel->flayout);
@@ -710,27 +715,27 @@ FCombo *dialog_new_combo(Window *parent, const Font *font, const DSelect *sel)
         Label *label2 = label_create();
         Label *label3 = label_create();
         Label *label4 = label_create();        
+        PopUp *popup = popup_create();
         Button *button1 = button_check();
         Button *button2 = button_check();
-        PopUp *popup = popup_create();
         Layout *layout2 = i_value_updown_layout();
-        label_text(label1, gui_text(TEXT_AUTOSELECT));
-        label_text(label2, gui_text(TEXT_PASSMODE));
-        label_text(label3, gui_text(TEXT_TEXT_ALIGN));
-        label_text(label4, gui_text(TEXT_MIN_WIDTH));
+        label_text(label1, gui_text(TEXT_TEXT_ALIGN));
+        label_text(label2, gui_text(TEXT_MIN_WIDTH));
+        label_text(label3, gui_text(TEXT_PASSMODE));
+        label_text(label4, gui_text(TEXT_AUTOSELECT));
         layout_label(layout1, label1, 0, 0);
         layout_label(layout1, label2, 0, 1);
         layout_label(layout1, label3, 0, 2);
         layout_label(layout1, label4, 0, 3);
-        layout_button(layout1, button1, 1, 0);
-        layout_button(layout1, button2, 1, 1);
-        layout_popup(layout1, popup, 1, 2);
-        layout_layout(layout1, layout2, 1, 3);
+        layout_popup(layout1, popup, 1, 0);
+        layout_layout(layout1, layout2, 1, 1);
+        layout_button(layout1, button1, 1, 2);
+        layout_button(layout1, button2, 1, 3);
         layout_hmargin(layout1, 0, 5);
-        cell_dbind(layout_cell(layout1, 1, 0), FCombo, bool_t, passmode);
-        cell_dbind(layout_cell(layout1, 1, 1), FCombo, bool_t, autosel);
-        cell_dbind(layout_cell(layout1, 1, 2), FCombo, halign_t, text_align);
-        cell_dbind(layout_cell(layout1, 1, 3), FCombo, real32_t, min_width);
+        cell_dbind(layout_cell(layout1, 1, 0), FCombo, halign_t, text_align);
+        cell_dbind(layout_cell(layout1, 1, 1), FCombo, real32_t, min_width);
+        cell_dbind(layout_cell(layout1, 1, 2), FCombo, bool_t, passmode);
+        cell_dbind(layout_cell(layout1, 1, 3), FCombo, bool_t, autosel);
         layout_dbind(layout1, NULL, FCombo);
         layout_dbind_obj(layout1, fcombo, FCombo);
     }
@@ -739,7 +744,7 @@ FCombo *dialog_new_combo(Window *parent, const Font *font, const DSelect *sel)
     ret = i_modal_new_widget(parent, &data, layout1, font, COMBOBOX_PNG, TEXT_COMBO_BOX, tc(caption));
 
     if (ret != BUTTON_OK)
-        dbind_destroy(&fcombo, FCombo);
+        fcombo_destroy(&fcombo);
 
     str_destroy(&caption);
     i_remove_dialog_data(&data);

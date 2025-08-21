@@ -22,11 +22,11 @@ FPopUp *dialog_new_popup(Window *parent, const Font *font, const DSelect *sel, c
 
 FEdit *dialog_new_edit(Window *parent, const Font *font, const DSelect *sel);
 
-
-
-
-
 FCombo *dialog_new_combo(Window *parent, const Font *font, const DSelect *sel);
+
+
+
+
 
 FText *dialog_new_text(Window *parent, const DSelect *sel);
 

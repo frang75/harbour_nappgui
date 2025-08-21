@@ -126,11 +126,14 @@ TIP_BUTTON_HPAD     Horizontal padding of the push button, -1 as default.
 TIP_BUTTON_VPAD     Vertical padding of the push button, -1 as default.
 TIP_CHECK_TEXT      The text that will be displayed to the right of the checkbox.
 TIP_RADIO_TEXT      The text that will be displayed to the right of the radio button.
+TIP_EDIT_ALIGN      Text alignment inside the editbox.
 TIP_EDIT_MWIDTH     Editbox width. If 0 will be set automatically.
-TIP_COMBO_AUTOSEL   If set, the text will be selected automatically when recibes the focus.
-TIP_COMBO_PASSMODE  If set, the text will be hidden will be hidden by asterisks.
+TIP_EDIT_PASSMODE   If set, the text will be hidden will be hidden by asterisks.
+TIP_EDIT_AUTOSEL    If set, the text will be selected automatically when recibes the focus.
 TIP_COMBO_ALIGN     Text alignment inside the combobox.
 TIP_COMBO_MWIDTH    Combobox width. If 0 will be set automatically.
+TIP_COMBO_PASSMODE  If set, the text will be hidden will be hidden by asterisks.
+TIP_COMBO_AUTOSEL   If set, the text will be selected automatically when recibes the focus.
 TIP_ELEMENT_ADD     Add a new element
 TIP_ELEMENT_REMOVE  Remove current element
 TIP_ELEMENT_CLEAR   Clear all elements
