@@ -6,6 +6,7 @@
 #include "fcombo.h"
 #include "fbutton.h"
 #include "flabel.h"
+#include "fedit.h"
 #include "fradio.h"
 #include "ftool.h"
 #include "fpopup.h"
@@ -90,7 +91,7 @@ static void i_remove_cell(FCell *cell)
         break;
 
     case ekCELL_TYPE_EDIT:
-        dbind_destroy(&cell->widget.edit, FEdit);
+        fedit_destroy(&cell->widget.edit);
         break;
 
     case ekCELL_TYPE_COMBO:
@@ -1353,13 +1354,9 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
 
                 case ekCELL_TYPE_EDIT:
                 {
-                    FEdit *fedit = cells->widget.edit;
-                    Edit *gedit = edit_create();
-                    align_t align = i_halign(fedit->text_align);
-                    edit_passmode(gedit, fedit->passmode);
-                    edit_autoselect(gedit, fedit->autosel);
-                    edit_align(gedit, align);
-                    layout_edit(glayout, gedit, i, j);
+                    Edit *edit = edit_create();
+                    fedit_synchro(cells->widget.edit, edit);
+                    layout_edit(glayout, edit, i, j);
                     break;
                 }
 

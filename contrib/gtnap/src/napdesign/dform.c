@@ -11,6 +11,7 @@
 #include <nflib/fbutton.h>
 #include <nflib/fcheck.h>
 #include <nflib/fcombo.h>
+#include <nflib/fedit.h>
 #include <nflib/flabel.h>
 #include <nflib/flayout.h>
 #include <nflib/fradio.h>
@@ -598,19 +599,11 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 if (fedit != NULL)
                 {
                     Edit *edit = edit_create();
-                    align_t align = i_halign(fedit->text_align);
-                    edit_passmode(edit, fedit->passmode);
-                    edit_autoselect(edit, fedit->autosel);
-                    edit_align(edit, align);
+                    fedit_synchro(fedit, edit);
                     i_sel_remove_cell(&sel);
                     flayout_add_edit(sel.flayout, fedit, sel.col, sel.row);
                     layout_edit(sel.glayout, edit, sel.col, sel.row);
-                    i_sel_synchro_cell(&sel);
-                    dform_compose(form);
-                    propedit_set(propedit, form, &sel);
-                    inspect_set(inspect, form);
-                    form->sel = sel;
-                    i_need_save(form);
+                    i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
                 else
@@ -1079,10 +1072,7 @@ void dform_synchro_edit(DForm *form, const DSelect *sel)
     cassert(cell->type == ekCELL_TYPE_EDIT);
     i_need_save(form);
     edit = layout_get_edit(sel->glayout, sel->col, sel->row);
-    edit_passmode(edit, cell->widget.edit->passmode);
-    edit_autoselect(edit, cell->widget.edit->autosel);
-    edit_align(edit, i_halign(cell->widget.edit->text_align));
-    edit_min_width(edit, cell->widget.edit->min_width);
+    fedit_synchro(cell->widget.edit, edit);
 }
 
 /*---------------------------------------------------------------------------*/
