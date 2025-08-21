@@ -284,6 +284,23 @@ static FTool *i_read_tool(Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_read_elem(Stream *stm, FElem *elem)
+{
+    elem->text = str_read(stm);
+    elem->iconpath = str_read(stm);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static FPopUp *i_read_popup(Stream *stm)
+{
+    FPopUp *popup = heap_new0(FPopUp);
+    popup->elems = arrst_read(stm, i_read_elem, FElem);
+    return popup;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static FEdit *i_read_edit(Stream *stm)
 {
     FEdit *edit = heap_new0(FEdit);
@@ -354,23 +371,6 @@ static FProgress *i_read_progress(Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_read_elem(Stream *stm, FElem *elem)
-{
-    elem->text = str_read(stm);
-    elem->iconpath = str_read(stm);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static FPopUp *i_read_popup(Stream *stm)
-{
-    FPopUp *popup = heap_new0(FPopUp);
-    popup->elems = arrst_read(stm, i_read_elem, FElem);
-    return popup;
-}
-
-/*---------------------------------------------------------------------------*/
-
 static FListBox *i_read_listbox(Stream *stm)
 {
     FListBox *listbox = heap_new0(FListBox);
@@ -433,6 +433,9 @@ static void i_read_cell(Stream *stm, FCell *cell)
     case ekCELL_TYPE_TOOL:
         cell->widget.tool = i_read_tool(stm);
         break;
+    case ekCELL_TYPE_POPUP:
+        cell->widget.popup = i_read_popup(stm);
+        break;
     case ekCELL_TYPE_EDIT:
         cell->widget.edit = i_read_edit(stm);
         break;
@@ -450,9 +453,6 @@ static void i_read_cell(Stream *stm, FCell *cell)
         break;
     case ekCELL_TYPE_PROGRESS:
         cell->widget.progress = i_read_progress(stm);
-        break;
-    case ekCELL_TYPE_POPUP:
-        cell->widget.popup = i_read_popup(stm);
         break;
     case ekCELL_TYPE_LISTBOX:
         cell->widget.listbox = i_read_listbox(stm);
@@ -574,6 +574,22 @@ static void i_write_tool(Stream *stm, const FTool *tool)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_write_elem(Stream *stm, const FElem *elem)
+{
+    str_write(stm, elem->text);
+    str_write(stm, elem->iconpath);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_write_popup(Stream *stm, const FPopUp *popup)
+{
+    cassert_no_null(popup);
+    arrst_write(stm, popup->elems, i_write_elem, FElem);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_write_edit(Stream *stm, const FEdit *edit)
 {
     cassert_no_null(edit);
@@ -629,22 +645,6 @@ static void i_write_progress(Stream *stm, const FProgress *progress)
 {
     cassert_no_null(progress);
     stm_write_r32(stm, progress->min_width);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_write_elem(Stream *stm, const FElem *elem)
-{
-    str_write(stm, elem->text);
-    str_write(stm, elem->iconpath);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_write_popup(Stream *stm, const FPopUp *popup)
-{
-    cassert_no_null(popup);
-    arrst_write(stm, popup->elems, i_write_elem, FElem);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -709,6 +709,9 @@ static void i_write_cell(Stream *stm, const FCell *cell)
     case ekCELL_TYPE_TOOL:
         i_write_tool(stm, cell->widget.tool);
         break;
+    case ekCELL_TYPE_POPUP:
+        i_write_popup(stm, cell->widget.popup);
+        break;
     case ekCELL_TYPE_EDIT:
         i_write_edit(stm, cell->widget.edit);
         break;
@@ -726,9 +729,6 @@ static void i_write_cell(Stream *stm, const FCell *cell)
         break;
     case ekCELL_TYPE_PROGRESS:
         i_write_progress(stm, cell->widget.progress);
-        break;
-    case ekCELL_TYPE_POPUP:
-        i_write_popup(stm, cell->widget.popup);
         break;
     case ekCELL_TYPE_LISTBOX:
         i_write_listbox(stm, cell->widget.listbox);
