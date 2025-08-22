@@ -9,6 +9,7 @@
 #include "flistbox.h"
 #include "fedit.h"
 #include "fradio.h"
+#include "fslider.h"
 #include "ftool.h"
 #include "fpopup.h"
 #include <gui/button.h>
@@ -103,6 +104,10 @@ static void i_remove_cell(FCell *cell)
         flistbox_destroy(&cell->widget.listbox);
         break;
 
+    case ekCELL_TYPE_SLIDER:
+        fslider_destroy(&cell->widget.slider);
+        break;
+
     case ekCELL_TYPE_LAYOUT:
         flayout_destroy(&cell->widget.layout);
         break;
@@ -113,10 +118,6 @@ static void i_remove_cell(FCell *cell)
 
     case ekCELL_TYPE_IMAGE:
         dbind_destroy(&cell->widget.image, FImage);
-        break;
-
-    case ekCELL_TYPE_SLIDER:
-        dbind_destroy(&cell->widget.slider, FSlider);
         break;
 
     case ekCELL_TYPE_PROGRESS:
@@ -343,6 +344,15 @@ static FListBox *i_read_listbox(Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
+static FSlider *i_read_slider(Stream *stm)
+{
+    FSlider *slider = heap_new0(FSlider);
+    slider->min_width = stm_read_r32(stm);
+    return slider;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static FText *i_read_text(Stream *stm)
 {
     FText *text = heap_new0(FText);
@@ -362,15 +372,6 @@ static FImage *i_read_image(Stream *stm)
     image->min_width = stm_read_r32(stm);
     image->min_height = stm_read_r32(stm);
     return image;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static FSlider *i_read_slider(Stream *stm)
-{
-    FSlider *slider = heap_new0(FSlider);
-    slider->min_width = stm_read_r32(stm);
-    return slider;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -447,14 +448,14 @@ static void i_read_cell(Stream *stm, FCell *cell)
     case ekCELL_TYPE_LISTBOX:
         cell->widget.listbox = i_read_listbox(stm);
         break;
+    case ekCELL_TYPE_SLIDER:
+        cell->widget.slider = i_read_slider(stm);
+        break;
     case ekCELL_TYPE_TEXT:
         cell->widget.text = i_read_text(stm);
         break;
     case ekCELL_TYPE_IMAGE:
         cell->widget.image = i_read_image(stm);
-        break;
-    case ekCELL_TYPE_SLIDER:
-        cell->widget.slider = i_read_slider(stm);
         break;
     case ekCELL_TYPE_PROGRESS:
         cell->widget.progress = i_read_progress(stm);
@@ -624,6 +625,14 @@ static void i_write_listbox(Stream *stm, const FListBox *listbox)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_write_slider(Stream *stm, const FSlider *slider)
+{
+    cassert_no_null(slider);
+    stm_write_r32(stm, slider->min_width);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_write_text(Stream *stm, const FText *text)
 {
     cassert_no_null(text);
@@ -641,14 +650,6 @@ static void i_write_image(Stream *stm, const FImage *image)
     stm_write_enum(stm, image->scale, scale_t);
     stm_write_r32(stm, image->min_width);
     stm_write_r32(stm, image->min_height);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_write_slider(Stream *stm, const FSlider *slider)
-{
-    cassert_no_null(slider);
-    stm_write_r32(stm, slider->min_width);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -723,14 +724,14 @@ static void i_write_cell(Stream *stm, const FCell *cell)
     case ekCELL_TYPE_LISTBOX:
         i_write_listbox(stm, cell->widget.listbox);
         break;
+    case ekCELL_TYPE_SLIDER:
+        i_write_slider(stm, cell->widget.slider);
+        break;
     case ekCELL_TYPE_TEXT:
         i_write_text(stm, cell->widget.text);
         break;
     case ekCELL_TYPE_IMAGE:
         i_write_image(stm, cell->widget.image);
-        break;
-    case ekCELL_TYPE_SLIDER:
-        i_write_slider(stm, cell->widget.slider);
         break;
     case ekCELL_TYPE_PROGRESS:
         i_write_progress(stm, cell->widget.progress);
@@ -1076,6 +1077,20 @@ void flayout_add_listbox(FLayout *layout, FListBox *listbox, const uint32_t col,
 
 /*---------------------------------------------------------------------------*/
 
+void flayout_add_slider(FLayout *layout, FSlider *slider, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(slider);
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_SLIDER;
+    cell->halign = ekHALIGN_JUSTIFY;
+    cell->valign = ekVALIGN_CENTER;
+    cell->widget.slider = slider;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void flayout_add_text(FLayout *layout, FText *text, const uint32_t col, const uint32_t row)
 {
     FCell *cell = i_cell(layout, col, row);
@@ -1100,20 +1115,6 @@ void flayout_add_image(FLayout *layout, FImage *image, const uint32_t col, const
     cell->halign = ekHALIGN_CENTER;
     cell->valign = ekVALIGN_CENTER;
     cell->widget.image = image;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void flayout_add_slider(FLayout *layout, FSlider *slider, const uint32_t col, const uint32_t row)
-{
-    FCell *cell = i_cell(layout, col, row);
-    cassert_no_null(cell);
-    cassert_no_null(slider);
-    cassert(cell->type == ekCELL_TYPE_EMPTY);
-    cell->type = ekCELL_TYPE_SLIDER;
-    cell->halign = ekHALIGN_JUSTIFY;
-    cell->valign = ekVALIGN_CENTER;
-    cell->widget.slider = slider;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1378,6 +1379,13 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     break;
                 }
 
+                case ekCELL_TYPE_SLIDER:
+                {
+                    Slider *slider = slider_create();
+                    fslider_synchro(cells->widget.slider, slider);
+                    layout_slider(glayout, slider, i, j);
+                    break;
+                }
 
 
 
@@ -1414,16 +1422,6 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     imageview_size(gimage, s2df(fimage->min_width, fimage->min_height));
                     imageview_scale(gimage, i_scale(fimage->scale));
                     layout_imageview(glayout, gimage, i, j);
-                    break;
-                }
-
-                case ekCELL_TYPE_SLIDER:
-                {
-                    FSlider *fslider = cells->widget.slider;
-                    Slider *gslider = slider_create();
-                    slider_min_width(gslider, fslider->min_width);
-                    slider_value(gslider, .5f);
-                    layout_slider(glayout, gslider, i, j);
                     break;
                 }
 

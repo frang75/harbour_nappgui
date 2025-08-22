@@ -15,9 +15,10 @@
 #include <nflib/flabel.h>
 #include <nflib/flayout.h>
 #include <nflib/flistbox.h>
-#include <nflib/fradio.h>
-#include <nflib/ftool.h>
 #include <nflib/fpopup.h>
+#include <nflib/fradio.h>
+#include <nflib/fslider.h>
+#include <nflib/ftool.h>
 #include <gui/guicontrol.h>
 #include <gui/button.h>
 #include <gui/edit.h>
@@ -651,6 +652,26 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 }
             }
 
+            case ekWIDGET_HORZ_SLIDER:
+            {
+                FSlider *fslider = dialog_new_slider(window, &sel);
+                if (fslider != NULL)
+                {
+                    Slider *slider = slider_create();
+                    fslider_synchro(fslider, slider);
+                    i_sel_remove_cell(&sel);
+                    flayout_add_slider(sel.flayout, fslider, sel.col, sel.row);
+                    layout_slider(sel.glayout, slider, sel.col, sel.row);
+                    i_after_new_widget(form, inspect, propedit, &sel);
+                    return TRUE;
+                }
+                else
+                {
+                    return FALSE;
+                }
+            }
+
+
             case ekWIDGET_TEXTVIEW:
             {
                 FText *ftext = dialog_new_text(window, &sel);
@@ -706,31 +727,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     return FALSE;
                 }
 			}
-
-            case ekWIDGET_HORZ_SLIDER:
-            {
-                FSlider *fslider = dialog_new_slider(window, &sel);
-                if (fslider != NULL)
-                {
-                    Slider *slider = slider_create();
-                    slider_min_width(slider, fslider->min_width);
-                    slider_value(slider, .5f);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_slider(sel.flayout, fslider, sel.col, sel.row);
-                    layout_slider(sel.glayout, slider, sel.col, sel.row);
-                    i_sel_synchro_cell(&sel);
-                    dform_compose(form);
-                    propedit_set(propedit, form, &sel);
-                    inspect_set(inspect, form);
-                    form->sel = sel;
-                    i_need_save(form);
-                    return TRUE;
-                }
-                else
-                {
-                    return FALSE;
-                }
-            }
 
             case ekWIDGET_PROGRESS:
             {
@@ -1101,6 +1097,21 @@ void dform_synchro_listbox(DForm *form, const DSelect *sel, const char_t *resour
 
 /*---------------------------------------------------------------------------*/
 
+void dform_synchro_slider(DForm *form, const DSelect *sel)
+{
+    FCell *cell = i_sel_fcell(sel);
+    Slider *slider = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_SLIDER);
+    i_need_save(form);
+    slider = layout_get_slider(sel->glayout, sel->col, sel->row);
+    fslider_synchro(cell->widget.slider, slider);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dform_synchro_textview(DForm *form, const DSelect *sel)
 {
     FCell *cell = i_sel_fcell(sel);
@@ -1129,22 +1140,6 @@ void dform_synchro_imageview(DForm *form, const DSelect *sel)
     imgview = layout_get_imageview(sel->glayout, sel->col, sel->row);
     imageview_size(imgview, s2df(cell->widget.image->min_width, cell->widget.image->min_height));
     imageview_scale(imgview, i_scale(cell->widget.image->scale));
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dform_synchro_slider(DForm *form, const DSelect *sel)
-{
-    FCell *cell = i_sel_fcell(sel);
-    Slider *slider = NULL;
-    cassert_no_null(form);
-    cassert_no_null(sel);
-    cassert_no_null(cell);
-    cassert(cell->type == ekCELL_TYPE_SLIDER);
-    i_need_save(form);
-    slider = layout_get_slider(sel->glayout, sel->col, sel->row);
-    slider_min_width(slider, cell->widget.slider->min_width);
-    slider_value(slider, .5f);
 }
 
 /*---------------------------------------------------------------------------*/

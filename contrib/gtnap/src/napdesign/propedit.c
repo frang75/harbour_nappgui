@@ -1225,12 +1225,9 @@ static void i_OnSliderNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
     cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
-    if (evbind_modify(e, FSlider, real32_t, min_width) == TRUE)
-    {
-        dform_synchro_slider(data->form, &data->sel);
-        dform_compose(data->form);
-        designer_canvas_update(data->app);
-    }
+    dform_synchro_slider(data->form, &data->sel);
+    dform_compose(data->form);
+    designer_canvas_update(data->app);
 }
 
 /*---------------------------------------------------------------------------*/
