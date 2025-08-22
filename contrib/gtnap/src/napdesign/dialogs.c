@@ -8,9 +8,10 @@
 #include <nflib/fcheck.h>
 #include <nflib/fcombo.h>
 #include <nflib/fedit.h>
+#include <nflib/flabel.h>
+#include <nflib/flistbox.h>
 #include <nflib/fradio.h>
 #include <nflib/ftool.h>
-#include <nflib/flabel.h>
 #include <nflib/flayout.h>
 #include <nflib/fpopup.h>
 #include <gui/button.h>
@@ -608,7 +609,7 @@ FElem *dialog_new_elem(Window *parent, const Font *font, const char_t *caption, 
 
 /*---------------------------------------------------------------------------*/
 
-FPopUp *dialog_new_popup(Window *parent, const Font *font, const DSelect *sel, const char_t *folder_path)
+FPopUp *dialog_new_popup(Window *parent, const Font *font, const DSelect *sel)
 {
     DialogData data = i_dialog_data();
     Layout *layout = layout_create(1, 1);
@@ -617,7 +618,6 @@ FPopUp *dialog_new_popup(Window *parent, const Font *font, const DSelect *sel, c
     uint32_t ret = 0;
     cassert_no_null(sel);
     cassert_no_null(sel->flayout);
-    unref(folder_path);
 
     caption = str_printf(gui_text(TEXT_NEW_POPUP), sel->col, sel->row, tc(sel->flayout->name));
     ret = i_modal_new_widget(parent, &data, layout, font, POPUP_PNG, TEXT_POPUP_BUTTON, tc(caption));
@@ -749,6 +749,48 @@ FCombo *dialog_new_combo(Window *parent, const Font *font, const DSelect *sel)
     str_destroy(&caption);
     i_remove_dialog_data(&data);
     return fcombo;
+}
+
+/*---------------------------------------------------------------------------*/
+
+FListBox *dialog_new_listbox(Window *parent, const Font *font, const DSelect *sel)
+{
+    DialogData data = i_dialog_data();
+    Layout *layout1 = layout_create(2, 4);
+    FListBox *flistbox = flistbox_create();    
+    String *caption = NULL;
+    uint32_t ret = 0;
+    cassert_no_null(sel);
+    cassert_no_null(sel->flayout);
+
+    /* Widget layout */
+    {
+        Label *label1 = label_create();
+        Label *label2 = label_create();
+        Layout *layout2 = i_value_updown_layout();
+        Layout *layout3 = i_value_updown_layout();
+        label_text(label1, gui_text(TEXT_MIN_WIDTH));
+        label_text(label2, gui_text(TEXT_MIN_HEIGHT));
+        layout_label(layout1, label1, 0, 0);
+        layout_label(layout1, label2, 0, 1);
+        layout_layout(layout1, layout2, 1, 0);
+        layout_layout(layout1, layout3, 1, 1);
+        layout_hmargin(layout1, 0, 5);
+        cell_dbind(layout_cell(layout1, 1, 0), FListBox, real32_t, min_width);
+        cell_dbind(layout_cell(layout1, 1, 1), FListBox, real32_t, min_height);
+        layout_dbind(layout1, NULL, FListBox);
+        layout_dbind_obj(layout1, flistbox, FListBox);
+    }
+
+    caption = str_printf(gui_text(TEXT_NEW_LISTBOX), sel->col, sel->row, tc(sel->flayout->name));
+    ret = i_modal_new_widget(parent, &data, layout1, font, LISTVIEW_PNG, TEXT_LIST_BOX, tc(caption));
+
+    if (ret != BUTTON_OK)
+        flistbox_destroy(&flistbox);
+
+    str_destroy(&caption);
+    i_remove_dialog_data(&data);
+    return flistbox;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -956,59 +998,6 @@ FProgress *dialog_new_progress(Window *parent, const DSelect *sel)
     str_destroy(&caption);
     i_remove_dialog_data(&data);
     return fprogress;
-}
-
-/*---------------------------------------------------------------------------*/
-
-FListBox *dialog_new_listbox(Window *parent, const DSelect *sel)
-{
-    DialogData data = i_dialog_data();
-    Layout *layout1 = layout_create(1, 3);
-    Layout *layout2 = layout_create(2, 2);
-    Layout *layout3 = i_value_updown_layout();
-    Layout *layout4 = i_value_updown_layout();
-    Layout *layout5 = i_ok_cancel(&data, TRUE);
-    Label *label1 = label_create();
-    Label *label2 = label_create();
-    Label *label3 = label_create();
-    Panel *panel = panel_create();
-    Window *window = window_create(ekWINDOW_STD | ekWINDOW_ESC);
-    String *caption = NULL;
-    FListBox *flistbox = dbind_create(FListBox);
-    uint32_t ret = 0;
-    data.window = window;
-    cassert_no_null(sel);
-    cassert_no_null(sel->flayout);
-    caption = str_printf("New ListBox widget in (%d, %d) of '%s'", sel->col, sel->row, tc(sel->flayout->name));
-    label_text(label1, tc(caption));
-    label_text(label2, "Min width");
-    label_text(label3, "Min height");
-    layout_label(layout1, label1, 0, 0);
-    layout_label(layout2, label2, 0, 0);
-    layout_label(layout2, label3, 0, 1);
-    layout_layout(layout2, layout3, 1, 0);
-    layout_layout(layout2, layout4, 1, 1);
-    layout_layout(layout1, layout2, 0, 1);
-    layout_layout(layout1, layout5, 0, 2);
-    layout_vmargin(layout1, 0, 5);
-    layout_vmargin(layout1, 1, 5);
-    cell_dbind(layout_cell(layout2, 1, 0), FListBox, real32_t, min_width);
-    cell_dbind(layout_cell(layout2, 1, 1), FListBox, real32_t, min_height);
-    layout_dbind(layout1, NULL, FListBox);
-    layout_dbind_obj(layout1, flistbox, FListBox);
-    panel_layout(panel, layout1);
-    window_panel(window, panel);
-    window_defbutton(window, data.defbutton);
-    i_center_window(parent, window);
-    ret = window_modal(window, parent);
-
-    if (ret != BUTTON_OK)
-        dbind_destroy(&flistbox, FListBox);
-
-    window_destroy(&window);
-    str_destroy(&caption);
-    i_remove_dialog_data(&data);
-    return flistbox;
 }
 
 /*---------------------------------------------------------------------------*/

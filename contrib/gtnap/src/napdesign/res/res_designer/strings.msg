@@ -11,6 +11,7 @@ TEXT_NEW_POPUP      A new popup button will be placed in cell (%d, %d) of '%s' l
 TEXT_NEW_ELEM_POPUP A new element will be added to popup in cell '%s'
 TEXT_NEW_EDIT       A new editbox will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_COMBO      A new combo box will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_LISTBOX    A new listbox will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SUBLAYOUT  A new sublayout will be placed in cell (%d, %d) of '%s' layout
 TEXT_LAYOUT_PROPS   Layout properties
 TEXT_COLUMN_PROPS   Column properties
@@ -75,6 +76,7 @@ TEXT_AUTOSELECT     Autoselect
 TEXT_PASSMODE       Passmode
 TEXT_TEXT_ALIGN     Text align
 TEXT_MIN_WIDTH      Min width
+TEXT_MIN_HEIGHT     Min height
 TEXT_ICON           Icon
 TEXT_ICON_PATH      Icon path
 TEXT_ELEMENTS       Elements
@@ -91,14 +93,15 @@ TEXT_CELL_BUTTON    ButtonCell
 TEXT_CELL_CHECK     CheckBoxCell
 TEXT_CELL_RADIO     RadioButtonCell
 TEXT_CELL_TOOL      ToolButtonCell
+TEXT_CELL_POPUP     PopUpCell
 TEXT_CELL_EDIT      EditBoxCell
 TEXT_CELL_COMBO     ComboBoxCell
+TEXT_CELL_LISTBOX   ListBoxCell
+
 TEXT_CELL_TEXT      TextViewCell
 TEXT_CELL_IMAGE     ImageViewCell
 TEXT_CELL_SLIDER    SliderCell
 TEXT_CELL_PROGRESS  ProgressCell
-TEXT_CELL_POPUP     PopUpCell
-TEXT_CELL_LISTBOX   ListBoxCell
 TEXT_CELL_TABLE     TableCell
 TEXT_CELL_LAYOUT    LayoutCell
 

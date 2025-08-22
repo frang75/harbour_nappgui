@@ -575,7 +575,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
             case ekWIDGET_POPUP:
             {
-                FPopUp *fpopup = dialog_new_popup(window, font, &sel, folder_path);
+                FPopUp *fpopup = dialog_new_popup(window, font, &sel);
                 if (fpopup != NULL)
                 {
                     PopUp *popup = popup_create();
@@ -633,7 +633,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
             case ekWIDGET_LISTBOX:
             {
-                FListBox *flistbox = dialog_new_listbox(window, &sel);
+                FListBox *flistbox = dialog_new_listbox(window, font, &sel);
                 if (flistbox != NULL)
                 {
                     ListBox *listbox = listbox_create();
