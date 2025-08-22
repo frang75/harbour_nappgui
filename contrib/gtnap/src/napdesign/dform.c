@@ -1086,6 +1086,21 @@ void dform_synchro_combo(DForm *form, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+void dform_synchro_listbox(DForm *form, const DSelect *sel, const char_t *resource_path)
+{
+    FCell *cell = i_sel_fcell(sel);
+    ListBox *listbox = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_LISTBOX);
+    i_need_save(form);
+    listbox = layout_get_listbox(sel->glayout, sel->col, sel->row);
+    flistbox_synchro(cell->widget.listbox, listbox, resource_path);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dform_synchro_textview(DForm *form, const DSelect *sel)
 {
     FCell *cell = i_sel_fcell(sel);
@@ -1146,21 +1161,6 @@ void dform_synchro_progress(DForm *form, const DSelect *sel)
     progress = layout_get_progress(sel->glayout, sel->col, sel->row);
     progress_min_width(progress, cell->widget.progress->min_width);
     progress_value(progress, .5f);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dform_synchro_listbox(DForm *form, const DSelect *sel)
-{
-    FCell *cell = i_sel_fcell(sel);
-    ListBox *listbox = NULL;
-    cassert_no_null(form);
-    cassert_no_null(sel);
-    cassert_no_null(cell);
-    cassert(cell->type == ekCELL_TYPE_LISTBOX);
-    i_need_save(form);
-    listbox = layout_get_listbox(sel->glayout, sel->col, sel->row);
-    listbox_size(listbox, s2df(cell->widget.listbox->min_width, cell->widget.listbox->min_height));
 }
 
 /*---------------------------------------------------------------------------*/

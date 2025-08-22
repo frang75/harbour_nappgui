@@ -9,6 +9,7 @@ TEXT_NEW_RADIO      A new radio button will be placed in cell (%d, %d) of '%s' l
 TEXT_NEW_TOOL       A new tool button will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_POPUP      A new popup button will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_ELEM_POPUP A new element will be added to popup in cell '%s'
+TEXT_NEW_ELEM_LIST  A new element will be added to listbox in cell '%s'
 TEXT_NEW_EDIT       A new editbox will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_COMBO      A new combo box will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_LISTBOX    A new listbox will be placed in cell (%d, %d) of '%s' layout
@@ -25,6 +26,7 @@ TEXT_TOOL_PROPS     Tool button properties
 TEXT_POPUP_PROPS    Popup properties
 TEXT_EDIT_PROPS     Editbox properties
 TEXT_COMBO_PROPS    Combobox properties
+TEXT_LIST_PROPS     Listbox properties
 TEXT_LAYOUT         Layout
 TEXT_LAYOUTS        Layouts
 TEXT_BUTTONS        Buttons
@@ -46,6 +48,7 @@ TEXT_COMBO_BOX      Combo Box
 TEXT_TEXT_VIEW      Text View
 TEXT_LIST_BOX       List Box
 TEXT_ELEM_POPUP     PopUp Add Element
+TEXT_ELEM_LIST      ListBox Add Element
 TEXT_TABLE_VIEW     Table View
 TEXT_IMAGE_VIEW     Image View
 TEXT_HORZ_SLIDER    Horizontal Slider
@@ -140,3 +143,5 @@ TIP_COMBO_AUTOSEL   If set, the text will be selected automatically when recibes
 TIP_ELEMENT_ADD     Add a new element
 TIP_ELEMENT_REMOVE  Remove current element
 TIP_ELEMENT_CLEAR   Clear all elements
+TIP_LIST_MWIDTH     Listbox width. If 0 will be set automatically.
+TIP_LIST_MHEIGHT    Listbox height. If 0 will be set automatically.
