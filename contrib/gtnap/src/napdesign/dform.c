@@ -14,6 +14,7 @@
 #include <nflib/fedit.h>
 #include <nflib/flabel.h>
 #include <nflib/flayout.h>
+#include <nflib/flistbox.h>
 #include <nflib/fradio.h>
 #include <nflib/ftool.h>
 #include <nflib/fpopup.h>
@@ -468,6 +469,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
         inspect_set(inspect, form);
         if (i_sel_empty_cell(&sel) == TRUE)
         {
+            const char_t *folder_path = designer_folder_path(form->app);
             cassert_no_null(form->dlayout);
             switch(widget) {
             case ekWIDGET_SELECT:
@@ -551,7 +553,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
             case ekWIDGET_TOOL_BUTTON:
             {
-                const char_t *folder_path = designer_folder_path(form->app);
                 FTool *ftool = dialog_new_tool(window, font, &sel, folder_path);
                 if (ftool != NULL)
                 {
@@ -574,7 +575,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
             case ekWIDGET_POPUP:
             {
-                const char_t *folder_path = designer_folder_path(form->app);
                 FPopUp *fpopup = dialog_new_popup(window, font, &sel, folder_path);
                 if (fpopup != NULL)
                 {
@@ -631,6 +631,26 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 }
             }
 
+            case ekWIDGET_LISTBOX:
+            {
+                FListBox *flistbox = dialog_new_listbox(window, &sel);
+                if (flistbox != NULL)
+                {
+                    ListBox *listbox = listbox_create();
+                    flistbox_synchro(flistbox, listbox, folder_path);
+                    dlayout_synchro_elems(sel.dlayout, sel.col, sel.row, flistbox->elems, folder_path);
+                    i_sel_remove_cell(&sel);
+                    flayout_add_listbox(sel.flayout, flistbox, sel.col, sel.row);
+                    layout_listbox(sel.glayout, listbox, sel.col, sel.row);
+                    i_after_new_widget(form, inspect, propedit, &sel);
+                    return TRUE;
+                }
+                else
+                {
+                    return FALSE;
+                }
+            }
+
             case ekWIDGET_TEXTVIEW:
             {
                 FText *ftext = dialog_new_text(window, &sel);
@@ -658,7 +678,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
 			case ekWIDGET_IMAGEVIEW:
 			{
-                const char_t *folder_path = designer_folder_path(form->app);
 				FImage *fimage = dialog_new_image(window, &sel, folder_path);
                 if (fimage != NULL)
                 {
@@ -724,31 +743,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     i_sel_remove_cell(&sel);
                     flayout_add_progress(sel.flayout, fprogress, sel.col, sel.row);
                     layout_progress(sel.glayout, progress, sel.col, sel.row);
-                    i_sel_synchro_cell(&sel);
-                    dform_compose(form);
-                    propedit_set(propedit, form, &sel);
-                    inspect_set(inspect, form);
-                    form->sel = sel;
-                    i_need_save(form);
-                    return TRUE;
-                }
-                else
-                {
-                    return FALSE;
-                }
-            }
-
-            case ekWIDGET_LISTBOX:
-            {
-                FListBox *flistbox = dialog_new_listbox(window, &sel);
-                if (flistbox != NULL)
-                {
-                    ListBox *listbox = listbox_create();
-                    cassert(arrst_size(flistbox->elems, FElem) == 0);
-                    listbox_size(listbox, s2df(flistbox->min_width, flistbox->min_height));
-                    i_sel_remove_cell(&sel);
-                    flayout_add_listbox(sel.flayout, flistbox, sel.col, sel.row);
-                    layout_listbox(sel.glayout, listbox, sel.col, sel.row);
                     i_sel_synchro_cell(&sel);
                     dform_compose(form);
                     propedit_set(propedit, form, &sel);

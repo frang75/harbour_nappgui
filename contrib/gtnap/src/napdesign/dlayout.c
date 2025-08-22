@@ -996,6 +996,57 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
                 break;
             }
 
+            case ekCELL_TYPE_LISTBOX:
+            {
+                color_t color = i_is_cell_sel(hover, dlayout, i, j) ? i_SEL_COLOR : i_MAIN_COLOR;
+                draw_line_color(ctx, color);
+                draw_fill_color(ctx, i_BGCOLOR);
+                draw_line_width(ctx, 2);
+                draw_rect(ctx, ekFILLSK, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
+                draw_line_width(ctx, 1);
+
+                if (arrst_size(fcell->widget.listbox->elems, FElem) > 0)
+                {
+                    const ListBox *glistbox = cell_listbox(gcell);
+                    real32_t rheight = listbox_get_row_height(glistbox);
+                    real32_t ypos = 0;
+
+                    draw_text_color(ctx, color);
+
+                    /* TODO: Use clipping when ready */
+                    arrst_foreach_const(elem, fcell->widget.listbox->elems, FElem)
+                        if (dcell->content_rect.size.height >= ypos + rheight)
+                        {
+                            const Image *image = i_get_image(dcell, elem_i, i_is_cell_sel(hover, dlayout, i, j));
+                            real32_t xoffset = 4;
+                            real32_t twidth, theight;
+                            real32_t tx, ty;
+
+                            if (image != NULL)
+                            {
+                                real32_t imgwidth = (real32_t)image_width(image);
+                                real32_t imgheight = (real32_t)image_height(image);
+                                real32_t yoffset = (rheight - imgheight) / 2;
+                                draw_image(ctx, image, dcell->content_rect.pos.x + xoffset, dcell->content_rect.pos.y + ypos + yoffset);
+                                xoffset += imgwidth + 4;
+                            }
+
+                            font_extents(default_font, tc(elem->text), -1.f, &twidth, &theight);
+                            tx = dcell->content_rect.pos.x + xoffset;
+                            ty = dcell->content_rect.pos.y + ypos + ((rheight - theight) / 2);
+                            drawctrl_text(ctx, tc(elem->text), (int32_t)tx, (int32_t)ty, ekCTRL_STATE_NORMAL);
+                        }
+
+                        ypos += rheight;
+                    arrst_end();
+                }
+
+                draw_line_color(ctx, i_MAIN_COLOR);
+                break;
+            }
+
+
+
             case ekCELL_TYPE_TEXT:
             {
                 color_t color = i_is_cell_sel(hover, dlayout, i, j) ? i_SEL_COLOR : i_MAIN_COLOR;
@@ -1081,55 +1132,6 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
                     draw_rect(ctx, ekFILL, dcell->content_rect.pos.x + x, dcell->content_rect.pos.y + margin, step_width, dcell->content_rect.size.height - 2 * margin);
                     x += step_width + margin;
                 }
-                break;
-            }
-
-            case ekCELL_TYPE_LISTBOX:
-            {
-                color_t color = i_is_cell_sel(hover, dlayout, i, j) ? i_SEL_COLOR : i_MAIN_COLOR;
-                draw_line_color(ctx, color);
-                draw_fill_color(ctx, i_BGCOLOR);
-                draw_line_width(ctx, 2);
-                draw_rect(ctx, ekFILLSK, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
-                draw_line_width(ctx, 1);
-
-                if (arrst_size(fcell->widget.listbox->elems, FElem) > 0)
-                {
-                    const ListBox *glistbox = cell_listbox(gcell);
-                    real32_t rheight = listbox_get_row_height(glistbox);
-                    real32_t ypos = 0;
-
-                    draw_text_color(ctx, color);
-
-                    /* TODO: Use clipping when ready */
-                    arrst_foreach_const(elem, fcell->widget.listbox->elems, FElem)
-                        if (dcell->content_rect.size.height >= ypos + rheight)
-                        {
-                            const Image *image = i_get_image(dcell, elem_i, i_is_cell_sel(hover, dlayout, i, j));
-                            real32_t xoffset = 4;
-                            real32_t twidth, theight;
-                            real32_t tx, ty;
-
-                            if (image != NULL)
-                            {
-                                real32_t imgwidth = (real32_t)image_width(image);
-                                real32_t imgheight = (real32_t)image_height(image);
-                                real32_t yoffset = (rheight - imgheight) / 2;
-                                draw_image(ctx, image, dcell->content_rect.pos.x + xoffset, dcell->content_rect.pos.y + ypos + yoffset);
-                                xoffset += imgwidth + 4;
-                            }
-
-                            font_extents(default_font, tc(elem->text), -1.f, &twidth, &theight);
-                            tx = dcell->content_rect.pos.x + xoffset;
-                            ty = dcell->content_rect.pos.y + ypos + ((rheight - theight) / 2);
-                            drawctrl_text(ctx, tc(elem->text), (int32_t)tx, (int32_t)ty, ekCTRL_STATE_NORMAL);
-                        }
-
-                        ypos += rheight;
-                    arrst_end();
-                }
-
-                draw_line_color(ctx, i_MAIN_COLOR);
                 break;
             }
 
