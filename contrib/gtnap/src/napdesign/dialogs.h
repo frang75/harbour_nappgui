@@ -26,14 +26,13 @@ FCombo *dialog_new_combo(Window *parent, const Font *font, const DSelect *sel);
 
 FListBox *dialog_new_listbox(Window *parent, const Font *font, const DSelect *sel);
 
+FSlider *dialog_new_slider(Window *parent, const Font *font, const DSelect *sel);
 
 
 
 FText *dialog_new_text(Window *parent, const DSelect *sel);
 
 FImage *dialog_new_image(Window *parent, const DSelect *sel, const char_t *folder_path);
-
-FSlider *dialog_new_slider(Window *parent, const DSelect *sel);
 
 FProgress *dialog_new_progress(Window *parent, const DSelect *sel);
 

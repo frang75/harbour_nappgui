@@ -13,6 +13,7 @@ TEXT_NEW_ELEM_LIST  A new element will be added to listbox in cell '%s'
 TEXT_NEW_EDIT       A new editbox will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_COMBO      A new combo box will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_LISTBOX    A new listbox will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_SLIDER     A new slider will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SUBLAYOUT  A new sublayout will be placed in cell (%d, %d) of '%s' layout
 TEXT_LAYOUT_PROPS   Layout properties
 TEXT_COLUMN_PROPS   Column properties
@@ -27,6 +28,7 @@ TEXT_POPUP_PROPS    Popup properties
 TEXT_EDIT_PROPS     Editbox properties
 TEXT_COMBO_PROPS    Combobox properties
 TEXT_LIST_PROPS     Listbox properties
+TEXT_SLIDER_PROPS   Slider properties
 TEXT_LAYOUT         Layout
 TEXT_LAYOUTS        Layouts
 TEXT_BUTTONS        Buttons
@@ -37,23 +39,23 @@ TEXT_SELECT         Select
 TEXT_VERT_LAYOUT    Vertical Layout
 TEXT_HORZ_LAYOUT    Horizontal Layout
 TEXT_GRID_LAYOUT    Grid Layout
+TEXT_LABEL          Label
 TEXT_PUSH_BUTTON    Push Button
 TEXT_CHECK_BOX      Check Box
 TEXT_RADIO_BUTTON   Radio Button
 TEXT_TOOL_BUTTON    Tool Button
+TEXT_ELEM_POPUP     PopUp Add Element
 TEXT_POPUP_BUTTON   PopUp Button
-TEXT_LABEL          Label
 TEXT_EDIT_BOX       Edit Box
 TEXT_COMBO_BOX      Combo Box
-TEXT_TEXT_VIEW      Text View
-TEXT_LIST_BOX       List Box
-TEXT_ELEM_POPUP     PopUp Add Element
 TEXT_ELEM_LIST      ListBox Add Element
-TEXT_TABLE_VIEW     Table View
-TEXT_IMAGE_VIEW     Image View
+TEXT_LIST_BOX       List Box
 TEXT_HORZ_SLIDER    Horizontal Slider
 TEXT_VERT_SLIDER    Vertical Slider
 TEXT_PROGRESS_BAR   Progress Bar
+TEXT_TEXT_VIEW      Text View
+TEXT_TABLE_VIEW     Table View
+TEXT_IMAGE_VIEW     Image View
 TEXT_BOX_FORMS      Forms
 TEXT_BOX_INSPECTOR  Object inspector
 TEXT_BOX_PROPEDIT   Property editor

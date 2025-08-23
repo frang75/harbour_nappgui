@@ -654,7 +654,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
             case ekWIDGET_HORZ_SLIDER:
             {
-                FSlider *fslider = dialog_new_slider(window, &sel);
+                FSlider *fslider = dialog_new_slider(window, font, &sel);
                 if (fslider != NULL)
                 {
                     Slider *slider = slider_create();
