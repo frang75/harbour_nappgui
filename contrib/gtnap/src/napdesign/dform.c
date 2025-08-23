@@ -16,6 +16,7 @@
 #include <nflib/flayout.h>
 #include <nflib/flistbox.h>
 #include <nflib/fpopup.h>
+#include <nflib/fprogress.h>
 #include <nflib/fradio.h>
 #include <nflib/fslider.h>
 #include <nflib/fvslider.h>
@@ -693,21 +694,15 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
             case ekWIDGET_PROGRESS:
             {
-                FProgress *fprogress = dialog_new_progress(window, &sel);
+                FProgress *fprogress = dialog_new_progress(window, font, &sel);
                 if (fprogress != NULL)
                 {
                     Progress *progress = progress_create();
-                    progress_min_width(progress, fprogress->min_width);
-                    progress_value(progress, .5f);
+                    fprogress_synchro(fprogress, progress);
                     i_sel_remove_cell(&sel);
                     flayout_add_progress(sel.flayout, fprogress, sel.col, sel.row);
                     layout_progress(sel.glayout, progress, sel.col, sel.row);
-                    i_sel_synchro_cell(&sel);
-                    dform_compose(form);
-                    propedit_set(propedit, form, &sel);
-                    inspect_set(inspect, form);
-                    form->sel = sel;
-                    i_need_save(form);
+                    i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
                 else
@@ -1153,8 +1148,7 @@ void dform_synchro_progress(DForm *form, const DSelect *sel)
     cassert(cell->type == ekCELL_TYPE_PROGRESS);
     i_need_save(form);
     progress = layout_get_progress(sel->glayout, sel->col, sel->row);
-    progress_min_width(progress, cell->widget.progress->min_width);
-    progress_value(progress, .5f);
+    fprogress_synchro(cell->widget.progress, progress);
 }
 
 /*---------------------------------------------------------------------------*/

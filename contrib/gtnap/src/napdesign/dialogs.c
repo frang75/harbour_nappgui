@@ -14,6 +14,7 @@
 #include <nflib/ftool.h>
 #include <nflib/flayout.h>
 #include <nflib/fpopup.h>
+#include <nflib/fprogress.h>
 #include <nflib/fslider.h>
 #include <nflib/fvslider.h>
 #include <gui/button.h>
@@ -869,6 +870,72 @@ FVSlider *dialog_new_vslider(Window *parent, const Font *font, const DSelect *se
 
 /*---------------------------------------------------------------------------*/
 
+FProgress *dialog_new_progress(Window *parent, const Font *font, const DSelect *sel)
+{
+    DialogData data = i_dialog_data();
+    Layout *layout1 = layout_create(2, 1);
+    FProgress *fprogress = fprogress_create();    
+    String *caption = NULL;
+    uint32_t ret = 0;
+    cassert_no_null(sel);
+    cassert_no_null(sel->flayout);
+
+    /* Widget layout */
+    {
+        Label *label1 = label_create();
+        Layout *layout2 = i_value_updown_layout();
+        label_text(label1, gui_text(TEXT_MIN_WIDTH));
+        layout_label(layout1, label1, 0, 0);
+        layout_layout(layout1, layout2, 1, 0);
+        layout_hmargin(layout1, 0, 5);
+        cell_dbind(layout_cell(layout1, 1, 0), FProgress, real32_t, min_width);
+        layout_dbind(layout1, NULL, FProgress);
+        layout_dbind_obj(layout1, fprogress, FProgress);
+    }
+
+    caption = str_printf(gui_text(TEXT_NEW_PROGRESS), sel->col, sel->row, tc(sel->flayout->name));
+    ret = i_modal_new_widget(parent, &data, layout1, font, PROGRESSBAR_PNG, TEXT_PROGRESS_BAR, tc(caption));
+
+    if (ret != BUTTON_OK)
+        fprogress_destroy(&fprogress);
+
+    str_destroy(&caption);
+    i_remove_dialog_data(&data);
+    return fprogress;
+    //DialogData data = i_dialog_data();
+    //Layout *layout1 = layout_create(1, 2);
+    //Layout *layout2 = i_ok_cancel(&data, TRUE);
+    //Label *label1 = label_create();
+    //Panel *panel = panel_create();
+    //Window *window = window_create(ekWINDOW_STD | ekWINDOW_ESC);
+    //String *caption = NULL;
+    //FProgress *fprogress = dbind_create(FProgress);
+    //uint32_t ret = 0;
+    //data.window = window;
+    //cassert_no_null(sel);
+    //cassert_no_null(sel->flayout);
+    //caption = str_printf("New Progress widget in (%d, %d) of '%s'", sel->col, sel->row, tc(sel->flayout->name));
+    //label_text(label1, tc(caption));
+    //layout_label(layout1, label1, 0, 0);
+    //layout_layout(layout1, layout2, 0, 1);
+    //layout_vmargin(layout1, 0, 5);
+    //panel_layout(panel, layout1);
+    //window_panel(window, panel);
+    //window_defbutton(window, data.defbutton);
+    //i_center_window(parent, window);
+    //ret = window_modal(window, parent);
+
+    //if (ret != BUTTON_OK)
+    //    dbind_destroy(&fprogress, FProgress);
+
+    //window_destroy(&window);
+    //str_destroy(&caption);
+    //i_remove_dialog_data(&data);
+    //return fprogress;
+}
+
+/*---------------------------------------------------------------------------*/
+
 FText *dialog_new_text(Window *parent, const DSelect *sel)
 {
     DialogData data = i_dialog_data();
@@ -1000,42 +1067,6 @@ FImage *dialog_new_image(Window *parent, const DSelect *sel, const char_t *folde
     str_destroy(&caption);
     i_remove_dialog_data(&data);
     return fimage;
-}
-
-/*---------------------------------------------------------------------------*/
-
-FProgress *dialog_new_progress(Window *parent, const DSelect *sel)
-{
-    DialogData data = i_dialog_data();
-    Layout *layout1 = layout_create(1, 2);
-    Layout *layout2 = i_ok_cancel(&data, TRUE);
-    Label *label1 = label_create();
-    Panel *panel = panel_create();
-    Window *window = window_create(ekWINDOW_STD | ekWINDOW_ESC);
-    String *caption = NULL;
-    FProgress *fprogress = dbind_create(FProgress);
-    uint32_t ret = 0;
-    data.window = window;
-    cassert_no_null(sel);
-    cassert_no_null(sel->flayout);
-    caption = str_printf("New Progress widget in (%d, %d) of '%s'", sel->col, sel->row, tc(sel->flayout->name));
-    label_text(label1, tc(caption));
-    layout_label(layout1, label1, 0, 0);
-    layout_layout(layout1, layout2, 0, 1);
-    layout_vmargin(layout1, 0, 5);
-    panel_layout(panel, layout1);
-    window_panel(window, panel);
-    window_defbutton(window, data.defbutton);
-    i_center_window(parent, window);
-    ret = window_modal(window, parent);
-
-    if (ret != BUTTON_OK)
-        dbind_destroy(&fprogress, FProgress);
-
-    window_destroy(&window);
-    str_destroy(&caption);
-    i_remove_dialog_data(&data);
-    return fprogress;
 }
 
 /*---------------------------------------------------------------------------*/

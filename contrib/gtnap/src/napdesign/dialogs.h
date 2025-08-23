@@ -30,12 +30,11 @@ FSlider *dialog_new_slider(Window *parent, const Font *font, const DSelect *sel)
 
 FVSlider *dialog_new_vslider(Window *parent, const Font *font, const DSelect *sel);
 
+FProgress *dialog_new_progress(Window *parent, const Font *font, const DSelect *sel);
 
 FText *dialog_new_text(Window *parent, const DSelect *sel);
 
 FImage *dialog_new_image(Window *parent, const DSelect *sel, const char_t *folder_path);
-
-FProgress *dialog_new_progress(Window *parent, const DSelect *sel);
 
 FTable *dialog_new_table(Window *parent, const DSelect *sel);
 

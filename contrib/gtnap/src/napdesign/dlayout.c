@@ -1079,6 +1079,25 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
                 break;
             }
 
+            case ekCELL_TYPE_PROGRESS:
+            {
+                color_t color = i_is_cell_sel(hover, dlayout, i, j) ? i_SEL_COLOR : i_MAIN_COLOR;
+                real32_t step_width = 8;
+                real32_t margin = 2;
+                real32_t x = 0;
+                uint32_t k, n;
+                n = (uint32_t)bmath_floorf(dcell->content_rect.size.width / (step_width + margin));
+                draw_fill_color(ctx, i_BGCOLOR);
+                draw_rect(ctx, ekFILL, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
+                draw_fill_color(ctx, color);
+                for (k = 0; k < n; ++k)
+                {
+                    draw_rect(ctx, ekFILL, dcell->content_rect.pos.x + x, dcell->content_rect.pos.y + margin, step_width, dcell->content_rect.size.height - 2 * margin);
+                    x += step_width + margin;
+                }
+                break;
+            }
+
             case ekCELL_TYPE_TEXT:
             {
                 color_t color = i_is_cell_sel(hover, dlayout, i, j) ? i_SEL_COLOR : i_MAIN_COLOR;
@@ -1128,25 +1147,6 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
                 draw_line_width(ctx, 2);
                 draw_rect(ctx, ekSTROKE, dcell->content_rect.pos.x + 1, dcell->content_rect.pos.y + 1, dcell->content_rect.size.width, dcell->content_rect.size.height);
                 draw_line_width(ctx, 1);
-                break;
-            }
-
-            case ekCELL_TYPE_PROGRESS:
-            {
-                color_t color = i_is_cell_sel(hover, dlayout, i, j) ? i_SEL_COLOR : i_MAIN_COLOR;
-                real32_t step_width = 8;
-                real32_t margin = 2;
-                real32_t x = 0;
-                uint32_t k, n;
-                n = (uint32_t)bmath_floorf(dcell->content_rect.size.width / (step_width + margin));
-                draw_fill_color(ctx, i_BGCOLOR);
-                draw_rect(ctx, ekFILL, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
-                draw_fill_color(ctx, color);
-                for (k = 0; k < n; ++k)
-                {
-                    draw_rect(ctx, ekFILL, dcell->content_rect.pos.x + x, dcell->content_rect.pos.y + margin, step_width, dcell->content_rect.size.height - 2 * margin);
-                    x += step_width + margin;
-                }
                 break;
             }
 
