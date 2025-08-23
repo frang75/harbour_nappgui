@@ -712,10 +712,9 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 }
             }
 
-
             case ekWIDGET_TEXTVIEW:
             {
-                FText *ftext = dialog_new_text(window, &sel);
+                FText *ftext = dialog_new_text(window, font, &sel);
                 if (ftext != NULL)
                 {
                     TextView *text = textview_create();

@@ -17,6 +17,7 @@
 #include <nflib/fprogress.h>
 #include <nflib/fslider.h>
 #include <nflib/fvslider.h>
+#include <nflib/ftext.h>
 #include <gui/button.h>
 #include <gui/cell.h>
 #include <gui/comwin.h>
@@ -902,86 +903,45 @@ FProgress *dialog_new_progress(Window *parent, const Font *font, const DSelect *
     str_destroy(&caption);
     i_remove_dialog_data(&data);
     return fprogress;
-    //DialogData data = i_dialog_data();
-    //Layout *layout1 = layout_create(1, 2);
-    //Layout *layout2 = i_ok_cancel(&data, TRUE);
-    //Label *label1 = label_create();
-    //Panel *panel = panel_create();
-    //Window *window = window_create(ekWINDOW_STD | ekWINDOW_ESC);
-    //String *caption = NULL;
-    //FProgress *fprogress = dbind_create(FProgress);
-    //uint32_t ret = 0;
-    //data.window = window;
-    //cassert_no_null(sel);
-    //cassert_no_null(sel->flayout);
-    //caption = str_printf("New Progress widget in (%d, %d) of '%s'", sel->col, sel->row, tc(sel->flayout->name));
-    //label_text(label1, tc(caption));
-    //layout_label(layout1, label1, 0, 0);
-    //layout_layout(layout1, layout2, 0, 1);
-    //layout_vmargin(layout1, 0, 5);
-    //panel_layout(panel, layout1);
-    //window_panel(window, panel);
-    //window_defbutton(window, data.defbutton);
-    //i_center_window(parent, window);
-    //ret = window_modal(window, parent);
-
-    //if (ret != BUTTON_OK)
-    //    dbind_destroy(&fprogress, FProgress);
-
-    //window_destroy(&window);
-    //str_destroy(&caption);
-    //i_remove_dialog_data(&data);
-    //return fprogress;
 }
 
 /*---------------------------------------------------------------------------*/
 
-FText *dialog_new_text(Window *parent, const DSelect *sel)
+FText *dialog_new_text(Window *parent, const Font *font, const DSelect *sel)
 {
     DialogData data = i_dialog_data();
-    Layout *layout1 = layout_create(1, 3);
-    Layout *layout2 = layout_create(2, 2);
-    Layout *layout3 = i_value_updown_layout();
-    Layout *layout4 = i_value_updown_layout();
-    Layout *layout5 = i_ok_cancel(&data, TRUE);
-    Label *label1 = label_create();
-    Label *label2 = label_create();
-    Label *label3 = label_create();
-    Panel *panel = panel_create();
-    Window *window = window_create(ekWINDOW_STD | ekWINDOW_ESC);
+    Layout *layout1 = layout_create(2, 2);
+    FText *ftext = ftext_create();    
     String *caption = NULL;
-    FText *ftext = dbind_create(FText);
     uint32_t ret = 0;
-    data.window = window;
     cassert_no_null(sel);
     cassert_no_null(sel->flayout);
-    caption = str_printf("New TextView widget in (%d, %d) of '%s'", sel->col, sel->row, tc(sel->flayout->name));
-    label_text(label1, tc(caption));
-    label_text(label2, "Min width");
-    label_text(label3, "Min height");
-    layout_label(layout1, label1, 0, 0);
-    layout_label(layout2, label2, 0, 0);
-    layout_label(layout2, label3, 0, 1);
-    layout_layout(layout2, layout3, 1, 0);
-    layout_layout(layout2, layout4, 1, 1);
-    layout_layout(layout1, layout2, 0, 1);
-    layout_layout(layout1, layout5, 0, 2);
-    layout_vmargin(layout1, 0, 5);
-    layout_vmargin(layout1, 0, 5);
-    panel_layout(panel, layout1);
-    cell_dbind(layout_cell(layout2, 1, 0), FText, real32_t, min_width);
-    cell_dbind(layout_cell(layout2, 1, 1), FText, real32_t, min_height);
-    layout_dbind(layout1, NULL, FText);
-    layout_dbind_obj(layout1, ftext, FText);
-    window_panel(window, panel);
-    window_defbutton(window, data.defbutton);
-    i_center_window(parent, window);
-    ret = window_modal(window, parent);
+
+    /* Widget layout */
+    {
+        Label *label1 = label_create();
+        Label *label2 = label_create();
+        Layout *layout2 = i_value_updown_layout();
+        Layout *layout3 = i_value_updown_layout();
+        label_text(label1, gui_text(TEXT_MIN_WIDTH));
+        label_text(label2, gui_text(TEXT_MIN_HEIGHT));
+        layout_label(layout1, label1, 0, 0);
+        layout_label(layout1, label2, 0, 1);
+        layout_layout(layout1, layout2, 1, 0);
+        layout_layout(layout1, layout3, 1, 1);
+        layout_hmargin(layout1, 0, 5);
+        cell_dbind(layout_cell(layout1, 1, 0), FText, real32_t, min_width);
+        cell_dbind(layout_cell(layout1, 1, 1), FText, real32_t, min_height);
+        layout_dbind(layout1, NULL, FText);
+        layout_dbind_obj(layout1, ftext, FText);
+    }
+
+    caption = str_printf(gui_text(TEXT_NEW_TEXTVIEW), sel->col, sel->row, tc(sel->flayout->name));
+    ret = i_modal_new_widget(parent, &data, layout1, font, TEXTVIEW_PNG, TEXT_TEXT_VIEW, tc(caption));
 
     if (ret != BUTTON_OK)
-        dbind_destroy(&ftext, FText);
+        ftext_destroy(&ftext);
 
-    window_destroy(&window);
     str_destroy(&caption);
     i_remove_dialog_data(&data);
     return ftext;
