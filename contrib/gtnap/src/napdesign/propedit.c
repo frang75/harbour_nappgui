@@ -1078,6 +1078,36 @@ static Layout *i_listbox_layout(PropData *data)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnSliderNotify(PropData *data, Event *e)
+{
+    cassert_no_null(data);
+    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
+    dform_synchro_slider(data->form, &data->sel);
+    dform_compose(data->form);
+    designer_canvas_update(data->app);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Layout *i_slider_layout(PropData *data)
+{
+    Layout *layout1 = layout_create(2, 2);
+    Layout *layout2 = i_value_updown_layout(gui_text(TIP_SLIDER_MWIDTH));
+    Label *label1 = label_create();
+    cassert_no_null(data);
+    label_text(label1, gui_text(TEXT_MIN_WIDTH));
+    layout_label(layout1, label1, 0, 0);
+    layout_layout(layout1, layout2, 1, 0);
+    layout_hexpand(layout1, 1);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
+    cell_dbind(layout_cell(layout1, 1, 0), FSlider, real32_t, min_width);
+    layout_dbind(layout1, listener(data, i_OnSliderNotify, PropData), FSlider);
+    data->slider_layout = layout1;
+    return i_drawer_layout(data->app, layout1, ekDRAWER_HSLIDER_PROPS);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnTextNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
@@ -1216,43 +1246,6 @@ static Layout *i_image_layout(PropData *data)
     layout_dbind(layout1, listener(data, i_OnImageNotify, PropData), FImage);
     data->image_layout = layout1;
     data->load_button = button;
-    return layout1;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_OnSliderNotify(PropData *data, Event *e)
-{
-    cassert_no_null(data);
-    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
-    dform_synchro_slider(data->form, &data->sel);
-    dform_compose(data->form);
-    designer_canvas_update(data->app);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static Layout *i_slider_layout(PropData *data)
-{
-    Layout *layout1 = layout_create(1, 3);
-    Layout *layout2 = layout_create(2, 1);
-    Layout *layout3 = i_value_updown_layout(NULL);
-    Label *label1 = label_create();
-    Label *label2 = label_create();
-    cassert_no_null(data);
-    label_text(label1, "Slider properties");
-    label_text(label2, "MWidth");
-    layout_label(layout1, label1, 0, 0);
-    layout_label(layout2, label2, 0, 0);
-    layout_layout(layout2, layout3, 1, 0);
-    layout_layout(layout1, layout2, 0, 1);
-    layout_vmargin(layout1, 0, i_HEADER_VMARGIN);
-    layout_hmargin(layout2, 0, i_GRID_HMARGIN);
-    layout_hexpand(layout2, 1);
-    layout_vexpand(layout1, 2);
-    cell_dbind(layout_cell(layout2, 1, 0), FSlider, real32_t, min_width);
-    layout_dbind(layout1, listener(data, i_OnSliderNotify, PropData), FSlider);
-    data->slider_layout = layout1;
     return layout1;
 }
 
@@ -1497,11 +1490,11 @@ static Panel *i_cell_content_panel(PropData *data)
     Layout *layout9 = i_edit_layout(data);
     Layout *layout10 = i_combo_layout(data);
     Layout *layout11 = i_listbox_layout(data);
+    Layout *layout12 = i_slider_layout(data);
 
 
-    Layout *layout12 = i_text_layout(data);
-    Layout *layout13 = i_image_layout(data);
-    Layout *layout14 = i_slider_layout(data);
+    Layout *layout13 = i_text_layout(data);
+    Layout *layout14 = i_image_layout(data);
     Layout *layout15 = i_progress_layout(data);
     Layout *layout16 = i_table_layout(data);
     Panel *panel = panel_create();
@@ -1808,21 +1801,21 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
             panel_visible_layout(data->cell_panel, 10);
             i_update_elem_list(cell->widget.listbox->elems, data->listbox_list, folder_path);
         }
+        else if (cell->type == ekCELL_TYPE_SLIDER)
+        {
+            layout_dbind_obj(data->slider_layout, cell->widget.slider, FSlider);
+            panel_visible_layout(data->cell_panel, 11);
+        }
         else if (cell->type == ekCELL_TYPE_TEXT)
         {
             layout_dbind_obj(data->text_layout, cell->widget.text, FText);
-            panel_visible_layout(data->cell_panel, 11);
+            panel_visible_layout(data->cell_panel, 12);
         }
         else if (cell->type == ekCELL_TYPE_IMAGE)
         {
             layout_dbind_obj(data->image_layout, cell->widget.image, FImage);
-            panel_visible_layout(data->cell_panel, 12);
-            button_tooltip(data->load_button, tc(cell->widget.image->path));
-        }
-        else if (cell->type == ekCELL_TYPE_SLIDER)
-        {
-            layout_dbind_obj(data->slider_layout, cell->widget.slider, FSlider);
             panel_visible_layout(data->cell_panel, 13);
+            button_tooltip(data->load_button, tc(cell->widget.image->path));
         }
         else if (cell->type == ekCELL_TYPE_PROGRESS)
         {

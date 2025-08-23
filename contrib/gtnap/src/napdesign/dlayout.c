@@ -1045,6 +1045,23 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
                 break;
             }
 
+            case ekCELL_TYPE_SLIDER:
+            {
+                color_t color = i_is_cell_sel(hover, dlayout, i, j) ? i_SEL_COLOR : i_MAIN_COLOR;
+                real32_t tickness = 2;
+                real32_t knob_width = 8;
+                real32_t knob_margin = 2;
+                real32_t ly = (dcell->content_rect.size.height - tickness) / 2;
+                real32_t knob_x = (dcell->content_rect.size.width - knob_width) / 2;
+                real32_t knob_height = dcell->content_rect.size.height - 2 * knob_margin;
+                draw_fill_color(ctx, i_BGCOLOR);
+                draw_rect(ctx, ekFILL, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
+                draw_fill_color(ctx, color);
+                draw_rect(ctx, ekFILL, dcell->content_rect.pos.x, dcell->content_rect.pos.y + ly, dcell->content_rect.size.width, tickness);
+                draw_rect(ctx, ekFILL, dcell->content_rect.pos.x + knob_x, dcell->content_rect.pos.y + knob_margin, knob_width, knob_height);
+                break;
+            }
+
 
 
             case ekCELL_TYPE_TEXT:
@@ -1096,23 +1113,6 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
                 draw_line_width(ctx, 2);
                 draw_rect(ctx, ekSTROKE, dcell->content_rect.pos.x + 1, dcell->content_rect.pos.y + 1, dcell->content_rect.size.width, dcell->content_rect.size.height);
                 draw_line_width(ctx, 1);
-                break;
-            }
-
-            case ekCELL_TYPE_SLIDER:
-            {
-                color_t color = i_is_cell_sel(hover, dlayout, i, j) ? i_SEL_COLOR : i_MAIN_COLOR;
-                real32_t tickness = 2;
-                real32_t knob_width = 8;
-                real32_t knob_margin = 2;
-                real32_t ly = (dcell->content_rect.size.height - tickness) / 2;
-                real32_t knob_x = (dcell->content_rect.size.width - knob_width) / 2;
-                real32_t knob_height = dcell->content_rect.size.height - 2 * knob_margin;
-                draw_fill_color(ctx, i_BGCOLOR);
-                draw_rect(ctx, ekFILL, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
-                draw_fill_color(ctx, color);
-                draw_rect(ctx, ekFILL, dcell->content_rect.pos.x, dcell->content_rect.pos.y + ly, dcell->content_rect.size.width, tickness);
-                draw_rect(ctx, ekFILL, dcell->content_rect.pos.x + knob_x, dcell->content_rect.pos.y + knob_margin, knob_width, knob_height);
                 break;
             }
 

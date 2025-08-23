@@ -147,3 +147,4 @@ TIP_ELEMENT_REMOVE  Remove current element
 TIP_ELEMENT_CLEAR   Clear all elements
 TIP_LIST_MWIDTH     Listbox width. If 0 will be set automatically.
 TIP_LIST_MHEIGHT    Listbox height. If 0 will be set automatically.
+TIP_SLIDER_MWIDTH   Slider width. If 0 will be set automatically.
