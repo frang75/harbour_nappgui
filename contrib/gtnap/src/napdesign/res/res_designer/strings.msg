@@ -30,6 +30,7 @@ TEXT_EDIT_PROPS     Editbox properties
 TEXT_COMBO_PROPS    Combobox properties
 TEXT_LIST_PROPS     Listbox properties
 TEXT_SLIDER_PROPS   Slider properties
+TEXT_VSLIDER_PROPS  VertSlider properties
 TEXT_LAYOUT         Layout
 TEXT_LAYOUTS        Layouts
 TEXT_BUTTONS        Buttons
@@ -149,3 +150,4 @@ TIP_ELEMENT_CLEAR   Clear all elements
 TIP_LIST_MWIDTH     Listbox width. If 0 will be set automatically.
 TIP_LIST_MHEIGHT    Listbox height. If 0 will be set automatically.
 TIP_SLIDER_MWIDTH   Slider width. If 0 will be set automatically.
+TIP_SLIDER_MHEIGHT  Slider height. If 0 will be set automatically.

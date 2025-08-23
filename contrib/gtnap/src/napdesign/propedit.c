@@ -50,14 +50,15 @@ struct _propdata_t
     Layout *check_layout;
     Layout *radio_layout;
     Layout *tool_layout;
+    Layout *popup_layout;
     Layout *edit_layout;
     Layout *combo_layout;
+    Layout *listbox_layout;
+    Layout *slider_layout;
+    Layout *vslider_layout;
+    Layout *progress_layout;
     Layout *text_layout;
     Layout *image_layout;
-    Layout *slider_layout;
-    Layout *progress_layout;
-    Layout *popup_layout;
-    Layout *listbox_layout;
     Layout *table_layout;
     Layout *header_layout;
     ListBox *popup_list;
@@ -1108,6 +1109,36 @@ static Layout *i_slider_layout(PropData *data)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnVSliderNotify(PropData *data, Event *e)
+{
+    cassert_no_null(data);
+    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
+    dform_synchro_vslider(data->form, &data->sel);
+    dform_compose(data->form);
+    designer_canvas_update(data->app);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Layout *i_vslider_layout(PropData *data)
+{
+    Layout *layout1 = layout_create(2, 2);
+    Layout *layout2 = i_value_updown_layout(gui_text(TIP_SLIDER_MHEIGHT));
+    Label *label1 = label_create();
+    cassert_no_null(data);
+    label_text(label1, gui_text(TEXT_MIN_HEIGHT));
+    layout_label(layout1, label1, 0, 0);
+    layout_layout(layout1, layout2, 1, 0);
+    layout_hexpand(layout1, 1);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
+    cell_dbind(layout_cell(layout1, 1, 0), FVSlider, real32_t, min_height);
+    layout_dbind(layout1, listener(data, i_OnVSliderNotify, PropData), FVSlider);
+    data->vslider_layout = layout1;
+    return i_drawer_layout(data->app, layout1, ekDRAWER_VSLIDER_PROPS);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnTextNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
@@ -1491,12 +1522,11 @@ static Panel *i_cell_content_panel(PropData *data)
     Layout *layout10 = i_combo_layout(data);
     Layout *layout11 = i_listbox_layout(data);
     Layout *layout12 = i_slider_layout(data);
-
-
-    Layout *layout13 = i_text_layout(data);
-    Layout *layout14 = i_image_layout(data);
-    Layout *layout15 = i_progress_layout(data);
-    Layout *layout16 = i_table_layout(data);
+    Layout *layout13 = i_vslider_layout(data);
+    Layout *layout14 = i_text_layout(data);
+    Layout *layout15 = i_image_layout(data);
+    Layout *layout16 = i_progress_layout(data);
+    Layout *layout17 = i_table_layout(data);
     Panel *panel = panel_create();
     cassert_no_null(data);
     panel_layout(panel, layout1);
@@ -1515,6 +1545,7 @@ static Panel *i_cell_content_panel(PropData *data)
     panel_layout(panel, layout14);
     panel_layout(panel, layout15);
     panel_layout(panel, layout16);
+    panel_layout(panel, layout17);
     panel_visible_layout(panel, 0);
     data->cell_panel = panel;
     return panel;
@@ -1808,28 +1839,29 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
         }
         else if (cell->type == ekCELL_TYPE_VSLIDER)
         {
-            cassert(FALSE);
+            layout_dbind_obj(data->vslider_layout, cell->widget.vslider, FVSlider);
+            panel_visible_layout(data->cell_panel, 12);
         }
         else if (cell->type == ekCELL_TYPE_TEXT)
         {
             layout_dbind_obj(data->text_layout, cell->widget.text, FText);
-            panel_visible_layout(data->cell_panel, 12);
+            panel_visible_layout(data->cell_panel, 13);
         }
         else if (cell->type == ekCELL_TYPE_IMAGE)
         {
             layout_dbind_obj(data->image_layout, cell->widget.image, FImage);
-            panel_visible_layout(data->cell_panel, 13);
+            panel_visible_layout(data->cell_panel, 14);
             button_tooltip(data->load_button, tc(cell->widget.image->path));
         }
         else if (cell->type == ekCELL_TYPE_PROGRESS)
         {
             layout_dbind_obj(data->progress_layout, cell->widget.progress, FProgress);
-            panel_visible_layout(data->cell_panel, 14);
+            panel_visible_layout(data->cell_panel, 15);
         }
         else if (cell->type == ekCELL_TYPE_TABLEVIEW)
         {
             layout_dbind_obj(data->table_layout, cell->widget.table, FTable);
-            panel_visible_layout(data->cell_panel, 15);
+            panel_visible_layout(data->cell_panel, 16);
             i_update_header_list(cell->widget.table->headers, data->table_list, data->header_layout);
         }
         else

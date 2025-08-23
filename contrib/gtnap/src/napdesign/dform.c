@@ -677,7 +677,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FVSlider *fvslider = dialog_new_vslider(window, font, &sel);
                 if (fvslider != NULL)
                 {
-                    Slider *slider = slider_create();
+                    Slider *slider = slider_vertical();
                     fvslider_synchro(fvslider, slider);
                     i_sel_remove_cell(&sel);
                     flayout_add_vslider(sel.flayout, fvslider, sel.col, sel.row);

@@ -1433,7 +1433,7 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
 
                 case ekCELL_TYPE_VSLIDER:
                 {
-                    Slider *slider = slider_create();
+                    Slider *slider = slider_vertical();
                     fvslider_synchro(cells->widget.vslider, slider);
                     layout_slider(glayout, slider, i, j);
                     break;
