@@ -52,17 +52,13 @@ void dform_synchro_listbox(DForm *form, const DSelect *sel, const char_t *resour
 
 void dform_synchro_slider(DForm *form, const DSelect *sel);
 
-void dform_synchro_textview(DForm *form, const DSelect *sel);
-
-void dform_synchro_imageview(DForm *form, const DSelect *sel);
+void dform_synchro_vslider(DForm *form, const DSelect *sel);
 
 void dform_synchro_progress(DForm *form, const DSelect *sel);
 
-void dform_synchro_listbox_add(DForm *form, const DSelect *sel, const Image *image);
+void dform_synchro_textview(DForm *form, const DSelect *sel);
 
-void dform_synchro_listbox_del(DForm *form, const DSelect *sel, const uint32_t index);
-
-void dform_synchro_listbox_clear(DForm *form, const DSelect *sel);
+void dform_synchro_imageview(DForm *form, const DSelect *sel);
 
 void dform_synchro_table(DForm *form, const DSelect *sel);
 

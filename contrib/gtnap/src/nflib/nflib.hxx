@@ -1,4 +1,4 @@
-/* NAppGUI forms common base */
+/* NAppGUI forms serialization */
 
 #include <gui/gui.hxx>
 #include "nflib.def"
@@ -11,15 +11,16 @@ typedef struct _fbutton_t FButton;
 typedef struct _fcheck_t FCheck;
 typedef struct _fradio_t FRadio;
 typedef struct _ftool_t FTool;
-typedef struct _fedit_t FEdit;
-typedef struct _fcombo_t FCombo;
-typedef struct _ftext_t FText;
-typedef struct _fimage_t FImage;
-typedef struct _fslider_t FSlider;
-typedef struct _fprogress_t FProgress;
 typedef struct _felem_t FElem;
 typedef struct _fpopup_t FPopUp;
+typedef struct _fedit_t FEdit;
+typedef struct _fcombo_t FCombo;
 typedef struct _flistbox_t FListBox;
+typedef struct _fslider_t FSlider;
+typedef struct _fvslider_t FVSlider;
+typedef struct _fprogress_t FProgress;
+typedef struct _ftext_t FText;
+typedef struct _fimage_t FImage;
 typedef struct _fheader_t FHeader;
 typedef struct _ftable_t FTable;
 typedef struct _fcolumn_t FColumn;
@@ -47,7 +48,8 @@ typedef enum _celltype_t
     ekCELL_TYPE_TABLEVIEW,
     ekCELL_TYPE_TOOL,
     ekCELL_TYPE_RADIO,
-    ekCELL_TYPE_COMBO
+    ekCELL_TYPE_COMBO,
+    ekCELL_TYPE_VSLIDER
 } celltype_t;
 
 /* Don't change the order. Add new values to end */
@@ -110,6 +112,17 @@ struct _ftool_t
     real32_t vpadding;
 };
 
+struct _felem_t
+{
+    String *text;
+    String *iconpath;
+};
+
+struct _fpopup_t
+{
+    ArrSt(FElem) *elems;
+};
+
 struct _fedit_t
 {
     bool_t passmode;
@@ -126,6 +139,28 @@ struct _fcombo_t
     real32_t min_width;
 };
 
+struct _flistbox_t
+{
+    real32_t min_width;
+    real32_t min_height;
+    ArrSt(FElem) *elems;
+};
+
+struct _fslider_t
+{
+	real32_t min_width;
+};
+
+struct _fvslider_t
+{
+	real32_t min_height;
+};
+
+struct _fprogress_t
+{
+	real32_t min_width;
+};
+
 struct _ftext_t
 {
     bool_t read_only;
@@ -139,34 +174,6 @@ struct _fimage_t
     scale_t scale;
 	real32_t min_width;
     real32_t min_height;
-};
-
-struct _fslider_t
-{
-	real32_t min_width;
-};
-
-struct _fprogress_t
-{
-	real32_t min_width;
-};
-
-struct _felem_t
-{
-    String *text;
-    String *iconpath;
-};
-
-struct _fpopup_t
-{
-    ArrSt(FElem) *elems;
-};
-
-struct _flistbox_t
-{
-    real32_t min_width;
-    real32_t min_height;
-    ArrSt(FElem) *elems;
 };
 
 struct _fheader_t
@@ -206,14 +213,15 @@ struct _fwidget_t
     FCheck *check;
     FRadio *radio;
     FTool *tool;
+    FPopUp *popup;
     FEdit *edit;
     FCombo *combo;
+    FListBox *listbox;
+    FSlider *slider;
+    FVSlider *vslider;
+    FProgress *progress;
     FText *text;
     FImage *image;
-    FSlider *slider;
-    FProgress *progress;
-    FPopUp *popup;
-    FListBox *listbox;
     FTable *table;
     FLayout *layout;
 };

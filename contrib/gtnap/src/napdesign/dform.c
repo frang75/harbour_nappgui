@@ -18,6 +18,7 @@
 #include <nflib/fpopup.h>
 #include <nflib/fradio.h>
 #include <nflib/fslider.h>
+#include <nflib/fvslider.h>
 #include <nflib/ftool.h>
 #include <gui/guicontrol.h>
 #include <gui/button.h>
@@ -1112,6 +1113,37 @@ void dform_synchro_slider(DForm *form, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+void dform_synchro_vslider(DForm *form, const DSelect *sel)
+{
+    FCell *cell = i_sel_fcell(sel);
+    Slider *slider = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_VSLIDER);
+    i_need_save(form);
+    slider = layout_get_slider(sel->glayout, sel->col, sel->row);
+    fvslider_synchro(cell->widget.vslider, slider);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dform_synchro_progress(DForm *form, const DSelect *sel)
+{
+    FCell *cell = i_sel_fcell(sel);
+    Progress *progress = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_PROGRESS);
+    i_need_save(form);
+    progress = layout_get_progress(sel->glayout, sel->col, sel->row);
+    progress_min_width(progress, cell->widget.progress->min_width);
+    progress_value(progress, .5f);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dform_synchro_textview(DForm *form, const DSelect *sel)
 {
     FCell *cell = i_sel_fcell(sel);
@@ -1140,72 +1172,6 @@ void dform_synchro_imageview(DForm *form, const DSelect *sel)
     imgview = layout_get_imageview(sel->glayout, sel->col, sel->row);
     imageview_size(imgview, s2df(cell->widget.image->min_width, cell->widget.image->min_height));
     imageview_scale(imgview, i_scale(cell->widget.image->scale));
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dform_synchro_progress(DForm *form, const DSelect *sel)
-{
-    FCell *cell = i_sel_fcell(sel);
-    Progress *progress = NULL;
-    cassert_no_null(form);
-    cassert_no_null(sel);
-    cassert_no_null(cell);
-    cassert(cell->type == ekCELL_TYPE_PROGRESS);
-    i_need_save(form);
-    progress = layout_get_progress(sel->glayout, sel->col, sel->row);
-    progress_min_width(progress, cell->widget.progress->min_width);
-    progress_value(progress, .5f);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dform_synchro_listbox_add(DForm *form, const DSelect *sel, const Image *image)
-{
-    FCell *cell = i_sel_fcell(sel);
-    ListBox *listbox = NULL;
-    const FElem *elem = NULL;
-    cassert_no_null(form);
-    cassert_no_null(sel);
-    cassert_no_null(cell);
-    cassert(cell->type == ekCELL_TYPE_LISTBOX);
-    i_need_save(form);
-    listbox = layout_get_listbox(sel->glayout, sel->col, sel->row);
-    elem = arrst_last_const(cell->widget.listbox->elems, FElem);
-    listbox_add_elem(listbox, tc(elem->text), image);
-    dlayout_add_image(sel->dlayout, image, sel->col, sel->row);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dform_synchro_listbox_del(DForm *form, const DSelect *sel, const uint32_t index)
-{
-    FCell *cell = i_sel_fcell(sel);
-    ListBox *listbox = NULL;
-    cassert_no_null(form);
-    cassert_no_null(sel);
-    cassert_no_null(cell);
-    cassert(cell->type == ekCELL_TYPE_LISTBOX);
-    i_need_save(form);
-    listbox = layout_get_listbox(sel->glayout, sel->col, sel->row);
-    listbox_del_elem(listbox, index);
-    dlayout_del_image(sel->dlayout, index, sel->col, sel->row);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dform_synchro_listbox_clear(DForm *form, const DSelect *sel)
-{
-    FCell *cell = i_sel_fcell(sel);
-    ListBox *listbox = NULL;
-    cassert_no_null(form);
-    cassert_no_null(sel);
-    cassert_no_null(cell);
-    cassert(cell->type == ekCELL_TYPE_LISTBOX);
-    i_need_save(form);
-    listbox = layout_get_listbox(sel->glayout, sel->col, sel->row);
-    listbox_clear(listbox);
-    dlayout_clear_images(sel->dlayout, sel->col, sel->row);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1410,22 +1376,24 @@ const char_t* dform_cell_type(const celltype_t type)
         return gui_text(TEXT_CELL_RADIO);
     case ekCELL_TYPE_TOOL:
         return gui_text(TEXT_CELL_TOOL);        
+    case ekCELL_TYPE_POPUP:
+        return gui_text(TEXT_CELL_POPUP);
     case ekCELL_TYPE_EDIT:
         return gui_text(TEXT_CELL_EDIT);
     case ekCELL_TYPE_COMBO:
         return gui_text(TEXT_CELL_COMBO);
+    case ekCELL_TYPE_LISTBOX:
+        return gui_text(TEXT_CELL_LISTBOX);
+    case ekCELL_TYPE_SLIDER:
+        return gui_text(TEXT_CELL_SLIDER);
+    case ekCELL_TYPE_VSLIDER:
+        return gui_text(TEXT_CELL_VSLIDER);
+    case ekCELL_TYPE_PROGRESS:
+        return gui_text(TEXT_CELL_PROGRESS);
     case ekCELL_TYPE_TEXT:
         return gui_text(TEXT_CELL_TEXT);
     case ekCELL_TYPE_IMAGE:
         return gui_text(TEXT_CELL_IMAGE);
-    case ekCELL_TYPE_SLIDER:
-        return gui_text(TEXT_CELL_SLIDER);
-    case ekCELL_TYPE_PROGRESS:
-        return gui_text(TEXT_CELL_PROGRESS);
-    case ekCELL_TYPE_POPUP:
-        return gui_text(TEXT_CELL_POPUP);
-    case ekCELL_TYPE_LISTBOX:
-        return gui_text(TEXT_CELL_LISTBOX);
     case ekCELL_TYPE_TABLEVIEW:
         return gui_text(TEXT_CELL_TABLE);
     case ekCELL_TYPE_LAYOUT:

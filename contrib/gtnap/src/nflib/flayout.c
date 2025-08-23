@@ -10,6 +10,7 @@
 #include "fedit.h"
 #include "fradio.h"
 #include "fslider.h"
+#include "fvslider.h"
 #include "ftool.h"
 #include "fpopup.h"
 #include <gui/button.h>
@@ -108,8 +109,12 @@ static void i_remove_cell(FCell *cell)
         fslider_destroy(&cell->widget.slider);
         break;
 
-    case ekCELL_TYPE_LAYOUT:
-        flayout_destroy(&cell->widget.layout);
+    case ekCELL_TYPE_VSLIDER:
+        fvslider_destroy(&cell->widget.vslider);
+        break;
+
+    case ekCELL_TYPE_PROGRESS:
+        dbind_destroy(&cell->widget.progress, FProgress);
         break;
 
     case ekCELL_TYPE_TEXT:
@@ -120,12 +125,12 @@ static void i_remove_cell(FCell *cell)
         dbind_destroy(&cell->widget.image, FImage);
         break;
 
-    case ekCELL_TYPE_PROGRESS:
-        dbind_destroy(&cell->widget.progress, FProgress);
-        break;
-
     case ekCELL_TYPE_TABLEVIEW:
         dbind_destroy(&cell->widget.table, FTable);
+        break;
+
+    case ekCELL_TYPE_LAYOUT:
+        flayout_destroy(&cell->widget.layout);
         break;
 
         cassert_default();
@@ -136,13 +141,15 @@ static void i_remove_cell(FCell *cell)
     cassert(cell->widget.check == NULL);
     cassert(cell->widget.radio == NULL);
     cassert(cell->widget.tool == NULL);
+    cassert(cell->widget.popup == NULL);
     cassert(cell->widget.edit == NULL);
+    cassert(cell->widget.combo == NULL);
+    cassert(cell->widget.listbox == NULL);
+    cassert(cell->widget.slider == NULL);
+    cassert(cell->widget.vslider == NULL);
+    cassert(cell->widget.progress == NULL);
     cassert(cell->widget.text == NULL);
     cassert(cell->widget.image == NULL);
-    cassert(cell->widget.slider == NULL);
-    cassert(cell->widget.progress == NULL);
-    cassert(cell->widget.popup == NULL);
-    cassert(cell->widget.listbox == NULL);
     cassert(cell->widget.table == NULL);
     cassert(cell->widget.layout == NULL);
 }
@@ -353,6 +360,24 @@ static FSlider *i_read_slider(Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
+static FVSlider *i_read_vslider(Stream *stm)
+{
+    FVSlider *slider = heap_new0(FVSlider);
+    slider->min_height = stm_read_r32(stm);
+    return slider;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static FProgress *i_read_progress(Stream *stm)
+{
+    FProgress *progress = heap_new0(FProgress);
+    progress->min_width = stm_read_r32(stm);
+    return progress;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static FText *i_read_text(Stream *stm)
 {
     FText *text = heap_new0(FText);
@@ -372,15 +397,6 @@ static FImage *i_read_image(Stream *stm)
     image->min_width = stm_read_r32(stm);
     image->min_height = stm_read_r32(stm);
     return image;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static FProgress *i_read_progress(Stream *stm)
-{
-    FProgress *progress = heap_new0(FProgress);
-    progress->min_width = stm_read_r32(stm);
-    return progress;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -451,14 +467,17 @@ static void i_read_cell(Stream *stm, FCell *cell)
     case ekCELL_TYPE_SLIDER:
         cell->widget.slider = i_read_slider(stm);
         break;
+    case ekCELL_TYPE_VSLIDER:
+        cell->widget.vslider = i_read_vslider(stm);
+        break;
+    case ekCELL_TYPE_PROGRESS:
+        cell->widget.progress = i_read_progress(stm);
+        break;
     case ekCELL_TYPE_TEXT:
         cell->widget.text = i_read_text(stm);
         break;
     case ekCELL_TYPE_IMAGE:
         cell->widget.image = i_read_image(stm);
-        break;
-    case ekCELL_TYPE_PROGRESS:
-        cell->widget.progress = i_read_progress(stm);
         break;
     case ekCELL_TYPE_TABLEVIEW:
         cell->widget.table = i_read_table(stm);
@@ -633,6 +652,22 @@ static void i_write_slider(Stream *stm, const FSlider *slider)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_write_vslider(Stream *stm, const FVSlider *slider)
+{
+    cassert_no_null(slider);
+    stm_write_r32(stm, slider->min_height);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_write_progress(Stream *stm, const FProgress *progress)
+{
+    cassert_no_null(progress);
+    stm_write_r32(stm, progress->min_width);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_write_text(Stream *stm, const FText *text)
 {
     cassert_no_null(text);
@@ -650,14 +685,6 @@ static void i_write_image(Stream *stm, const FImage *image)
     stm_write_enum(stm, image->scale, scale_t);
     stm_write_r32(stm, image->min_width);
     stm_write_r32(stm, image->min_height);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_write_progress(Stream *stm, const FProgress *progress)
-{
-    cassert_no_null(progress);
-    stm_write_r32(stm, progress->min_width);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -727,14 +754,17 @@ static void i_write_cell(Stream *stm, const FCell *cell)
     case ekCELL_TYPE_SLIDER:
         i_write_slider(stm, cell->widget.slider);
         break;
+    case ekCELL_TYPE_VSLIDER:
+        i_write_vslider(stm, cell->widget.vslider);
+        break;
+    case ekCELL_TYPE_PROGRESS:
+        i_write_progress(stm, cell->widget.progress);
+        break;
     case ekCELL_TYPE_TEXT:
         i_write_text(stm, cell->widget.text);
         break;
     case ekCELL_TYPE_IMAGE:
         i_write_image(stm, cell->widget.image);
-        break;
-    case ekCELL_TYPE_PROGRESS:
-        i_write_progress(stm, cell->widget.progress);
         break;
     case ekCELL_TYPE_TABLEVIEW:
         i_write_table(stm, cell->widget.table);
@@ -937,20 +967,6 @@ void flayout_remove_cell(FLayout *layout, const uint32_t col, const uint32_t row
 
 /*---------------------------------------------------------------------------*/
 
-void flayout_add_layout(FLayout *layout, FLayout *sublayout, const uint32_t col, const uint32_t row)
-{
-    FCell *cell = i_cell(layout, col, row);
-    cassert_no_null(cell);
-    cassert_no_null(sublayout);
-    cassert(cell->type == ekCELL_TYPE_EMPTY);
-    cell->type = ekCELL_TYPE_LAYOUT;
-    cell->halign = ekHALIGN_JUSTIFY;
-    cell->valign = ekVALIGN_JUSTIFY;
-    cell->widget.layout = sublayout;
-}
-
-/*---------------------------------------------------------------------------*/
-
 void flayout_add_label(FLayout *layout, FLabel *label, const uint32_t col, const uint32_t row)
 {
     FCell *cell = i_cell(layout, col, row);
@@ -1091,6 +1107,34 @@ void flayout_add_slider(FLayout *layout, FSlider *slider, const uint32_t col, co
 
 /*---------------------------------------------------------------------------*/
 
+void flayout_add_vslider(FLayout *layout, FVSlider *slider, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(slider);
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_VSLIDER;
+    cell->halign = ekHALIGN_CENTER;
+    cell->valign = ekVALIGN_JUSTIFY;
+    cell->widget.vslider = slider;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_add_progress(FLayout *layout, FProgress *progress, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(progress);
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_PROGRESS;
+    cell->halign = ekHALIGN_JUSTIFY;
+    cell->valign = ekVALIGN_CENTER;
+    cell->widget.progress = progress;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void flayout_add_text(FLayout *layout, FText *text, const uint32_t col, const uint32_t row)
 {
     FCell *cell = i_cell(layout, col, row);
@@ -1119,20 +1163,6 @@ void flayout_add_image(FLayout *layout, FImage *image, const uint32_t col, const
 
 /*---------------------------------------------------------------------------*/
 
-void flayout_add_progress(FLayout *layout, FProgress *progress, const uint32_t col, const uint32_t row)
-{
-    FCell *cell = i_cell(layout, col, row);
-    cassert_no_null(cell);
-    cassert_no_null(progress);
-    cassert(cell->type == ekCELL_TYPE_EMPTY);
-    cell->type = ekCELL_TYPE_PROGRESS;
-    cell->halign = ekHALIGN_JUSTIFY;
-    cell->valign = ekVALIGN_CENTER;
-    cell->widget.progress = progress;
-}
-
-/*---------------------------------------------------------------------------*/
-
 void flayout_add_table(FLayout *layout, FTable *table, const uint32_t col, const uint32_t row)
 {
     FCell *cell = i_cell(layout, col, row);
@@ -1143,6 +1173,20 @@ void flayout_add_table(FLayout *layout, FTable *table, const uint32_t col, const
     cell->halign = ekHALIGN_JUSTIFY;
     cell->valign = ekVALIGN_JUSTIFY;
     cell->widget.table = table;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_add_layout(FLayout *layout, FLayout *sublayout, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(sublayout);
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_LAYOUT;
+    cell->halign = ekHALIGN_JUSTIFY;
+    cell->valign = ekVALIGN_JUSTIFY;
+    cell->widget.layout = sublayout;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1387,7 +1431,13 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     break;
                 }
 
-
+                case ekCELL_TYPE_VSLIDER:
+                {
+                    Slider *slider = slider_create();
+                    fvslider_synchro(cells->widget.vslider, slider);
+                    layout_slider(glayout, slider, i, j);
+                    break;
+                }
 
                 case ekCELL_TYPE_TEXT:
                 {
@@ -1495,14 +1545,15 @@ GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout
                 case ekCELL_TYPE_CHECK:
                 case ekCELL_TYPE_RADIO:
                 case ekCELL_TYPE_TOOL:
+                case ekCELL_TYPE_POPUP:
                 case ekCELL_TYPE_EDIT:
                 case ekCELL_TYPE_COMBO:
+                case ekCELL_TYPE_LISTBOX:
+                case ekCELL_TYPE_SLIDER:
+                case ekCELL_TYPE_VSLIDER:
+                case ekCELL_TYPE_PROGRESS:
                 case ekCELL_TYPE_TEXT:
                 case ekCELL_TYPE_IMAGE:
-                case ekCELL_TYPE_SLIDER:
-                case ekCELL_TYPE_PROGRESS:
-                case ekCELL_TYPE_POPUP:
-                case ekCELL_TYPE_LISTBOX:
                 case ekCELL_TYPE_TABLEVIEW:
                 {
                     Cell *gcell = layout_cell(gui_layout, i, j);

@@ -1806,6 +1806,10 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
             layout_dbind_obj(data->slider_layout, cell->widget.slider, FSlider);
             panel_visible_layout(data->cell_panel, 11);
         }
+        else if (cell->type == ekCELL_TYPE_VSLIDER)
+        {
+            cassert(FALSE);
+        }
         else if (cell->type == ekCELL_TYPE_TEXT)
         {
             layout_dbind_obj(data->text_layout, cell->widget.text, FText);

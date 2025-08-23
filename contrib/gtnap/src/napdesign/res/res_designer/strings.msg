@@ -102,11 +102,11 @@ TEXT_CELL_POPUP     PopUpCell
 TEXT_CELL_EDIT      EditBoxCell
 TEXT_CELL_COMBO     ComboBoxCell
 TEXT_CELL_LISTBOX   ListBoxCell
-
+TEXT_CELL_SLIDER    SliderCell
+TEXT_CELL_VSLIDER   VertSliderCell
+TEXT_CELL_PROGRESS  ProgressCell
 TEXT_CELL_TEXT      TextViewCell
 TEXT_CELL_IMAGE     ImageViewCell
-TEXT_CELL_SLIDER    SliderCell
-TEXT_CELL_PROGRESS  ProgressCell
 TEXT_CELL_TABLE     TableCell
 TEXT_CELL_LAYOUT    LayoutCell
 
