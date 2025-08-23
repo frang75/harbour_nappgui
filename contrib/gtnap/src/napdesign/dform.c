@@ -20,6 +20,7 @@
 #include <nflib/fradio.h>
 #include <nflib/fslider.h>
 #include <nflib/fvslider.h>
+#include <nflib/ftext.h>
 #include <nflib/ftool.h>
 #include <gui/guicontrol.h>
 #include <gui/button.h>
@@ -718,17 +719,11 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 if (ftext != NULL)
                 {
                     TextView *text = textview_create();
-                    textview_editable(text, !ftext->read_only);
-                    textview_size(text, s2df(ftext->min_width, ftext->min_height));
+                    ftext_synchro(ftext, text);
                     i_sel_remove_cell(&sel);
                     flayout_add_text(sel.flayout, ftext, sel.col, sel.row);
                     layout_textview(sel.glayout, text, sel.col, sel.row);
-                    i_sel_synchro_cell(&sel);
-                    dform_compose(form);
-                    propedit_set(propedit, form, &sel);
-                    inspect_set(inspect, form);
-                    form->sel = sel;
-                    i_need_save(form);
+                    i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
                 else
@@ -1156,15 +1151,14 @@ void dform_synchro_progress(DForm *form, const DSelect *sel)
 void dform_synchro_textview(DForm *form, const DSelect *sel)
 {
     FCell *cell = i_sel_fcell(sel);
-    TextView *text = NULL;
+    TextView *view = NULL;
     cassert_no_null(form);
     cassert_no_null(sel);
     cassert_no_null(cell);
     cassert(cell->type == ekCELL_TYPE_TEXT);
     i_need_save(form);
-    text = layout_get_textview(sel->glayout, sel->col, sel->row);
-    textview_editable(text, !cell->widget.text->read_only);
-    textview_size(text, s2df(cell->widget.text->min_width, cell->widget.text->min_height));
+    view = layout_get_textview(sel->glayout, sel->col, sel->row);
+    ftext_synchro(cell->widget.text, view);
 }
 
 /*---------------------------------------------------------------------------*/

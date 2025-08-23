@@ -8,12 +8,13 @@
 #include "fedit.h"
 #include "flabel.h"
 #include "flistbox.h"
+#include "fpopup.h"
 #include "fprogress.h"
 #include "fradio.h"
 #include "fslider.h"
 #include "fvslider.h"
 #include "ftool.h"
-#include "fpopup.h"
+#include "ftext.h"
 #include <gui/button.h>
 #include <gui/cell.h>
 #include <gui/combo.h>
@@ -119,7 +120,7 @@ static void i_remove_cell(FCell *cell)
         break;
 
     case ekCELL_TYPE_TEXT:
-        dbind_destroy(&cell->widget.text, FText);
+        ftext_destroy(&cell->widget.text);
         break;
 
     case ekCELL_TYPE_IMAGE:
@@ -1450,11 +1451,9 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
 
                 case ekCELL_TYPE_TEXT:
                 {
-                    FText *ftext = cells->widget.text;
-                    TextView *gtext = textview_create();
-                    textview_editable(gtext, !ftext->read_only);
-                    textview_size(gtext, s2df(ftext->min_width, ftext->min_height));
-                    layout_textview(glayout, gtext, i, j);
+                    TextView *text = textview_create();
+                    ftext_synchro(cells->widget.text, text);
+                    layout_textview(glayout, text, i, j);
                     break;
                 }
 
