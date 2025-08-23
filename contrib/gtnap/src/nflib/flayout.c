@@ -5,9 +5,10 @@
 #include "fcheck.h"
 #include "fcombo.h"
 #include "fbutton.h"
+#include "fedit.h"
 #include "flabel.h"
 #include "flistbox.h"
-#include "fedit.h"
+#include "fprogress.h"
 #include "fradio.h"
 #include "fslider.h"
 #include "fvslider.h"
@@ -114,7 +115,7 @@ static void i_remove_cell(FCell *cell)
         break;
 
     case ekCELL_TYPE_PROGRESS:
-        dbind_destroy(&cell->widget.progress, FProgress);
+        fprogress_destroy(&cell->widget.progress);
         break;
 
     case ekCELL_TYPE_TEXT:
@@ -1439,6 +1440,14 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     break;
                 }
 
+                case ekCELL_TYPE_PROGRESS:
+                {
+                    Progress *progress = progress_create();
+                    fprogress_synchro(cells->widget.progress, progress);
+                    layout_progress(glayout, progress, i, j);
+                    break;
+                }
+
                 case ekCELL_TYPE_TEXT:
                 {
                     FText *ftext = cells->widget.text;
@@ -1474,16 +1483,6 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     layout_imageview(glayout, gimage, i, j);
                     break;
                 }
-
-                case ekCELL_TYPE_PROGRESS:
-                {
-                    FProgress *fprogress = cells->widget.progress;
-                    Progress *gprogress = progress_create();
-                    progress_min_width(gprogress, fprogress->min_width);
-                    layout_progress(glayout, gprogress, i, j);
-                    break;
-                }
-
 
                 case ekCELL_TYPE_TABLEVIEW:
                 {

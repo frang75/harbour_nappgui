@@ -691,6 +691,30 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 }
             }
 
+            case ekWIDGET_PROGRESS:
+            {
+                FProgress *fprogress = dialog_new_progress(window, &sel);
+                if (fprogress != NULL)
+                {
+                    Progress *progress = progress_create();
+                    progress_min_width(progress, fprogress->min_width);
+                    progress_value(progress, .5f);
+                    i_sel_remove_cell(&sel);
+                    flayout_add_progress(sel.flayout, fprogress, sel.col, sel.row);
+                    layout_progress(sel.glayout, progress, sel.col, sel.row);
+                    i_sel_synchro_cell(&sel);
+                    dform_compose(form);
+                    propedit_set(propedit, form, &sel);
+                    inspect_set(inspect, form);
+                    form->sel = sel;
+                    i_need_save(form);
+                    return TRUE;
+                }
+                else
+                {
+                    return FALSE;
+                }
+            }
 
 
             case ekWIDGET_TEXTVIEW:
@@ -748,31 +772,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     return FALSE;
                 }
 			}
-
-            case ekWIDGET_PROGRESS:
-            {
-                FProgress *fprogress = dialog_new_progress(window, &sel);
-                if (fprogress != NULL)
-                {
-                    Progress *progress = progress_create();
-                    progress_min_width(progress, fprogress->min_width);
-                    progress_value(progress, .5f);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_progress(sel.flayout, fprogress, sel.col, sel.row);
-                    layout_progress(sel.glayout, progress, sel.col, sel.row);
-                    i_sel_synchro_cell(&sel);
-                    dform_compose(form);
-                    propedit_set(propedit, form, &sel);
-                    inspect_set(inspect, form);
-                    form->sel = sel;
-                    i_need_save(form);
-                    return TRUE;
-                }
-                else
-                {
-                    return FALSE;
-                }
-            }
 
             case ekWIDGET_TABLEVIEW:
             {
