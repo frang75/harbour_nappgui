@@ -1063,7 +1063,21 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
             }
 
             case ekCELL_TYPE_VSLIDER:
+            {
+                color_t color = i_is_cell_sel(hover, dlayout, i, j) ? i_SEL_COLOR : i_MAIN_COLOR;
+                real32_t tickness = 2;
+                real32_t knob_height = 8;
+                real32_t knob_margin = 2;
+                real32_t lx = (dcell->content_rect.size.width - tickness) / 2;
+                real32_t knob_y = (dcell->content_rect.size.height - knob_height) / 2;
+                real32_t knob_width = dcell->content_rect.size.width - 2 * knob_margin;
+                draw_fill_color(ctx, i_BGCOLOR);
+                draw_rect(ctx, ekFILL, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
+                draw_fill_color(ctx, color);
+                draw_rect(ctx, ekFILL, dcell->content_rect.pos.x + lx, dcell->content_rect.pos.y, tickness, dcell->content_rect.size.height);
+                draw_rect(ctx, ekFILL, dcell->content_rect.pos.x + knob_margin, dcell->content_rect.pos.y + knob_y, knob_width, knob_height);
                 break;
+            }
 
             case ekCELL_TYPE_TEXT:
             {
