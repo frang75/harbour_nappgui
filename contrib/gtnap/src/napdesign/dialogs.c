@@ -15,6 +15,7 @@
 #include <nflib/flayout.h>
 #include <nflib/fpopup.h>
 #include <nflib/fslider.h>
+#include <nflib/fvslider.h>
 #include <gui/button.h>
 #include <gui/cell.h>
 #include <gui/comwin.h>
@@ -819,7 +820,7 @@ FSlider *dialog_new_slider(Window *parent, const Font *font, const DSelect *sel)
         layout_dbind_obj(layout1, fslider, FSlider);
     }
 
-    caption = str_printf(gui_text(TEXT_NEW_LISTBOX), sel->col, sel->row, tc(sel->flayout->name));
+    caption = str_printf(gui_text(TEXT_NEW_SLIDER), sel->col, sel->row, tc(sel->flayout->name));
     ret = i_modal_new_widget(parent, &data, layout1, font, HORSLIDER_PNG, TEXT_HORZ_SLIDER, tc(caption));
 
     if (ret != BUTTON_OK)
@@ -828,6 +829,42 @@ FSlider *dialog_new_slider(Window *parent, const Font *font, const DSelect *sel)
     str_destroy(&caption);
     i_remove_dialog_data(&data);
     return fslider;
+}
+
+/*---------------------------------------------------------------------------*/
+
+FVSlider *dialog_new_vslider(Window *parent, const Font *font, const DSelect *sel)
+{
+    DialogData data = i_dialog_data();
+    Layout *layout1 = layout_create(2, 1);
+    FVSlider *fvslider = fvslider_create();    
+    String *caption = NULL;
+    uint32_t ret = 0;
+    cassert_no_null(sel);
+    cassert_no_null(sel->flayout);
+
+    /* Widget layout */
+    {
+        Label *label1 = label_create();
+        Layout *layout2 = i_value_updown_layout();
+        label_text(label1, gui_text(TEXT_MIN_HEIGHT));
+        layout_label(layout1, label1, 0, 0);
+        layout_layout(layout1, layout2, 1, 0);
+        layout_hmargin(layout1, 0, 5);
+        cell_dbind(layout_cell(layout1, 1, 0), FVSlider, real32_t, min_height);
+        layout_dbind(layout1, NULL, FVSlider);
+        layout_dbind_obj(layout1, fvslider, FVSlider);
+    }
+
+    caption = str_printf(gui_text(TEXT_NEW_VSLIDER), sel->col, sel->row, tc(sel->flayout->name));
+    ret = i_modal_new_widget(parent, &data, layout1, font, VERSLIDER_PNG, TEXT_VERT_SLIDER, tc(caption));
+
+    if (ret != BUTTON_OK)
+        fvslider_destroy(&fvslider);
+
+    str_destroy(&caption);
+    i_remove_dialog_data(&data);
+    return fvslider;
 }
 
 /*---------------------------------------------------------------------------*/

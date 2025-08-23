@@ -28,6 +28,7 @@ FListBox *dialog_new_listbox(Window *parent, const Font *font, const DSelect *se
 
 FSlider *dialog_new_slider(Window *parent, const Font *font, const DSelect *sel);
 
+FVSlider *dialog_new_vslider(Window *parent, const Font *font, const DSelect *sel);
 
 
 FText *dialog_new_text(Window *parent, const DSelect *sel);

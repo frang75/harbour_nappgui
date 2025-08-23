@@ -672,6 +672,26 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 }
             }
 
+            case ekWIDGET_VERT_SLIDER:
+            {
+                FVSlider *fvslider = dialog_new_vslider(window, font, &sel);
+                if (fvslider != NULL)
+                {
+                    Slider *slider = slider_create();
+                    fvslider_synchro(fvslider, slider);
+                    i_sel_remove_cell(&sel);
+                    flayout_add_vslider(sel.flayout, fvslider, sel.col, sel.row);
+                    layout_slider(sel.glayout, slider, sel.col, sel.row);
+                    i_after_new_widget(form, inspect, propedit, &sel);
+                    return TRUE;
+                }
+                else
+                {
+                    return FALSE;
+                }
+            }
+
+
 
             case ekWIDGET_TEXTVIEW:
             {
@@ -815,10 +835,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     return FALSE;
                 }
             }
-
-            /* Still not supported */
-            case ekWIDGET_VERT_SLIDER:
-                break;
 
             default:
                 break;
