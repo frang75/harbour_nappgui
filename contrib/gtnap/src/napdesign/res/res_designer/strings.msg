@@ -34,6 +34,7 @@ TEXT_LIST_PROPS     Listbox properties
 TEXT_SLIDER_PROPS   Slider properties
 TEXT_VSLIDER_PROPS  VertSlider properties
 TEXT_PROGRESS_PROPS Progressbar properties
+TEXT_TEXT_PROPS     Textview properties
 TEXT_LAYOUT         Layout
 TEXT_LAYOUTS        Layouts
 TEXT_BUTTONS        Buttons
@@ -87,6 +88,7 @@ TEXT_PASSMODE       Passmode
 TEXT_TEXT_ALIGN     Text align
 TEXT_MIN_WIDTH      Min width
 TEXT_MIN_HEIGHT     Min height
+TEXT_READ_ONLY      Read only
 TEXT_ICON           Icon
 TEXT_ICON_PATH      Icon path
 TEXT_ELEMENTS       Elements
