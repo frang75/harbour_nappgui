@@ -643,6 +643,7 @@ static Layout *i_value_updown_layout(void)
     Layout *layout = layout_create(2, 1);
     Edit *edit = edit_create();
     UpDown *updown = updown_create();
+    edit_align(edit, ekRIGHT);
     layout_edit(layout, edit, 0, 0);
     layout_updown(layout, updown, 1, 0);
     layout_hexpand(layout, 0);

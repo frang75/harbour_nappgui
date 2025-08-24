@@ -36,6 +36,7 @@ TEXT_SLIDER_PROPS   Slider properties
 TEXT_VSLIDER_PROPS  VertSlider properties
 TEXT_PROGRESS_PROPS Progressbar properties
 TEXT_TEXT_PROPS     Textview properties
+TEXT_IMAGE_PROPS    Imageview properties
 TEXT_LAYOUT         Layout
 TEXT_LAYOUTS        Layouts
 TEXT_BUTTONS        Buttons
@@ -82,6 +83,7 @@ TEXT_ROW            Row
 TEXT_ALIGN          Align
 TEXT_HALIGN         HAlign
 TEXT_VALIGN         VAlign
+TEXT_SCALE          Scale
 TEXT_TEXT           Text
 TEXT_MULTILINE      Multiline
 TEXT_AUTOSELECT     Autoselect
@@ -91,6 +93,7 @@ TEXT_MIN_WIDTH      Min width
 TEXT_MIN_HEIGHT     Min height
 TEXT_READ_ONLY      Read only
 TEXT_ICON           Icon
+TEXT_IMAGE          Image
 TEXT_ICON_PATH      Icon path
 TEXT_IMAGE_PATH     Image path
 TEXT_ELEMENTS       Elements
@@ -160,3 +163,8 @@ TIP_LIST_MHEIGHT    Listbox height. If 0 will be set automatically.
 TIP_SLIDER_MWIDTH   Slider width. If 0 will be set automatically.
 TIP_SLIDER_MHEIGHT  Slider height. If 0 will be set automatically.
 TIP_PROGRESS_MWIDTH Progress width. If 0 will be set automatically.
+TIP_TEXT_MWIDTH     Textview width. If 0 will be set automatically.
+TIP_TEXT_MHEIGHT    Textview height. If 0 will be set automatically.
+TIP_IMAGE_MWIDTH    Imageview width. If 0 will be set automatically.
+TIP_IMAGE_MHEIGHT   Imageview height. If 0 will be set automatically.
+TIP_IMAGE_SCALE     Image scale mode (Aspect recommended).
