@@ -2,12 +2,14 @@
 
 #include "flayout.h"
 #include "nflib.h"
+#include "nflib.inl"
 #include "fcheck.h"
 #include "fcombo.h"
 #include "fbutton.h"
 #include "fedit.h"
 #include "flabel.h"
 #include "flistbox.h"
+#include "fimage.h"
 #include "fpopup.h"
 #include "fprogress.h"
 #include "fradio.h"
@@ -124,7 +126,7 @@ static void i_remove_cell(FCell *cell)
         break;
 
     case ekCELL_TYPE_IMAGE:
-        dbind_destroy(&cell->widget.image, FImage);
+        fimage_destroy(&cell->widget.image);
         break;
 
     case ekCELL_TYPE_TABLEVIEW:
@@ -961,7 +963,6 @@ void flayout_remove_cell(FLayout *layout, const uint32_t col, const uint32_t row
     cassert_no_null(cell);
     name = str_c(tc(cell->name));
     i_remove_cell(cell);
-    /*dbind_remove(cell, FCell);*/
     cell->type = ekCELL_TYPE_EMPTY;
     str_upd(&cell->name, tc(name));
     str_destroy(&name);
@@ -1239,63 +1240,6 @@ const FCell *flayout_ccell(const FLayout *layout, const uint32_t col, const uint
 
 /*---------------------------------------------------------------------------*/
 
-static align_t i_halign(const halign_t halign)
-{
-    switch (halign)
-    {
-    case ekHALIGN_LEFT:
-        return ekLEFT;
-    case ekHALIGN_CENTER:
-        return ekCENTER;
-    case ekHALIGN_RIGHT:
-        return ekRIGHT;
-    case ekHALIGN_JUSTIFY:
-        return ekJUSTIFY;
-        cassert_default();
-    }
-    return ekLEFT;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static align_t i_valign(const valign_t valign)
-{
-    switch (valign)
-    {
-    case ekVALIGN_TOP:
-        return ekTOP;
-    case ekVALIGN_CENTER:
-        return ekCENTER;
-    case ekVALIGN_BOTTOM:
-        return ekBOTTOM;
-    case ekVALIGN_JUSTIFY:
-        return ekJUSTIFY;
-        cassert_default();
-    }
-    return ekTOP;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static gui_scale_t i_scale(const scale_t scale)
-{
-    switch (scale)
-    {
-    case ekSCALE_NONE:
-        return ekGUI_SCALE_NONE;
-    case ekSCALE_AUTO:
-        return ekGUI_SCALE_AUTO;
-    case ekSCALE_ASPECT:
-        return ekGUI_SCALE_ASPECT;
-    case ekSCALE_FIT:
-        return ekGUI_SCALE_ADJUST;
-        cassert_default();
-    }
-    return ekGUI_SCALE_ASPECT;
-}
-
-/*---------------------------------------------------------------------------*/
-
 Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const real32_t empty_width, const real32_t empty_height)
 {
     uint32_t ncols = 0, nrows = 0;
@@ -1343,8 +1287,8 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
             for (i = 0; i < ncols; ++i)
             {
                 Cell *gcell = layout_cell(glayout, i, j);
-                align_t halign = i_halign(cells->halign);
-                align_t valign = i_valign(cells->valign);
+                align_t halign = _nflib_halign(cells->halign);
+                align_t valign = _nflib_valign(cells->valign);
                 layout_halign(glayout, i, j, halign);
                 layout_valign(glayout, i, j, valign);
                 switch (cells->type)
@@ -1451,35 +1395,17 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
 
                 case ekCELL_TYPE_TEXT:
                 {
-                    TextView *text = textview_create();
-                    ftext_synchro(cells->widget.text, text);
-                    layout_textview(glayout, text, i, j);
+                    TextView *view = textview_create();
+                    ftext_synchro(cells->widget.text, view);
+                    layout_textview(glayout, view, i, j);
                     break;
                 }
 
                 case ekCELL_TYPE_IMAGE:
                 {
-                    FImage *fimage = cells->widget.image;
-                    ImageView *gimage = imageview_create();
-                    String *path = str_cpath("%s/%s", resource_path, tc(fimage->path));
-                    Image *image = image_from_file(tc(path), NULL);
-
-                    if (image != NULL)
-                    {
-                        imageview_image(gimage, image);
-                        image_destroy(&image);
-                    }
-                    else
-                    {
-                        /* Use a default image */
-                        const Image *rimage = nflib_default_image();
-                        imageview_image(gimage, rimage);
-                    }
-
-                    str_destroy(&path);
-                    imageview_size(gimage, s2df(fimage->min_width, fimage->min_height));
-                    imageview_scale(gimage, i_scale(fimage->scale));
-                    layout_imageview(glayout, gimage, i, j);
+                    ImageView *view = imageview_create();
+                    fimage_synchro(cells->widget.image, view, resource_path);
+                    layout_imageview(glayout, view, i, j);
                     break;
                 }
 
@@ -1493,10 +1419,10 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                         tableview_new_column_text(gtable);
                         tableview_column_width(gtable, header_i, header->width);
                         tableview_column_limits(gtable, header_i, header->min_width, header->max_width);
-                        tableview_column_align(gtable, header_i, i_halign(header->dalign));
+                        tableview_column_align(gtable, header_i, _nflib_halign(header->dalign));
                         tableview_column_resizable(gtable, header_i, header->resizable);
                         tableview_header_title(gtable, header_i, tc(header->title));
-                        tableview_header_align(gtable, header_i, i_halign(header->align));
+                        tableview_header_align(gtable, header_i, _nflib_halign(header->align));
                     arrst_end()
 
                     layout_tableview(glayout, gtable, i, j);

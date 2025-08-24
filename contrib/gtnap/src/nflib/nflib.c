@@ -352,3 +352,40 @@ align_t _nflib_halign(const halign_t halign)
     }
     return ekLEFT;
 }
+
+/*---------------------------------------------------------------------------*/
+
+align_t _nflib_valign(const valign_t valign)
+{
+    switch (valign)
+    {
+    case ekVALIGN_TOP:
+        return ekTOP;
+    case ekVALIGN_CENTER:
+        return ekCENTER;
+    case ekVALIGN_BOTTOM:
+        return ekBOTTOM;
+    case ekVALIGN_JUSTIFY:
+        return ekJUSTIFY;
+        cassert_default();
+    }
+    return ekTOP;
+}
+
+/*---------------------------------------------------------------------------*/
+
+gui_scale_t _nflib_scale(const scale_t scale)
+{
+    switch(scale) {
+    case ekSCALE_NONE:
+        return ekGUI_SCALE_NONE;
+    case ekSCALE_AUTO:
+        return ekGUI_SCALE_AUTO;
+    case ekSCALE_ASPECT:
+        return ekGUI_SCALE_ASPECT;
+    case ekSCALE_FIT:
+        return ekGUI_SCALE_ADJUST;
+    cassert_default();
+    }
+    return ekGUI_SCALE_ASPECT;
+}
