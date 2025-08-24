@@ -716,7 +716,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
 			case ekWIDGET_IMAGEVIEW:
 			{
-				FImage *fimage = dialog_new_image(window, &sel, folder_path);
+				FImage *fimage = dialog_new_image(window, font, &sel, folder_path);
                 if (fimage != NULL)
                 {
                     ImageView *view = imageview_create();

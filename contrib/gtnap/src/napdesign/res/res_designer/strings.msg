@@ -17,6 +17,7 @@ TEXT_NEW_SLIDER     A new slider will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_VSLIDER    A new vertical slider will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_PROGRESS   A new progressbar will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_TEXTVIEW   A new textview will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_IMAGEVIEW  A new imageview will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SUBLAYOUT  A new sublayout will be placed in cell (%d, %d) of '%s' layout
 TEXT_LAYOUT_PROPS   Layout properties
 TEXT_COLUMN_PROPS   Column properties
@@ -60,8 +61,8 @@ TEXT_HORZ_SLIDER    Horizontal Slider
 TEXT_VERT_SLIDER    Vertical Slider
 TEXT_PROGRESS_BAR   Progress Bar
 TEXT_TEXT_VIEW      Text View
-TEXT_TABLE_VIEW     Table View
 TEXT_IMAGE_VIEW     Image View
+TEXT_TABLE_VIEW     Table View
 TEXT_BOX_FORMS      Forms
 TEXT_BOX_INSPECTOR  Object inspector
 TEXT_BOX_PROPEDIT   Property editor
@@ -91,10 +92,12 @@ TEXT_MIN_HEIGHT     Min height
 TEXT_READ_ONLY      Read only
 TEXT_ICON           Icon
 TEXT_ICON_PATH      Icon path
+TEXT_IMAGE_PATH     Image path
 TEXT_ELEMENTS       Elements
 TEXT_DEFAULT        default
 TEXT_LOAD_IMAGE     Load image
 TEXT_LOAD_ICON      Load icon
+TEXT_PREV_IMAGE     Image preview
 TEXT_LTYPE_SING     Single cell
 TEXT_LTYPE_VERT     Vertical with %d rows
 TEXT_LTYPE_HORZ     Horizontal with %d cols
