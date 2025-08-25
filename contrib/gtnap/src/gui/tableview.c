@@ -1666,7 +1666,7 @@ static ArrPt(String) *i_default_col_text(const uint32_t col_i)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t tableview_new_column_text(TableView *view)
+uint32_t tableview_add_column_text(TableView *view)
 {
     TData *data = view_get_data(cast(view, View), TData);
     uint32_t col_i = 0;
@@ -1689,6 +1689,28 @@ uint32_t tableview_new_column_text(TableView *view)
     i_document_size(view, data);
     view_update(cast(view, View));
     return col_i;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void tableview_del_column(TableView *view, const uint32_t column_id)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    cassert_no_null(data);
+    arrst_delete(data->columns, column_id, i_remove_column, Column);
+    i_row_height(data);
+    data->recompute_width = TRUE;
+    i_document_size(view, data);
+    view_update(cast(view, View));
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t tableview_column_count(const TableView* view)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    cassert_no_null(data);
+    return arrst_size(data->columns, Column);
 }
 
 /*---------------------------------------------------------------------------*/

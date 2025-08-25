@@ -1776,8 +1776,8 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
         else if (cell->type == ekCELL_TYPE_POPUP)
         {
             layout_dbind_obj(data->popup_layout, cell->widget.popup, FPopUp);
-            panel_visible_layout(data->cell_panel, 7);
             i_update_elem_list(cell->widget.popup->elems, data->popup_list, folder_path);
+            panel_visible_layout(data->cell_panel, 7);
         }
         else if (cell->type == ekCELL_TYPE_EDIT)
         {
@@ -1792,8 +1792,8 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
         else if (cell->type == ekCELL_TYPE_LISTBOX)
         {
             layout_dbind_obj(data->listbox_layout, cell->widget.listbox, FListBox);
-            panel_visible_layout(data->cell_panel, 10);
             i_update_elem_list(cell->widget.listbox->elems, data->listbox_list, folder_path);
+            panel_visible_layout(data->cell_panel, 10);
         }
         else if (cell->type == ekCELL_TYPE_SLIDER)
         {
@@ -1824,8 +1824,8 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
         else if (cell->type == ekCELL_TYPE_TABLEVIEW)
         {
             layout_dbind_obj(data->table_layout, cell->widget.table, FTable);
-            panel_visible_layout(data->cell_panel, 16);
             i_update_header_list(cell->widget.table->headers, data->table_list, data->header_layout);
+            panel_visible_layout(data->cell_panel, 16);
         }
         else
         {

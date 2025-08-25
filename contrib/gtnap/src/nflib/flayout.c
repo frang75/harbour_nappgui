@@ -15,8 +15,9 @@
 #include "fradio.h"
 #include "fslider.h"
 #include "fvslider.h"
-#include "ftool.h"
+#include "ftable.h"
 #include "ftext.h"
+#include "ftool.h"
 #include <gui/button.h>
 #include <gui/cell.h>
 #include <gui/combo.h>
@@ -130,7 +131,7 @@ static void i_remove_cell(FCell *cell)
         break;
 
     case ekCELL_TYPE_TABLEVIEW:
-        dbind_destroy(&cell->widget.table, FTable);
+        ftable_destroy(&cell->widget.table);
         break;
 
     case ekCELL_TYPE_LAYOUT:
@@ -1411,21 +1412,9 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
 
                 case ekCELL_TYPE_TABLEVIEW:
                 {
-                    FTable *ftable = cells->widget.table;
-                    TableView *gtable = tableview_create();
-                    tableview_size(gtable, s2df(ftable->min_width, ftable->min_height));
-
-                    arrst_foreach_const(header, ftable->headers, FHeader)
-                        tableview_new_column_text(gtable);
-                        tableview_column_width(gtable, header_i, header->width);
-                        tableview_column_limits(gtable, header_i, header->min_width, header->max_width);
-                        tableview_column_align(gtable, header_i, _nflib_halign(header->dalign));
-                        tableview_column_resizable(gtable, header_i, header->resizable);
-                        tableview_header_title(gtable, header_i, tc(header->title));
-                        tableview_header_align(gtable, header_i, _nflib_halign(header->align));
-                    arrst_end()
-
-                    layout_tableview(glayout, gtable, i, j);
+                    TableView *view = tableview_create();
+                    ftable_synchro(cells->widget.table, view);
+                    layout_tableview(glayout, view, i, j);
                     break;
                 }
 

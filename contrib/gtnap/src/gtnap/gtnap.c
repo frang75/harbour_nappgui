@@ -4142,7 +4142,7 @@ void hb_gtnap_tableview_column(const uint32_t wid, const uint32_t id, const uint
     if (obj->columns == NULL)
         obj->columns = arrst_create(GtNapColumn);
 
-    cid = tableview_new_column_text((TableView *)obj->component);
+    cid = tableview_add_column_text((TableView *)obj->component);
     cassert(cid == arrst_size(obj->columns, GtNapColumn));
 
     col = arrst_new(obj->columns, GtNapColumn);

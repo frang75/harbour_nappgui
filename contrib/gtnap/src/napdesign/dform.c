@@ -21,6 +21,7 @@
 #include <nflib/fradio.h>
 #include <nflib/fslider.h>
 #include <nflib/fvslider.h>
+#include <nflib/ftable.h>
 #include <nflib/ftext.h>
 #include <nflib/ftool.h>
 #include <gui/guicontrol.h>
@@ -739,19 +740,12 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FTable *ftable = dialog_new_table(window, &sel);
                 if (ftable != NULL)
                 {
-                    TableView *gtable = tableview_create();
-                    cassert(arrst_size(ftable->headers, FHeader) == 0);
-                    tableview_size(gtable, s2df(ftable->min_width, ftable->min_height));
-                    tableview_header_resizable(gtable, TRUE);
+                    TableView *view = tableview_create();
+                    ftable_synchro(ftable, view);
                     i_sel_remove_cell(&sel);
                     flayout_add_table(sel.flayout, ftable, sel.col, sel.row);
-                    layout_tableview(sel.glayout, gtable, sel.col, sel.row);
-                    i_sel_synchro_cell(&sel);
-                    dform_compose(form);
-                    propedit_set(propedit, form, &sel);
-                    inspect_set(inspect, form);
-                    form->sel = sel;
-                    i_need_save(form);
+                    layout_tableview(sel.glayout, view, sel.col, sel.row);
+                    i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
                 else
@@ -1152,14 +1146,14 @@ void dform_synchro_imageview(DForm *form, const DSelect *sel)
 void dform_synchro_table(DForm *form, const DSelect *sel)
 {
     FCell *cell = i_sel_fcell(sel);
-    TableView *gtable = NULL;
+    TableView *view = NULL;
     cassert_no_null(form);
     cassert_no_null(sel);
     cassert_no_null(cell);
     cassert(cell->type == ekCELL_TYPE_TABLEVIEW);
     i_need_save(form);
-    gtable = layout_get_tableview(sel->glayout, sel->col, sel->row);
-    tableview_size(gtable, s2df(cell->widget.table->min_width, cell->widget.table->min_height));
+    view = layout_get_tableview(sel->glayout, sel->col, sel->row);
+    ftable_synchro(cell->widget.table, view);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1177,7 +1171,7 @@ void dform_synchro_table_add(DForm *form, const DSelect *sel)
     i_need_save(form);
     table = layout_get_tableview(sel->glayout, sel->col, sel->row);
     header = arrst_last_const(cell->widget.table->headers, FHeader);
-    id = tableview_new_column_text(table);
+    id = tableview_add_column_text(table);
     cassert(id == arrst_size(cell->widget.table->headers, FHeader) - 1);
     tableview_column_width(table, id, header->width);
     tableview_column_limits(table, id, header->min_width, header->max_width);
