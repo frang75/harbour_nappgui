@@ -18,6 +18,7 @@ TEXT_NEW_VSLIDER    A new vertical slider will be placed in cell (%d, %d) of '%s
 TEXT_NEW_PROGRESS   A new progressbar will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_TEXTVIEW   A new textview will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_IMAGEVIEW  A new imageview will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_TABLEVIEW  A new tableview will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SUBLAYOUT  A new sublayout will be placed in cell (%d, %d) of '%s' layout
 TEXT_LAYOUT_PROPS   Layout properties
 TEXT_COLUMN_PROPS   Column properties

@@ -737,7 +737,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
             case ekWIDGET_TABLEVIEW:
             {
-                FTable *ftable = dialog_new_table(window, &sel);
+                FTable *ftable = dialog_new_table(window, font, &sel);
                 if (ftable != NULL)
                 {
                     TableView *view = tableview_create();

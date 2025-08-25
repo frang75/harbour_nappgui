@@ -36,7 +36,7 @@ FText *dialog_new_text(Window *parent, const Font *font, const DSelect *sel);
 
 FImage *dialog_new_image(Window *parent, const Font *font, const DSelect *sel, const char_t *folder_path);
 
-FTable *dialog_new_table(Window *parent, const DSelect *sel);
+FTable *dialog_new_table(Window *parent, const Font *font, const DSelect *sel);
 
 FLayout *dialog_vertical_layout(Window *parent, const Font *font, const DSelect *sel);
 
