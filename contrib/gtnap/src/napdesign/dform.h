@@ -62,10 +62,6 @@ void dform_synchro_imageview(DForm *form, const DSelect *sel);
 
 void dform_synchro_table(DForm *form, const DSelect *sel);
 
-void dform_synchro_table_add(DForm *form, const DSelect *sel);
-
-void dform_synchro_table_header(DForm *form, const DSelect *sel, const uint32_t id);
-
 void dform_synchro_layout_margin(DForm *form, const DSelect *sel);
 
 void dform_synchro_column_margin(DForm *form, const DSelect *sel, const FColumn *fcol, const uint32_t col);

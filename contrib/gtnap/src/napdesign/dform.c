@@ -1158,53 +1158,6 @@ void dform_synchro_table(DForm *form, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-void dform_synchro_table_add(DForm *form, const DSelect *sel)
-{
-    FCell *cell = i_sel_fcell(sel);
-    TableView *table = NULL;
-    const FHeader *header = NULL;
-    uint32_t id = UINT32_MAX;
-    cassert_no_null(form);
-    cassert_no_null(sel);
-    cassert_no_null(cell);
-    cassert(cell->type == ekCELL_TYPE_TABLEVIEW);
-    i_need_save(form);
-    table = layout_get_tableview(sel->glayout, sel->col, sel->row);
-    header = arrst_last_const(cell->widget.table->headers, FHeader);
-    id = tableview_add_column_text(table);
-    cassert(id == arrst_size(cell->widget.table->headers, FHeader) - 1);
-    tableview_column_width(table, id, header->width);
-    tableview_column_limits(table, id, header->min_width, header->max_width);
-    tableview_column_align(table, id, i_halign(header->dalign));
-    tableview_column_resizable(table, id, header->resizable);
-    tableview_header_title(table, id, tc(header->title));
-    tableview_header_align(table, id, i_halign(header->align));
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dform_synchro_table_header(DForm *form, const DSelect *sel, const uint32_t id)
-{
-    FCell *cell = i_sel_fcell(sel);
-    TableView *table = NULL;
-    const FHeader *header = NULL;
-    cassert_no_null(form);
-    cassert_no_null(sel);
-    cassert_no_null(cell);
-    cassert(cell->type == ekCELL_TYPE_TABLEVIEW);
-    i_need_save(form);
-    table = layout_get_tableview(sel->glayout, sel->col, sel->row);
-    header = arrst_get_const(cell->widget.table->headers, id, FHeader);
-    tableview_column_width(table, id, header->width);
-    tableview_column_limits(table, id, header->min_width, header->max_width);
-    tableview_column_align(table, id, i_halign(header->dalign));
-    tableview_column_resizable(table, id, header->resizable);
-    tableview_header_title(table, id, tc(header->title));
-    tableview_header_align(table, id, i_halign(header->align));
-}
-
-/*---------------------------------------------------------------------------*/
-
 void dform_synchro_layout_margin(DForm *form, const DSelect *sel)
 {
     cassert_no_null(form);
