@@ -16,28 +16,27 @@ FRadio *dialog_new_radio(Window *parent, const Font *font, const DSelect *sel);
 
 FTool *dialog_new_tool(Window *parent, const Font *font, const DSelect *sel, const char_t *folder_path);
 
-FPopUp *dialog_new_popup(Window *parent, const Font *font, const DSelect *sel, const char_t *folder_path);
+FElem *dialog_new_elem(Window *parent, const Font *font, const char_t *caption, const ResId iconId, const ResId headerId, const char_t *folder_path);
 
+FPopUp *dialog_new_popup(Window *parent, const Font *font, const DSelect *sel);
 
-
-
-FEdit *dialog_new_edit(Window *parent, const DSelect *sel);
+FEdit *dialog_new_edit(Window *parent, const Font *font, const DSelect *sel);
 
 FCombo *dialog_new_combo(Window *parent, const Font *font, const DSelect *sel);
 
-FText *dialog_new_text(Window *parent, const DSelect *sel);
+FListBox *dialog_new_listbox(Window *parent, const Font *font, const DSelect *sel);
 
-FImage *dialog_new_image(Window *parent, const DSelect *sel, const char_t *folder_path);
+FSlider *dialog_new_slider(Window *parent, const Font *font, const DSelect *sel);
 
-FSlider *dialog_new_slider(Window *parent, const DSelect *sel);
+FVSlider *dialog_new_vslider(Window *parent, const Font *font, const DSelect *sel);
 
-FProgress *dialog_new_progress(Window *parent, const DSelect *sel);
+FProgress *dialog_new_progress(Window *parent, const Font *font, const DSelect *sel);
 
-FListBox *dialog_new_listbox(Window *parent, const DSelect *sel);
+FText *dialog_new_text(Window *parent, const Font *font, const DSelect *sel);
 
-FElem *dialog_new_elem(Window *parent, const char_t *folder_path);
+FImage *dialog_new_image(Window *parent, const Font *font, const DSelect *sel, const char_t *folder_path);
 
-FTable *dialog_new_table(Window *parent, const DSelect *sel);
+FTable *dialog_new_table(Window *parent, const Font *font, const DSelect *sel);
 
 FLayout *dialog_vertical_layout(Window *parent, const Font *font, const DSelect *sel);
 

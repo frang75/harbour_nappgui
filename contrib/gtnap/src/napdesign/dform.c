@@ -11,11 +11,19 @@
 #include <nflib/fbutton.h>
 #include <nflib/fcheck.h>
 #include <nflib/fcombo.h>
+#include <nflib/fedit.h>
+#include <nflib/fimage.h>
 #include <nflib/flabel.h>
 #include <nflib/flayout.h>
-#include <nflib/fradio.h>
-#include <nflib/ftool.h>
+#include <nflib/flistbox.h>
 #include <nflib/fpopup.h>
+#include <nflib/fprogress.h>
+#include <nflib/fradio.h>
+#include <nflib/fslider.h>
+#include <nflib/fvslider.h>
+#include <nflib/ftable.h>
+#include <nflib/ftext.h>
+#include <nflib/ftool.h>
 #include <gui/guicontrol.h>
 #include <gui/button.h>
 #include <gui/edit.h>
@@ -374,24 +382,6 @@ static align_t i_valign(const valign_t valign)
 
 /*---------------------------------------------------------------------------*/
 
-static gui_scale_t i_scale(const scale_t scale)
-{
-    switch(scale) {
-    case ekSCALE_NONE:
-        return ekGUI_SCALE_NONE;
-    case ekSCALE_AUTO:
-        return ekGUI_SCALE_AUTO;
-    case ekSCALE_ASPECT:
-        return ekGUI_SCALE_ASPECT;
-    case ekSCALE_FIT:
-        return ekGUI_SCALE_ADJUST;
-    cassert_default();
-    }
-    return ekGUI_SCALE_ASPECT;
-}
-
-/*---------------------------------------------------------------------------*/
-
 static void i_sel_remove_cell(const DSelect *sel)
 {
     cassert_no_null(sel);
@@ -467,6 +457,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
         inspect_set(inspect, form);
         if (i_sel_empty_cell(&sel) == TRUE)
         {
+            const char_t *folder_path = designer_folder_path(form->app);
             cassert_no_null(form->dlayout);
             switch(widget) {
             case ekWIDGET_SELECT:
@@ -550,7 +541,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
             case ekWIDGET_TOOL_BUTTON:
             {
-                const char_t *folder_path = designer_folder_path(form->app);
                 FTool *ftool = dialog_new_tool(window, font, &sel, folder_path);
                 if (ftool != NULL)
                 {
@@ -573,8 +563,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
             case ekWIDGET_POPUP:
             {
-                const char_t *folder_path = designer_folder_path(form->app);
-                FPopUp *fpopup = dialog_new_popup(window, font, &sel, folder_path);
+                FPopUp *fpopup = dialog_new_popup(window, font, &sel);
                 if (fpopup != NULL)
                 {
                     PopUp *popup = popup_create();
@@ -594,23 +583,15 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
             case ekWIDGET_EDITBOX:
             {
-                FEdit *fedit = dialog_new_edit(window, &sel);
+                FEdit *fedit = dialog_new_edit(window, font, &sel);
                 if (fedit != NULL)
                 {
                     Edit *edit = edit_create();
-                    align_t align = i_halign(fedit->text_align);
-                    edit_passmode(edit, fedit->passmode);
-                    edit_autoselect(edit, fedit->autosel);
-                    edit_align(edit, align);
+                    fedit_synchro(fedit, edit);
                     i_sel_remove_cell(&sel);
                     flayout_add_edit(sel.flayout, fedit, sel.col, sel.row);
                     layout_edit(sel.glayout, edit, sel.col, sel.row);
-                    i_sel_synchro_cell(&sel);
-                    dform_compose(form);
-                    propedit_set(propedit, form, &sel);
-                    inspect_set(inspect, form);
-                    form->sel = sel;
-                    i_need_save(form);
+                    i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
                 else
@@ -638,23 +619,18 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 }
             }
 
-            case ekWIDGET_TEXTVIEW:
+            case ekWIDGET_LISTBOX:
             {
-                FText *ftext = dialog_new_text(window, &sel);
-                if (ftext != NULL)
+                FListBox *flistbox = dialog_new_listbox(window, font, &sel);
+                if (flistbox != NULL)
                 {
-                    TextView *text = textview_create();
-                    textview_editable(text, !ftext->read_only);
-                    textview_size(text, s2df(ftext->min_width, ftext->min_height));
+                    ListBox *listbox = listbox_create();
+                    flistbox_synchro(flistbox, listbox, folder_path);
+                    dlayout_synchro_elems(sel.dlayout, sel.col, sel.row, flistbox->elems, folder_path);
                     i_sel_remove_cell(&sel);
-                    flayout_add_text(sel.flayout, ftext, sel.col, sel.row);
-                    layout_textview(sel.glayout, text, sel.col, sel.row);
-                    i_sel_synchro_cell(&sel);
-                    dform_compose(form);
-                    propedit_set(propedit, form, &sel);
-                    inspect_set(inspect, form);
-                    form->sel = sel;
-                    i_need_save(form);
+                    flayout_add_listbox(sel.flayout, flistbox, sel.col, sel.row);
+                    layout_listbox(sel.glayout, listbox, sel.col, sel.row);
+                    i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
                 else
@@ -663,55 +639,36 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 }
             }
 
-			case ekWIDGET_IMAGEVIEW:
-			{
-                const char_t *folder_path = designer_folder_path(form->app);
-				FImage *fimage = dialog_new_image(window, &sel, folder_path);
-                if (fimage != NULL)
+            case ekWIDGET_HORZ_SLIDER:
+            {
+                FSlider *fslider = dialog_new_slider(window, font, &sel);
+                if (fslider != NULL)
                 {
-                    ImageView *gimage = imageview_create();
-                    String *path = str_printf("%s%s", folder_path, tc(fimage->path));
-                    Image *image = image_from_file(tc(path), NULL);
-                    imageview_scale(gimage, i_scale(fimage->scale));
-                    imageview_image(gimage, image);
-                    imageview_size(gimage, s2df(fimage->min_width, fimage->min_height));
+                    Slider *slider = slider_create();
+                    fslider_synchro(fslider, slider);
                     i_sel_remove_cell(&sel);
-                    flayout_add_image(sel.flayout, fimage, sel.col, sel.row);
-                    layout_imageview(sel.glayout, gimage, sel.col, sel.row);
-                    dlayout_set_image(sel.dlayout, image, sel.col, sel.row);
-                    i_sel_synchro_cell(&sel);
-                    dform_compose(form);
-                    propedit_set(propedit, form, &sel);
-                    inspect_set(inspect, form);
-                    form->sel = sel;
-                    i_need_save(form);
-                    ptr_destopt(image_destroy, &image, Image);
-                    str_destroy(&path);
+                    flayout_add_slider(sel.flayout, fslider, sel.col, sel.row);
+                    layout_slider(sel.glayout, slider, sel.col, sel.row);
+                    i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
                 else
                 {
                     return FALSE;
                 }
-			}
+            }
 
-            case ekWIDGET_HORZ_SLIDER:
+            case ekWIDGET_VERT_SLIDER:
             {
-                FSlider *fslider = dialog_new_slider(window, &sel);
-                if (fslider != NULL)
+                FVSlider *fvslider = dialog_new_vslider(window, font, &sel);
+                if (fvslider != NULL)
                 {
-                    Slider *slider = slider_create();
-                    slider_min_width(slider, fslider->min_width);
-                    slider_value(slider, .5f);
+                    Slider *slider = slider_vertical();
+                    fvslider_synchro(fvslider, slider);
                     i_sel_remove_cell(&sel);
-                    flayout_add_slider(sel.flayout, fslider, sel.col, sel.row);
+                    flayout_add_vslider(sel.flayout, fvslider, sel.col, sel.row);
                     layout_slider(sel.glayout, slider, sel.col, sel.row);
-                    i_sel_synchro_cell(&sel);
-                    dform_compose(form);
-                    propedit_set(propedit, form, &sel);
-                    inspect_set(inspect, form);
-                    form->sel = sel;
-                    i_need_save(form);
+                    i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
                 else
@@ -722,21 +679,15 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
             case ekWIDGET_PROGRESS:
             {
-                FProgress *fprogress = dialog_new_progress(window, &sel);
+                FProgress *fprogress = dialog_new_progress(window, font, &sel);
                 if (fprogress != NULL)
                 {
                     Progress *progress = progress_create();
-                    progress_min_width(progress, fprogress->min_width);
-                    progress_value(progress, .5f);
+                    fprogress_synchro(fprogress, progress);
                     i_sel_remove_cell(&sel);
                     flayout_add_progress(sel.flayout, fprogress, sel.col, sel.row);
                     layout_progress(sel.glayout, progress, sel.col, sel.row);
-                    i_sel_synchro_cell(&sel);
-                    dform_compose(form);
-                    propedit_set(propedit, form, &sel);
-                    inspect_set(inspect, form);
-                    form->sel = sel;
-                    i_need_save(form);
+                    i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
                 else
@@ -745,23 +696,17 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 }
             }
 
-            case ekWIDGET_LISTBOX:
+            case ekWIDGET_TEXTVIEW:
             {
-                FListBox *flistbox = dialog_new_listbox(window, &sel);
-                if (flistbox != NULL)
+                FText *ftext = dialog_new_text(window, font, &sel);
+                if (ftext != NULL)
                 {
-                    ListBox *listbox = listbox_create();
-                    cassert(arrst_size(flistbox->elems, FElem) == 0);
-                    listbox_size(listbox, s2df(flistbox->min_width, flistbox->min_height));
+                    TextView *text = textview_create();
+                    ftext_synchro(ftext, text);
                     i_sel_remove_cell(&sel);
-                    flayout_add_listbox(sel.flayout, flistbox, sel.col, sel.row);
-                    layout_listbox(sel.glayout, listbox, sel.col, sel.row);
-                    i_sel_synchro_cell(&sel);
-                    dform_compose(form);
-                    propedit_set(propedit, form, &sel);
-                    inspect_set(inspect, form);
-                    form->sel = sel;
-                    i_need_save(form);
+                    flayout_add_text(sel.flayout, ftext, sel.col, sel.row);
+                    layout_textview(sel.glayout, text, sel.col, sel.row);
+                    i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
                 else
@@ -769,25 +714,38 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     return FALSE;
                 }
             }
+
+			case ekWIDGET_IMAGEVIEW:
+			{
+				FImage *fimage = dialog_new_image(window, font, &sel, folder_path);
+                if (fimage != NULL)
+                {
+                    ImageView *view = imageview_create();
+                    fimage_synchro(fimage, view, folder_path);
+                    i_sel_remove_cell(&sel);
+                    flayout_add_image(sel.flayout, fimage, sel.col, sel.row);
+                    layout_imageview(sel.glayout, view, sel.col, sel.row);
+                    dlayout_set_image(sel.dlayout, imageview_get_image(view), sel.col, sel.row);
+                    i_after_new_widget(form, inspect, propedit, &sel);
+                    return TRUE;
+                }
+                else
+                {
+                    return FALSE;
+                }
+			}
 
             case ekWIDGET_TABLEVIEW:
             {
-                FTable *ftable = dialog_new_table(window, &sel);
+                FTable *ftable = dialog_new_table(window, font, &sel);
                 if (ftable != NULL)
                 {
-                    TableView *gtable = tableview_create();
-                    cassert(arrst_size(ftable->headers, FHeader) == 0);
-                    tableview_size(gtable, s2df(ftable->min_width, ftable->min_height));
-                    tableview_header_resizable(gtable, TRUE);
+                    TableView *view = tableview_create();
+                    ftable_synchro(ftable, view);
                     i_sel_remove_cell(&sel);
                     flayout_add_table(sel.flayout, ftable, sel.col, sel.row);
-                    layout_tableview(sel.glayout, gtable, sel.col, sel.row);
-                    i_sel_synchro_cell(&sel);
-                    dform_compose(form);
-                    propedit_set(propedit, form, &sel);
-                    inspect_set(inspect, form);
-                    form->sel = sel;
-                    i_need_save(form);
+                    layout_tableview(sel.glayout, view, sel.col, sel.row);
+                    i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
                 else
@@ -831,10 +789,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     return FALSE;
                 }
             }
-
-            /* Still not supported */
-            case ekWIDGET_VERT_SLIDER:
-                break;
 
             default:
                 break;
@@ -1079,10 +1033,7 @@ void dform_synchro_edit(DForm *form, const DSelect *sel)
     cassert(cell->type == ekCELL_TYPE_EDIT);
     i_need_save(form);
     edit = layout_get_edit(sel->glayout, sel->col, sel->row);
-    edit_passmode(edit, cell->widget.edit->passmode);
-    edit_autoselect(edit, cell->widget.edit->autosel);
-    edit_align(edit, i_halign(cell->widget.edit->text_align));
-    edit_min_width(edit, cell->widget.edit->min_width);
+    fedit_synchro(cell->widget.edit, edit);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1102,34 +1053,17 @@ void dform_synchro_combo(DForm *form, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-void dform_synchro_textview(DForm *form, const DSelect *sel)
+void dform_synchro_listbox(DForm *form, const DSelect *sel, const char_t *resource_path)
 {
     FCell *cell = i_sel_fcell(sel);
-    TextView *text = NULL;
+    ListBox *listbox = NULL;
     cassert_no_null(form);
     cassert_no_null(sel);
     cassert_no_null(cell);
-    cassert(cell->type == ekCELL_TYPE_TEXT);
+    cassert(cell->type == ekCELL_TYPE_LISTBOX);
     i_need_save(form);
-    text = layout_get_textview(sel->glayout, sel->col, sel->row);
-    textview_editable(text, !cell->widget.text->read_only);
-    textview_size(text, s2df(cell->widget.text->min_width, cell->widget.text->min_height));
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dform_synchro_imageview(DForm *form, const DSelect *sel)
-{
-    FCell *cell = i_sel_fcell(sel);
-    ImageView *imgview = NULL;
-    cassert_no_null(form);
-    cassert_no_null(sel);
-    cassert_no_null(cell);
-    cassert(cell->type == ekCELL_TYPE_IMAGE);
-    i_need_save(form);
-    imgview = layout_get_imageview(sel->glayout, sel->col, sel->row);
-    imageview_size(imgview, s2df(cell->widget.image->min_width, cell->widget.image->min_height));
-    imageview_scale(imgview, i_scale(cell->widget.image->scale));
+    listbox = layout_get_listbox(sel->glayout, sel->col, sel->row);
+    flistbox_synchro(cell->widget.listbox, listbox, resource_path);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1144,8 +1078,22 @@ void dform_synchro_slider(DForm *form, const DSelect *sel)
     cassert(cell->type == ekCELL_TYPE_SLIDER);
     i_need_save(form);
     slider = layout_get_slider(sel->glayout, sel->col, sel->row);
-    slider_min_width(slider, cell->widget.slider->min_width);
-    slider_value(slider, .5f);
+    fslider_synchro(cell->widget.slider, slider);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dform_synchro_vslider(DForm *form, const DSelect *sel)
+{
+    FCell *cell = i_sel_fcell(sel);
+    Slider *slider = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_VSLIDER);
+    i_need_save(form);
+    slider = layout_get_slider(sel->glayout, sel->col, sel->row);
+    fvslider_synchro(cell->widget.vslider, slider);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1160,73 +1108,37 @@ void dform_synchro_progress(DForm *form, const DSelect *sel)
     cassert(cell->type == ekCELL_TYPE_PROGRESS);
     i_need_save(form);
     progress = layout_get_progress(sel->glayout, sel->col, sel->row);
-    progress_min_width(progress, cell->widget.progress->min_width);
-    progress_value(progress, .5f);
+    fprogress_synchro(cell->widget.progress, progress);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void dform_synchro_listbox(DForm *form, const DSelect *sel)
+void dform_synchro_textview(DForm *form, const DSelect *sel)
 {
     FCell *cell = i_sel_fcell(sel);
-    ListBox *listbox = NULL;
+    TextView *view = NULL;
     cassert_no_null(form);
     cassert_no_null(sel);
     cassert_no_null(cell);
-    cassert(cell->type == ekCELL_TYPE_LISTBOX);
+    cassert(cell->type == ekCELL_TYPE_TEXT);
     i_need_save(form);
-    listbox = layout_get_listbox(sel->glayout, sel->col, sel->row);
-    listbox_size(listbox, s2df(cell->widget.listbox->min_width, cell->widget.listbox->min_height));
+    view = layout_get_textview(sel->glayout, sel->col, sel->row);
+    ftext_synchro(cell->widget.text, view);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void dform_synchro_listbox_add(DForm *form, const DSelect *sel, const Image *image)
+void dform_synchro_imageview(DForm *form, const DSelect *sel)
 {
     FCell *cell = i_sel_fcell(sel);
-    ListBox *listbox = NULL;
-    const FElem *elem = NULL;
+    ImageView *view = NULL;
     cassert_no_null(form);
     cassert_no_null(sel);
     cassert_no_null(cell);
-    cassert(cell->type == ekCELL_TYPE_LISTBOX);
+    cassert(cell->type == ekCELL_TYPE_IMAGE);
     i_need_save(form);
-    listbox = layout_get_listbox(sel->glayout, sel->col, sel->row);
-    elem = arrst_last_const(cell->widget.listbox->elems, FElem);
-    listbox_add_elem(listbox, tc(elem->text), image);
-    dlayout_add_image(sel->dlayout, image, sel->col, sel->row);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dform_synchro_listbox_del(DForm *form, const DSelect *sel, const uint32_t index)
-{
-    FCell *cell = i_sel_fcell(sel);
-    ListBox *listbox = NULL;
-    cassert_no_null(form);
-    cassert_no_null(sel);
-    cassert_no_null(cell);
-    cassert(cell->type == ekCELL_TYPE_LISTBOX);
-    i_need_save(form);
-    listbox = layout_get_listbox(sel->glayout, sel->col, sel->row);
-    listbox_del_elem(listbox, index);
-    dlayout_del_image(sel->dlayout, index, sel->col, sel->row);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dform_synchro_listbox_clear(DForm *form, const DSelect *sel)
-{
-    FCell *cell = i_sel_fcell(sel);
-    ListBox *listbox = NULL;
-    cassert_no_null(form);
-    cassert_no_null(sel);
-    cassert_no_null(cell);
-    cassert(cell->type == ekCELL_TYPE_LISTBOX);
-    i_need_save(form);
-    listbox = layout_get_listbox(sel->glayout, sel->col, sel->row);
-    listbox_clear(listbox);
-    dlayout_clear_images(sel->dlayout, sel->col, sel->row);
+    view = layout_get_imageview(sel->glayout, sel->col, sel->row);
+    fimage_synchro(cell->widget.image, view, NULL);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1234,61 +1146,14 @@ void dform_synchro_listbox_clear(DForm *form, const DSelect *sel)
 void dform_synchro_table(DForm *form, const DSelect *sel)
 {
     FCell *cell = i_sel_fcell(sel);
-    TableView *gtable = NULL;
+    TableView *view = NULL;
     cassert_no_null(form);
     cassert_no_null(sel);
     cassert_no_null(cell);
     cassert(cell->type == ekCELL_TYPE_TABLEVIEW);
     i_need_save(form);
-    gtable = layout_get_tableview(sel->glayout, sel->col, sel->row);
-    tableview_size(gtable, s2df(cell->widget.table->min_width, cell->widget.table->min_height));
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dform_synchro_table_add(DForm *form, const DSelect *sel)
-{
-    FCell *cell = i_sel_fcell(sel);
-    TableView *table = NULL;
-    const FHeader *header = NULL;
-    uint32_t id = UINT32_MAX;
-    cassert_no_null(form);
-    cassert_no_null(sel);
-    cassert_no_null(cell);
-    cassert(cell->type == ekCELL_TYPE_TABLEVIEW);
-    i_need_save(form);
-    table = layout_get_tableview(sel->glayout, sel->col, sel->row);
-    header = arrst_last_const(cell->widget.table->headers, FHeader);
-    id = tableview_new_column_text(table);
-    cassert(id == arrst_size(cell->widget.table->headers, FHeader) - 1);
-    tableview_column_width(table, id, header->width);
-    tableview_column_limits(table, id, header->min_width, header->max_width);
-    tableview_column_align(table, id, i_halign(header->dalign));
-    tableview_column_resizable(table, id, header->resizable);
-    tableview_header_title(table, id, tc(header->title));
-    tableview_header_align(table, id, i_halign(header->align));
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dform_synchro_table_header(DForm *form, const DSelect *sel, const uint32_t id)
-{
-    FCell *cell = i_sel_fcell(sel);
-    TableView *table = NULL;
-    const FHeader *header = NULL;
-    cassert_no_null(form);
-    cassert_no_null(sel);
-    cassert_no_null(cell);
-    cassert(cell->type == ekCELL_TYPE_TABLEVIEW);
-    i_need_save(form);
-    table = layout_get_tableview(sel->glayout, sel->col, sel->row);
-    header = arrst_get_const(cell->widget.table->headers, id, FHeader);
-    tableview_column_width(table, id, header->width);
-    tableview_column_limits(table, id, header->min_width, header->max_width);
-    tableview_column_align(table, id, i_halign(header->dalign));
-    tableview_column_resizable(table, id, header->resizable);
-    tableview_header_title(table, id, tc(header->title));
-    tableview_header_align(table, id, i_halign(header->align));
+    view = layout_get_tableview(sel->glayout, sel->col, sel->row);
+    ftable_synchro(cell->widget.table, view);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1431,22 +1296,24 @@ const char_t* dform_cell_type(const celltype_t type)
         return gui_text(TEXT_CELL_RADIO);
     case ekCELL_TYPE_TOOL:
         return gui_text(TEXT_CELL_TOOL);        
+    case ekCELL_TYPE_POPUP:
+        return gui_text(TEXT_CELL_POPUP);
     case ekCELL_TYPE_EDIT:
         return gui_text(TEXT_CELL_EDIT);
     case ekCELL_TYPE_COMBO:
         return gui_text(TEXT_CELL_COMBO);
+    case ekCELL_TYPE_LISTBOX:
+        return gui_text(TEXT_CELL_LISTBOX);
+    case ekCELL_TYPE_SLIDER:
+        return gui_text(TEXT_CELL_SLIDER);
+    case ekCELL_TYPE_VSLIDER:
+        return gui_text(TEXT_CELL_VSLIDER);
+    case ekCELL_TYPE_PROGRESS:
+        return gui_text(TEXT_CELL_PROGRESS);
     case ekCELL_TYPE_TEXT:
         return gui_text(TEXT_CELL_TEXT);
     case ekCELL_TYPE_IMAGE:
         return gui_text(TEXT_CELL_IMAGE);
-    case ekCELL_TYPE_SLIDER:
-        return gui_text(TEXT_CELL_SLIDER);
-    case ekCELL_TYPE_PROGRESS:
-        return gui_text(TEXT_CELL_PROGRESS);
-    case ekCELL_TYPE_POPUP:
-        return gui_text(TEXT_CELL_POPUP);
-    case ekCELL_TYPE_LISTBOX:
-        return gui_text(TEXT_CELL_LISTBOX);
     case ekCELL_TYPE_TABLEVIEW:
         return gui_text(TEXT_CELL_TABLE);
     case ekCELL_TYPE_LAYOUT:

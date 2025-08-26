@@ -723,7 +723,16 @@ static bool_t i_is_widget_drawer(const drawer_t drawer)
     case ekDRAWER_RADIO_PROPS:
     case ekDRAWER_TOOL_PROPS:
     case ekDRAWER_POPUP_PROPS:
+    case ekDRAWER_EDIT_PROPS:
     case ekDRAWER_COMBO_PROPS:
+    case ekDRAWER_LIST_PROPS:
+    case ekDRAWER_HSLIDER_PROPS:
+    case ekDRAWER_VSLIDER_PROPS:
+    case ekDRAWER_PROGRESS_PROPS:
+    case ekDRAWER_TEXT_PROPS:
+    case ekDRAWER_IMAGE_PROPS:
+    case ekDRAWER_TABLE_FRAME_PROPS:
+    case ekDRAWER_TABLE_COLS_PROPS:
         return FALSE;
         cassert_default();
     }
@@ -1474,7 +1483,16 @@ static Designer *i_app(void)
     i_add_drawer(app->wdrawers, ekDRAWER_RADIO_PROPS, TEXT_RADIO_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_TOOL_PROPS, TEXT_TOOL_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_POPUP_PROPS, TEXT_POPUP_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_EDIT_PROPS, TEXT_EDIT_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_COMBO_PROPS, TEXT_COMBO_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_LIST_PROPS, TEXT_LIST_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_HSLIDER_PROPS, TEXT_SLIDER_PROPS);    
+    i_add_drawer(app->wdrawers, ekDRAWER_VSLIDER_PROPS, TEXT_VSLIDER_PROPS);  
+    i_add_drawer(app->wdrawers, ekDRAWER_PROGRESS_PROPS, TEXT_PROGRESS_PROPS);  
+    i_add_drawer(app->wdrawers, ekDRAWER_TEXT_PROPS, TEXT_TEXT_PROPS);  
+    i_add_drawer(app->wdrawers, ekDRAWER_IMAGE_PROPS, TEXT_IMAGE_PROPS);  
+    i_add_drawer(app->wdrawers, ekDRAWER_TABLE_FRAME_PROPS, TEXT_TABLE_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_TABLE_COLS_PROPS, TEXT_COLUMN_PROPS);
     i_add_widget(app->bwidgets, ekWIDGET_SELECT, TEXT_SELECT, CURSOR_PNG, ekDRAWER_WIDGET_SELECT);
     i_add_widget(app->bwidgets, ekWIDGET_VERT_LAYOUT, TEXT_VERT_LAYOUT, VLAYOUT_PNG, ekDRAWER_WIDGET_LAYOUTS);
     i_add_widget(app->bwidgets, ekWIDGET_HORZ_LAYOUT, TEXT_HORZ_LAYOUT, HLAYOUT_PNG, ekDRAWER_WIDGET_LAYOUTS);
@@ -1586,6 +1604,14 @@ const char_t *designer_folder_path(const Designer *app)
 {
     cassert_no_null(app);
     return tc(app->config.folder_path);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const Font *designer_default_font(const Designer *app)
+{
+    cassert_no_null(app);
+    return app->default_font;
 }
 
 /*---------------------------------------------------------------------------*/

@@ -50,14 +50,15 @@ struct _propdata_t
     Layout *check_layout;
     Layout *radio_layout;
     Layout *tool_layout;
+    Layout *popup_layout;
     Layout *edit_layout;
     Layout *combo_layout;
+    Layout *listbox_layout;
+    Layout *slider_layout;
+    Layout *vslider_layout;
+    Layout *progress_layout;
     Layout *text_layout;
     Layout *image_layout;
-    Layout *slider_layout;
-    Layout *progress_layout;
-    Layout *popup_layout;
-    Layout *listbox_layout;
     Layout *table_layout;
     Layout *header_layout;
     ListBox *popup_list;
@@ -69,10 +70,13 @@ struct _propdata_t
     Label *cell_type_label;
     PopUp *column_popup;
     PopUp *row_popup;
-    Button *load_button;
+
     Label *label_tool_icon;
-    Button *load_tool_icon;
-    ImageView *icon_tool_view;
+    ImageView *view_tool_icon;
+    Button *button_tool_icon;
+    Label *label_image_icon;
+    ImageView *view_image_icon;
+    Button *button_image_icon;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -86,6 +90,13 @@ static const real32_t i_LABEL_COLUMN_MARGIN = 5;
 static void i_remove_elem(FElem *elem)
 {
     dbind_remove(elem, FElem);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_remove_header(FHeader *header)
+{
+    dbind_remove(header, FHeader);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -619,7 +630,15 @@ static void i_OnLoadIcon(PropData *data, Event *e)
                 button_image(button, image);
                 str_upd(&cell->widget.tool->path, tc(relpath));
                 layout_dbind_obj(data->tool_layout, cell->widget.tool, FTool);
-                i_update_icon(data->icon_tool_view, data->label_tool_icon, data->load_tool_icon, folder_path, tc(cell->widget.tool->path));
+                i_update_icon(data->view_tool_icon, data->label_tool_icon, data->button_tool_icon, folder_path, tc(cell->widget.tool->path));
+            }
+            else if (cell->type == ekCELL_TYPE_IMAGE)
+            {
+                ImageView *view =layout_get_imageview(data->sel.glayout, data->sel.col, data->sel.row);
+                imageview_image(view, image);
+                str_upd(&cell->widget.image->path, tc(relpath));
+                layout_dbind_obj(data->image_layout, cell->widget.image, FImage);
+                i_update_icon(data->view_image_icon, data->label_image_icon, data->button_image_icon, folder_path, tc(cell->widget.image->path));
             }
             else
             {
@@ -631,19 +650,23 @@ static void i_OnLoadIcon(PropData *data, Event *e)
             designer_canvas_update(data->app);
             str_destroy(&relpath);
             image_destroy(&image);
+            dform_set_need_save(data->form);
         }
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_icon_layout(PropData *data)
+static Layout *i_icon_layout(PropData *data, Label **icon_label, ImageView **icon_view, Button **icon_button)
 {
     Layout *layout = layout_create(3, 1);
     ImageView *view = imageview_create();
     Label *label = label_create();
     Button *button = button_push();
     cassert_no_null(data);
+    cassert_no_null(icon_label);
+    cassert_no_null(icon_view);
+    cassert_no_null(icon_button);
     imageview_size(view, s2df(16, 16));
     imageview_scale(view, ekGUI_SCALE_ASPECT);
     /* label_ellipsis(label, ekELLIPBEGIN);    When NAppGUI supports */
@@ -657,9 +680,9 @@ static Layout *i_icon_layout(PropData *data)
     layout_hmargin(layout, 0, 3);
     layout_hexpand(layout, 1);
     layout_halign(layout, 1, 0, ekJUSTIFY);
-    data->label_tool_icon = label;
-    data->icon_tool_view = view;
-    data->load_tool_icon = button;
+    *icon_label = label;
+    *icon_view = view;
+    *icon_button = button;
     return layout;
 }
 
@@ -678,17 +701,20 @@ static void i_OnToolNotify(PropData *data, Event *e)
 
 static Layout *i_tool_layout(PropData *data)
 {
+    Label *label_icon = NULL;
+    ImageView *view_icon = NULL;
+    Button *button_icon = NULL;
     Layout *layout1 = layout_create(2, 3);
-    Layout *layout2 = i_icon_layout(data);
-    Layout *layout3 = i_value_updown_layout(gui_text(TIP_BUTTON_HPAD));
-    Layout *layout4 = i_value_updown_layout(gui_text(TIP_BUTTON_VPAD));
+    Layout *layout2 = i_value_updown_layout(gui_text(TIP_BUTTON_HPAD));
+    Layout *layout3 = i_value_updown_layout(gui_text(TIP_BUTTON_VPAD));
+    Layout *layout4 = i_icon_layout(data, &label_icon, &view_icon, &button_icon);
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
     cassert_no_null(data);
-    label_text(label1, gui_text(TEXT_ICON));
-    label_text(label2, gui_text(TEXT_HPADDING));
-    label_text(label3, gui_text(TEXT_VPADDING));
+    label_text(label1, gui_text(TEXT_HPADDING));
+    label_text(label2, gui_text(TEXT_VPADDING));
+    label_text(label3, gui_text(TEXT_ICON));
     layout_label(layout1, label1, 0, 0);
     layout_label(layout1, label2, 0, 1);
     layout_label(layout1, label3, 0, 2);
@@ -697,9 +723,12 @@ static Layout *i_tool_layout(PropData *data)
     layout_layout(layout1, layout4, 1, 2);
     layout_hexpand(layout1, 1);
     layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
-    cell_dbind(layout_cell(layout1, 1, 1), FTool, real32_t, hpadding);
-    cell_dbind(layout_cell(layout1, 1, 2), FTool, real32_t, vpadding);
+    cell_dbind(layout_cell(layout1, 1, 0), FTool, real32_t, hpadding);
+    cell_dbind(layout_cell(layout1, 1, 1), FTool, real32_t, vpadding);
     layout_dbind(layout1, listener(data, i_OnToolNotify, PropData), FTool);
+    data->label_tool_icon = label_icon;
+    data->view_tool_icon = view_icon;
+    data->button_tool_icon = button_icon;
     data->tool_layout = layout1;
     return i_drawer_layout(data->app, layout1, ekDRAWER_TOOL_PROPS);
 }
@@ -727,17 +756,43 @@ static void i_update_elem_list(const ArrSt(FElem) *elems, ListBox *list, const c
 static void i_OnElementAdd(PropData *data, Event *e)
 {
     Window *window = NULL;
+    FCell *cell = NULL;    
     const char_t *folder_path = NULL;
+    const Font *font = NULL;
+    ResId iconId = NULL;
+    ResId headerId = NULL;
+    String *caption = NULL;
     FElem *elem = NULL;
+
     cassert_no_null(data);
     unref(e);
     window = designer_main_window(data->app);
+    cell = dform_sel_fcell(&data->sel);
     folder_path = designer_folder_path(data->app);
-    elem = dialog_new_elem(window, folder_path);
+    font = designer_default_font(data->app);
+    cassert_no_null(cell);
+
+    if (cell->type == ekCELL_TYPE_POPUP)
+    {
+        iconId = POPUP_PNG;
+        headerId = TEXT_ELEM_POPUP;
+        caption = str_printf(gui_text(TEXT_NEW_ELEM_POPUP), tc(cell->name));
+    }
+    else if (cell->type == ekCELL_TYPE_LISTBOX)
+    {
+        iconId = LISTVIEW_PNG;
+        headerId = TEXT_ELEM_LIST;
+        caption = str_printf(gui_text(TEXT_NEW_ELEM_LIST), tc(cell->name));        
+    }
+    else
+    {
+        cassert(FALSE);
+    }
+
+    elem = dialog_new_elem(window, font, tc(caption), iconId, headerId, folder_path);
+
     if (elem != NULL)
     {
-        FCell *cell = dform_sel_fcell(&data->sel);
-        cassert_no_null(cell);
         if (cell->type == ekCELL_TYPE_POPUP)
         {
             FPopUp *fpopup = layout_dbind_get_obj(data->popup_layout, FPopUp);
@@ -748,6 +803,16 @@ static void i_OnElementAdd(PropData *data, Event *e)
             dform_synchro_popup(data->form, &data->sel, folder_path);
             dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, fpopup->elems, folder_path);
         }
+        else if (cell->type == ekCELL_TYPE_LISTBOX)
+        {
+            FListBox *flistbox = layout_dbind_get_obj(data->listbox_layout, FListBox);
+            FElem *nelem = arrst_new(flistbox->elems, FElem);
+            nelem->text = str_copy(elem->text);
+            nelem->iconpath = str_copy(elem->iconpath);
+            i_update_elem_list(flistbox->elems, data->listbox_list, folder_path);
+            dform_synchro_listbox(data->form, &data->sel, folder_path);
+            dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, flistbox->elems, folder_path);
+        }
         else
         {
             cassert(FALSE);
@@ -757,6 +822,8 @@ static void i_OnElementAdd(PropData *data, Event *e)
         designer_canvas_update(data->app);
         dbind_destroy(&elem, FElem);
     }
+
+    str_destopt(&caption);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -779,6 +846,15 @@ static void i_OnElementRemove(PropData *data, Event *e)
         i_update_elem_list(fpopup->elems, data->popup_list, folder_path);
         dform_synchro_popup(data->form, &data->sel, folder_path);
         dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, fpopup->elems, folder_path);
+    }
+    else if (cell->type == ekCELL_TYPE_LISTBOX)
+    {
+        FListBox *flistbox = layout_dbind_get_obj(data->listbox_layout, FListBox);
+        uint32_t index = listbox_get_selected(data->listbox_list);
+        arrst_delete(flistbox->elems, index, i_remove_elem, FElem);
+        i_update_elem_list(flistbox->elems, data->listbox_list, folder_path);
+        dform_synchro_listbox(data->form, &data->sel, folder_path);
+        dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, flistbox->elems, folder_path);
     }
     else
     {
@@ -808,6 +884,14 @@ static void i_OnElementClear(PropData *data, Event *e)
         i_update_elem_list(fpopup->elems, data->popup_list, folder_path);
         dform_synchro_popup(data->form, &data->sel, folder_path);
         dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, fpopup->elems, folder_path);
+    }
+    else if (cell->type == ekCELL_TYPE_LISTBOX)
+    {
+        FListBox *flistbox = layout_dbind_get_obj(data->listbox_layout, FListBox);
+        arrst_clear(flistbox->elems, i_remove_elem, FElem);
+        i_update_elem_list(flistbox->elems, data->listbox_list, folder_path);
+        dform_synchro_listbox(data->form, &data->sel, folder_path);
+        dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, flistbox->elems, folder_path);
     }
     else
     {
@@ -890,40 +974,40 @@ static void i_OnEditNotify(PropData *data, Event *e)
 
 static Layout *i_edit_layout(PropData *data)
 {
-    Layout *layout1 = layout_create(1, 5);
-    Layout *layout2 = layout_create(2, 2);
-    Layout *layout3 = i_value_updown_layout(NULL);
+    Layout *layout1 = layout_create(2, 4);
+    Layout *layout2 = i_value_updown_layout(gui_text(TIP_EDIT_MWIDTH));
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
-    Button *button1 = button_check();
-    Button *button2 = button_check();
+    Label *label4 = label_create();
     PopUp *popup = popup_create();
+    Button *check1 = button_check();
+    Button *check2 = button_check();
     cassert_no_null(data);
-    label_text(label1, "EditBox properties");
-    label_text(label2, "Text align");
-    label_text(label3, "MWidth");
-    button_text(button1, "Passmode");
-    button_text(button2, "Autosel");
+    label_text(label1, gui_text(TEXT_TEXT_ALIGN));
+    label_text(label2, gui_text(TEXT_MIN_WIDTH));
+    label_text(label3, gui_text(TEXT_PASSMODE));
+    label_text(label4, gui_text(TEXT_AUTOSELECT));
+    popup_tooltip(popup, gui_text(TIP_EDIT_ALIGN));
+    button_tooltip(check1, gui_text(TIP_EDIT_PASSMODE));
+    button_tooltip(check2, gui_text(TIP_EDIT_AUTOSEL));
     layout_label(layout1, label1, 0, 0);
-    layout_button(layout1, button1, 0, 1);
-    layout_button(layout1, button2, 0, 2);
-    layout_label(layout2, label2, 0, 0);
-    layout_label(layout2, label3, 0, 1);
-    layout_popup(layout2, popup, 1, 0);
-    layout_layout(layout1, layout2, 0, 3);
-    layout_layout(layout2, layout3, 1, 1);
-    layout_vmargin(layout1, 0, i_HEADER_VMARGIN);
-    layout_hmargin(layout2, 0, i_GRID_HMARGIN);
-    layout_hexpand(layout2, 1);
-    layout_vexpand(layout1, 4);
-    cell_dbind(layout_cell(layout1, 0, 1), FEdit, bool_t, passmode);
-    cell_dbind(layout_cell(layout1, 0, 2), FEdit, bool_t, autosel);
-    cell_dbind(layout_cell(layout2, 1, 0), FEdit, halign_t, text_align);
-    cell_dbind(layout_cell(layout2, 1, 1), FEdit, real32_t, min_width);
+    layout_label(layout1, label2, 0, 1);
+    layout_label(layout1, label3, 0, 2);
+    layout_label(layout1, label4, 0, 3);
+    layout_popup(layout1, popup, 1, 0);
+    layout_layout(layout1, layout2, 1, 1);
+    layout_button(layout1, check1, 1, 2);
+    layout_button(layout1, check2, 1, 3);
+    layout_hexpand(layout1, 1);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
+    cell_dbind(layout_cell(layout1, 1, 0), FEdit, halign_t, text_align);
+    cell_dbind(layout_cell(layout1, 1, 1), FEdit, real32_t, min_width);
+    cell_dbind(layout_cell(layout1, 1, 2), FEdit, bool_t, passmode);
+    cell_dbind(layout_cell(layout1, 1, 3), FEdit, bool_t, autosel);
     layout_dbind(layout1, listener(data, i_OnEditNotify, PropData), FEdit);
     data->edit_layout = layout1;
-    return layout1;
+    return i_drawer_layout(data->app, layout1, ekDRAWER_EDIT_PROPS);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -947,187 +1031,78 @@ static Layout *i_combo_layout(PropData *data)
     Label *label2 = label_create();
     Label *label3 = label_create();
     Label *label4 = label_create();
+    PopUp *popup = popup_create();
     Button *check1 = button_check();
     Button *check2 = button_check();
-    PopUp *popup = popup_create();
     cassert_no_null(data);
-    label_text(label1, gui_text(TEXT_AUTOSELECT));
-    label_text(label2, gui_text(TEXT_PASSMODE));
-    label_text(label3, gui_text(TEXT_TEXT_ALIGN));
-    label_text(label4, gui_text(TEXT_MIN_WIDTH));
-    button_tooltip(check1, gui_text(TIP_COMBO_AUTOSEL));
-    button_tooltip(check2, gui_text(TIP_COMBO_PASSMODE));
+    label_text(label1, gui_text(TEXT_TEXT_ALIGN));
+    label_text(label2, gui_text(TEXT_MIN_WIDTH));
+    label_text(label3, gui_text(TEXT_PASSMODE));
+    label_text(label4, gui_text(TEXT_AUTOSELECT));
     popup_tooltip(popup, gui_text(TIP_COMBO_ALIGN));
+    button_tooltip(check1, gui_text(TIP_COMBO_PASSMODE));
+    button_tooltip(check2, gui_text(TIP_COMBO_AUTOSEL));
     layout_label(layout1, label1, 0, 0);
     layout_label(layout1, label2, 0, 1);
     layout_label(layout1, label3, 0, 2);
     layout_label(layout1, label4, 0, 3);
-    layout_button(layout1, check1, 1, 0);
-    layout_button(layout1, check2, 1, 1);
-    layout_popup(layout1, popup, 1, 2);
-    layout_layout(layout1, layout2, 1, 3);
+    layout_popup(layout1, popup, 1, 0);
+    layout_layout(layout1, layout2, 1, 1);
+    layout_button(layout1, check1, 1, 2);
+    layout_button(layout1, check2, 1, 3);
     layout_hexpand(layout1, 1);
     layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
-    cell_dbind(layout_cell(layout1, 1, 0), FCombo, bool_t, autosel);
-    cell_dbind(layout_cell(layout1, 1, 1), FCombo, bool_t, passmode);
-    cell_dbind(layout_cell(layout1, 1, 2), FCombo, halign_t, text_align);
-    cell_dbind(layout_cell(layout1, 1, 3), FCombo, real32_t, min_width);
+    cell_dbind(layout_cell(layout1, 1, 0), FCombo, halign_t, text_align);
+    cell_dbind(layout_cell(layout1, 1, 1), FCombo, real32_t, min_width);
+    cell_dbind(layout_cell(layout1, 1, 2), FCombo, bool_t, passmode);
+    cell_dbind(layout_cell(layout1, 1, 3), FCombo, bool_t, autosel);
     layout_dbind(layout1, listener(data, i_OnComboNotify, PropData), FCombo);
     data->combo_layout = layout1;
-
-    /* Drawer */
-    {
-        Panel *panel = panel_create();
-        Panel *drawer = NULL;
-        Layout *layout = layout_create(1, 1);
-        panel_layout(panel, layout1);
-        drawer = designer_drawer(data->app, panel, ekDRAWER_COMBO_PROPS);
-        layout_panel(layout, drawer, 0, 0);
-        return layout;
-    }
+    return i_drawer_layout(data->app, layout1, ekDRAWER_COMBO_PROPS);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnTextNotify(PropData *data, Event *e)
+static void i_OnListBoxNotify(PropData *data, Event *e)
 {
+    const char_t *folder_path = NULL;    
     cassert_no_null(data);
     cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
-    if (evbind_modify(e, FText, bool_t, read_only) == TRUE || evbind_modify(e, FText, real32_t, min_width) == TRUE || evbind_modify(e, FText, real32_t, min_height) == TRUE)
-    {
-        dform_synchro_textview(data->form, &data->sel);
-
-        if (evbind_modify(e, FText, real32_t, min_width) == TRUE || evbind_modify(e, FText, real32_t, min_height) == TRUE)
-        {
-            dform_compose(data->form);
-            designer_canvas_update(data->app);
-        }
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-static Layout *i_text_layout(PropData *data)
-{
-    Layout *layout1 = layout_create(1, 4);
-    Layout *layout2 = layout_create(2, 2);
-    Layout *layout3 = i_value_updown_layout(NULL);
-    Layout *layout4 = i_value_updown_layout(NULL);
-    Button *button1 = button_check();
-    Label *label1 = label_create();
-    Label *label2 = label_create();
-    Label *label3 = label_create();
-    cassert_no_null(data);
-    label_text(label1, "TextView properties");
-    label_text(label2, "MWidth");
-    label_text(label3, "MHeight");
-    button_text(button1, "Read only");
-    layout_label(layout1, label1, 0, 0);
-    layout_button(layout1, button1, 0, 1);
-    layout_label(layout2, label2, 0, 0);
-    layout_label(layout2, label3, 0, 1);
-    layout_layout(layout2, layout3, 1, 0);
-    layout_layout(layout2, layout4, 1, 1);
-    layout_layout(layout1, layout2, 0, 2);
-    layout_vmargin(layout1, 0, i_HEADER_VMARGIN);
-    layout_hmargin(layout2, 0, i_GRID_HMARGIN);
-    layout_hexpand(layout2, 1);
-    layout_vexpand(layout1, 3);
-    cell_dbind(layout_cell(layout1, 0, 1), FText, bool_t, read_only);
-    cell_dbind(layout_cell(layout2, 1, 0), FText, real32_t, min_width);
-    cell_dbind(layout_cell(layout2, 1, 1), FText, real32_t, min_height);
-    layout_dbind(layout1, listener(data, i_OnTextNotify, PropData), FText);
-    data->text_layout = layout1;
-    return layout1;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_OnImageNotify(PropData *data, Event *e)
-{
-    cassert_no_null(data);
-    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
-    if (evbind_modify(e, FImage, scale_t, scale) == TRUE || evbind_modify(e, FImage, real32_t, min_width) == TRUE || evbind_modify(e, FImage, real32_t, min_height) == TRUE)
-    {
-        dform_synchro_imageview(data->form, &data->sel);
-        dform_compose(data->form);
-        designer_canvas_update(data->app);
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_OnLoadImage(PropData *data, Event *e)
-{
-    const char_t *imgpath = NULL;
-    const char_t *folder_path = NULL;
-    Window *window = NULL;
-    cassert_no_null(data);
-    unref(e);
     folder_path = designer_folder_path(data->app);
-    window = designer_main_window(data->app);
-    imgpath = comwin_open_file(window, NULL, 0, folder_path);
-    if (imgpath != NULL)
-    {
-        Image *image = image_from_file(imgpath, NULL);
-        if (image != NULL)
-        {
-            String *relpath = str_relpath(ekLINUX, folder_path, imgpath);
-            dform_synchro_cell_image(data->form, &data->sel, image, tc(relpath));
-            dlayout_set_image(data->sel.dlayout, image, data->sel.col, data->sel.row);
-            button_tooltip(data->load_button, tc(relpath));
-            dform_compose(data->form);
-            designer_canvas_update(data->app);
-            str_destroy(&relpath);
-            image_destroy(&image);
-        }
-    }
+    dform_synchro_listbox(data->form, &data->sel, folder_path);
+    dform_compose(data->form);
+    designer_canvas_update(data->app);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_image_layout(PropData *data)
+static Layout *i_listbox_layout(PropData *data)
 {
+    ListBox *list = NULL;
     Layout *layout1 = layout_create(1, 3);
-    Layout *layout2 = layout_create(2, 4);
-    Layout *layout3 = i_value_updown_layout(NULL);
-    Layout *layout4 = i_value_updown_layout(NULL);
-    PopUp *popup = popup_create();
-    Button *button = button_push();
+    Layout *layout2 = layout_create(2, 2);
+    Layout *layout3 = i_elems_layout(data, &list);
+    Layout *layout4 = i_value_updown_layout(gui_text(TIP_LIST_MWIDTH));
+    Layout *layout5 = i_value_updown_layout(gui_text(TIP_LIST_MHEIGHT));
     Label *label1 = label_create();
     Label *label2 = label_create();
-    Label *label3 = label_create();
-    Label *label4 = label_create();
-    Label *label5 = label_create();
     cassert_no_null(data);
-    label_text(label1, "ImageView properties");
-    label_text(label2, "MWidth");
-    label_text(label3, "MHeight");
-    label_text(label4, "Scale");
-    label_text(label5, "Image");
-    button_text(button, "Load");
-    button_OnClick(button, listener(data, i_OnLoadImage, PropData));
-    layout_label(layout1, label1, 0, 0);
-    layout_label(layout2, label2, 0, 0);
-    layout_label(layout2, label3, 0, 1);
-    layout_label(layout2, label4, 0, 2);
-    layout_label(layout2, label5, 0, 3);
-    layout_layout(layout2, layout3, 1, 0);
-    layout_layout(layout2, layout4, 1, 1);
-    layout_popup(layout2, popup, 1, 2);
-    layout_button(layout2, button, 1, 3);
-    layout_layout(layout1, layout2, 0, 1);
-    layout_vmargin(layout1, 0, i_HEADER_VMARGIN);
-    layout_hmargin(layout2, 0, i_GRID_HMARGIN);
-    layout_hexpand(layout2, 1);
+    label_text(label1, gui_text(TEXT_MIN_WIDTH));
+    label_text(label2, gui_text(TEXT_MIN_HEIGHT));
+    layout_label(layout2, label1, 0, 0);
+    layout_label(layout2, label2, 0, 1);
+    layout_layout(layout2, layout4, 1, 0);
+    layout_layout(layout2, layout5, 1, 1);
+    layout_layout(layout1, layout2, 0, 0);
+    layout_layout(layout1, layout3, 0, 1);
+    layout_hmargin(layout2, 0, i_LABEL_COLUMN_MARGIN);
     layout_vexpand(layout1, 2);
-    cell_dbind(layout_cell(layout2, 1, 0), FImage, real32_t, min_width);
-    cell_dbind(layout_cell(layout2, 1, 1), FImage, real32_t, min_height);
-    cell_dbind(layout_cell(layout2, 1, 2), FImage, scale_t, scale);
-    layout_dbind(layout1, listener(data, i_OnImageNotify, PropData), FImage);
-    data->image_layout = layout1;
-    data->load_button = button;
-    return layout1;
+    cell_dbind(layout_cell(layout2, 1, 0), FListBox, real32_t, min_width);
+    cell_dbind(layout_cell(layout2, 1, 1), FListBox, real32_t, min_height);
+    layout_dbind(layout1, listener(data, i_OnListBoxNotify, PropData), FListBox);
+    data->listbox_layout = layout1;
+    data->listbox_list = list;
+    return i_drawer_layout(data->app, layout1, ekDRAWER_LIST_PROPS);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1136,38 +1111,58 @@ static void i_OnSliderNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
     cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
-    if (evbind_modify(e, FSlider, real32_t, min_width) == TRUE)
-    {
-        dform_synchro_slider(data->form, &data->sel);
-        dform_compose(data->form);
-        designer_canvas_update(data->app);
-    }
+    dform_synchro_slider(data->form, &data->sel);
+    dform_compose(data->form);
+    designer_canvas_update(data->app);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static Layout *i_slider_layout(PropData *data)
 {
-    Layout *layout1 = layout_create(1, 3);
-    Layout *layout2 = layout_create(2, 1);
-    Layout *layout3 = i_value_updown_layout(NULL);
+    Layout *layout1 = layout_create(2, 2);
+    Layout *layout2 = i_value_updown_layout(gui_text(TIP_SLIDER_MWIDTH));
     Label *label1 = label_create();
-    Label *label2 = label_create();
     cassert_no_null(data);
-    label_text(label1, "Slider properties");
-    label_text(label2, "MWidth");
+    label_text(label1, gui_text(TEXT_MIN_WIDTH));
     layout_label(layout1, label1, 0, 0);
-    layout_label(layout2, label2, 0, 0);
-    layout_layout(layout2, layout3, 1, 0);
-    layout_layout(layout1, layout2, 0, 1);
-    layout_vmargin(layout1, 0, i_HEADER_VMARGIN);
-    layout_hmargin(layout2, 0, i_GRID_HMARGIN);
-    layout_hexpand(layout2, 1);
-    layout_vexpand(layout1, 2);
-    cell_dbind(layout_cell(layout2, 1, 0), FSlider, real32_t, min_width);
+    layout_layout(layout1, layout2, 1, 0);
+    layout_hexpand(layout1, 1);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
+    cell_dbind(layout_cell(layout1, 1, 0), FSlider, real32_t, min_width);
     layout_dbind(layout1, listener(data, i_OnSliderNotify, PropData), FSlider);
     data->slider_layout = layout1;
-    return layout1;
+    return i_drawer_layout(data->app, layout1, ekDRAWER_HSLIDER_PROPS);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnVSliderNotify(PropData *data, Event *e)
+{
+    cassert_no_null(data);
+    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
+    dform_synchro_vslider(data->form, &data->sel);
+    dform_compose(data->form);
+    designer_canvas_update(data->app);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Layout *i_vslider_layout(PropData *data)
+{
+    Layout *layout1 = layout_create(2, 2);
+    Layout *layout2 = i_value_updown_layout(gui_text(TIP_SLIDER_MHEIGHT));
+    Label *label1 = label_create();
+    cassert_no_null(data);
+    label_text(label1, gui_text(TEXT_MIN_HEIGHT));
+    layout_label(layout1, label1, 0, 0);
+    layout_layout(layout1, layout2, 1, 0);
+    layout_hexpand(layout1, 1);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
+    cell_dbind(layout_cell(layout1, 1, 0), FVSlider, real32_t, min_height);
+    layout_dbind(layout1, listener(data, i_OnVSliderNotify, PropData), FVSlider);
+    data->vslider_layout = layout1;
+    return i_drawer_layout(data->app, layout1, ekDRAWER_VSLIDER_PROPS);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1176,182 +1171,135 @@ static void i_OnProgressNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
     cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
-    if (evbind_modify(e, FProgress, real32_t, min_width) == TRUE)
-    {
-        dform_synchro_progress(data->form, &data->sel);
-        dform_compose(data->form);
-        designer_canvas_update(data->app);
-    }
+    dform_synchro_progress(data->form, &data->sel);
+    dform_compose(data->form);
+    designer_canvas_update(data->app);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static Layout *i_progress_layout(PropData *data)
 {
-    Layout *layout1 = layout_create(1, 3);
-    Layout *layout2 = layout_create(2, 1);
-    Layout *layout3 = i_value_updown_layout(NULL);
+    Layout *layout1 = layout_create(2, 2);
+    Layout *layout2 = i_value_updown_layout(gui_text(TIP_PROGRESS_MWIDTH));
     Label *label1 = label_create();
-    Label *label2 = label_create();
     cassert_no_null(data);
-    label_text(label1, "Progress properties");
-    label_text(label2, "MWidth");
+    label_text(label1, gui_text(TEXT_MIN_WIDTH));
     layout_label(layout1, label1, 0, 0);
-    layout_label(layout2, label2, 0, 0);
-    layout_layout(layout2, layout3, 1, 0);
-    layout_layout(layout1, layout2, 0, 1);
-    layout_vmargin(layout1, 0, i_HEADER_VMARGIN);
-    layout_hmargin(layout2, 0, i_GRID_HMARGIN);
-    layout_hexpand(layout2, 1);
-    layout_vexpand(layout1, 2);
-    cell_dbind(layout_cell(layout2, 1, 0), FProgress, real32_t, min_width);
+    layout_layout(layout1, layout2, 1, 0);
+    layout_hexpand(layout1, 1);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
+    cell_dbind(layout_cell(layout1, 1, 0), FProgress, real32_t, min_width);
     layout_dbind(layout1, listener(data, i_OnProgressNotify, PropData), FProgress);
     data->progress_layout = layout1;
-    return layout1;
+    return i_drawer_layout(data->app, layout1, ekDRAWER_PROGRESS_PROPS);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnListBoxAdd(PropData *data, Event *e)
-{
-    Window *window = NULL;
-    const char_t *folder_path = NULL;
-    FElem *elem = NULL;
-    cassert_no_null(data);
-    window = designer_main_window(data->app);
-    folder_path = designer_folder_path(data->app);
-    elem = dialog_new_elem(window, folder_path);
-    if (elem != NULL)
-    {
-        FListBox *flistbox = layout_dbind_get_obj(data->listbox_layout, FListBox);
-        FElem *nelem = arrst_new(flistbox->elems, FElem);
-        String *path = NULL;
-        Image *image = NULL;
-        nelem->text = str_copy(elem->text);
-        nelem->iconpath = str_copy(elem->iconpath);
-        path = str_cpath("%s/%s", folder_path, tc(elem->iconpath));
-        image = image_from_file(tc(path), NULL);
-        listbox_add_elem(data->listbox_list, tc(nelem->text), image);
-        dform_synchro_listbox_add(data->form, &data->sel, image);
-        dform_compose(data->form);
-        designer_canvas_update(data->app);
-        str_destroy(&path);
-        ptr_destopt(image_destroy, &image, Image);
-        dbind_destroy(&elem, FElem);
-    }
-    unref(e);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_OnListBoxRemove(PropData *data, Event *e)
-{
-    uint32_t index = UINT32_MAX;
-    cassert_no_null(data);
-    index = listbox_get_selected(data->listbox_list);
-    if (index != UINT32_MAX)
-    {
-        FListBox *flistbox = layout_dbind_get_obj(data->listbox_layout, FListBox);
-        listbox_del_elem(data->listbox_list, index);
-        arrst_delete(flistbox->elems, index, i_remove_elem, FElem);
-        dform_synchro_listbox_del(data->form, &data->sel, index);
-        dform_compose(data->form);
-        designer_canvas_update(data->app);
-    }
-    unref(e);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_OnListBoxClear(PropData *data, Event *e)
-{
-    FListBox *flistbox = NULL;
-    cassert_no_null(data);
-    flistbox = layout_dbind_get_obj(data->listbox_layout, FListBox);
-    arrst_clear(flistbox->elems, i_remove_elem, FElem);
-    listbox_clear(data->listbox_list);
-    dform_synchro_listbox_clear(data->form, &data->sel);
-    dform_compose(data->form);
-    designer_canvas_update(data->app);
-    unref(e);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_OnListBoxNotify(PropData *data, Event *e)
+static void i_OnTextNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
     cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
-    if (evbind_modify(e, FListBox, real32_t, min_width) == TRUE || evbind_modify(e, FListBox, real32_t, min_height) == TRUE)
-    {
-        dform_synchro_listbox(data->form, &data->sel);
-        dform_compose(data->form);
-        designer_canvas_update(data->app);
-    }
+    dform_synchro_textview(data->form, &data->sel);
+    dform_compose(data->form);
+    designer_canvas_update(data->app);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_listbox_layout(PropData *data)
+static Layout *i_text_layout(PropData *data)
 {
-    Layout *layout1 = layout_create(1, 6);
-    Layout *layout2 = layout_create(2, 2);
-    Layout *layout3 = i_value_updown_layout(NULL);
-    Layout *layout4 = i_value_updown_layout(NULL);
-    Layout *layout5 = layout_create(3, 1);
+    Layout *layout1 = layout_create(2, 4);
+    Layout *layout2 = i_value_updown_layout(gui_text(TIP_TEXT_MWIDTH));
+    Layout *layout3 = i_value_updown_layout(gui_text(TIP_TEXT_MHEIGHT));
+    Label *label1 = label_create();
+    Label *label2 = label_create();
+    Label *label3 = label_create();
+    Button *check = button_check();
+    cassert_no_null(data);
+    label_text(label1, gui_text(TEXT_MIN_WIDTH));
+    label_text(label2, gui_text(TEXT_MIN_HEIGHT));
+    label_text(label3, gui_text(TEXT_READ_ONLY));    
+    layout_label(layout1, label1, 0, 0);
+    layout_label(layout1, label2, 0, 1);
+    layout_label(layout1, label3, 0, 2);
+    layout_layout(layout1, layout2, 1, 0);
+    layout_layout(layout1, layout3, 1, 1);
+    layout_button(layout1, check, 1, 2);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
+    layout_vexpand(layout1, 3);
+    cell_dbind(layout_cell(layout1, 1, 0), FText, real32_t, min_width);
+    cell_dbind(layout_cell(layout1, 1, 1), FText, real32_t, min_height);
+    cell_dbind(layout_cell(layout1, 1, 2), FText, bool_t, read_only);
+    layout_dbind(layout1, listener(data, i_OnTextNotify, PropData), FText);
+    data->text_layout = layout1;
+    return i_drawer_layout(data->app, layout1, ekDRAWER_TEXT_PROPS);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnImageNotify(PropData *data, Event *e)
+{
+    cassert_no_null(data);
+    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
+    dform_synchro_imageview(data->form, &data->sel);
+    dform_compose(data->form);
+    designer_canvas_update(data->app);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Layout *i_image_layout(PropData *data)
+{
+    Label *label_icon = NULL;
+    ImageView *view_icon = NULL;
+    Button *button_icon = NULL;
+    Layout *layout1 = layout_create(2, 5);
+    Layout *layout2 = i_value_updown_layout(gui_text(TIP_IMAGE_MWIDTH));
+    Layout *layout3 = i_value_updown_layout(gui_text(TIP_IMAGE_MHEIGHT));
+    Layout *layout4 = i_icon_layout(data, &label_icon, &view_icon, &button_icon);
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
     Label *label4 = label_create();
-    ListBox *list = listbox_create();
-    Button *button1 = button_flat();
-    Button *button2 = button_flat();
-    Button *button3 = button_flat();
+    PopUp *popup = popup_create();
     cassert_no_null(data);
-    label_text(label1, "ListBox properties");
-    label_text(label2, "MWidth");
-    label_text(label3, "MHeight");
-    label_text(label4, "Elements");
-    button_image(button1, cast_const(PLUS16_PNG, Image));
-    button_image(button2, cast_const(ERROR16_PNG, Image));
-    button_image(button3, cast_const(RETRY16_PNG, Image));
-    button_tooltip(button1, "Add a new element");
-    button_tooltip(button2, "Remove current element");
-    button_tooltip(button3, "Clear all elements");
-    button_OnClick(button1, listener(data, i_OnListBoxAdd, PropData));
-    button_OnClick(button2, listener(data, i_OnListBoxRemove, PropData));
-    button_OnClick(button3, listener(data, i_OnListBoxClear, PropData));
+    label_text(label1, gui_text(TEXT_MIN_WIDTH));
+    label_text(label2, gui_text(TEXT_MIN_HEIGHT));
+    label_text(label3, gui_text(TEXT_SCALE));
+    label_text(label4, gui_text(TEXT_IMAGE));
+    popup_tooltip(popup, gui_text(TIP_IMAGE_SCALE));
     layout_label(layout1, label1, 0, 0);
-    layout_label(layout2, label2, 0, 0);
-    layout_label(layout2, label3, 0, 1);
-    layout_label(layout1, label4, 0, 2);
-    layout_listbox(layout1, list, 0, 3);
-    layout_layout(layout2, layout3, 1, 0);
-    layout_layout(layout2, layout4, 1, 1);
-    layout_button(layout5, button1, 0, 0);
-    layout_button(layout5, button2, 1, 0);
-    layout_button(layout5, button3, 2, 0);
-    layout_layout(layout1, layout2, 0, 1);
-    layout_layout(layout1, layout5, 0, 4);
-    layout_halign(layout1, 0, 4, ekLEFT);
-    layout_vmargin(layout1, 0, i_HEADER_VMARGIN);
-    layout_vexpand(layout1, 5);
-    cell_dbind(layout_cell(layout2, 1, 0), FListBox, real32_t, min_width);
-    cell_dbind(layout_cell(layout2, 1, 1), FListBox, real32_t, min_height);
-    layout_dbind(layout1, listener(data, i_OnListBoxNotify, PropData), FListBox);
-    data->listbox_layout = layout1;
-    data->listbox_list = list;
-    return layout1;
+    layout_label(layout1, label2, 0, 1);
+    layout_label(layout1, label3, 0, 2);
+    layout_label(layout1, label4, 0, 3);
+    layout_layout(layout1, layout2, 1, 0);
+    layout_layout(layout1, layout3, 1, 1);
+    layout_popup(layout1, popup, 1, 2);
+    layout_layout(layout1, layout4, 1, 3);
+    layout_vexpand(layout1, 4);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
+    layout_vmargin(layout1, 2, 2);
+    cell_dbind(layout_cell(layout1, 1, 0), FImage, real32_t, min_width);
+    cell_dbind(layout_cell(layout1, 1, 1), FImage, real32_t, min_height);
+    cell_dbind(layout_cell(layout1, 1, 2), FImage, scale_t, scale);
+    layout_dbind(layout1, listener(data, i_OnImageNotify, PropData), FImage);
+    data->label_image_icon = label_icon;
+    data->view_image_icon = view_icon;
+    data->button_image_icon = button_icon;
+    data->image_layout = layout1;
+    return i_drawer_layout(data->app, layout1, ekDRAWER_IMAGE_PROPS);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_init_header(const uint32_t id, FHeader *header)
+static void i_init_column(const uint32_t id, FHeader *header)
 {
     char_t title[64];
     cassert_no_null(header);
     dbind_init(header, FHeader);
-    bstd_sprintf(title, sizeof(title), "Header-%d", id);
+    bstd_sprintf(title, sizeof(title), "Column-%d", id);
     str_upd(&header->title, title);
 }
 
@@ -1361,17 +1309,14 @@ static void i_OnTableNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
     cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
-    if (evbind_modify(e, FTable, real32_t, min_width) == TRUE || evbind_modify(e, FTable, real32_t, min_height) == TRUE)
-    {
-        dform_synchro_table(data->form, &data->sel);
-        dform_compose(data->form);
-        designer_canvas_update(data->app);
-    }
+    dform_synchro_table(data->form, &data->sel);
+    dform_compose(data->form);
+    designer_canvas_update(data->app);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnTableAdd(PropData *data, Event *e)
+static void i_OnTableColumnAdd(PropData *data, Event *e)
 {
     uint32_t id = 0;
     FTable *ftable = NULL;
@@ -1380,11 +1325,11 @@ static void i_OnTableAdd(PropData *data, Event *e)
     ftable = layout_dbind_get_obj(data->table_layout, FTable);
     id = arrst_size(ftable->headers, FHeader);
     fheader = arrst_new0(ftable->headers, FHeader);
-    i_init_header(id, fheader);
+    i_init_column(id, fheader);
     listbox_add_elem(data->table_list, tc(fheader->title), NULL);
     listbox_select(data->table_list, id, TRUE);
     layout_dbind_obj(data->header_layout, fheader, FHeader);
-    dform_synchro_table_add(data->form, &data->sel);
+    dform_synchro_table(data->form, &data->sel);
     dform_compose(data->form);
     designer_canvas_update(data->app);
     unref(e);
@@ -1392,70 +1337,53 @@ static void i_OnTableAdd(PropData *data, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnHeaderNotify(PropData *data, Event *e)
+static void i_OnTableColumnRemove(PropData *data, Event *e)
 {
-    uint32_t id = UINT32_MAX;
+    uint32_t id = 0;
     cassert_no_null(data);
-    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
+    unref(e);
     id = listbox_get_selected(data->table_list);
-    dform_synchro_table_header(data->form, &data->sel, id);
-    designer_canvas_update(data->app);
-
-    if (evbind_modify(e, FHeader, String *, title) == TRUE)
+    
+    if (id != UINT32_MAX)
     {
-        FHeader *fheader = evbind_object(e, FHeader);
-        listbox_set_elem(data->table_list, id, tc(fheader->title), NULL);
+        FTable *ftable = layout_dbind_get_obj(data->table_layout, FTable);
+        FHeader *fheader = NULL;
+        uint32_t n = 0;
+        
+        listbox_del_elem(data->table_list, id);
+        arrst_delete(ftable->headers, id, i_remove_header, FHeader);
+        n = arrst_size(ftable->headers, FHeader);
+
+        if (n > 0)
+        {
+            cassert(id <= n);
+            if (id == n)
+                id -= 1;
+            fheader = arrst_get(ftable->headers, id, FHeader);
+            listbox_select(data->table_list, id, TRUE);
+        }
+
+        layout_dbind_obj(data->header_layout, fheader, FHeader);
+        dform_synchro_table(data->form, &data->sel);
+        dform_compose(data->form);
+        designer_canvas_update(data->app);
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_header_layout(void)
+static void i_OnTableColumnClear(PropData *data, Event *e)
 {
-    Layout *layout1 = layout_create(2, 7);
-    Layout *layout2 = i_value_updown_layout(NULL);
-    Layout *layout3 = i_value_updown_layout(NULL);
-    Layout *layout4 = i_value_updown_layout(NULL);
-    Label *label1 = label_create();
-    Label *label2 = label_create();
-    Label *label3 = label_create();
-    Label *label4 = label_create();
-    Label *label5 = label_create();
-    Label *label6 = label_create();
-    Label *label7 = label_create();
-    Edit *edit = edit_create();
-    PopUp *popup1 = popup_create();
-    PopUp *popup2 = popup_create();
-    Button *check = button_check();
-    label_text(label1, "Title");
-    label_text(label2, "Align");
-    label_text(label3, "DAlign");
-    label_text(label4, "Width");
-    label_text(label5, "Min");
-    label_text(label6, "Max");
-    label_text(label7, "Resize");
-    layout_label(layout1, label1, 0, 0);
-    layout_label(layout1, label2, 0, 1);
-    layout_label(layout1, label3, 0, 2);
-    layout_label(layout1, label4, 0, 3);
-    layout_label(layout1, label5, 0, 4);
-    layout_label(layout1, label6, 0, 5);
-    layout_label(layout1, label7, 0, 6);
-    layout_edit(layout1, edit, 1, 0);
-    layout_popup(layout1, popup1, 1, 1);
-    layout_popup(layout1, popup2, 1, 2);
-    layout_layout(layout1, layout2, 1, 3);
-    layout_layout(layout1, layout3, 1, 4);
-    layout_layout(layout1, layout4, 1, 5);
-    layout_button(layout1, check, 1, 6);
-    cell_dbind(layout_cell(layout1, 1, 0), FHeader, String *, title);
-    cell_dbind(layout_cell(layout1, 1, 1), FHeader, halign_t, align);
-    cell_dbind(layout_cell(layout1, 1, 2), FHeader, halign_t, dalign);
-    cell_dbind(layout_cell(layout1, 1, 3), FHeader, real32_t, width);
-    cell_dbind(layout_cell(layout1, 1, 4), FHeader, real32_t, min_width);
-    cell_dbind(layout_cell(layout1, 1, 5), FHeader, real32_t, max_width);
-    cell_dbind(layout_cell(layout1, 1, 6), FHeader, bool_t, resizable);
-    return layout1;
+    FTable *ftable = NULL;    
+    cassert_no_null(data);
+    unref(e);           
+    ftable = layout_dbind_get_obj(data->table_layout, FTable);
+    listbox_clear(data->table_list);
+    arrst_clear(ftable->headers, i_remove_header, FHeader);
+    layout_dbind_obj(data->header_layout, NULL, FHeader);
+    dform_synchro_table(data->form, &data->sel);
+    dform_compose(data->form);
+    designer_canvas_update(data->app);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1472,61 +1400,164 @@ static void i_OnTableHeaderSelect(PropData *data, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_table_layout(PropData *data)
+static void i_OnTableColumnNotify(PropData *data, Event *e)
 {
-    Layout *layout1 = layout_create(1, 7);
-    Layout *layout2 = layout_create(2, 2);
-    Layout *layout3 = i_value_updown_layout(NULL);
-    Layout *layout4 = i_value_updown_layout(NULL);
-    Layout *layout5 = layout_create(3, 1);
-    Layout *layout6 = i_header_layout();
-    Label *label1 = label_create();
-    Label *label2 = label_create();
-    Label *label3 = label_create();
-    Label *label4 = label_create();
+    uint32_t id = UINT32_MAX;
+    cassert_no_null(data);
+    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
+    id = listbox_get_selected(data->table_list);
+    dform_synchro_table(data->form, &data->sel);
+    designer_canvas_update(data->app);
+
+    if (evbind_modify(e, FHeader, String *, title) == TRUE)
+    {
+        FHeader *fheader = evbind_object(e, FHeader);
+        listbox_set_elem(data->table_list, id, tc(fheader->title), NULL);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Layout *i_columns_layout(PropData *data, ListBox **hlist)
+{
+    Layout *layout1 = layout_create(1, 3);
+    Layout *layout2 = layout_create(3, 1);
+    Label *label = label_create();
     ListBox *list = listbox_create();
     Button *button1 = button_flat();
     Button *button2 = button_flat();
     Button *button3 = button_flat();
     cassert_no_null(data);
-    label_text(label1, "Table properties");
-    label_text(label2, "MWidth");
-    label_text(label3, "MHeight");
-    label_text(label4, "Header");
-    listbox_size(list, s2df(150, 60));
+    cassert_no_null(hlist);
+    label_text(label, gui_text(TEXT_COLUMNS));
     listbox_OnSelect(list, listener(data, i_OnTableHeaderSelect, PropData));
     button_image(button1, cast_const(PLUS16_PNG, Image));
     button_image(button2, cast_const(ERROR16_PNG, Image));
     button_image(button3, cast_const(RETRY16_PNG, Image));
-    button_tooltip(button1, "Add a new column");
-    button_tooltip(button2, "Remove current column");
-    button_tooltip(button3, "Clear all columns");
-    button_OnClick(button1, listener(data, i_OnTableAdd, PropData));
-    /*button_OnClick(button2, listener(data, i_OnListBoxRemove, PropData));*/
-    /*button_OnClick(button3, listener(data, i_OnListBoxClear, PropData));*/
-    layout_label(layout1, label1, 0, 0);
-    layout_label(layout2, label2, 0, 0);
-    layout_label(layout2, label3, 0, 1);
-    layout_label(layout1, label4, 0, 2);
-    layout_listbox(layout1, list, 0, 3);
-    layout_layout(layout2, layout3, 1, 0);
-    layout_layout(layout2, layout4, 1, 1);
-    layout_button(layout5, button1, 0, 0);
-    layout_button(layout5, button2, 1, 0);
-    layout_button(layout5, button3, 2, 0);
-    layout_layout(layout1, layout2, 0, 1);
-    layout_layout(layout1, layout5, 0, 4);
-    layout_layout(layout1, layout6, 0, 5);
-    layout_halign(layout1, 0, 4, ekLEFT);
-    layout_vmargin(layout1, 0, i_HEADER_VMARGIN);
-    layout_vexpand(layout1, 6);
+    button_tooltip(button1, gui_text(TIP_COLUMN_ADD));
+    button_tooltip(button2, gui_text(TIP_COLUMN_REMOVE));
+    button_tooltip(button3, gui_text(TIP_COLUMN_CLEAR));
+    button_OnClick(button1, listener(data, i_OnTableColumnAdd, PropData));
+    button_OnClick(button2, listener(data, i_OnTableColumnRemove, PropData));
+    button_OnClick(button3, listener(data, i_OnTableColumnClear, PropData));
+    layout_label(layout1, label, 0, 0);
+    layout_listbox(layout1, list, 0, 1);
+    layout_button(layout2, button1, 0, 0);
+    layout_button(layout2, button2, 1, 0);
+    layout_button(layout2, button3, 2, 0);
+    layout_layout(layout1, layout2, 0, 2);
+    layout_halign(layout1, 0, 2, ekLEFT);
+    *hlist = list;
+    return layout1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Layout *i_table_frame_layout(PropData *data)
+{
+    ListBox *list = NULL;
+    Layout *layout1 = layout_create(1, 3);
+    Layout *layout2 = layout_create(2, 2);
+    Layout *layout3 = i_columns_layout(data, &list);
+    Layout *layout4 = i_value_updown_layout(gui_text(TIP_TABLE_MWIDTH));
+    Layout *layout5 = i_value_updown_layout(gui_text(TIP_TABLE_MHEIGHT));
+    Label *label1 = label_create();
+    Label *label2 = label_create();
+    cassert_no_null(data);
+    label_text(label1, gui_text(TEXT_MIN_WIDTH));
+    label_text(label2, gui_text(TEXT_MIN_HEIGHT));
+    layout_label(layout2, label1, 0, 0);
+    layout_label(layout2, label2, 0, 1);
+    layout_layout(layout2, layout4, 1, 0);
+    layout_layout(layout2, layout5, 1, 1);
+    layout_layout(layout1, layout2, 0, 0);
+    layout_layout(layout1, layout3, 0, 1);
+    layout_hmargin(layout2, 0, i_LABEL_COLUMN_MARGIN);
+    layout_vexpand(layout1, 2);
     cell_dbind(layout_cell(layout2, 1, 0), FTable, real32_t, min_width);
     cell_dbind(layout_cell(layout2, 1, 1), FTable, real32_t, min_height);
-    layout_dbind(layout2, listener(data, i_OnTableNotify, PropData), FTable);
-    layout_dbind(layout6, listener(data, i_OnHeaderNotify, PropData), FHeader);
-    data->table_layout = layout2;
-    data->header_layout = layout6;
     data->table_list = list;
+    return layout1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Layout *i_table_column_layout(void)
+{
+    Layout *layout1 = layout_create(2, 7);
+    Layout *layout2 = i_value_updown_layout(gui_text(TIP_COLUMN_WIDTH));
+    Layout *layout3 = i_value_updown_layout(gui_text(TIP_COLUMN_HALIGN));
+    Layout *layout4 = i_value_updown_layout(gui_text(TIP_COLUMN_DALIGN));
+    Label *label1 = label_create();
+    Label *label2 = label_create();
+    Label *label3 = label_create();
+    Label *label4 = label_create();
+    Label *label5 = label_create();
+    Label *label6 = label_create();
+    Label *label7 = label_create();
+    Edit *edit = edit_create();
+    PopUp *popup1 = popup_create();
+    PopUp *popup2 = popup_create();
+    Button *check = button_check();
+    label_text(label1, gui_text(TEXT_TITLE));
+    label_text(label2, gui_text(TEXT_ALIGN));
+    label_text(label3, gui_text(TEXT_DALIGN));
+    label_text(label4, gui_text(TEXT_WIDTH));
+    label_text(label5, gui_text(TEXT_MIN_WIDTH));
+    label_text(label6, gui_text(TEXT_MAX_WIDTH));
+    label_text(label7, gui_text(TEXT_RESIZABLE));
+    edit_tooltip(edit, gui_text(TIP_COLUMN_TITLE));
+    popup_tooltip(popup1, gui_text(TIP_COLUMN_HALIGN));
+    popup_tooltip(popup2, gui_text(TIP_COLUMN_DALIGN));
+    button_tooltip(check, gui_text(TIP_COLUMN_RESIZE));
+    layout_label(layout1, label1, 0, 0);
+    layout_label(layout1, label2, 0, 1);
+    layout_label(layout1, label3, 0, 2);
+    layout_label(layout1, label4, 0, 3);
+    layout_label(layout1, label5, 0, 4);
+    layout_label(layout1, label6, 0, 5);
+    layout_label(layout1, label7, 0, 6);
+    layout_edit(layout1, edit, 1, 0);
+    layout_popup(layout1, popup1, 1, 1);
+    layout_popup(layout1, popup2, 1, 2);
+    layout_layout(layout1, layout2, 1, 3);
+    layout_layout(layout1, layout3, 1, 4);
+    layout_layout(layout1, layout4, 1, 5);
+    layout_button(layout1, check, 1, 6);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
+    cell_dbind(layout_cell(layout1, 1, 0), FHeader, String *, title);
+    cell_dbind(layout_cell(layout1, 1, 1), FHeader, halign_t, align);
+    cell_dbind(layout_cell(layout1, 1, 2), FHeader, halign_t, dalign);
+    cell_dbind(layout_cell(layout1, 1, 3), FHeader, real32_t, width);
+    cell_dbind(layout_cell(layout1, 1, 4), FHeader, real32_t, min_width);
+    cell_dbind(layout_cell(layout1, 1, 5), FHeader, real32_t, max_width);
+    cell_dbind(layout_cell(layout1, 1, 6), FHeader, bool_t, resizable);
+    return layout1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Layout *i_table_layout(PropData *data)
+{
+    Layout *layout1 = layout_create(1, 3);
+    Layout *layout2 = i_table_frame_layout(data);
+    Layout *layout3 = i_table_column_layout();
+    Panel *panel1 = panel_create();
+    Panel *panel2 = panel_create();
+    Panel *panel3 = NULL;
+    Panel *panel4 = NULL;
+    cassert_no_null(data);
+    panel_layout(panel1, layout2);
+    panel_layout(panel2, layout3);
+    panel3 = designer_drawer(data->app, panel1, ekDRAWER_TABLE_FRAME_PROPS);
+    panel4 = designer_drawer(data->app, panel2, ekDRAWER_TABLE_COLS_PROPS);
+    layout_panel(layout1, panel3, 0, 0);
+    layout_panel(layout1, panel4, 0, 1);
+    layout_vexpand(layout1, 2);
+    layout_dbind(layout2, listener(data, i_OnTableNotify, PropData), FTable);
+    layout_dbind(layout3, listener(data, i_OnTableColumnNotify, PropData), FHeader);
+    data->table_layout = layout2;
+    data->header_layout = layout3;
     return layout1;
 }
 
@@ -1544,12 +1575,13 @@ static Panel *i_cell_content_panel(PropData *data)
     Layout *layout8 = i_popup_layout(data);
     Layout *layout9 = i_edit_layout(data);
     Layout *layout10 = i_combo_layout(data);
-    Layout *layout11 = i_text_layout(data);
-    Layout *layout12 = i_image_layout(data);
-    Layout *layout13 = i_slider_layout(data);
+    Layout *layout11 = i_listbox_layout(data);
+    Layout *layout12 = i_slider_layout(data);
+    Layout *layout13 = i_vslider_layout(data);
     Layout *layout14 = i_progress_layout(data);
-    Layout *layout15 = i_listbox_layout(data);
-    Layout *layout16 = i_table_layout(data);
+    Layout *layout15 = i_text_layout(data);
+    Layout *layout16 = i_image_layout(data);
+    Layout *layout17 = i_table_layout(data);
     Panel *panel = panel_create();
     cassert_no_null(data);
     panel_layout(panel, layout1);
@@ -1568,6 +1600,7 @@ static Panel *i_cell_content_panel(PropData *data)
     panel_layout(panel, layout14);
     panel_layout(panel, layout15);
     panel_layout(panel, layout16);
+    panel_layout(panel, layout17);
     panel_visible_layout(panel, 0);
     data->cell_panel = panel;
     return panel;
@@ -1790,6 +1823,7 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
     {
         FCell *cell = dform_sel_fcell(sel);
         const char_t *type = dform_cell_type(cell->type);
+        const char_t *folder_path = designer_folder_path(data->app);
         char_t text[64];
         bstd_sprintf(text, sizeof(text), "%s (%d,%d)", type, sel->col, sel->row);
         label_text(data->cell_type_label, text);
@@ -1825,17 +1859,15 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
         }
         else if (cell->type == ekCELL_TYPE_TOOL)
         {
-            const char_t *folder_path = designer_folder_path(data->app);
             layout_dbind_obj(data->tool_layout, cell->widget.tool, FTool);
-            i_update_icon(data->icon_tool_view, data->label_tool_icon, data->load_tool_icon, folder_path, tc(cell->widget.tool->path));
+            i_update_icon(data->view_tool_icon, data->label_tool_icon, data->button_tool_icon, folder_path, tc(cell->widget.tool->path));
             panel_visible_layout(data->cell_panel, 6);
         }
         else if (cell->type == ekCELL_TYPE_POPUP)
         {
-            const char_t *folder_path = designer_folder_path(data->app);
             layout_dbind_obj(data->popup_layout, cell->widget.popup, FPopUp);
-            panel_visible_layout(data->cell_panel, 7);
             i_update_elem_list(cell->widget.popup->elems, data->popup_list, folder_path);
+            panel_visible_layout(data->cell_panel, 7);
         }
         else if (cell->type == ekCELL_TYPE_EDIT)
         {
@@ -1847,20 +1879,20 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
             layout_dbind_obj(data->combo_layout, cell->widget.combo, FCombo);
             panel_visible_layout(data->cell_panel, 9);
         }
-        else if (cell->type == ekCELL_TYPE_TEXT)
+        else if (cell->type == ekCELL_TYPE_LISTBOX)
         {
-            layout_dbind_obj(data->text_layout, cell->widget.text, FText);
+            layout_dbind_obj(data->listbox_layout, cell->widget.listbox, FListBox);
+            i_update_elem_list(cell->widget.listbox->elems, data->listbox_list, folder_path);
             panel_visible_layout(data->cell_panel, 10);
-        }
-        else if (cell->type == ekCELL_TYPE_IMAGE)
-        {
-            layout_dbind_obj(data->image_layout, cell->widget.image, FImage);
-            panel_visible_layout(data->cell_panel, 11);
-            button_tooltip(data->load_button, tc(cell->widget.image->path));
         }
         else if (cell->type == ekCELL_TYPE_SLIDER)
         {
             layout_dbind_obj(data->slider_layout, cell->widget.slider, FSlider);
+            panel_visible_layout(data->cell_panel, 11);
+        }
+        else if (cell->type == ekCELL_TYPE_VSLIDER)
+        {
+            layout_dbind_obj(data->vslider_layout, cell->widget.vslider, FVSlider);
             panel_visible_layout(data->cell_panel, 12);
         }
         else if (cell->type == ekCELL_TYPE_PROGRESS)
@@ -1868,18 +1900,22 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
             layout_dbind_obj(data->progress_layout, cell->widget.progress, FProgress);
             panel_visible_layout(data->cell_panel, 13);
         }
-        else if (cell->type == ekCELL_TYPE_LISTBOX)
+        else if (cell->type == ekCELL_TYPE_TEXT)
         {
-            const char_t *folder_path = designer_folder_path(data->app);
-            layout_dbind_obj(data->listbox_layout, cell->widget.listbox, FListBox);
+            layout_dbind_obj(data->text_layout, cell->widget.text, FText);
             panel_visible_layout(data->cell_panel, 14);
-            i_update_elem_list(cell->widget.listbox->elems, data->listbox_list, folder_path);
+        }
+        else if (cell->type == ekCELL_TYPE_IMAGE)
+        {
+            layout_dbind_obj(data->image_layout, cell->widget.image, FImage);
+            i_update_icon(data->view_image_icon, data->label_image_icon, data->button_image_icon, folder_path, tc(cell->widget.image->path));
+            panel_visible_layout(data->cell_panel, 15);
         }
         else if (cell->type == ekCELL_TYPE_TABLEVIEW)
         {
             layout_dbind_obj(data->table_layout, cell->widget.table, FTable);
-            panel_visible_layout(data->cell_panel, 15);
             i_update_header_list(cell->widget.table->headers, data->table_list, data->header_layout);
+            panel_visible_layout(data->cell_panel, 16);
         }
         else
         {

@@ -1,5 +1,9 @@
-/* NAppGUI forms common base */
+/* NAppGUI forms serialization */
 
 #include "nflib.hxx"
 
 align_t _nflib_halign(const halign_t halign);
+
+align_t _nflib_valign(const valign_t valign);
+
+gui_scale_t _nflib_scale(const scale_t scale);

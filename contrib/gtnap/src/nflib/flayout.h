@@ -34,8 +34,6 @@ _nflib_api void flayout_remove_row(FLayout *layout, const uint32_t row);
 
 _nflib_api void flayout_remove_cell(FLayout *layout, const uint32_t col, const uint32_t row);
 
-_nflib_api void flayout_add_layout(FLayout *layout, FLayout *sublayout, const uint32_t col, const uint32_t row);
-
 _nflib_api void flayout_add_label(FLayout *layout, FLabel *label, const uint32_t col, const uint32_t row);
 
 _nflib_api void flayout_add_button(FLayout *layout, FButton *button, const uint32_t col, const uint32_t row);
@@ -46,23 +44,27 @@ _nflib_api void flayout_add_radio(FLayout *layout, FRadio *radio, const uint32_t
 
 _nflib_api void flayout_add_tool(FLayout *layout, FTool *tool, const uint32_t col, const uint32_t row);
 
+_nflib_api void flayout_add_popup(FLayout *layout, FPopUp *popup, const uint32_t col, const uint32_t row);
+
 _nflib_api void flayout_add_edit(FLayout *layout, FEdit *edit, const uint32_t col, const uint32_t row);
 
 _nflib_api void flayout_add_combo(FLayout *layout, FCombo *combo, const uint32_t col, const uint32_t row);
+
+_nflib_api void flayout_add_listbox(FLayout *layout, FListBox *listbox, const uint32_t col, const uint32_t row);
+
+_nflib_api void flayout_add_slider(FLayout *layout, FSlider *slider, const uint32_t col, const uint32_t row);
+
+_nflib_api void flayout_add_vslider(FLayout *layout, FVSlider *vslider, const uint32_t col, const uint32_t row);
+
+_nflib_api void flayout_add_progress(FLayout *layout, FProgress *progress, const uint32_t col, const uint32_t row);
 
 _nflib_api void flayout_add_text(FLayout *layout, FText *text, const uint32_t col, const uint32_t row);
 
 _nflib_api void flayout_add_image(FLayout *layout, FImage *image, const uint32_t col, const uint32_t row);
 
-_nflib_api void flayout_add_slider(FLayout *layout, FSlider *slider, const uint32_t col, const uint32_t row);
-
-_nflib_api void flayout_add_progress(FLayout *layout, FProgress *progress, const uint32_t col, const uint32_t row);
-
-_nflib_api void flayout_add_popup(FLayout *layout, FPopUp *popup, const uint32_t col, const uint32_t row);
-
-_nflib_api void flayout_add_listbox(FLayout *layout, FListBox *listbox, const uint32_t col, const uint32_t row);
-
 _nflib_api void flayout_add_table(FLayout *layout, FTable *table, const uint32_t col, const uint32_t row);
+
+_nflib_api void flayout_add_layout(FLayout *layout, FLayout *sublayout, const uint32_t col, const uint32_t row);
 
 _nflib_api uint32_t flayout_ncols(const FLayout *layout);
 

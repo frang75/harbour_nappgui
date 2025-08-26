@@ -2,13 +2,22 @@
 
 #include "flayout.h"
 #include "nflib.h"
+#include "nflib.inl"
 #include "fcheck.h"
 #include "fcombo.h"
 #include "fbutton.h"
+#include "fedit.h"
 #include "flabel.h"
-#include "fradio.h"
-#include "ftool.h"
+#include "flistbox.h"
+#include "fimage.h"
 #include "fpopup.h"
+#include "fprogress.h"
+#include "fradio.h"
+#include "fslider.h"
+#include "fvslider.h"
+#include "ftable.h"
+#include "ftext.h"
+#include "ftool.h"
 #include <gui/button.h>
 #include <gui/cell.h>
 #include <gui/combo.h>
@@ -90,39 +99,43 @@ static void i_remove_cell(FCell *cell)
         break;
 
     case ekCELL_TYPE_EDIT:
-        dbind_destroy(&cell->widget.edit, FEdit);
+        fedit_destroy(&cell->widget.edit);
         break;
 
     case ekCELL_TYPE_COMBO:
-        dbind_destroy(&cell->widget.combo, FCombo);
+        fcombo_destroy(&cell->widget.combo);
+        break;
+
+    case ekCELL_TYPE_LISTBOX:
+        flistbox_destroy(&cell->widget.listbox);
+        break;
+
+    case ekCELL_TYPE_SLIDER:
+        fslider_destroy(&cell->widget.slider);
+        break;
+
+    case ekCELL_TYPE_VSLIDER:
+        fvslider_destroy(&cell->widget.vslider);
+        break;
+
+    case ekCELL_TYPE_PROGRESS:
+        fprogress_destroy(&cell->widget.progress);
+        break;
+
+    case ekCELL_TYPE_TEXT:
+        ftext_destroy(&cell->widget.text);
+        break;
+
+    case ekCELL_TYPE_IMAGE:
+        fimage_destroy(&cell->widget.image);
+        break;
+
+    case ekCELL_TYPE_TABLEVIEW:
+        ftable_destroy(&cell->widget.table);
         break;
 
     case ekCELL_TYPE_LAYOUT:
         flayout_destroy(&cell->widget.layout);
-        break;
-
-    case ekCELL_TYPE_TEXT:
-        dbind_destroy(&cell->widget.text, FText);
-        break;
-
-    case ekCELL_TYPE_IMAGE:
-        dbind_destroy(&cell->widget.image, FImage);
-        break;
-
-    case ekCELL_TYPE_SLIDER:
-        dbind_destroy(&cell->widget.slider, FSlider);
-        break;
-
-    case ekCELL_TYPE_PROGRESS:
-        dbind_destroy(&cell->widget.progress, FProgress);
-        break;
-
-    case ekCELL_TYPE_LISTBOX:
-        dbind_destroy(&cell->widget.listbox, FListBox);
-        break;
-
-    case ekCELL_TYPE_TABLEVIEW:
-        dbind_destroy(&cell->widget.table, FTable);
         break;
 
         cassert_default();
@@ -133,13 +146,15 @@ static void i_remove_cell(FCell *cell)
     cassert(cell->widget.check == NULL);
     cassert(cell->widget.radio == NULL);
     cassert(cell->widget.tool == NULL);
+    cassert(cell->widget.popup == NULL);
     cassert(cell->widget.edit == NULL);
+    cassert(cell->widget.combo == NULL);
+    cassert(cell->widget.listbox == NULL);
+    cassert(cell->widget.slider == NULL);
+    cassert(cell->widget.vslider == NULL);
+    cassert(cell->widget.progress == NULL);
     cassert(cell->widget.text == NULL);
     cassert(cell->widget.image == NULL);
-    cassert(cell->widget.slider == NULL);
-    cassert(cell->widget.progress == NULL);
-    cassert(cell->widget.popup == NULL);
-    cassert(cell->widget.listbox == NULL);
     cassert(cell->widget.table == NULL);
     cassert(cell->widget.layout == NULL);
 }
@@ -284,6 +299,23 @@ static FTool *i_read_tool(Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_read_elem(Stream *stm, FElem *elem)
+{
+    elem->text = str_read(stm);
+    elem->iconpath = str_read(stm);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static FPopUp *i_read_popup(Stream *stm)
+{
+    FPopUp *popup = heap_new0(FPopUp);
+    popup->elems = arrst_read(stm, i_read_elem, FElem);
+    return popup;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static FEdit *i_read_edit(Stream *stm)
 {
     FEdit *edit = heap_new0(FEdit);
@@ -313,6 +345,44 @@ static FCombo *i_read_combo(Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
+static FListBox *i_read_listbox(Stream *stm)
+{
+    FListBox *listbox = heap_new0(FListBox);
+    listbox->min_width = stm_read_r32(stm);
+    listbox->min_height = stm_read_r32(stm);
+    listbox->elems = arrst_read(stm, i_read_elem, FElem);
+    return listbox;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static FSlider *i_read_slider(Stream *stm)
+{
+    FSlider *slider = heap_new0(FSlider);
+    slider->min_width = stm_read_r32(stm);
+    return slider;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static FVSlider *i_read_vslider(Stream *stm)
+{
+    FVSlider *slider = heap_new0(FVSlider);
+    slider->min_height = stm_read_r32(stm);
+    return slider;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static FProgress *i_read_progress(Stream *stm)
+{
+    FProgress *progress = heap_new0(FProgress);
+    progress->min_width = stm_read_r32(stm);
+    return progress;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static FText *i_read_text(Stream *stm)
 {
     FText *text = heap_new0(FText);
@@ -332,52 +402,6 @@ static FImage *i_read_image(Stream *stm)
     image->min_width = stm_read_r32(stm);
     image->min_height = stm_read_r32(stm);
     return image;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static FSlider *i_read_slider(Stream *stm)
-{
-    FSlider *slider = heap_new0(FSlider);
-    slider->min_width = stm_read_r32(stm);
-    return slider;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static FProgress *i_read_progress(Stream *stm)
-{
-    FProgress *progress = heap_new0(FProgress);
-    progress->min_width = stm_read_r32(stm);
-    return progress;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_read_elem(Stream *stm, FElem *elem)
-{
-    elem->text = str_read(stm);
-    elem->iconpath = str_read(stm);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static FPopUp *i_read_popup(Stream *stm)
-{
-    FPopUp *popup = heap_new0(FPopUp);
-    popup->elems = arrst_read(stm, i_read_elem, FElem);
-    return popup;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static FListBox *i_read_listbox(Stream *stm)
-{
-    FListBox *listbox = heap_new0(FListBox);
-    listbox->min_width = stm_read_r32(stm);
-    listbox->min_height = stm_read_r32(stm);
-    listbox->elems = arrst_read(stm, i_read_elem, FElem);
-    return listbox;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -433,29 +457,32 @@ static void i_read_cell(Stream *stm, FCell *cell)
     case ekCELL_TYPE_TOOL:
         cell->widget.tool = i_read_tool(stm);
         break;
+    case ekCELL_TYPE_POPUP:
+        cell->widget.popup = i_read_popup(stm);
+        break;
     case ekCELL_TYPE_EDIT:
         cell->widget.edit = i_read_edit(stm);
         break;
     case ekCELL_TYPE_COMBO:
         cell->widget.combo = i_read_combo(stm);
         break;
+    case ekCELL_TYPE_LISTBOX:
+        cell->widget.listbox = i_read_listbox(stm);
+        break;
+    case ekCELL_TYPE_SLIDER:
+        cell->widget.slider = i_read_slider(stm);
+        break;
+    case ekCELL_TYPE_VSLIDER:
+        cell->widget.vslider = i_read_vslider(stm);
+        break;
+    case ekCELL_TYPE_PROGRESS:
+        cell->widget.progress = i_read_progress(stm);
+        break;
     case ekCELL_TYPE_TEXT:
         cell->widget.text = i_read_text(stm);
         break;
     case ekCELL_TYPE_IMAGE:
         cell->widget.image = i_read_image(stm);
-        break;
-    case ekCELL_TYPE_SLIDER:
-        cell->widget.slider = i_read_slider(stm);
-        break;
-    case ekCELL_TYPE_PROGRESS:
-        cell->widget.progress = i_read_progress(stm);
-        break;
-    case ekCELL_TYPE_POPUP:
-        cell->widget.popup = i_read_popup(stm);
-        break;
-    case ekCELL_TYPE_LISTBOX:
-        cell->widget.listbox = i_read_listbox(stm);
         break;
     case ekCELL_TYPE_TABLEVIEW:
         cell->widget.table = i_read_table(stm);
@@ -574,6 +601,22 @@ static void i_write_tool(Stream *stm, const FTool *tool)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_write_elem(Stream *stm, const FElem *elem)
+{
+    str_write(stm, elem->text);
+    str_write(stm, elem->iconpath);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_write_popup(Stream *stm, const FPopUp *popup)
+{
+    cassert_no_null(popup);
+    arrst_write(stm, popup->elems, i_write_elem, FElem);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_write_edit(Stream *stm, const FEdit *edit)
 {
     cassert_no_null(edit);
@@ -596,6 +639,40 @@ static void i_write_combo(Stream *stm, const FCombo *combo)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_write_listbox(Stream *stm, const FListBox *listbox)
+{
+    cassert_no_null(listbox);
+    stm_write_r32(stm, listbox->min_width);
+    stm_write_r32(stm, listbox->min_height);
+    arrst_write(stm, listbox->elems, i_write_elem, FElem);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_write_slider(Stream *stm, const FSlider *slider)
+{
+    cassert_no_null(slider);
+    stm_write_r32(stm, slider->min_width);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_write_vslider(Stream *stm, const FVSlider *slider)
+{
+    cassert_no_null(slider);
+    stm_write_r32(stm, slider->min_height);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_write_progress(Stream *stm, const FProgress *progress)
+{
+    cassert_no_null(progress);
+    stm_write_r32(stm, progress->min_width);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_write_text(Stream *stm, const FText *text)
 {
     cassert_no_null(text);
@@ -613,48 +690,6 @@ static void i_write_image(Stream *stm, const FImage *image)
     stm_write_enum(stm, image->scale, scale_t);
     stm_write_r32(stm, image->min_width);
     stm_write_r32(stm, image->min_height);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_write_slider(Stream *stm, const FSlider *slider)
-{
-    cassert_no_null(slider);
-    stm_write_r32(stm, slider->min_width);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_write_progress(Stream *stm, const FProgress *progress)
-{
-    cassert_no_null(progress);
-    stm_write_r32(stm, progress->min_width);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_write_elem(Stream *stm, const FElem *elem)
-{
-    str_write(stm, elem->text);
-    str_write(stm, elem->iconpath);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_write_popup(Stream *stm, const FPopUp *popup)
-{
-    cassert_no_null(popup);
-    arrst_write(stm, popup->elems, i_write_elem, FElem);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_write_listbox(Stream *stm, const FListBox *listbox)
-{
-    cassert_no_null(listbox);
-    stm_write_r32(stm, listbox->min_width);
-    stm_write_r32(stm, listbox->min_height);
-    arrst_write(stm, listbox->elems, i_write_elem, FElem);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -709,29 +744,32 @@ static void i_write_cell(Stream *stm, const FCell *cell)
     case ekCELL_TYPE_TOOL:
         i_write_tool(stm, cell->widget.tool);
         break;
+    case ekCELL_TYPE_POPUP:
+        i_write_popup(stm, cell->widget.popup);
+        break;
     case ekCELL_TYPE_EDIT:
         i_write_edit(stm, cell->widget.edit);
         break;
     case ekCELL_TYPE_COMBO:
         i_write_combo(stm, cell->widget.combo);
         break;
+    case ekCELL_TYPE_LISTBOX:
+        i_write_listbox(stm, cell->widget.listbox);
+        break;
+    case ekCELL_TYPE_SLIDER:
+        i_write_slider(stm, cell->widget.slider);
+        break;
+    case ekCELL_TYPE_VSLIDER:
+        i_write_vslider(stm, cell->widget.vslider);
+        break;
+    case ekCELL_TYPE_PROGRESS:
+        i_write_progress(stm, cell->widget.progress);
+        break;
     case ekCELL_TYPE_TEXT:
         i_write_text(stm, cell->widget.text);
         break;
     case ekCELL_TYPE_IMAGE:
         i_write_image(stm, cell->widget.image);
-        break;
-    case ekCELL_TYPE_SLIDER:
-        i_write_slider(stm, cell->widget.slider);
-        break;
-    case ekCELL_TYPE_PROGRESS:
-        i_write_progress(stm, cell->widget.progress);
-        break;
-    case ekCELL_TYPE_POPUP:
-        i_write_popup(stm, cell->widget.popup);
-        break;
-    case ekCELL_TYPE_LISTBOX:
-        i_write_listbox(stm, cell->widget.listbox);
         break;
     case ekCELL_TYPE_TABLEVIEW:
         i_write_table(stm, cell->widget.table);
@@ -926,24 +964,9 @@ void flayout_remove_cell(FLayout *layout, const uint32_t col, const uint32_t row
     cassert_no_null(cell);
     name = str_c(tc(cell->name));
     i_remove_cell(cell);
-    /*dbind_remove(cell, FCell);*/
     cell->type = ekCELL_TYPE_EMPTY;
     str_upd(&cell->name, tc(name));
     str_destroy(&name);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void flayout_add_layout(FLayout *layout, FLayout *sublayout, const uint32_t col, const uint32_t row)
-{
-    FCell *cell = i_cell(layout, col, row);
-    cassert_no_null(cell);
-    cassert_no_null(sublayout);
-    cassert(cell->type == ekCELL_TYPE_EMPTY);
-    cell->type = ekCELL_TYPE_LAYOUT;
-    cell->halign = ekHALIGN_JUSTIFY;
-    cell->valign = ekVALIGN_JUSTIFY;
-    cell->widget.layout = sublayout;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1018,6 +1041,20 @@ void flayout_add_tool(FLayout *layout, FTool *tool, const uint32_t col, const ui
 
 /*---------------------------------------------------------------------------*/
 
+void flayout_add_popup(FLayout *layout, FPopUp *popup, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(popup);
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_POPUP;
+    cell->halign = ekHALIGN_JUSTIFY;
+    cell->valign = ekVALIGN_CENTER;
+    cell->widget.popup = popup;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void flayout_add_edit(FLayout *layout, FEdit *edit, const uint32_t col, const uint32_t row)
 {
     FCell *cell = i_cell(layout, col, row);
@@ -1042,6 +1079,62 @@ void flayout_add_combo(FLayout *layout, FCombo *combo, const uint32_t col, const
     cell->halign = ekHALIGN_JUSTIFY;
     cell->valign = ekVALIGN_CENTER;
     cell->widget.combo = combo;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_add_listbox(FLayout *layout, FListBox *listbox, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(listbox);
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_LISTBOX;
+    cell->halign = ekHALIGN_JUSTIFY;
+    cell->valign = ekVALIGN_JUSTIFY;
+    cell->widget.listbox = listbox;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_add_slider(FLayout *layout, FSlider *slider, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(slider);
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_SLIDER;
+    cell->halign = ekHALIGN_JUSTIFY;
+    cell->valign = ekVALIGN_CENTER;
+    cell->widget.slider = slider;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_add_vslider(FLayout *layout, FVSlider *slider, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(slider);
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_VSLIDER;
+    cell->halign = ekHALIGN_CENTER;
+    cell->valign = ekVALIGN_JUSTIFY;
+    cell->widget.vslider = slider;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_add_progress(FLayout *layout, FProgress *progress, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(progress);
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_PROGRESS;
+    cell->halign = ekHALIGN_JUSTIFY;
+    cell->valign = ekVALIGN_CENTER;
+    cell->widget.progress = progress;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1074,61 +1167,6 @@ void flayout_add_image(FLayout *layout, FImage *image, const uint32_t col, const
 
 /*---------------------------------------------------------------------------*/
 
-void flayout_add_slider(FLayout *layout, FSlider *slider, const uint32_t col, const uint32_t row)
-{
-    FCell *cell = i_cell(layout, col, row);
-    cassert_no_null(cell);
-    cassert_no_null(slider);
-    cassert(cell->type == ekCELL_TYPE_EMPTY);
-    cell->type = ekCELL_TYPE_SLIDER;
-    cell->halign = ekHALIGN_JUSTIFY;
-    cell->valign = ekVALIGN_CENTER;
-    cell->widget.slider = slider;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void flayout_add_progress(FLayout *layout, FProgress *progress, const uint32_t col, const uint32_t row)
-{
-    FCell *cell = i_cell(layout, col, row);
-    cassert_no_null(cell);
-    cassert_no_null(progress);
-    cassert(cell->type == ekCELL_TYPE_EMPTY);
-    cell->type = ekCELL_TYPE_PROGRESS;
-    cell->halign = ekHALIGN_JUSTIFY;
-    cell->valign = ekVALIGN_CENTER;
-    cell->widget.progress = progress;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void flayout_add_popup(FLayout *layout, FPopUp *popup, const uint32_t col, const uint32_t row)
-{
-    FCell *cell = i_cell(layout, col, row);
-    cassert_no_null(cell);
-    cassert_no_null(popup);
-    cassert(cell->type == ekCELL_TYPE_EMPTY);
-    cell->type = ekCELL_TYPE_POPUP;
-    cell->halign = ekHALIGN_JUSTIFY;
-    cell->valign = ekVALIGN_CENTER;
-    cell->widget.popup = popup;
-}
-/*---------------------------------------------------------------------------*/
-
-void flayout_add_listbox(FLayout *layout, FListBox *listbox, const uint32_t col, const uint32_t row)
-{
-    FCell *cell = i_cell(layout, col, row);
-    cassert_no_null(cell);
-    cassert_no_null(listbox);
-    cassert(cell->type == ekCELL_TYPE_EMPTY);
-    cell->type = ekCELL_TYPE_LISTBOX;
-    cell->halign = ekHALIGN_JUSTIFY;
-    cell->valign = ekVALIGN_JUSTIFY;
-    cell->widget.listbox = listbox;
-}
-
-/*---------------------------------------------------------------------------*/
-
 void flayout_add_table(FLayout *layout, FTable *table, const uint32_t col, const uint32_t row)
 {
     FCell *cell = i_cell(layout, col, row);
@@ -1139,6 +1177,20 @@ void flayout_add_table(FLayout *layout, FTable *table, const uint32_t col, const
     cell->halign = ekHALIGN_JUSTIFY;
     cell->valign = ekVALIGN_JUSTIFY;
     cell->widget.table = table;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_add_layout(FLayout *layout, FLayout *sublayout, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(sublayout);
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_LAYOUT;
+    cell->halign = ekHALIGN_JUSTIFY;
+    cell->valign = ekVALIGN_JUSTIFY;
+    cell->widget.layout = sublayout;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1185,63 +1237,6 @@ FCell *flayout_cell(FLayout *layout, const uint32_t col, const uint32_t row)
 const FCell *flayout_ccell(const FLayout *layout, const uint32_t col, const uint32_t row)
 {
     return i_cell(cast(layout, FLayout), col, row);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static align_t i_halign(const halign_t halign)
-{
-    switch (halign)
-    {
-    case ekHALIGN_LEFT:
-        return ekLEFT;
-    case ekHALIGN_CENTER:
-        return ekCENTER;
-    case ekHALIGN_RIGHT:
-        return ekRIGHT;
-    case ekHALIGN_JUSTIFY:
-        return ekJUSTIFY;
-        cassert_default();
-    }
-    return ekLEFT;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static align_t i_valign(const valign_t valign)
-{
-    switch (valign)
-    {
-    case ekVALIGN_TOP:
-        return ekTOP;
-    case ekVALIGN_CENTER:
-        return ekCENTER;
-    case ekVALIGN_BOTTOM:
-        return ekBOTTOM;
-    case ekVALIGN_JUSTIFY:
-        return ekJUSTIFY;
-        cassert_default();
-    }
-    return ekTOP;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static gui_scale_t i_scale(const scale_t scale)
-{
-    switch (scale)
-    {
-    case ekSCALE_NONE:
-        return ekGUI_SCALE_NONE;
-    case ekSCALE_AUTO:
-        return ekGUI_SCALE_AUTO;
-    case ekSCALE_ASPECT:
-        return ekGUI_SCALE_ASPECT;
-    case ekSCALE_FIT:
-        return ekGUI_SCALE_ADJUST;
-        cassert_default();
-    }
-    return ekGUI_SCALE_ASPECT;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1293,8 +1288,8 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
             for (i = 0; i < ncols; ++i)
             {
                 Cell *gcell = layout_cell(glayout, i, j);
-                align_t halign = i_halign(cells->halign);
-                align_t valign = i_valign(cells->valign);
+                align_t halign = _nflib_halign(cells->halign);
+                align_t valign = _nflib_valign(cells->valign);
                 layout_halign(glayout, i, j, halign);
                 layout_valign(glayout, i, j, valign);
                 switch (cells->type)
@@ -1353,13 +1348,9 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
 
                 case ekCELL_TYPE_EDIT:
                 {
-                    FEdit *fedit = cells->widget.edit;
-                    Edit *gedit = edit_create();
-                    align_t align = i_halign(fedit->text_align);
-                    edit_passmode(gedit, fedit->passmode);
-                    edit_autoselect(gedit, fedit->autosel);
-                    edit_align(gedit, align);
-                    layout_edit(glayout, gedit, i, j);
+                    Edit *edit = edit_create();
+                    fedit_synchro(cells->widget.edit, edit);
+                    layout_edit(glayout, edit, i, j);
                     break;
                 }
 
@@ -1371,100 +1362,59 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     break;
                 }
 
-                case ekCELL_TYPE_TEXT:
+                case ekCELL_TYPE_LISTBOX:
                 {
-                    FText *ftext = cells->widget.text;
-                    TextView *gtext = textview_create();
-                    textview_editable(gtext, !ftext->read_only);
-                    textview_size(gtext, s2df(ftext->min_width, ftext->min_height));
-                    layout_textview(glayout, gtext, i, j);
-                    break;
-                }
-
-                case ekCELL_TYPE_IMAGE:
-                {
-                    FImage *fimage = cells->widget.image;
-                    ImageView *gimage = imageview_create();
-                    String *path = str_cpath("%s/%s", resource_path, tc(fimage->path));
-                    Image *image = image_from_file(tc(path), NULL);
-
-                    if (image != NULL)
-                    {
-                        imageview_image(gimage, image);
-                        image_destroy(&image);
-                    }
-                    else
-                    {
-                        /* Use a default image */
-                        const Image *rimage = nflib_default_image();
-                        imageview_image(gimage, rimage);
-                    }
-
-                    str_destroy(&path);
-                    imageview_size(gimage, s2df(fimage->min_width, fimage->min_height));
-                    imageview_scale(gimage, i_scale(fimage->scale));
-                    layout_imageview(glayout, gimage, i, j);
+                    ListBox *listbox = listbox_create();
+                    flistbox_synchro(cells->widget.listbox, listbox, resource_path);
+                    layout_listbox(glayout, listbox, i, j);
                     break;
                 }
 
                 case ekCELL_TYPE_SLIDER:
                 {
-                    FSlider *fslider = cells->widget.slider;
-                    Slider *gslider = slider_create();
-                    slider_min_width(gslider, fslider->min_width);
-                    slider_value(gslider, .5f);
-                    layout_slider(glayout, gslider, i, j);
+                    Slider *slider = slider_create();
+                    fslider_synchro(cells->widget.slider, slider);
+                    layout_slider(glayout, slider, i, j);
+                    break;
+                }
+
+                case ekCELL_TYPE_VSLIDER:
+                {
+                    Slider *slider = slider_vertical();
+                    fvslider_synchro(cells->widget.vslider, slider);
+                    layout_slider(glayout, slider, i, j);
                     break;
                 }
 
                 case ekCELL_TYPE_PROGRESS:
                 {
-                    FProgress *fprogress = cells->widget.progress;
-                    Progress *gprogress = progress_create();
-                    progress_min_width(gprogress, fprogress->min_width);
-                    layout_progress(glayout, gprogress, i, j);
+                    Progress *progress = progress_create();
+                    fprogress_synchro(cells->widget.progress, progress);
+                    layout_progress(glayout, progress, i, j);
                     break;
                 }
 
-                case ekCELL_TYPE_LISTBOX:
+                case ekCELL_TYPE_TEXT:
                 {
-                    FListBox *flistbox = cells->widget.listbox;
-                    ListBox *glistbox = listbox_create();
-                    listbox_size(glistbox, s2df(flistbox->min_width, flistbox->min_height));
+                    TextView *view = textview_create();
+                    ftext_synchro(cells->widget.text, view);
+                    layout_textview(glayout, view, i, j);
+                    break;
+                }
 
-                    arrst_foreach_const(elem, flistbox->elems, FElem)
-                        Image *image = NULL;
-                        if (str_empty(elem->iconpath) == FALSE)
-                        {
-                            String *path = str_cpath("%s/%s", resource_path, tc(elem->iconpath));
-                            image = image_from_file(tc(path), NULL);
-                            str_destroy(&path);
-                        }
-                        listbox_add_elem(glistbox, tc(elem->text), image);
-                        ptr_destopt(image_destroy, &image, Image);
-                    arrst_end()
-
-                    layout_listbox(glayout, glistbox, i, j);
+                case ekCELL_TYPE_IMAGE:
+                {
+                    ImageView *view = imageview_create();
+                    fimage_synchro(cells->widget.image, view, resource_path);
+                    layout_imageview(glayout, view, i, j);
                     break;
                 }
 
                 case ekCELL_TYPE_TABLEVIEW:
                 {
-                    FTable *ftable = cells->widget.table;
-                    TableView *gtable = tableview_create();
-                    tableview_size(gtable, s2df(ftable->min_width, ftable->min_height));
-
-                    arrst_foreach_const(header, ftable->headers, FHeader)
-                        tableview_new_column_text(gtable);
-                        tableview_column_width(gtable, header_i, header->width);
-                        tableview_column_limits(gtable, header_i, header->min_width, header->max_width);
-                        tableview_column_align(gtable, header_i, i_halign(header->dalign));
-                        tableview_column_resizable(gtable, header_i, header->resizable);
-                        tableview_header_title(gtable, header_i, tc(header->title));
-                        tableview_header_align(gtable, header_i, i_halign(header->align));
-                    arrst_end()
-
-                    layout_tableview(glayout, gtable, i, j);
+                    TableView *view = tableview_create();
+                    ftable_synchro(cells->widget.table, view);
+                    layout_tableview(glayout, view, i, j);
                     break;
                 }
 
@@ -1508,14 +1458,15 @@ GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout
                 case ekCELL_TYPE_CHECK:
                 case ekCELL_TYPE_RADIO:
                 case ekCELL_TYPE_TOOL:
+                case ekCELL_TYPE_POPUP:
                 case ekCELL_TYPE_EDIT:
                 case ekCELL_TYPE_COMBO:
+                case ekCELL_TYPE_LISTBOX:
+                case ekCELL_TYPE_SLIDER:
+                case ekCELL_TYPE_VSLIDER:
+                case ekCELL_TYPE_PROGRESS:
                 case ekCELL_TYPE_TEXT:
                 case ekCELL_TYPE_IMAGE:
-                case ekCELL_TYPE_SLIDER:
-                case ekCELL_TYPE_PROGRESS:
-                case ekCELL_TYPE_POPUP:
-                case ekCELL_TYPE_LISTBOX:
                 case ekCELL_TYPE_TABLEVIEW:
                 {
                     Cell *gcell = layout_cell(gui_layout, i, j);

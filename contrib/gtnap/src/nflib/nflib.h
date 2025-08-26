@@ -1,4 +1,4 @@
-/* NAppGUI forms common base */
+/* NAppGUI forms serialization */
 
 #include "nflib.hxx"
 

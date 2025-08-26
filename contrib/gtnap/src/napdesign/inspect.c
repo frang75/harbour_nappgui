@@ -98,8 +98,8 @@ Panel *inspect_create(Designer *app)
     TableView *table = tableview_create();
     Panel *panel = panel_create();
     data->table = table;
-    tableview_new_column_text(table);
-    tableview_new_column_text(table);
+    tableview_add_column_text(table);
+    tableview_add_column_text(table);
     tableview_column_width(table, 0, 80);
     tableview_column_width(table, 1, 80);
     tableview_header_title(table, 0, "Object");

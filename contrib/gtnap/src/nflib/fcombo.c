@@ -16,6 +16,13 @@ FCombo *fcombo_create(void)
 
 /*---------------------------------------------------------------------------*/
 
+void fcombo_destroy(FCombo **fcombo)
+{
+    dbind_destroy(fcombo, FCombo);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void fcombo_synchro(const FCombo *fcombo, Combo *combo)
 {
     cassert_no_null(fcombo);

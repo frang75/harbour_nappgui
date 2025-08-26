@@ -1,30 +1,29 @@
-/* Form slider */
+/* Form vertical slider */
 
-#include "fslider.h"
+#include "fvslider.h"
 #include <gui/slider.h>
 #include <core/dbind.h>
 #include <sewer/cassert.h>
 
 /*---------------------------------------------------------------------------*/
 
-FSlider *fslider_create(void)
+FVSlider *fvslider_create(void)
 {
-    return dbind_create(FSlider);
+    return dbind_create(FVSlider);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void fslider_destroy(FSlider **slider)
+void fvslider_destroy(FVSlider **slider)
 {
-    dbind_destroy(slider, FSlider);
+    dbind_destroy(slider, FVSlider);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void fslider_synchro(const FSlider *fslider, Slider *slider)
+void fvslider_synchro(const FVSlider *fslider, Slider *slider)
 {
     cassert_no_null(slider);
-    slider_min_width(slider, fslider->min_width);
+    slider_min_width(slider, fslider->min_height);
     slider_value(slider, .5f);
 }
-
