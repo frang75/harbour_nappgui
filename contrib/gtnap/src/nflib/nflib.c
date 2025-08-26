@@ -199,7 +199,7 @@ static void i_dbind(void)
     dbind_increment(FHeader, real32_t, width, 1);
     dbind_precision(FHeader, real32_t, width, 1);
     dbind_range(FHeader, real32_t, width, 0, 1000);
-    dbind_default(FHeader, real32_t, min_width, 100);
+    dbind_default(FHeader, real32_t, min_width, 50);
     dbind_increment(FHeader, real32_t, min_width, 1);
     dbind_precision(FHeader, real32_t, min_width, 1);
     dbind_default(FHeader, real32_t, max_width, 1000);

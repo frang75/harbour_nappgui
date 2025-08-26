@@ -38,6 +38,7 @@ TEXT_VSLIDER_PROPS  VertSlider properties
 TEXT_PROGRESS_PROPS Progressbar properties
 TEXT_TEXT_PROPS     Textview properties
 TEXT_IMAGE_PROPS    Imageview properties
+TEXT_TABLE_PROPS    Tableview properties
 TEXT_LAYOUT         Layout
 TEXT_LAYOUTS        Layouts
 TEXT_BUTTONS        Buttons
@@ -84,13 +85,18 @@ TEXT_ROW            Row
 TEXT_ALIGN          Align
 TEXT_HALIGN         HAlign
 TEXT_VALIGN         VAlign
+TEXT_DALIGN         DAlign
 TEXT_SCALE          Scale
 TEXT_TEXT           Text
+TEXT_TITLE          Title
 TEXT_MULTILINE      Multiline
 TEXT_AUTOSELECT     Autoselect
 TEXT_PASSMODE       Passmode
+TEXT_RESIZABLE      Resizable
+
 TEXT_TEXT_ALIGN     Text align
 TEXT_MIN_WIDTH      Min width
+TEXT_MAX_WIDTH      Max width
 TEXT_MIN_HEIGHT     Min height
 TEXT_READ_ONLY      Read only
 TEXT_ICON           Icon
@@ -149,23 +155,35 @@ TIP_BUTTON_VPAD     Vertical padding of the push button, -1 as default.
 TIP_CHECK_TEXT      The text that will be displayed to the right of the checkbox.
 TIP_RADIO_TEXT      The text that will be displayed to the right of the radio button.
 TIP_EDIT_ALIGN      Text alignment inside the editbox.
-TIP_EDIT_MWIDTH     Editbox width. If 0 will be set automatically.
+TIP_EDIT_MWIDTH     Editbox width.
 TIP_EDIT_PASSMODE   If set, the text will be hidden will be hidden by asterisks.
 TIP_EDIT_AUTOSEL    If set, the text will be selected automatically when recibes the focus.
 TIP_COMBO_ALIGN     Text alignment inside the combobox.
-TIP_COMBO_MWIDTH    Combobox width. If 0 will be set automatically.
+TIP_COMBO_MWIDTH    Combobox width.
 TIP_COMBO_PASSMODE  If set, the text will be hidden will be hidden by asterisks.
 TIP_COMBO_AUTOSEL   If set, the text will be selected automatically when recibes the focus.
 TIP_ELEMENT_ADD     Add a new element
 TIP_ELEMENT_REMOVE  Remove current element
-TIP_ELEMENT_CLEAR   Clear all elements
-TIP_LIST_MWIDTH     Listbox width. If 0 will be set automatically.
-TIP_LIST_MHEIGHT    Listbox height. If 0 will be set automatically.
-TIP_SLIDER_MWIDTH   Slider width. If 0 will be set automatically.
-TIP_SLIDER_MHEIGHT  Slider height. If 0 will be set automatically.
-TIP_PROGRESS_MWIDTH Progress width. If 0 will be set automatically.
-TIP_TEXT_MWIDTH     Textview width. If 0 will be set automatically.
-TIP_TEXT_MHEIGHT    Textview height. If 0 will be set automatically.
-TIP_IMAGE_MWIDTH    Imageview width. If 0 will be set automatically.
-TIP_IMAGE_MHEIGHT   Imageview height. If 0 will be set automatically.
+TIP_ELEMENT_CLEAR   Remove all elements
+TIP_COLUMN_ADD      Add a new column
+TIP_COLUMN_REMOVE   Remove current column
+TIP_COLUMN_CLEAR    Remove all columns
+TIP_LIST_MWIDTH     Listbox width.
+TIP_LIST_MHEIGHT    Listbox height.
+TIP_SLIDER_MWIDTH   Slider width.
+TIP_SLIDER_MHEIGHT  Slider height.
+TIP_PROGRESS_MWIDTH Progress width.
+TIP_TEXT_MWIDTH     Textview width.
+TIP_TEXT_MHEIGHT    Textview height.
+TIP_IMAGE_MWIDTH    Imageview width.
+TIP_IMAGE_MHEIGHT   Imageview height.
 TIP_IMAGE_SCALE     Image scale mode (Aspect recommended).
+TIP_TABLE_MWIDTH    Tableview width.
+TIP_TABLE_MHEIGHT   Tableview height.
+TIP_COLUMN_TITLE    Column title.
+TIP_COLUMN_HALIGN   Column header alignment.
+TIP_COLUMN_DALIGN   Column data alignment.
+TIP_COLUMN_WIDTH    Column width.
+TIP_COLUMN_MINWIDTH Column minimum width.
+TIP_COLUMN_MAXWIDTH Column maximum width.
+TIP_COLUMN_RESIZE   Column is resizable.

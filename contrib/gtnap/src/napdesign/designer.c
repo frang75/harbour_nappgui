@@ -731,6 +731,8 @@ static bool_t i_is_widget_drawer(const drawer_t drawer)
     case ekDRAWER_PROGRESS_PROPS:
     case ekDRAWER_TEXT_PROPS:
     case ekDRAWER_IMAGE_PROPS:
+    case ekDRAWER_TABLE_FRAME_PROPS:
+    case ekDRAWER_TABLE_COLS_PROPS:
         return FALSE;
         cassert_default();
     }
@@ -1489,6 +1491,8 @@ static Designer *i_app(void)
     i_add_drawer(app->wdrawers, ekDRAWER_PROGRESS_PROPS, TEXT_PROGRESS_PROPS);  
     i_add_drawer(app->wdrawers, ekDRAWER_TEXT_PROPS, TEXT_TEXT_PROPS);  
     i_add_drawer(app->wdrawers, ekDRAWER_IMAGE_PROPS, TEXT_IMAGE_PROPS);  
+    i_add_drawer(app->wdrawers, ekDRAWER_TABLE_FRAME_PROPS, TEXT_TABLE_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_TABLE_COLS_PROPS, TEXT_COLUMN_PROPS);
     i_add_widget(app->bwidgets, ekWIDGET_SELECT, TEXT_SELECT, CURSOR_PNG, ekDRAWER_WIDGET_SELECT);
     i_add_widget(app->bwidgets, ekWIDGET_VERT_LAYOUT, TEXT_VERT_LAYOUT, VLAYOUT_PNG, ekDRAWER_WIDGET_LAYOUTS);
     i_add_widget(app->bwidgets, ekWIDGET_HORZ_LAYOUT, TEXT_HORZ_LAYOUT, HLAYOUT_PNG, ekDRAWER_WIDGET_LAYOUTS);
