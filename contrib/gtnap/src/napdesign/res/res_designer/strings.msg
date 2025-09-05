@@ -183,7 +183,7 @@ TIP_TABLE_MHEIGHT   Tableview height.
 TIP_COLUMN_TITLE    Column title.
 TIP_COLUMN_HALIGN   Column header alignment.
 TIP_COLUMN_DALIGN   Column data alignment.
-TIP_COLUMN_WIDTH    Column width.
+TIP_COLUMN_TWIDTH   Column width.
 TIP_COLUMN_MINWIDTH Column minimum width.
 TIP_COLUMN_MAXWIDTH Column maximum width.
 TIP_COLUMN_RESIZE   Column is resizable.

@@ -1485,7 +1485,7 @@ static Layout *i_table_frame_layout(PropData *data)
 static Layout *i_table_column_layout(void)
 {
     Layout *layout1 = layout_create(2, 7);
-    Layout *layout2 = i_value_updown_layout(gui_text(TIP_COLUMN_WIDTH));
+    Layout *layout2 = i_value_updown_layout(gui_text(TIP_COLUMN_TWIDTH));
     Layout *layout3 = i_value_updown_layout(gui_text(TIP_COLUMN_HALIGN));
     Layout *layout4 = i_value_updown_layout(gui_text(TIP_COLUMN_DALIGN));
     Label *label1 = label_create();
