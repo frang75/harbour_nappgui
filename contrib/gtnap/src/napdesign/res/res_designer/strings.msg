@@ -130,6 +130,14 @@ TEXT_CELL_IMAGE     ImageViewCell
 TEXT_CELL_TABLE     TableCell
 TEXT_CELL_LAYOUT    LayoutCell
 
+TOOLBAR_OPEN        Open forms folder
+TOOLBAR_SAVE        Save all forms
+TOOLBAR_NEW         Add new form
+TOOLBAR_PROPS       Form properties
+TOOLBAR_SIMULATE    Simulate current form
+TOOLBAR_REMOVE      Remove current form
+TEXT_OPEN_CAPTION   Select the form folder you want to work with.
+
 TIP_LAYOUT_NAME     Layout name. It will be useful to locate the layout at runtime.
 TIP_CELL_NAME       Cell name. It will be useful to locate the cell at runtime.
 TIP_TOP_MARGIN      Margin at top of layout (in px).

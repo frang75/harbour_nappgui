@@ -38,13 +38,14 @@ struct _cdata_t
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const bool_t open)
+const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint32_t size, const char_t *caption, const char_t *start_dir, const bool_t open)
 {
     GtkWidget *dialog = NULL;
     GtkFileChooserAction action;
     bool_t dirmode = FALSE;
     gint res;
 
+    unref(caption);
     unref(start_dir);
 
     if (size == 1 && str_equ_c(ftypes[0], "..DIR..") == TRUE)

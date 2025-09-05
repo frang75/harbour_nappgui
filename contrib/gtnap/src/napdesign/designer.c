@@ -360,7 +360,7 @@ static void i_OnOpenFormsClick(Designer *app, Event *e)
     if (can_open == TRUE)
     {
         const char_t *ftype = "..DIR..";
-        const char_t *folder = comwin_open_file(app->window, &ftype, 1, tc(app->config.folder_path));
+        const char_t *folder = comwin_open_file(app->window, &ftype, 1, gui_text(TEXT_OPEN_CAPTION), tc(app->config.folder_path));
         if (folder != NULL)
             i_init_forms(app, folder);
     }
@@ -571,12 +571,12 @@ static Layout *i_tools_layout(Designer *app)
     button_OnClick(button4, listener(app, i_OnRenameFormClick, Designer));
     button_OnClick(button5, listener(app, i_OnSimulateClick, Designer));
     button_OnClick(button6, listener(app, i_OnRemoveClick, Designer));
-    button_tooltip(button1, "Open forms folder");
-    button_tooltip(button2, "Save all forms");
-    button_tooltip(button3, "Add new form");
-    button_tooltip(button4, "Rename form");
-    button_tooltip(button5, "Simulate current form");
-    button_tooltip(button6, "Remove current form");
+    button_tooltip(button1, gui_text(TOOLBAR_OPEN));
+    button_tooltip(button2, gui_text(TOOLBAR_SAVE));
+    button_tooltip(button3, gui_text(TOOLBAR_NEW));
+    button_tooltip(button4, gui_text(TOOLBAR_PROPS));
+    button_tooltip(button5, gui_text(TOOLBAR_SIMULATE));
+    button_tooltip(button6, gui_text(TOOLBAR_REMOVE));
     layout_button(layout, button1, 0, 0);
     layout_button(layout, button2, 1, 0);
     layout_button(layout, button3, 2, 0);
@@ -585,6 +585,8 @@ static Layout *i_tools_layout(Designer *app)
     layout_button(layout, button6, 5, 0);
     layout_button(layout, button7, 7, 0);
     layout_button(layout, button8, 8, 0);
+    layout_margin4(layout, 0, 0, 0, 10);
+    layout_hmargin(layout, 4, 10);
     layout_hexpand(layout, 6);
     app->open_form_cell = layout_cell(layout, 0, 0);
     app->save_form_cell = layout_cell(layout, 1, 0);
@@ -1087,6 +1089,8 @@ static Layout *i_main_layout(Designer *app)
     layout_layout(layout1, layout2, 0, 0);
     layout_splitview(layout1, view, 0, 1);
     layout_layout(layout1, layout4, 0, 2);
+    layout_tabstop(layout1, 0, 0, FALSE);
+
     /*
      * All the vertical expansion will be done in the middle layout
      * tools_layout (top) and statusbar_layout (bottom) will preserve
