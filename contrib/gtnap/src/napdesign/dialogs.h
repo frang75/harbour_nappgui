@@ -4,7 +4,9 @@
 
 void dialog_dbind(void);
 
-String *dialog_form_name(Window *parent, const char_t *name);
+bool_t dialog_new_form(Window *parent, const Font *font, String **filename, String **desc);
+
+//void dialog_edit_form(Window *parent, const Font *font, FForm *form, String **filename);
 
 FLabel *dialog_new_label(Window *parent, const Font *font, const DSelect *sel);
 

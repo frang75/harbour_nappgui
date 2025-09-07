@@ -452,19 +452,21 @@ static bool_t i_exists_form_name(Designer *app, const char_t *name)
 
 static void i_OnAddFormClick(Designer *app, Event *e)
 {
-    String *fname = NULL;
+    String *filename = NULL;
+    String *desc = NULL;
+    bool_t ok = FALSE;
     cassert_no_null(app);
     unref(e);
-    fname = dialog_form_name(app->window, NULL);
-    if (str_empty(fname) == FALSE)
+    ok = dialog_new_form(app->window, app->default_font, &filename, &desc);
+    if (ok == TRUE)
     {
-        if (i_exists_form_name(app, tc(fname)) == FALSE)
+        if (i_exists_form_name(app, tc(filename)) == FALSE)
         {
             uint32_t n = listbox_count(app->form_list);
             DForm *form = dform_empty(app);
             dform_compose(form);
             cassert(n == arrpt_size(app->forms, DForm));
-            listbox_add_elem(app->form_list, tc(fname), NULL);
+            listbox_add_elem(app->form_list, tc(filename), NULL);
             listbox_select(app->form_list, n, TRUE);
             arrpt_append(app->forms, form, DForm);
             app->config.sel_form = n;
@@ -473,11 +475,12 @@ static void i_OnAddFormClick(Designer *app, Event *e)
         }
         else
         {
-            dialog_name_already_exists(app->window, tc(fname));
+            dialog_name_already_exists(app->window, tc(filename));
         }
     }
 
-    str_destroy(&fname);
+    str_destopt(&filename);
+    str_destopt(&desc);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -489,7 +492,8 @@ static void i_OnRenameFormClick(Designer *app, Event *e)
     cassert_no_null(app);
     unref(e);
     name = i_list_text(app->form_list, app->config.sel_form);
-    fname = dialog_form_name(app->window, name);
+    fname = NULL;
+    //dialog_form_name(app->window, name);
     if (str_empty(fname) == FALSE)
     {
         if (i_exists_form_name(app, tc(fname)) == FALSE)

@@ -57,6 +57,7 @@ void fform_destroy(FForm **form)
     cassert_no_null(*form);
     str_destroy(&(*form)->description);
     flayout_destroy(&(*form)->layout);
+    heap_delete(form, FForm);
     /* TODO: Change by */
     /* dbind_destroy(layout, FLayout); */
 }

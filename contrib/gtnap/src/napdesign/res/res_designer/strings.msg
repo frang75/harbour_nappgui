@@ -20,6 +20,8 @@ TEXT_NEW_TEXTVIEW   A new textview will be placed in cell (%d, %d) of '%s' layou
 TEXT_NEW_IMAGEVIEW  A new imageview will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_TABLEVIEW  A new tableview will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SUBLAYOUT  A new sublayout will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_FORM       A new form will be created with this filename and properties
+
 TEXT_LAYOUT_PROPS   Layout properties
 TEXT_COLUMN_PROPS   Column properties
 TEXT_ROW_PROPS      Row properties
@@ -66,6 +68,7 @@ TEXT_PROGRESS_BAR   Progress Bar
 TEXT_TEXT_VIEW      Text View
 TEXT_IMAGE_VIEW     Image View
 TEXT_TABLE_VIEW     Table View
+TEXT_FORM           Form
 TEXT_BOX_FORMS      Forms
 TEXT_BOX_INSPECTOR  Object inspector
 TEXT_BOX_PROPEDIT   Property editor
@@ -129,6 +132,9 @@ TEXT_CELL_TEXT      TextViewCell
 TEXT_CELL_IMAGE     ImageViewCell
 TEXT_CELL_TABLE     TableCell
 TEXT_CELL_LAYOUT    LayoutCell
+
+TEXT_FILENAME       Filename
+TEXT_DESCRIPTION    Description
 
 TOOLBAR_OPEN        Open forms folder
 TOOLBAR_SAVE        Save all forms
