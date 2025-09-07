@@ -29,6 +29,7 @@ typedef struct _frow_t FRow;
 typedef struct _fwidget_t FWidget;
 typedef struct _fcell_t FCell;
 typedef struct _flayout_t FLayout;
+typedef struct _fform_t FForm;
 
 /* Don't change the order. Add new values to end */
 typedef enum _celltype_t
@@ -245,6 +246,12 @@ struct _flayout_t
     ArrSt(FColumn) *cols;
     ArrSt(FRow) *rows;
     ArrSt(FCell) *cells;
+};
+
+struct _fform_t
+{
+    String *description;
+    FLayout *layout;
 };
 
 DeclSt(FElem);

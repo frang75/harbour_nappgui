@@ -498,7 +498,15 @@ static void i_read_cell(Stream *stm, FCell *cell)
 
 FLayout *flayout_read(Stream *stm)
 {
-    i_STM_VERSION = stm_read_u16(stm);
+    uint16_t vers = stm_read_u16(stm);
+    return flayout_read_with_vers(stm, vers);
+}
+
+/*---------------------------------------------------------------------------*/
+
+FLayout *flayout_read_with_vers(Stream *stm, const uint16_t vers)
+{
+    i_STM_VERSION = vers;
     if (i_STM_VERSION <= i_VERSION)
     {
         FLayout *layout = heap_new0(FLayout);
@@ -517,6 +525,7 @@ FLayout *flayout_read(Stream *stm)
         stm_corrupt(stm);
         return NULL;
     }
+
 }
 
 /*---------------------------------------------------------------------------*/

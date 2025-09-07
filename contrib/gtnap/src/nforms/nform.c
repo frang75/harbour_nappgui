@@ -1,6 +1,7 @@
 /* NAppGUI form */
 
 #include "nforms.hxx"
+#include <nflib/fform.h>
 #include <nflib/flayout.h>
 #include <gui/button.h>
 #include <gui/edit.h>
@@ -23,7 +24,7 @@
 
 struct _nform_t
 {
-    FLayout *flayout;
+    FForm *fform;
     Layout *glayout;
 };
 
@@ -35,7 +36,7 @@ static NForm *i_from_stream(Stream **stm)
     if (*stm != NULL)
     {
         NForm *form = heap_new0(NForm);
-        form->flayout = flayout_read(*stm);
+        form->fform = fform_read(*stm);
         stm_close(stm);
         return form;
     }
@@ -65,7 +66,7 @@ void nform_destroy(NForm **form)
 {
     cassert_no_null(form);
     cassert_no_null(*form);
-    flayout_destroy(&(*form)->flayout);
+    fform_destroy(&(*form)->fform);
     (*form)->glayout = NULL;
     heap_delete(form, NForm);
 }
@@ -78,7 +79,8 @@ Window *nform_window(const NForm *form, const uint32_t flags, const char_t *reso
     Panel *panel = NULL;
     Window *window = NULL;
     cassert_no_null(form);
-    layout = flayout_to_gui(form->flayout, resource_path, 40.f, 20.f);
+    cassert_no_null(form->fform);
+    layout = flayout_to_gui(form->fform->layout, resource_path, 40.f, 20.f);
     panel = panel_create();
     window = window_create(flags);
     panel_layout(panel, layout);
@@ -93,8 +95,9 @@ void nform_set_control_str(NForm *form, const char_t *cell_name, const char_t *v
 {
     GuiControl *control = NULL;
     cassert_no_null(form);
+    cassert_no_null(form->fform);
     cassert_no_null(form->glayout);
-    control = flayout_search_gui_control(form->flayout, form->glayout, cell_name);
+    control = flayout_search_gui_control(form->fform->layout, form->glayout, cell_name);
     if (control != NULL)
     {
         Button *button = guicontrol_button(control);
@@ -128,8 +131,9 @@ void nform_add_control_str(NForm *form, const char_t *cell_name, const char_t *v
 {
     GuiControl *control = NULL;
     cassert_no_null(form);
+    cassert_no_null(form->fform);
     cassert_no_null(form->glayout);
-    control = flayout_search_gui_control(form->flayout, form->glayout, cell_name);
+    control = flayout_search_gui_control(form->fform->layout, form->glayout, cell_name);
     if (control != NULL)
     {
         TextView *text = guicontrol_textview(control);
@@ -144,8 +148,9 @@ void nform_set_control_bool(NForm *form, const char_t *cell_name, const bool_t v
 {
     GuiControl *control = NULL;
     cassert_no_null(form);
+    cassert_no_null(form->fform);
     cassert_no_null(form->glayout);
-    control = flayout_search_gui_control(form->flayout, form->glayout, cell_name);
+    control = flayout_search_gui_control(form->fform->layout, form->glayout, cell_name);
     if (control != NULL)
     {
         Button *button = guicontrol_button(control);
@@ -160,8 +165,9 @@ void nform_set_control_int(NForm *form, const char_t *cell_name, const int32_t v
 {
     GuiControl *control = NULL;
     cassert_no_null(form);
+    cassert_no_null(form->fform);
     cassert_no_null(form->glayout);
-    control = flayout_search_gui_control(form->flayout, form->glayout, cell_name);
+    control = flayout_search_gui_control(form->fform->layout, form->glayout, cell_name);
     if (control != NULL)
     {
         Label *label = guicontrol_label(control);
@@ -216,8 +222,9 @@ void nform_set_control_real(NForm *form, const char_t *cell_name, const real32_t
 {
     GuiControl *control = NULL;
     cassert_no_null(form);
+    cassert_no_null(form->fform);
     cassert_no_null(form->glayout);
-    control = flayout_search_gui_control(form->flayout, form->glayout, cell_name);
+    control = flayout_search_gui_control(form->fform->layout, form->glayout, cell_name);
     if (control != NULL)
     {
         Slider *slider = guicontrol_slider(control);
@@ -241,9 +248,10 @@ bool_t nform_get_control_str(const NForm *form, const char_t *cell_name, const c
 {
     GuiControl *control = NULL;
     cassert_no_null(form);
+    cassert_no_null(form->fform);
     cassert_no_null(form->glayout);
     cassert_no_null(value);
-    control = flayout_search_gui_control(form->flayout, form->glayout, cell_name);
+    control = flayout_search_gui_control(form->fform->layout, form->glayout, cell_name);
     if (control != NULL)
     {
         Edit *edit = guicontrol_edit(control);
@@ -269,9 +277,10 @@ bool_t nform_get_control_bool(const NForm *form, const char_t *cell_name, bool_t
 {
     GuiControl *control = NULL;
     cassert_no_null(form);
+    cassert_no_null(form->fform);
     cassert_no_null(form->glayout);
     cassert_no_null(value);
-    control = flayout_search_gui_control(form->flayout, form->glayout, cell_name);
+    control = flayout_search_gui_control(form->fform->layout, form->glayout, cell_name);
     if (control != NULL)
     {
         Button *button = guicontrol_button(control);
@@ -292,9 +301,10 @@ bool_t nform_get_control_int(const NForm *form, const char_t *cell_name, int32_t
 {
     GuiControl *control = NULL;
     cassert_no_null(form);
+    cassert_no_null(form->fform);
     cassert_no_null(form->glayout);
     cassert_no_null(value);
-    control = flayout_search_gui_control(form->flayout, form->glayout, cell_name);
+    control = flayout_search_gui_control(form->fform->layout, form->glayout, cell_name);
     if (control != NULL)
     {
         Edit *edit = guicontrol_edit(control);
@@ -340,9 +350,10 @@ bool_t nform_get_control_real(const NForm *form, const char_t *cell_name, real32
 {
     GuiControl *control = NULL;
     cassert_no_null(form);
+    cassert_no_null(form->fform);
     cassert_no_null(form->glayout);
     cassert_no_null(value);
-    control = flayout_search_gui_control(form->flayout, form->glayout, cell_name);
+    control = flayout_search_gui_control(form->fform->layout, form->glayout, cell_name);
     if (control != NULL)
     {
         Slider *slider = guicontrol_slider(control);
@@ -367,8 +378,9 @@ bool_t nform_set_listener(NForm *form, const char_t *cell_name, Listener *listen
 {
     GuiControl *control = NULL;
     cassert_no_null(form);
+    cassert_no_null(form->fform);
     cassert_no_null(form->glayout);
-    control = flayout_search_gui_control(form->flayout, form->glayout, cell_name);
+    control = flayout_search_gui_control(form->fform->layout, form->glayout, cell_name);
     if (control != NULL)
     {
         Button *button = guicontrol_button(control);
@@ -388,8 +400,9 @@ R2Df nform_get_control_frame(NForm *form, const char_t *cell_name, Window *windo
 {
     GuiControl *control = NULL;
     cassert_no_null(form);
+    cassert_no_null(form->fform);
     cassert_no_null(form->glayout);
-    control = flayout_search_gui_control(form->flayout, form->glayout, cell_name);
+    control = flayout_search_gui_control(form->fform->layout, form->glayout, cell_name);
     if (control != NULL)
     {
         R2Df frame = window_control_frame(window, control);
@@ -406,7 +419,8 @@ TableView *nform_get_tableview(NForm *form, const char_t *cell_name)
 {
     GuiControl *control = NULL;
     cassert_no_null(form);
+    cassert_no_null(form->fform);
     cassert_no_null(form->glayout);
-    control = flayout_search_gui_control(form->flayout, form->glayout, cell_name);
+    control = flayout_search_gui_control(form->fform->layout, form->glayout, cell_name);
     return guicontrol_tableview(control);
 }

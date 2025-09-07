@@ -12,6 +12,7 @@
 #include <nflib/fcheck.h>
 #include <nflib/fcombo.h>
 #include <nflib/fedit.h>
+#include <nflib/fform.h>
 #include <nflib/fimage.h>
 #include <nflib/flabel.h>
 #include <nflib/flayout.h>
@@ -57,8 +58,8 @@
 struct _dform_t
 {
     Designer *app;
+    FForm *fform;
     DLayout *dlayout;
-    FLayout *flayout;
     Layout *glayout;
     Window *window;
     V2Df origin;
@@ -117,53 +118,15 @@ static void i_need_save(DForm *form)
 
 /*---------------------------------------------------------------------------*/
 
-DForm *dform_first_example(void)
-{
-    DForm *form = heap_new0(DForm);
-    FLayout *flayout1 = flayout_create(2, 6);
-    FLayout *flayout2 = flayout_create(1, 4);
-    FLayout *flayout3 = flayout_create(2, 1);
-    FLabel *label1 = flabel_create();
-    FLabel *label2 = flabel_create();
-    str_upd(&label1->text, "This is a label");
-    str_upd(&label2->text, "Other");
-    flayout_add_label(flayout1, label1, 0, 0);
-    flayout_add_label(flayout1, label2, 0, 1);
-    flayout_add_layout(flayout3, flayout1, 0, 0);
-    flayout_add_layout(flayout3, flayout2, 1, 0);
-    flayout_margin_col(flayout1, 0, 5);
-    flayout_margin_row(flayout1, 0, 5);
-    flayout_margin_row(flayout1, 1, 5);
-    flayout_margin_row(flayout1, 2, 5);
-    flayout_margin_row(flayout1, 3, 5);
-    flayout_margin_row(flayout1, 4, 5);
-    flayout_margin_row(flayout2, 0, 5);
-    flayout_margin_row(flayout2, 1, 5);
-    flayout_margin_row(flayout2, 2, 5);
-    flayout_margin_left(flayout3, 10);
-    flayout_margin_top(flayout3, 10);
-    flayout_margin_right(flayout3, 10);
-    flayout_margin_bottom(flayout3, 10);
-    flayout_margin_col(flayout3, 0, 5);
-    form->flayout = flayout3;
-    form->temp_path = arrst_create(DSelect);
-    form->sel_path = arrst_create(DSelect);
-    i_layout_obj_names(form, flayout1);
-    i_layout_obj_names(form, flayout2);
-    i_layout_obj_names(form, flayout3);
-    return form;
-}
-
-/*---------------------------------------------------------------------------*/
-
 DForm *dform_empty(Designer *app)
 {
     DForm *form = heap_new0(DForm);
     form->app = app;
-    form->flayout = flayout_create(1, 1);
+    form->fform = fform_create();
     form->temp_path = arrst_create(DSelect);
     form->sel_path = arrst_create(DSelect);
-    i_layout_obj_names(form, form->flayout);
+    cassert_no_null(form->fform);
+    i_layout_obj_names(form, form->fform->layout);
     i_need_save(form);
     return form;
 }
@@ -199,21 +162,22 @@ static uint32_t i_num_layouts(const FLayout *flayout)
 
 DForm *dform_read(Stream *stm, Designer *app)
 {
-    FLayout *flayout = flayout_read(stm);
+    FForm *fform = fform_read(stm);
     if (stm_state(stm) == ekSTOK)
     {
         DForm *form = heap_new0(DForm);
+        cassert_no_null(fform->layout);
         form->app = app;
-        form->flayout = flayout;
+        form->fform = fform;
         form->temp_path = arrst_create(DSelect);
         form->sel_path = arrst_create(DSelect);
-        form->cell_id = i_num_cells(flayout);
-        form->layout_id = i_num_layouts(flayout);
+        form->cell_id = i_num_cells(form->fform->layout);
+        form->layout_id = i_num_layouts(form->fform->layout);
         return form;
     }
     else
     {
-        dbind_destopt(&flayout, FLayout);
+        ptr_destopt(fform_destroy, &fform, FForm);
         return NULL;
     }
 }
@@ -224,7 +188,7 @@ void dform_destroy(DForm **form)
 {
     cassert_no_null(form);
     cassert_no_null(*form);
-    flayout_destroy(&(*form)->flayout);
+    fform_destroy(&(*form)->fform);
     arrst_destroy(&(*form)->temp_path, NULL, DSelect);
     arrst_destroy(&(*form)->sel_path, NULL, DSelect);
     if ((*form)->window != NULL)
@@ -247,7 +211,7 @@ void dform_destroy(DForm **form)
 void dform_write(Stream *stm, DForm *form)
 {
     cassert_no_null(form);
-    flayout_write(stm, form->flayout);
+    fform_write(stm, form->fform);
     form->need_save = FALSE;
 }
 
@@ -260,10 +224,11 @@ void dform_compose(DForm *form)
     {
         Panel *panel = panel_create();
         const char_t *resource_path = designer_folder_path(form->app);
+        cassert_no_null(form->fform);
         cassert(form->window == NULL);
         cassert(form->dlayout == NULL);
-        form->dlayout = dlayout_from_flayout(form->flayout, resource_path);
-        form->glayout = flayout_to_gui(form->flayout, resource_path, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
+        form->dlayout = dlayout_from_flayout(form->fform->layout, resource_path);
+        form->glayout = flayout_to_gui(form->fform->layout, resource_path, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
         panel_layout(panel, form->glayout);
         form->window = window_create(ekWINDOW_STD);
         window_panel(form->window, panel);
@@ -338,7 +303,9 @@ bool_t dform_OnMove(DForm *form, const real32_t mouse_x, const real32_t mouse_y)
 {
     DSelect hover;
     bool_t equ = TRUE;
-    i_elem_at_mouse(form->dlayout, form->flayout, form->glayout, mouse_x, mouse_y, form->temp_path, &hover);
+    cassert_no_null(form);
+    cassert_no_null(form->fform);
+    i_elem_at_mouse(form->dlayout, form->fform->layout, form->glayout, mouse_x, mouse_y, form->temp_path, &hover);
     equ = i_sel_equ(&form->hover, &hover);
     form->hover = hover;
     return !equ;
@@ -450,10 +417,11 @@ static void i_after_new_widget(DForm *form, Panel *inspect, Panel *propedit, DSe
 bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedit, const Font *font, const widget_t widget, const real32_t mouse_x, const real32_t mouse_y, const gui_mouse_t mbutton)
 {
     cassert_no_null(form);
+    cassert_no_null(form->fform);
     if (mbutton == ekGUI_MOUSE_LEFT)
     {
         DSelect sel;
-        i_elem_at_mouse(form->dlayout, form->flayout, form->glayout, mouse_x, mouse_y, form->sel_path, &sel);
+        i_elem_at_mouse(form->dlayout, form->fform->layout, form->glayout, mouse_x, mouse_y, form->sel_path, &sel);
         inspect_set(inspect, form);
         if (i_sel_empty_cell(&sel) == TRUE)
         {
@@ -1255,7 +1223,8 @@ FCell *dform_sel_fcell(const DSelect *sel)
 void dform_draw(const DForm *form, const widget_t swidget, const Image *add_icon, const Font *default_font, DCtx *ctx)
 {
     cassert_no_null(form);
-    dlayout_draw(form->dlayout, form->flayout, form->glayout, &form->hover, &form->sel, swidget, add_icon, default_font, ctx);
+    cassert_no_null(form->fform);
+    dlayout_draw(form->dlayout, form->fform->layout, form->glayout, &form->hover, &form->sel, swidget, add_icon, default_font, ctx);
 }
 
 /*---------------------------------------------------------------------------*/

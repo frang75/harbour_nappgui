@@ -2,8 +2,6 @@
 
 #include "designer.hxx"
 
-DForm *dform_first_example(void);
-
 DForm *dform_empty(Designer *app);
 
 DForm *dform_read(Stream *stm, Designer *app);

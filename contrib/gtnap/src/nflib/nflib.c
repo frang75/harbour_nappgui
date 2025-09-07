@@ -119,6 +119,8 @@ static void i_dbind(void)
     dbind(FLayout, ArrSt(FColumn) *, cols);
     dbind(FLayout, ArrSt(FRow) *, rows);
     dbind(FLayout, ArrSt(FCell) *, cells);
+    dbind(FForm, String *, description);
+    dbind(FForm, FLayout *, layout);
 
     dbind_default(FLabel, bool_t, multiline, FALSE);
     dbind_default(FLabel, real32_t, min_width, 0);
