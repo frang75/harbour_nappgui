@@ -1575,6 +1575,7 @@ static void i_destroy(Designer **app)
     menu_destroy(&(*app)->menu);
     window_destroy(&(*app)->window);
     nflib_finish();
+    dgui_finish();
     heap_delete(app, Designer);
 }
 

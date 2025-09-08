@@ -1,6 +1,8 @@
 /* Design gui elements */
 
 #include "dgui.h"
+#include "imgproc.h"
+#include "res_designer.h"
 #include <gui/gui.h>
 #include <gui/drawctrl.inl>
 #include <gui/layout.h>
@@ -11,6 +13,7 @@
 #include <draw2d/dctx.h>
 #include <draw2d/draw.h>
 #include <draw2d/font.h>
+#include <draw2d/image.h>
 #include <core/event.h>
 #include <core/heap.h>
 #include <core/strings.h>
@@ -37,10 +40,13 @@ struct _header_data_t
 static color_t i_HEADER_GRADIENT[2] = {0, 0};
 static color_t i_DRAWER_GRADIENT[2] = {0, 0};
 static const real32_t i_HEADER_TEXT_MARGIN = 4;
-static const real32_t i_DRAWER_TRIANGLE_WIDTH = 10;
+static real32_t i_DRAWER_TRIANGLE_WIDTH = 0;
+static real32_t i_DRAWER_TRIANGLE_HEIGHT = 0;
 static const char_t *i_UTF8_CLOSE_BUTTON = "✖";
-static const char_t *i_UTF8_RIGHT_ARROW = "▶";
-static const char_t *i_UTF8_DOWN_ARROW = "▼";
+static Image *i_LEFT_ARROW = NULL;
+static Image *i_LEFT_ARROW_HOVER = NULL;
+static Image *i_DOWN_ARROW = NULL;
+static Image *i_DOWN_ARROW_HOVER = NULL;
 
 /*---------------------------------------------------------------------------*/
 
@@ -58,6 +64,10 @@ static void i_destroy_header_data(HeaderData **data)
 
 void dgui_init(void)
 {
+    color_t opened = gui_label_color();
+    color_t closed = gui_line_color();
+    color_t hover = gui_link_color();
+
     if (gui_dark_mode() == TRUE)
     {
         cassert(FALSE);
@@ -69,6 +79,23 @@ void dgui_init(void)
         i_DRAWER_GRADIENT[0] = color_rgb(0xF2, 0xF2, 0xF2);
         i_DRAWER_GRADIENT[1] = color_rgb(0xE4, 0xE4, 0xE4);
     }
+
+    i_LEFT_ARROW = imgproc_colorize(gui_image(ARRLEFT_PNG), closed);
+    i_LEFT_ARROW_HOVER = imgproc_colorize(gui_image(ARRLEFT_PNG), hover);
+    i_DOWN_ARROW = imgproc_colorize(gui_image(ARRDOWN_PNG), opened);
+    i_DOWN_ARROW_HOVER = imgproc_colorize(gui_image(ARRDOWN_PNG), hover);
+    i_DRAWER_TRIANGLE_WIDTH = (real32_t)image_width(i_LEFT_ARROW);
+    i_DRAWER_TRIANGLE_HEIGHT = (real32_t)image_height(i_LEFT_ARROW);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dgui_finish(void)
+{
+    image_destroy(&i_LEFT_ARROW);
+    image_destroy(&i_LEFT_ARROW_HOVER);
+    image_destroy(&i_DOWN_ARROW);
+    image_destroy(&i_DOWN_ARROW_HOVER);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -216,14 +243,29 @@ View *dgui_panel_header(const char_t *title, const Font *font, Listener *OnClose
 
 /*---------------------------------------------------------------------------*/
 
+const Image *i_drawer_image(const bool_t open, const bool_t over)
+{
+    if (open == TRUE && over == TRUE)
+        return i_DOWN_ARROW_HOVER;
+    else if (open == TRUE)
+        return i_DOWN_ARROW;
+    else if (open == FALSE && over == TRUE)
+        return i_LEFT_ARROW_HOVER;
+    else
+        return i_LEFT_ARROW;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnDrawerDraw(HeaderData *data, Event *e)
 {
     const EvDraw *p = event_params(e, EvDraw);
     real32_t stop[2] = {0, 1};
-    int32_t text_ypos = 0;
+    int32_t text_ypos = 0, icon_ypos = 0;
     cassert_no_null(data);
     draw_font(p->ctx, data->font);
     text_ypos = (int32_t)((p->height - font_height(data->font)) / 2);
+    icon_ypos = (int32_t)((p->height - i_DRAWER_TRIANGLE_HEIGHT) / 2);
 
     /* Background */
     draw_fill_linear(p->ctx, i_DRAWER_GRADIENT, stop, 2, 0, 0, 0, p->height);
@@ -232,13 +274,15 @@ static void i_OnDrawerDraw(HeaderData *data, Event *e)
     /* Title */
     {
         real32_t twidth = p->width - i_DRAWER_TRIANGLE_WIDTH - 2 * i_HEADER_TEXT_MARGIN;
+        const Image *image = i_drawer_image(data->open, data->over);
         draw_text_width(p->ctx, twidth);
         draw_text_halign(p->ctx, ekCENTER);
         draw_text_trim(p->ctx, ekELLIPEND);
         drawctrl_text(p->ctx, tc(data->title), (int32_t)(i_HEADER_TEXT_MARGIN + i_DRAWER_TRIANGLE_WIDTH), text_ypos, ekCTRL_STATE_NORMAL);
-        draw_text_halign(p->ctx, ekLEFT);
-        draw_text_color(p->ctx, data->over ? gui_link_color() : kCOLOR_DEFAULT);
-        drawctrl_text(p->ctx, data->open ? i_UTF8_DOWN_ARROW : i_UTF8_RIGHT_ARROW, (int32_t)i_HEADER_TEXT_MARGIN, text_ypos, ekCTRL_STATE_HOT);
+        drawctrl_image(p->ctx, image, 0, icon_ypos);
+        //draw_text_halign(p->ctx, ekLEFT);
+        //draw_text_color(p->ctx, data->over ? gui_link_color() : kCOLOR_DEFAULT);
+        //drawctrl_text(p->ctx, data->open ? i_UTF8_DOWN_ARROW : i_UTF8_RIGHT_ARROW, (int32_t)i_HEADER_TEXT_MARGIN, text_ypos, ekCTRL_STATE_HOT);
     }
 
     /* Frame */
@@ -316,6 +360,10 @@ static View *i_drawer_header(const char_t *title, const Font *font)
     data->view = view;
     size.width = 100;
     size.height = font_height(data->font) + 4;
+    
+    if (size.height < i_DRAWER_TRIANGLE_HEIGHT)
+        size.height = i_DRAWER_TRIANGLE_HEIGHT;
+
     view_size(view, size);
     view_OnDraw(view, listener(data, i_OnDrawerDraw, HeaderData));
     view_OnSize(view, listener(data, i_OnDrawerSize, HeaderData));
