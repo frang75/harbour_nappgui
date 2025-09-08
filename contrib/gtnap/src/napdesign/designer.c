@@ -464,6 +464,7 @@ static void i_OnAddFormClick(Designer *app, Event *e)
         {
             uint32_t n = listbox_count(app->form_list);
             DForm *form = dform_empty(app);
+            dform_description(form, tc(desc));
             dform_compose(form);
             cassert(n == arrpt_size(app->forms, DForm));
             listbox_add_elem(app->form_list, tc(filename), NULL);
@@ -485,50 +486,71 @@ static void i_OnAddFormClick(Designer *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnRenameFormClick(Designer *app, Event *e)
+static void i_OnPropsFormClick(Designer *app, Event *e)
 {
+    DForm *form = NULL;
     const char_t *name = NULL;
-    String *fname = NULL;
+    String *filename = NULL;
+    String *desc = NULL;
+    bool_t ok = FALSE;
     cassert_no_null(app);
     unref(e);
+    form = arrpt_get(app->forms, app->config.sel_form, DForm);
     name = i_list_text(app->form_list, app->config.sel_form);
-    fname = NULL;
-    //dialog_form_name(app->window, name);
-    if (str_empty(fname) == FALSE)
+    filename = str_c(name);
+    desc = str_c(dform_get_description(form));
+    ok = dialog_props_form(app->window, app->default_font, &filename, &desc);
+    if (ok == TRUE)
     {
-        if (i_exists_form_name(app, tc(fname)) == FALSE)
+        if (str_equ(filename, name) == TRUE)
+        {
+            dform_description(form, tc(desc));
+        }
+        else if (i_exists_form_name(app, tc(filename)) == FALSE)
         {
             String *oldpath = str_cpath("%s/%s.%s", tc(app->config.folder_path), name, i_FILE_EXT);
+            bool_t renamed = FALSE;
             if (hfile_exists(tc(oldpath), NULL) == TRUE)
             {
-                String *newpath = str_cpath("%s/%s.%s", tc(app->config.folder_path), tc(fname), i_FILE_EXT);
-                bfile_rename(tc(oldpath), tc(newpath), NULL);
+                String *newpath = str_cpath("%s/%s.%s", tc(app->config.folder_path), tc(filename), i_FILE_EXT);
+                renamed = bfile_rename(tc(oldpath), tc(newpath), NULL);
                 str_destroy(&newpath);
             }
 
+            if (renamed == TRUE)
             {
                 bool_t with_bullet = i_with_save_mark(app->form_list, app->config.sel_form);
                 if (with_bullet == TRUE)
                 {
-                    String *rname = str_printf("%s%s", i_SAVE_MARK, tc(fname));
+                    String *rname = str_printf("%s%s", i_SAVE_MARK, tc(filename));
                     listbox_set_elem(app->form_list, app->config.sel_form, tc(rname), NULL);
                     str_destroy(&rname);
                 }
                 else
                 {
-                    listbox_set_elem(app->form_list, app->config.sel_form, tc(fname), NULL);
+                    listbox_set_elem(app->form_list, app->config.sel_form, tc(filename), NULL);
                 }
+
+                dform_description(form, tc(desc));
+            }
+            else
+            {
+                /* RENAME ERROR */
+                dialog_name_already_exists(app->window, tc(filename));
             }
 
             str_destroy(&oldpath);
         }
         else
         {
-            dialog_name_already_exists(app->window, tc(fname));
+            dialog_name_already_exists(app->window, tc(filename));
         }
+
+        i_update_form_controls(app, TRUE);
     }
 
-    str_destroy(&fname);
+    str_destroy(&filename);
+    str_destroy(&desc);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -572,7 +594,7 @@ static Layout *i_tools_layout(Designer *app)
     button_OnClick(button1, listener(app, i_OnOpenFormsClick, Designer));
     button_OnClick(button2, listener(app, i_OnSaveFormsClick, Designer));
     button_OnClick(button3, listener(app, i_OnAddFormClick, Designer));
-    button_OnClick(button4, listener(app, i_OnRenameFormClick, Designer));
+    button_OnClick(button4, listener(app, i_OnPropsFormClick, Designer));
     button_OnClick(button5, listener(app, i_OnSimulateClick, Designer));
     button_OnClick(button6, listener(app, i_OnRemoveClick, Designer));
     button_tooltip(button1, gui_text(TOOLBAR_OPEN));

@@ -12,6 +12,10 @@ void dform_write(Stream *stm, DForm *form);
 
 void dform_compose(DForm *form);
 
+void dform_description(DForm *form, const char_t *desc);
+
+const char_t* dform_get_description(const DForm *form);
+
 void dform_set(DForm *form, Panel *inspect, Panel *propedit);
 
 bool_t dform_need_save(const DForm *form);

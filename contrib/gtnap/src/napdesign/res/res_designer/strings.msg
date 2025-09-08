@@ -21,6 +21,7 @@ TEXT_NEW_IMAGEVIEW  A new imageview will be placed in cell (%d, %d) of '%s' layo
 TEXT_NEW_TABLEVIEW  A new tableview will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SUBLAYOUT  A new sublayout will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_FORM       A new form will be created with this filename and properties
+TEXT_PROPS_FORM     Change the filename and forms properties
 
 TEXT_LAYOUT_PROPS   Layout properties
 TEXT_COLUMN_PROPS   Column properties
@@ -69,6 +70,7 @@ TEXT_TEXT_VIEW      Text View
 TEXT_IMAGE_VIEW     Image View
 TEXT_TABLE_VIEW     Table View
 TEXT_FORM           Form
+TEXT_FORM_PROPS     Form properties
 TEXT_BOX_FORMS      Forms
 TEXT_BOX_INSPECTOR  Object inspector
 TEXT_BOX_PROPEDIT   Property editor

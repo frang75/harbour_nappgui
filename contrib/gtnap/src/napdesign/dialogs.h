@@ -6,7 +6,7 @@ void dialog_dbind(void);
 
 bool_t dialog_new_form(Window *parent, const Font *font, String **filename, String **desc);
 
-//void dialog_edit_form(Window *parent, const Font *font, FForm *form, String **filename);
+bool_t dialog_props_form(Window *parent, const Font *font, String **filename, String **desc);
 
 FLabel *dialog_new_label(Window *parent, const Font *font, const DSelect *sel);
 

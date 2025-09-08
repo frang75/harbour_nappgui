@@ -240,6 +240,28 @@ void dform_compose(DForm *form)
 
 /*---------------------------------------------------------------------------*/
 
+void dform_description(DForm *form, const char_t *desc)
+{
+    cassert_no_null(form);
+    cassert_no_null(form->fform);
+    if (str_equ(form->fform->description, desc) == FALSE)
+    {
+        str_upd(&form->fform->description, desc);
+        form->need_save = TRUE;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t *dform_get_description(const DForm *form)
+{
+    cassert_no_null(form);
+    cassert_no_null(form->fform);
+    return tc(form->fform->description);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dform_set(DForm *form, Panel *inspect, Panel *propedit)
 {
     cassert_no_null(form);
