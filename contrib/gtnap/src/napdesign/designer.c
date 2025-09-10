@@ -350,7 +350,7 @@ static void i_OnOpenFormsClick(Designer *app, Event *e)
     unref(e);
     if (i_need_save(app) == TRUE)
     {
-        uint8_t ret = dialog_unsaved_changes(app->window);
+        uint8_t ret = dialog_unsaved_changes(app->window, app->default_font, gui_text(TEXT_UNSAVED1));
         if (ret == 1)
             i_save_forms(app);
         else if (ret == 2)
@@ -1469,10 +1469,24 @@ static void i_apply_config(Designer *app)
 
 static void i_OnClose(Designer *app, Event *e)
 {
-    i_update_config(app);
-    i_save_config(app);
-    osapp_finish();
-    unref(e);
+    bool_t *close = event_result(e, bool_t);
+    *close = TRUE;
+
+    if (i_need_save(app) == TRUE)
+    {
+        uint8_t ret = dialog_unsaved_changes(app->window, app->default_font, gui_text(TEXT_UNSAVED2));
+        if (ret == 1)
+            i_save_forms(app);
+        else if (ret == 2)
+            *close = FALSE;
+    }
+
+    if (*close == TRUE)
+    {
+        i_update_config(app);
+        i_save_config(app);
+        osapp_finish();
+    }
 }
 
 /*---------------------------------------------------------------------------*/

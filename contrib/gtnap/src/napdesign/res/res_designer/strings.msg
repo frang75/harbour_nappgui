@@ -149,6 +149,12 @@ TEXT_ERROR_NAME     Error in form name
 TEXT_NAME_EXISTS    Form name '%s' already exists
 TEXT_REMOVE_MSG     The form '%s'will be deleted from the disk. This operation is irreversible. Do you really want to continue?
 TEXT_FORM_REMOVE    Remove form
+TEXT_SAVE_CHANGES   Save changes
+TEXT_DISC_CHANGES   Discard changes
+TEXT_UNSAVE_CHANGES There are unsaved changes
+TEXT_UNSAVED1       There are unsaved changes in your current forms.\nChanges will be lost if you open another project folder.\nDo you want to save your changes?
+TEXT_UNSAVED2       There are unsaved changes in your current forms.\nChanges will be lost if you close the application.\nDo you want to save your changes?
+
 
 TIP_LAYOUT_NAME     Layout name. It will be useful to locate the layout at runtime.
 TIP_CELL_NAME       Cell name. It will be useful to locate the cell at runtime.
