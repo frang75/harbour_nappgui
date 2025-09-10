@@ -10,6 +10,8 @@ bool_t dialog_new_form(Window *parent, const Font *font, String **filename, Stri
 
 bool_t dialog_props_form(Window *parent, const Font *font, String **filename, String **desc);
 
+bool_t dialog_remove_form(Window *parent, const Font *font, const char_t *name);
+
 FLabel *dialog_new_label(Window *parent, const Font *font, const DSelect *sel);
 
 FButton *dialog_new_button(Window *parent, const Font *font, const DSelect *sel);
@@ -49,5 +51,3 @@ FLayout *dialog_horizontal_layout(Window *parent, const Font *font, const DSelec
 FLayout *dialog_grid_layout(Window *parent, const Font *font, const DSelect *sel);
 
 uint8_t dialog_unsaved_changes(Window *parent);
-
-bool_t dialog_remove_form(Window *parent, const char_t *name);

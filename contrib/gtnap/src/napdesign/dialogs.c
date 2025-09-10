@@ -218,12 +218,12 @@ static void i_OnHeaderClose(DialogData *data, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static uint32_t i_modal_launch(Window *parent, DialogData *data, Layout *inner_layout, const Font *font, const ResId icon_id, const ResId header_id, const char_t *caption, const bool_t ok_cancel)
+static uint32_t i_modal_launch(Window *parent, DialogData *data, Layout *inner_layout, const Font *font, const ResId icon_id, const ResId header_id, const char_t *caption, const bool_t ok_cancel, const bool_t ok_default)
 {
     Layout *layout1 = layout_create(1, 4);
     Layout *layout2 = layout_create(2, 1);
     Layout *layout3 = inner_layout;
-    Layout *layout4 = ok_cancel == TRUE ? i_ok_cancel(data, TRUE) : i_ok(data);
+    Layout *layout4 = ok_cancel == TRUE ? i_ok_cancel(data, ok_default) : i_ok(data);
     ImageView *icon = imageview_create();               
     View *header = dgui_panel_header(gui_text(header_id), font, listener(data, i_OnHeaderClose, DialogData));
     Label *label = label_create();
@@ -270,7 +270,7 @@ void dialog_form_name_exists(Window *parent, const Font *font, const char_t *nam
     Layout *layout = layout_create(1, 1);
     String *caption = NULL;
     caption = str_printf(gui_text(TEXT_NAME_EXISTS), name);
-    i_modal_launch(parent, &data, layout, font, ERROR24_PNG, TEXT_ERROR_NAME, tc(caption), FALSE);
+    i_modal_launch(parent, &data, layout, font, ERROR24_PNG, TEXT_ERROR_NAME, tc(caption), FALSE, TRUE);
     str_destroy(&caption);
     i_remove_dialog_data(&data);
 }
@@ -311,7 +311,7 @@ static bool_t i_form_dialog(Window *parent, const Font *font, const char_t *capt
         layout_dbind_obj(layout, &props, DialogProps);
     }
 
-    ret = i_modal_launch(parent, &data, layout, font, icon_id, title_id, caption, TRUE);
+    ret = i_modal_launch(parent, &data, layout, font, icon_id, title_id, caption, TRUE, TRUE);
 
     if (ret != BUTTON_OK && ret != ekGUI_CLOSE_INTRO)
     {
@@ -341,6 +341,25 @@ bool_t dialog_new_form(Window *parent, const Font *font, String **filename, Stri
 bool_t dialog_props_form(Window *parent, const Font *font, String **filename, String **desc)
 {
     return i_form_dialog(parent, font, gui_text(TEXT_PROPS_FORM), PROPS_PNG, TEXT_FORM_PROPS, filename, desc);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t dialog_remove_form(Window *parent, const Font *font, const char_t *name)
+{
+    DialogData data = i_dialog_data();
+    Layout *layout = layout_create(1, 1);
+    String *caption = NULL;
+    uint32_t ret = 0;
+    caption = str_printf(gui_text(TEXT_REMOVE_MSG), name);
+    ret = i_modal_launch(parent, &data, layout, font, REMOVE_PNG, TEXT_FORM_REMOVE, tc(caption), TRUE, FALSE);
+    str_destroy(&caption);
+    i_remove_dialog_data(&data);
+
+    if (ret != BUTTON_OK && ret != ekGUI_CLOSE_INTRO)
+        return FALSE;
+    else
+        return TRUE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -376,7 +395,7 @@ FLabel *dialog_new_label(Window *parent, const Font *font, const DSelect *sel)
     }
 
     caption = str_printf(gui_text(TEXT_NEW_LABEL), sel->col, sel->row, tc(sel->flayout->name));
-    ret = i_modal_launch(parent, &data, layout, font, LABEL_PNG, TEXT_LABEL, tc(caption), TRUE);
+    ret = i_modal_launch(parent, &data, layout, font, LABEL_PNG, TEXT_LABEL, tc(caption), TRUE, TRUE);
 
     if (ret != BUTTON_OK && ret != ekGUI_CLOSE_INTRO)
         flabel_destroy(&flabel);
@@ -412,7 +431,7 @@ FButton *dialog_new_button(Window *parent, const Font *font, const DSelect *sel)
     }
 
     caption = str_printf(gui_text(TEXT_NEW_BUTTON), sel->col, sel->row, tc(sel->flayout->name));
-    ret = i_modal_launch(parent, &data, layout, font, PUSHBUT_PNG, TEXT_PUSH_BUTTON, tc(caption), TRUE);
+    ret = i_modal_launch(parent, &data, layout, font, PUSHBUT_PNG, TEXT_PUSH_BUTTON, tc(caption), TRUE, TRUE);
 
     if (ret != BUTTON_OK && ret != ekGUI_CLOSE_INTRO)
         fbutton_destroy(&fbutton);
@@ -448,7 +467,7 @@ FCheck *dialog_new_check(Window *parent, const Font *font, const DSelect *sel)
     }
 
     caption = str_printf(gui_text(TEXT_NEW_CHECK), sel->col, sel->row, tc(sel->flayout->name));
-    ret = i_modal_launch(parent, &data, layout, font, CHECBUT_PNG, TEXT_CHECK_BOX, tc(caption), TRUE);
+    ret = i_modal_launch(parent, &data, layout, font, CHECBUT_PNG, TEXT_CHECK_BOX, tc(caption), TRUE, TRUE);
 
     if (ret != BUTTON_OK)
         fcheck_destroy(&fcheck);
@@ -484,7 +503,7 @@ FRadio *dialog_new_radio(Window *parent, const Font *font, const DSelect *sel)
     }
 
     caption = str_printf(gui_text(TEXT_NEW_RADIO), sel->col, sel->row, tc(sel->flayout->name));
-    ret = i_modal_launch(parent, &data, layout, font, RADBUT_PNG, TEXT_RADIO_BUTTON, tc(caption), TRUE);
+    ret = i_modal_launch(parent, &data, layout, font, RADBUT_PNG, TEXT_RADIO_BUTTON, tc(caption), TRUE, TRUE);
 
     if (ret != BUTTON_OK)
         fradio_destroy(&fradio);
@@ -595,7 +614,7 @@ FTool *dialog_new_tool(Window *parent, const Font *font, const DSelect *sel, con
     }
 
     caption = str_printf(gui_text(TEXT_NEW_TOOL), sel->col, sel->row, tc(sel->flayout->name));
-    ret = i_modal_launch(parent, &data, layout1, font, TOOLBUT_PNG, TEXT_TOOL_BUTTON, tc(caption), TRUE);
+    ret = i_modal_launch(parent, &data, layout1, font, TOOLBUT_PNG, TEXT_TOOL_BUTTON, tc(caption), TRUE, TRUE);
 
     if (ret != BUTTON_OK)
         ftool_destroy(&ftool);
@@ -658,7 +677,7 @@ FElem *dialog_new_elem(Window *parent, const Font *font, const char_t *caption, 
         data.toolbutton = button1;
     }
 
-    ret = i_modal_launch(parent, &data, layout1, font, iconId, headerId, caption, TRUE);
+    ret = i_modal_launch(parent, &data, layout1, font, iconId, headerId, caption, TRUE, TRUE);
 
     if (ret != BUTTON_OK)
         dbind_destroy(&felem, FElem);
@@ -680,7 +699,7 @@ FPopUp *dialog_new_popup(Window *parent, const Font *font, const DSelect *sel)
     cassert_no_null(sel->flayout);
 
     caption = str_printf(gui_text(TEXT_NEW_POPUP), sel->col, sel->row, tc(sel->flayout->name));
-    ret = i_modal_launch(parent, &data, layout, font, POPUP_PNG, TEXT_POPUP_BUTTON, tc(caption), TRUE);
+    ret = i_modal_launch(parent, &data, layout, font, POPUP_PNG, TEXT_POPUP_BUTTON, tc(caption), TRUE, TRUE);
 
     if (ret != BUTTON_OK)
         fpopup_destroy(&fpopup);
@@ -748,7 +767,7 @@ FEdit *dialog_new_edit(Window *parent, const Font *font, const DSelect *sel)
     }
 
     caption = str_printf(gui_text(TEXT_NEW_EDIT), sel->col, sel->row, tc(sel->flayout->name));
-    ret = i_modal_launch(parent, &data, layout1, font, EDITBOX_PNG, TEXT_EDIT_BOX, tc(caption), TRUE);
+    ret = i_modal_launch(parent, &data, layout1, font, EDITBOX_PNG, TEXT_EDIT_BOX, tc(caption), TRUE, TRUE);
 
     if (ret != BUTTON_OK)
         fedit_destroy(&fedit);
@@ -802,7 +821,7 @@ FCombo *dialog_new_combo(Window *parent, const Font *font, const DSelect *sel)
     }
 
     caption = str_printf(gui_text(TEXT_NEW_COMBO), sel->col, sel->row, tc(sel->flayout->name));
-    ret = i_modal_launch(parent, &data, layout1, font, COMBOBOX_PNG, TEXT_COMBO_BOX, tc(caption), TRUE);
+    ret = i_modal_launch(parent, &data, layout1, font, COMBOBOX_PNG, TEXT_COMBO_BOX, tc(caption), TRUE, TRUE);
 
     if (ret != BUTTON_OK)
         fcombo_destroy(&fcombo);
@@ -844,7 +863,7 @@ FListBox *dialog_new_listbox(Window *parent, const Font *font, const DSelect *se
     }
 
     caption = str_printf(gui_text(TEXT_NEW_LISTBOX), sel->col, sel->row, tc(sel->flayout->name));
-    ret = i_modal_launch(parent, &data, layout1, font, LISTVIEW_PNG, TEXT_LIST_BOX, tc(caption), TRUE);
+    ret = i_modal_launch(parent, &data, layout1, font, LISTVIEW_PNG, TEXT_LIST_BOX, tc(caption), TRUE, TRUE);
 
     if (ret != BUTTON_OK)
         flistbox_destroy(&flistbox);
@@ -880,7 +899,7 @@ FSlider *dialog_new_slider(Window *parent, const Font *font, const DSelect *sel)
     }
 
     caption = str_printf(gui_text(TEXT_NEW_SLIDER), sel->col, sel->row, tc(sel->flayout->name));
-    ret = i_modal_launch(parent, &data, layout1, font, HORSLIDER_PNG, TEXT_HORZ_SLIDER, tc(caption), TRUE);
+    ret = i_modal_launch(parent, &data, layout1, font, HORSLIDER_PNG, TEXT_HORZ_SLIDER, tc(caption), TRUE, TRUE);
 
     if (ret != BUTTON_OK)
         fslider_destroy(&fslider);
@@ -916,7 +935,7 @@ FVSlider *dialog_new_vslider(Window *parent, const Font *font, const DSelect *se
     }
 
     caption = str_printf(gui_text(TEXT_NEW_VSLIDER), sel->col, sel->row, tc(sel->flayout->name));
-    ret = i_modal_launch(parent, &data, layout1, font, VERSLIDER_PNG, TEXT_VERT_SLIDER, tc(caption), TRUE);
+    ret = i_modal_launch(parent, &data, layout1, font, VERSLIDER_PNG, TEXT_VERT_SLIDER, tc(caption), TRUE, TRUE);
 
     if (ret != BUTTON_OK)
         fvslider_destroy(&fvslider);
@@ -952,7 +971,7 @@ FProgress *dialog_new_progress(Window *parent, const Font *font, const DSelect *
     }
 
     caption = str_printf(gui_text(TEXT_NEW_PROGRESS), sel->col, sel->row, tc(sel->flayout->name));
-    ret = i_modal_launch(parent, &data, layout1, font, PROGRESSBAR_PNG, TEXT_PROGRESS_BAR, tc(caption), TRUE);
+    ret = i_modal_launch(parent, &data, layout1, font, PROGRESSBAR_PNG, TEXT_PROGRESS_BAR, tc(caption), TRUE, TRUE);
 
     if (ret != BUTTON_OK)
         fprogress_destroy(&fprogress);
@@ -994,7 +1013,7 @@ FText *dialog_new_text(Window *parent, const Font *font, const DSelect *sel)
     }
 
     caption = str_printf(gui_text(TEXT_NEW_TEXTVIEW), sel->col, sel->row, tc(sel->flayout->name));
-    ret = i_modal_launch(parent, &data, layout1, font, TEXTVIEW_PNG, TEXT_TEXT_VIEW, tc(caption), TRUE);
+    ret = i_modal_launch(parent, &data, layout1, font, TEXTVIEW_PNG, TEXT_TEXT_VIEW, tc(caption), TRUE, TRUE);
 
     if (ret != BUTTON_OK)
         ftext_destroy(&ftext);
@@ -1070,7 +1089,7 @@ FImage *dialog_new_image(Window *parent, const Font *font, const DSelect *sel, c
     }
 
     caption = str_printf(gui_text(TEXT_NEW_IMAGEVIEW), sel->col, sel->row, tc(sel->flayout->name));
-    ret = i_modal_launch(parent, &data, layout1, font, IMAGEVIEW_PNG, TEXT_IMAGE_VIEW, tc(caption), TRUE);
+    ret = i_modal_launch(parent, &data, layout1, font, IMAGEVIEW_PNG, TEXT_IMAGE_VIEW, tc(caption), TRUE, TRUE);
 
     if (ret != BUTTON_OK)
         fimage_destroy(&fimage);
@@ -1112,7 +1131,7 @@ FTable *dialog_new_table(Window *parent, const Font *font, const DSelect *sel)
     }
 
     caption = str_printf(gui_text(TEXT_NEW_TABLEVIEW), sel->col, sel->row, tc(sel->flayout->name));
-    ret = i_modal_launch(parent, &data, layout1, font, TABLEVIEW_PNG, TEXT_TABLE_VIEW, tc(caption), TRUE);
+    ret = i_modal_launch(parent, &data, layout1, font, TABLEVIEW_PNG, TEXT_TABLE_VIEW, tc(caption), TRUE, TRUE);
 
     if (ret != BUTTON_OK)
         ftable_destroy(&ftable);
@@ -1208,7 +1227,7 @@ static FLayout *i_dialog_new_layout(Window *parent, const Font *font, const DSel
     cassert_no_null(diag);
     caption = str_printf(gui_text(TEXT_NEW_SUBLAYOUT), sel->col, sel->row, tc(sel->flayout->name));
     layout_dbind_obj(grid_layout, diag, DialogLayout);
-    ret = i_modal_launch(parent, &data, grid_layout, font, icon_id, header_id, tc(caption), TRUE);
+    ret = i_modal_launch(parent, &data, grid_layout, font, icon_id, header_id, tc(caption), TRUE, TRUE);
 
     if (ret == BUTTON_OK || ret == ekGUI_CLOSE_INTRO)
     {
@@ -1281,37 +1300,3 @@ uint8_t dialog_unsaved_changes(Window *parent)
     else
         return 2;
 }
-
-/*---------------------------------------------------------------------------*/
-
-bool_t dialog_remove_form(Window *parent, const char_t *name)
-{
-    DialogData data = i_dialog_data();
-    Layout *layout1 = layout_create(1, 3);
-    Layout *layout2 = i_ok_cancel(&data, FALSE);
-    Label *label = label_create();
-    Panel *panel = panel_create();
-    Window *window = window_create(ekWINDOW_STD | ekWINDOW_ESC);
-    String *caption = NULL;
-    uint32_t ret = 0;
-    data.window = window;
-    caption = str_printf("Do you really want to delete the '%s' form?", name);
-    label_text(label, tc(caption));
-    layout_label(layout1, label, 0, 0);
-    layout_layout(layout1, layout2, 0, 1);
-    layout_vmargin(layout1, 0, 5);
-    panel_layout(panel, layout1);
-    window_panel(window, panel);
-    window_defbutton(window, data.defbutton);
-    i_center_window(parent, window);
-    ret = window_modal(window, parent);
-    window_destroy(&window);
-    str_destroy(&caption);
-    i_remove_dialog_data(&data);
-
-    if (ret == BUTTON_OK)
-        return TRUE;
-
-    return FALSE;
-}
-

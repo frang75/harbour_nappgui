@@ -396,7 +396,7 @@ static void i_OnRemoveClick(Designer *app, Event *e)
     cassert_no_null(app);
     unref(e);
     name = i_list_text(app->form_list, app->config.sel_form);
-    if (dialog_remove_form(app->window, name) == TRUE)
+    if (dialog_remove_form(app->window, app->default_font, name) == TRUE)
     {
         String *path = str_cpath("%s/%s.%s", tc(app->config.folder_path), name, i_FILE_EXT);
         bool_t removed = TRUE;

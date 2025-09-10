@@ -147,6 +147,8 @@ TOOLBAR_REMOVE      Remove current form
 TEXT_OPEN_CAPTION   Select the form folder you want to work with.
 TEXT_ERROR_NAME     Error in form name
 TEXT_NAME_EXISTS    Form name '%s' already exists
+TEXT_REMOVE_MSG     The form '%s'will be deleted from the disk. This operation is irreversible. Do you really want to continue?
+TEXT_FORM_REMOVE    Remove form
 
 TIP_LAYOUT_NAME     Layout name. It will be useful to locate the layout at runtime.
 TIP_CELL_NAME       Cell name. It will be useful to locate the cell at runtime.
