@@ -145,6 +145,8 @@ TOOLBAR_PROPS       Form properties
 TOOLBAR_SIMULATE    Simulate current form
 TOOLBAR_REMOVE      Remove current form
 TEXT_OPEN_CAPTION   Select the form folder you want to work with.
+TEXT_ERROR_NAME     Error in form name
+TEXT_NAME_EXISTS    Form name '%s' already exists
 
 TIP_LAYOUT_NAME     Layout name. It will be useful to locate the layout at runtime.
 TIP_CELL_NAME       Cell name. It will be useful to locate the cell at runtime.

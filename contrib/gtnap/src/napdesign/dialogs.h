@@ -4,6 +4,8 @@
 
 void dialog_dbind(void);
 
+void dialog_form_name_exists(Window *parent, const Font *font, const char_t *name);
+
 bool_t dialog_new_form(Window *parent, const Font *font, String **filename, String **desc);
 
 bool_t dialog_props_form(Window *parent, const Font *font, String **filename, String **desc);
@@ -49,5 +51,3 @@ FLayout *dialog_grid_layout(Window *parent, const Font *font, const DSelect *sel
 uint8_t dialog_unsaved_changes(Window *parent);
 
 bool_t dialog_remove_form(Window *parent, const char_t *name);
-
-void dialog_name_already_exists(Window *parent, const char_t *name);

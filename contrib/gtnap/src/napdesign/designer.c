@@ -476,7 +476,7 @@ static void i_OnAddFormClick(Designer *app, Event *e)
         }
         else
         {
-            dialog_name_already_exists(app->window, tc(filename));
+            dialog_form_name_exists(app->window, app->default_font, tc(filename));
         }
     }
 
@@ -536,14 +536,14 @@ static void i_OnPropsFormClick(Designer *app, Event *e)
             else
             {
                 /* RENAME ERROR */
-                dialog_name_already_exists(app->window, tc(filename));
+                dialog_form_name_exists(app->window, app->default_font, tc(filename));
             }
 
             str_destroy(&oldpath);
         }
         else
         {
-            dialog_name_already_exists(app->window, tc(filename));
+            dialog_form_name_exists(app->window, app->default_font, tc(filename));
         }
 
         i_update_form_controls(app, TRUE);
