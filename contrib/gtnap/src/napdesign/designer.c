@@ -557,15 +557,13 @@ static void i_OnPropsFormClick(Designer *app, Event *e)
 
 static Layout *i_tools_layout(Designer *app)
 {
-    Layout *layout = layout_create(9, 1);
+    Layout *layout = layout_create(7, 1);
     Button *button1 = button_flat();
     Button *button2 = button_flat();
     Button *button3 = button_flat();
     Button *button4 = button_flat();
     Button *button5 = button_flat();
     Button *button6 = button_flat();
-    Button *button7 = button_flat();
-    Button *button8 = button_flat();
     cassert_no_null(app);
     button_image(button1, cast_const(OPEN_PNG, Image));
     button_image(button2, cast_const(SAVE_PNG, Image));
@@ -573,24 +571,18 @@ static Layout *i_tools_layout(Designer *app)
     button_image(button4, cast_const(PROPS_PNG, Image));
     button_image(button5, cast_const(SHOW_PNG, Image));
     button_image(button6, cast_const(REMOVE_PNG, Image));
-    button_image(button7, cast_const(PLUS24_PNG, Image));
-    button_image(button8, cast_const(ERROR24_PNG, Image));
     button_hpadding(button1, 6);
     button_hpadding(button2, 6);
     button_hpadding(button3, 6);
     button_hpadding(button4, 6);
     button_hpadding(button5, 6);
     button_hpadding(button6, 6);
-    button_hpadding(button7, 6);
-    button_hpadding(button8, 6);
     button_vpadding(button1, 6);
     button_vpadding(button2, 6);
     button_vpadding(button3, 6);
     button_vpadding(button4, 6);
     button_vpadding(button5, 6);
     button_vpadding(button6, 6);
-    button_vpadding(button7, 6);
-    button_vpadding(button8, 6);
     button_OnClick(button1, listener(app, i_OnOpenFormsClick, Designer));
     button_OnClick(button2, listener(app, i_OnSaveFormsClick, Designer));
     button_OnClick(button3, listener(app, i_OnAddFormClick, Designer));
@@ -609,11 +601,9 @@ static Layout *i_tools_layout(Designer *app)
     layout_button(layout, button4, 3, 0);
     layout_button(layout, button5, 4, 0);
     layout_button(layout, button6, 5, 0);
-    layout_button(layout, button7, 7, 0);
-    layout_button(layout, button8, 8, 0);
     layout_margin4(layout, 0, 0, 0, 10);
-    layout_hmargin(layout, 4, 10);
     layout_hexpand(layout, 6);
+    layout_hmargin(layout, 4, 10);
     app->open_form_cell = layout_cell(layout, 0, 0);
     app->save_form_cell = layout_cell(layout, 1, 0);
     app->add_form_cell = layout_cell(layout, 2, 0);
