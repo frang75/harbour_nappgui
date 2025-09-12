@@ -261,7 +261,7 @@ static uint32_t i_modal_launch(Window *parent, DialogData *data, Layout *inner_l
     View *header = dgui_panel_header(gui_text(header_id), font, listener(data, i_OnHeaderClose, DialogData));
     Label *label = label_create();
     Panel *panel = panel_create();
-    Window *window = window_create(ekWINDOW_RETURN | ekWINDOW_ESC);
+    Window *window = window_create(ekWINDOW_RETURN | ekWINDOW_ESC | ekWINDOW_EDGE);
     uint32_t ret = 0;
     cassert_no_null(data);
     data->window = window;

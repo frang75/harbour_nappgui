@@ -623,6 +623,7 @@ static void i_OnLoadIcon(PropData *data, Event *e)
         {
             String *relpath = str_relpath(ekLINUX, folder_path, imgpath);
             FCell *cell = dform_sel_fcell(&data->sel);
+            const DColors *colors = designer_colors(data->app);
             cassert_no_null(cell);
             if (cell->type == ekCELL_TYPE_TOOL)
             {
@@ -645,7 +646,7 @@ static void i_OnLoadIcon(PropData *data, Event *e)
                 cassert(FALSE);
             }
 
-            dlayout_set_image(data->sel.dlayout, image, data->sel.col, data->sel.row);
+            dlayout_set_image(data->sel.dlayout, image, data->sel.col, data->sel.row, colors);
             dform_compose(data->form);
             designer_canvas_update(data->app);
             str_destroy(&relpath);
@@ -793,6 +794,7 @@ static void i_OnElementAdd(PropData *data, Event *e)
 
     if (elem != NULL)
     {
+        const DColors *colors = designer_colors(data->app);
         if (cell->type == ekCELL_TYPE_POPUP)
         {
             FPopUp *fpopup = layout_dbind_get_obj(data->popup_layout, FPopUp);
@@ -801,7 +803,7 @@ static void i_OnElementAdd(PropData *data, Event *e)
             nelem->iconpath = str_copy(elem->iconpath);
             i_update_elem_list(fpopup->elems, data->popup_list, folder_path);
             dform_synchro_popup(data->form, &data->sel, folder_path);
-            dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, fpopup->elems, folder_path);
+            dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, fpopup->elems, folder_path, colors);
         }
         else if (cell->type == ekCELL_TYPE_LISTBOX)
         {
@@ -811,7 +813,7 @@ static void i_OnElementAdd(PropData *data, Event *e)
             nelem->iconpath = str_copy(elem->iconpath);
             i_update_elem_list(flistbox->elems, data->listbox_list, folder_path);
             dform_synchro_listbox(data->form, &data->sel, folder_path);
-            dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, flistbox->elems, folder_path);
+            dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, flistbox->elems, folder_path, colors);
         }
         else
         {
@@ -832,10 +834,12 @@ static void i_OnElementRemove(PropData *data, Event *e)
 {
     FCell *cell = NULL;
     const char_t *folder_path = NULL;
+    const DColors *colors = NULL;    
     cassert_no_null(data);
     unref(e);
     cell = dform_sel_fcell(&data->sel);
     folder_path = designer_folder_path(data->app);
+    colors = designer_colors(data->app);
     cassert_no_null(cell);
 
     if (cell->type == ekCELL_TYPE_POPUP)
@@ -845,7 +849,7 @@ static void i_OnElementRemove(PropData *data, Event *e)
         arrst_delete(fpopup->elems, index, i_remove_elem, FElem);
         i_update_elem_list(fpopup->elems, data->popup_list, folder_path);
         dform_synchro_popup(data->form, &data->sel, folder_path);
-        dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, fpopup->elems, folder_path);
+        dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, fpopup->elems, folder_path, colors);
     }
     else if (cell->type == ekCELL_TYPE_LISTBOX)
     {
@@ -854,7 +858,7 @@ static void i_OnElementRemove(PropData *data, Event *e)
         arrst_delete(flistbox->elems, index, i_remove_elem, FElem);
         i_update_elem_list(flistbox->elems, data->listbox_list, folder_path);
         dform_synchro_listbox(data->form, &data->sel, folder_path);
-        dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, flistbox->elems, folder_path);
+        dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, flistbox->elems, folder_path, colors);
     }
     else
     {
@@ -871,10 +875,12 @@ static void i_OnElementClear(PropData *data, Event *e)
 {
     FCell *cell = NULL;
     const char_t *folder_path = NULL;
+    const DColors *colors = NULL;
     cassert_no_null(data);
     unref(e);
     cell = dform_sel_fcell(&data->sel);
     folder_path = designer_folder_path(data->app);
+    colors = designer_colors(data->app);
     cassert_no_null(cell);
 
     if (cell->type == ekCELL_TYPE_POPUP)
@@ -883,7 +889,7 @@ static void i_OnElementClear(PropData *data, Event *e)
         arrst_clear(fpopup->elems, i_remove_elem, FElem);
         i_update_elem_list(fpopup->elems, data->popup_list, folder_path);
         dform_synchro_popup(data->form, &data->sel, folder_path);
-        dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, fpopup->elems, folder_path);
+        dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, fpopup->elems, folder_path, colors);
     }
     else if (cell->type == ekCELL_TYPE_LISTBOX)
     {
@@ -891,7 +897,7 @@ static void i_OnElementClear(PropData *data, Event *e)
         arrst_clear(flistbox->elems, i_remove_elem, FElem);
         i_update_elem_list(flistbox->elems, data->listbox_list, folder_path);
         dform_synchro_listbox(data->form, &data->sel, folder_path);
-        dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, flistbox->elems, folder_path);
+        dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, flistbox->elems, folder_path, colors);
     }
     else
     {

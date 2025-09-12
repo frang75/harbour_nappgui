@@ -12,6 +12,7 @@ typedef struct _dcell_t DCell;
 typedef struct _dlayout_t DLayout;
 typedef struct _dform_t DForm;
 typedef struct _dselect_t DSelect;
+typedef struct _dcolors_t DColors;
 
 typedef enum _widget_t
 {
@@ -124,6 +125,17 @@ struct _dselect_t
     layelem_t elem;
     uint32_t col;
     uint32_t row;
+};
+
+struct _dcolors_t
+{
+    color_t canvas;
+    color_t panel;
+    color_t back;
+    color_t main;
+    color_t select;
+    color_t title0;
+    color_t title1;
 };
 
 DeclSt(DColumn);

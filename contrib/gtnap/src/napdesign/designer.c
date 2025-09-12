@@ -99,8 +99,7 @@ static const split_mode_t i_SPLIT3_MODE = ekSPLIT_FIXED1;
 static const split_mode_t i_SPLIT4_MODE = ekSPLIT_FIXED0;
 static const char_t *i_FILE_EXT = "nfm";
 static const char_t *i_SAVE_MARK = "• ";
-static color_t i_CANVAS_COLOR = 0;
-
+static DColors i_COLORS;
 DeclPt(DForm);
 DeclSt(BWidget);
 DeclSt(WDrawer);
@@ -924,11 +923,11 @@ static void i_OnDraw(Designer *app, Event *e)
 {
     const EvDraw *p = event_params(e, EvDraw);
     cassert_no_null(app);
-    draw_clear(p->ctx, i_CANVAS_COLOR);
+    draw_clear(p->ctx, i_COLORS.canvas);
     if (app->config.sel_form != UINT32_MAX)
     {
         DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
-        dform_draw(form, app->config.swidget, app->add_icon, app->default_font, p->ctx);
+        dform_draw(form, app->config.swidget, app->add_icon, app->default_font, &i_COLORS, p->ctx);
     }
 }
 
@@ -1514,7 +1513,23 @@ static Designer *i_app(void)
     i_dbind();
     dialog_dbind();    
     dlayout_global_init();
-    i_CANVAS_COLOR = color_html("#a0a0a0");
+
+    if (gui_dark_mode() == TRUE)
+    {
+        /* Define Dark-Mode colors */
+        cassert(FALSE);
+    }
+    else
+    {
+        i_COLORS.canvas = color_html("#a0a0a0");
+        i_COLORS.panel = color_html("#f0f0f0");
+        i_COLORS.back = color_html("#e0e0e0");
+        i_COLORS.main = kCOLOR_BLACK;
+        i_COLORS.select = gui_link_color();
+        i_COLORS.title0 = color_html("#99b5d1");
+        i_COLORS.title1 = color_html("#b7cfe8");
+    }
+
     app->forms = arrpt_create(DForm);
     app->add_icon = image_copy(gui_image(PLUS16_PNG));
     app->default_font = font_system(font_regular_size(), 0);
@@ -1667,6 +1682,14 @@ const Font *designer_default_font(const Designer *app)
 {
     cassert_no_null(app);
     return app->default_font;
+}
+
+/*---------------------------------------------------------------------------*/
+
+const DColors *designer_colors(const Designer *app)
+{
+    unref(app);
+    return &i_COLORS;
 }
 
 /*---------------------------------------------------------------------------*/

@@ -224,10 +224,11 @@ void dform_compose(DForm *form)
     {
         Panel *panel = panel_create();
         const char_t *resource_path = designer_folder_path(form->app);
+        const DColors *colors = designer_colors(form->app);
         cassert_no_null(form->fform);
         cassert(form->window == NULL);
         cassert(form->dlayout == NULL);
-        form->dlayout = dlayout_from_flayout(form->fform->layout, resource_path);
+        form->dlayout = dlayout_from_flayout(form->fform->layout, resource_path, colors);
         form->glayout = flayout_to_gui(form->fform->layout, resource_path, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
         panel_layout(panel, form->glayout);
         form->window = window_create(ekWINDOW_STD);
@@ -448,7 +449,9 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
         if (i_sel_empty_cell(&sel) == TRUE)
         {
             const char_t *folder_path = designer_folder_path(form->app);
+            const DColors *colors = designer_colors(form->app);
             cassert_no_null(form->dlayout);
+
             switch(widget) {
             case ekWIDGET_SELECT:
                 break;
@@ -541,7 +544,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     flayout_add_tool(sel.flayout, ftool, sel.col, sel.row);
                     layout_button(sel.glayout, button, sel.col, sel.row);
                     image = button_get_image(button);
-                    dlayout_set_image(sel.dlayout, image, sel.col, sel.row);
+                    dlayout_set_image(sel.dlayout, image, sel.col, sel.row, colors);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -558,7 +561,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 {
                     PopUp *popup = popup_create();
                     fpopup_synchro(fpopup, popup, folder_path);
-                    dlayout_synchro_elems(sel.dlayout, sel.col, sel.row, fpopup->elems, folder_path);
+                    dlayout_synchro_elems(sel.dlayout, sel.col, sel.row, fpopup->elems, folder_path, colors);
                     i_sel_remove_cell(&sel);
                     flayout_add_popup(sel.flayout, fpopup, sel.col, sel.row);
                     layout_popup(sel.glayout, popup, sel.col, sel.row);
@@ -616,7 +619,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 {
                     ListBox *listbox = listbox_create();
                     flistbox_synchro(flistbox, listbox, folder_path);
-                    dlayout_synchro_elems(sel.dlayout, sel.col, sel.row, flistbox->elems, folder_path);
+                    dlayout_synchro_elems(sel.dlayout, sel.col, sel.row, flistbox->elems, folder_path, colors);
                     i_sel_remove_cell(&sel);
                     flayout_add_listbox(sel.flayout, flistbox, sel.col, sel.row);
                     layout_listbox(sel.glayout, listbox, sel.col, sel.row);
@@ -715,7 +718,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     i_sel_remove_cell(&sel);
                     flayout_add_image(sel.flayout, fimage, sel.col, sel.row);
                     layout_imageview(sel.glayout, view, sel.col, sel.row);
-                    dlayout_set_image(sel.dlayout, imageview_get_image(view), sel.col, sel.row);
+                    dlayout_set_image(sel.dlayout, imageview_get_image(view), sel.col, sel.row, colors);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -759,7 +762,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 if (fsublayout != NULL)
                 {
                     const char_t *resource_path = designer_folder_path(form->app);
-                    DLayout *dsublayout = dlayout_from_flayout(fsublayout, resource_path);
+                    DLayout *dsublayout = dlayout_from_flayout(fsublayout, resource_path, colors);
                     Layout *gsublayout = flayout_to_gui(fsublayout, resource_path, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
                     i_layout_obj_names(form, fsublayout);
                     i_sel_remove_cell(&sel);
@@ -1242,11 +1245,11 @@ FCell *dform_sel_fcell(const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-void dform_draw(const DForm *form, const widget_t swidget, const Image *add_icon, const Font *default_font, DCtx *ctx)
+void dform_draw(const DForm *form, const widget_t swidget, const Image *add_icon, const Font *default_font, const DColors *colors, DCtx *ctx)
 {
     cassert_no_null(form);
     cassert_no_null(form->fform);
-    dlayout_draw(form->dlayout, form->fform->layout, form->glayout, &form->hover, &form->sel, swidget, add_icon, default_font, ctx);
+    dlayout_draw(form->dlayout, form->fform->layout, form->glayout, &form->hover, &form->sel, swidget, add_icon, default_font, colors, ctx);
 }
 
 /*---------------------------------------------------------------------------*/
