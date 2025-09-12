@@ -4,6 +4,7 @@
 #include "imgproc.h"
 #include <nflib/nflib.h>
 #include <nflib/flayout.h>
+#include <gui/gui.h>
 #include <gui/button.h>
 #include <gui/label.h>
 #include <gui/layout.h>
@@ -33,6 +34,7 @@
 #include <sewer/ptr.h>
 
 static color_t i_BGCOLOR = 0;
+static color_t i_PANEL_COLOR = 0;
 static color_t i_SEL_COLOR = 0;
 static color_t i_MAIN_COLOR = 0;
 
@@ -40,8 +42,9 @@ static color_t i_MAIN_COLOR = 0;
 
 void dlayout_global_init(void)
 {
-    i_BGCOLOR = color_rgb(225, 225, 0);
-    i_SEL_COLOR = kCOLOR_RED;
+    i_PANEL_COLOR = color_html("#f0f0f0");
+    i_BGCOLOR = color_html("#e0e0e0"); //color_rgb(225, 225, 0);
+    i_SEL_COLOR = gui_link_color();//    kCOLOR_RED;
     i_MAIN_COLOR = kCOLOR_BLACK;
 }
 
@@ -759,7 +762,48 @@ static void i_draw_arrow(DCtx *ctx, const real32_t x, const real32_t y, const re
 
 /*---------------------------------------------------------------------------*/
 
-void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Image *add_icon, const Font *default_font, DCtx *ctx)
+static void i_draw_grid(DCtx *ctx, const R2Df *rect)
+{
+    const real32_t sep = 10;
+    uint32_t nc, nr, i, j;
+    real32_t x, y;
+    cassert_no_null(rect);
+    nc = (uint32_t)bmath_ceilf(rect->size.width / sep);
+    nr = (uint32_t)bmath_ceilf(rect->size.height / sep);
+    x = rect->pos.x;
+    draw_fill_color(ctx, kCOLOR_BLACK /* color_html("#a0a0a0")*/);
+    for (i = 0; i < nc; ++i, x+= sep)
+    {
+        y = rect->pos.y;
+        for (j = 0; j < nr; ++j, y += sep)
+            draw_circle(ctx, ekFILL, x, y, .5f);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_draw_frame(DCtx *ctx, const R2Df *rect)
+{
+    const real32_t HEADER = 30;
+    const real32_t EDGE = 10;
+    color_t c[2];
+    real32_t s[2] = {0, 1};
+    c[0] = color_html("#99b5d1");
+    c[1] = color_html("#b7cfe8");
+    cassert_no_null(rect);
+    draw_fill_color(ctx, c[1]);
+    draw_rect(ctx, ekFILL, rect->pos.x - EDGE, rect->pos.y - 2, EDGE, rect->size.height + 4);
+    draw_rect(ctx, ekFILL, rect->pos.x + rect->size.width, rect->pos.y - 2, EDGE, rect->size.height + 4);
+    draw_rect(ctx, ekFILL, rect->pos.x - EDGE, rect->pos.y + rect->size.height, rect->size.width + EDGE * 2, EDGE);
+    draw_fill_linear(ctx, c, s, 2, 0, rect->pos.y - HEADER, 0, rect->pos.y);
+    draw_rect(ctx, ekFILL, rect->pos.x - EDGE, rect->pos.y - HEADER, rect->size.width + EDGE * 2, HEADER);
+    draw_line_color(ctx, kCOLOR_BLACK);
+    draw_rect(ctx, ekSTROKE, rect->pos.x - EDGE, rect->pos.y - HEADER, rect->size.width + EDGE * 2, rect->size.height + HEADER + EDGE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Image *add_icon, const Font *default_font, DCtx *ctx)
 {
     uint32_t ncols, nrows, i, j, radio_i = 0;
     const DCell *dcell = NULL;
@@ -771,9 +815,6 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
     dcell = arrst_all_const(dlayout->cells, DCell);
     cassert(ncols == flayout_ncols(flayout));
     cassert(nrows == flayout_nrows(flayout));
-    draw_line_color(ctx, i_MAIN_COLOR);
-    draw_fill_color(ctx, i_MAIN_COLOR);
-    draw_r2df(ctx, ekSTROKE, &dlayout->rect);
 
     for (j = 0; j < nrows; ++j)
     {
@@ -1219,7 +1260,7 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
             case ekCELL_TYPE_LAYOUT:
             {
                 Layout *gsublayout = cell_layout(gcell);
-                dlayout_draw(dcell->sublayout, fcell->widget.layout, gsublayout, hover, sel, swidget, add_icon, default_font, ctx);
+                i_draw_layout(dcell->sublayout, fcell->widget.layout, gsublayout, hover, sel, swidget, add_icon, default_font, ctx);
                 break;
             }
             }
@@ -1273,4 +1314,17 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
         draw_rect(ctx, ekFILL, x1, (y1 + y2 - rsize) / 2, rsize, rsize);
         draw_rect(ctx, ekFILL, x2 - rsize, (y1 + y2 - rsize) / 2, rsize, rsize);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Image *add_icon, const Font *default_font, DCtx *ctx)
+{
+    draw_line_color(ctx, i_MAIN_COLOR);
+    draw_fill_color(ctx, i_PANEL_COLOR);
+    draw_r2df(ctx, ekFILLSK, &dlayout->rect);
+    i_draw_grid(ctx, &dlayout->rect);
+    i_draw_frame(ctx, &dlayout->rect);
+    draw_fill_color(ctx, i_MAIN_COLOR);
+    i_draw_layout(dlayout, flayout, glayout, hover, sel, swidget, add_icon, default_font, ctx);
 }

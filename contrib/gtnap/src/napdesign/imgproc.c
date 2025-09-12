@@ -97,9 +97,18 @@ static Pixbuf *i_binarize_otsu(const Pixbuf *pixbuf, const bool_t invert)
 
 /*---------------------------------------------------------------------------*/
 
+static color_t i_effective_color(const color_t color)
+{
+    uint8_t r, g, b, a;
+    color_get_rgba(color, &r, &g, &b, &a);
+    return color_rgba(r, g, b, a);
+}
+    
+/*---------------------------------------------------------------------------*/
+
 Image *imgproc_binarize(const Image *image, const color_t color, const color_t bgcolor)
 {
-    Palette *palette = palette_binary(color, bgcolor);
+    Palette *palette = palette_binary(i_effective_color(color), i_effective_color(bgcolor));
     Pixbuf *pixbuf1 = image_pixels(image, ekGRAY8);
     Pixbuf *pixbuf2 = i_binarize_otsu(pixbuf1, TRUE);
     Image *bimage = image_from_pixbuf(pixbuf2, palette);

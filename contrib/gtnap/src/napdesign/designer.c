@@ -99,6 +99,8 @@ static const split_mode_t i_SPLIT3_MODE = ekSPLIT_FIXED1;
 static const split_mode_t i_SPLIT4_MODE = ekSPLIT_FIXED0;
 static const char_t *i_FILE_EXT = "nfm";
 static const char_t *i_SAVE_MARK = "• ";
+static color_t i_CANVAS_COLOR = 0;
+
 DeclPt(DForm);
 DeclSt(BWidget);
 DeclSt(WDrawer);
@@ -244,6 +246,7 @@ static void i_open_form(Designer *app, const uint32_t index)
         {
             dform_compose(form);
             dform_set(form, app->inspect, app->propedit);
+            dform_origin(form, v2df(50, 50));
         }
     }
 
@@ -921,7 +924,7 @@ static void i_OnDraw(Designer *app, Event *e)
 {
     const EvDraw *p = event_params(e, EvDraw);
     cassert_no_null(app);
-    draw_clear(p->ctx, kCOLOR_YELLOW);
+    draw_clear(p->ctx, i_CANVAS_COLOR);
     if (app->config.sel_form != UINT32_MAX)
     {
         DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
@@ -1511,6 +1514,7 @@ static Designer *i_app(void)
     i_dbind();
     dialog_dbind();    
     dlayout_global_init();
+    i_CANVAS_COLOR = color_html("#a0a0a0");
     app->forms = arrpt_create(DForm);
     app->add_icon = image_copy(gui_image(PLUS16_PNG));
     app->default_font = font_system(font_regular_size(), 0);
