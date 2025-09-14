@@ -1323,6 +1323,53 @@ const char_t* dform_cell_type(const celltype_t type)
 
 /*---------------------------------------------------------------------------*/
 
+const Image *dform_cell_icon(const celltype_t type)
+{
+    switch(type)
+    {
+    case ekCELL_TYPE_EMPTY:
+        return NULL;
+    case ekCELL_TYPE_LABEL:
+        return gui_image(LABEL16_PNG);
+    case ekCELL_TYPE_BUTTON:
+        return gui_image(PUSHBUT16_PNG);
+    case ekCELL_TYPE_CHECK:
+        return gui_image(CHECBUT16_PNG);
+    case ekCELL_TYPE_RADIO:
+        return gui_image(RADBUT16_PNG);
+    case ekCELL_TYPE_TOOL:
+        return gui_image(TOOLBUT16_PNG);        
+    case ekCELL_TYPE_POPUP:
+        return gui_image(POPUP16_PNG);
+    case ekCELL_TYPE_EDIT:
+        return gui_image(EDITBOX16_PNG);
+    case ekCELL_TYPE_COMBO:
+        return gui_image(COMBOBOX16_PNG);
+    case ekCELL_TYPE_LISTBOX:
+        return gui_image(LISTVIEW16_PNG);
+    case ekCELL_TYPE_SLIDER:
+        return gui_image(HORSLIDER16_PNG);
+    case ekCELL_TYPE_VSLIDER:
+        return gui_image(VERSLIDER16_PNG);
+    case ekCELL_TYPE_PROGRESS:
+        return gui_image(PROGRESSBAR16_PNG);
+    case ekCELL_TYPE_TEXT:
+        return gui_image(TEXTVIEW16_PNG);
+    case ekCELL_TYPE_IMAGE:
+        return gui_image(IMAGEVIEW16_PNG);
+    case ekCELL_TYPE_TABLEVIEW:
+        return gui_image(TABLEVIEW16_PNG);
+    case ekCELL_TYPE_LAYOUT:
+        return gui_image(GLAYOUT16_PNG);
+    default:
+        cassert_default(type);
+    }
+
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
 const char_t *dform_selpath_caption(const DForm *form, const uint32_t col, const uint32_t row)
 {
     const DSelect *sel = NULL;
@@ -1337,9 +1384,18 @@ const char_t *dform_selpath_caption(const DForm *form, const uint32_t col, const
     if (row % 2 == 0)
     {
         if (col == 0)
+        {
             return tc(sel->flayout->name);
+        }
         else
-            return gui_text(TEXT_LAYOUT);
+        {
+            if (arrst_size(sel->flayout->cols, FColumn) == 1)
+                return gui_text(TEXT_VERT_LAYOUT);
+            else if (arrst_size(sel->flayout->rows, FRow) == 1)
+                return gui_text(TEXT_HORZ_LAYOUT);
+            else
+                return gui_text(TEXT_GRID_LAYOUT);
+        }
     }
     /* Odd rows == cell */
     else
@@ -1355,6 +1411,41 @@ const char_t *dform_selpath_caption(const DForm *form, const uint32_t col, const
             return dform_cell_type(cell->type);
         }
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+const Image *dform_selpath_icon(const DForm *form, const uint32_t col, const uint32_t row)
+{
+    const DSelect *sel = NULL;
+    cassert_no_null(form);
+    sel = arrst_get_const(form->sel_path, row / 2, DSelect);
+    cassert(col <= 1);
+    cassert_no_null(sel);
+    cassert_no_null(sel->dlayout);
+    cassert_no_null(sel->flayout);
+
+    if (col == 0)
+    {
+        /* Even rows == layout */
+        if (row % 2 == 0)
+        {
+            if (arrst_size(sel->flayout->cols, FColumn) == 1)
+                return gui_image(VLAYOUT16_PNG);
+            else if (arrst_size(sel->flayout->rows, FRow) == 1)
+                return gui_image(HLAYOUT16_PNG);
+            else
+                return gui_image(GLAYOUT16_PNG);
+        }
+        /* Odd rows == cell */
+        else
+        {
+            const FCell *cell = i_sel_fcell(sel);
+            return dform_cell_icon(cell->type);
+        }
+    }
+
+    return NULL;
 }
 
 /*---------------------------------------------------------------------------*/

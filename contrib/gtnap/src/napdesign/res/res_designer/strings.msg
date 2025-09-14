@@ -75,6 +75,7 @@ TEXT_BOX_FORMS      Forms
 TEXT_BOX_INSPECTOR  Object inspector
 TEXT_BOX_PROPEDIT   Property editor
 TEXT_BOX_WIDGETS    Widgets
+TEXT_OBJECT         Object
 TEXT_TYPE           Type
 TEXT_NAME           Name
 TEXT_TOP            Top

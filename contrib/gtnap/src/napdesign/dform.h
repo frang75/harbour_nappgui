@@ -86,7 +86,11 @@ uint32_t dform_selpath_size(const DForm *form);
 
 const char_t *dform_cell_type(const celltype_t type);
 
+const Image *dform_cell_icon(const celltype_t type);
+
 const char_t *dform_selpath_caption(const DForm *form, const uint32_t col, const uint32_t row);
+
+const Image *dform_selpath_icon(const DForm *form, const uint32_t col, const uint32_t row);
 
 void dform_inspect_select(DForm *form, Panel *propedit, const uint32_t row);
 
