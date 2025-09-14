@@ -81,8 +81,6 @@ struct _propdata_t
 
 /*---------------------------------------------------------------------------*/
 
-static const real32_t i_GRID_HMARGIN = 5;
-static const real32_t i_HEADER_VMARGIN = 3;
 static const real32_t i_LABEL_COLUMN_MARGIN = 5;
 
 /*---------------------------------------------------------------------------*/
@@ -614,7 +612,7 @@ static void i_OnLoadIcon(PropData *data, Event *e)
     cassert_no_null(data);
     unref(e);
     folder_path = designer_folder_path(data->app);
-    imgpath = comwin_open_file(window, NULL, 0, folder_path);
+    imgpath = comwin_open_file(window, NULL, 0, NULL, folder_path);
     window = designer_main_window(data->app);
     if (imgpath != NULL)
     {
@@ -623,6 +621,7 @@ static void i_OnLoadIcon(PropData *data, Event *e)
         {
             String *relpath = str_relpath(ekLINUX, folder_path, imgpath);
             FCell *cell = dform_sel_fcell(&data->sel);
+            const DColors *colors = designer_colors(data->app);
             cassert_no_null(cell);
             if (cell->type == ekCELL_TYPE_TOOL)
             {
@@ -634,7 +633,7 @@ static void i_OnLoadIcon(PropData *data, Event *e)
             }
             else if (cell->type == ekCELL_TYPE_IMAGE)
             {
-                ImageView *view =layout_get_imageview(data->sel.glayout, data->sel.col, data->sel.row);
+                ImageView *view = layout_get_imageview(data->sel.glayout, data->sel.col, data->sel.row);
                 imageview_image(view, image);
                 str_upd(&cell->widget.image->path, tc(relpath));
                 layout_dbind_obj(data->image_layout, cell->widget.image, FImage);
@@ -645,7 +644,7 @@ static void i_OnLoadIcon(PropData *data, Event *e)
                 cassert(FALSE);
             }
 
-            dlayout_set_image(data->sel.dlayout, image, data->sel.col, data->sel.row);
+            dlayout_set_image(data->sel.dlayout, image, data->sel.col, data->sel.row, colors);
             dform_compose(data->form);
             designer_canvas_update(data->app);
             str_destroy(&relpath);
@@ -756,7 +755,7 @@ static void i_update_elem_list(const ArrSt(FElem) *elems, ListBox *list, const c
 static void i_OnElementAdd(PropData *data, Event *e)
 {
     Window *window = NULL;
-    FCell *cell = NULL;    
+    FCell *cell = NULL;
     const char_t *folder_path = NULL;
     const Font *font = NULL;
     ResId iconId = NULL;
@@ -782,7 +781,7 @@ static void i_OnElementAdd(PropData *data, Event *e)
     {
         iconId = LISTVIEW_PNG;
         headerId = TEXT_ELEM_LIST;
-        caption = str_printf(gui_text(TEXT_NEW_ELEM_LIST), tc(cell->name));        
+        caption = str_printf(gui_text(TEXT_NEW_ELEM_LIST), tc(cell->name));
     }
     else
     {
@@ -793,6 +792,7 @@ static void i_OnElementAdd(PropData *data, Event *e)
 
     if (elem != NULL)
     {
+        const DColors *colors = designer_colors(data->app);
         if (cell->type == ekCELL_TYPE_POPUP)
         {
             FPopUp *fpopup = layout_dbind_get_obj(data->popup_layout, FPopUp);
@@ -801,7 +801,7 @@ static void i_OnElementAdd(PropData *data, Event *e)
             nelem->iconpath = str_copy(elem->iconpath);
             i_update_elem_list(fpopup->elems, data->popup_list, folder_path);
             dform_synchro_popup(data->form, &data->sel, folder_path);
-            dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, fpopup->elems, folder_path);
+            dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, fpopup->elems, folder_path, colors);
         }
         else if (cell->type == ekCELL_TYPE_LISTBOX)
         {
@@ -811,7 +811,7 @@ static void i_OnElementAdd(PropData *data, Event *e)
             nelem->iconpath = str_copy(elem->iconpath);
             i_update_elem_list(flistbox->elems, data->listbox_list, folder_path);
             dform_synchro_listbox(data->form, &data->sel, folder_path);
-            dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, flistbox->elems, folder_path);
+            dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, flistbox->elems, folder_path, colors);
         }
         else
         {
@@ -832,10 +832,12 @@ static void i_OnElementRemove(PropData *data, Event *e)
 {
     FCell *cell = NULL;
     const char_t *folder_path = NULL;
+    const DColors *colors = NULL;
     cassert_no_null(data);
     unref(e);
     cell = dform_sel_fcell(&data->sel);
     folder_path = designer_folder_path(data->app);
+    colors = designer_colors(data->app);
     cassert_no_null(cell);
 
     if (cell->type == ekCELL_TYPE_POPUP)
@@ -845,7 +847,7 @@ static void i_OnElementRemove(PropData *data, Event *e)
         arrst_delete(fpopup->elems, index, i_remove_elem, FElem);
         i_update_elem_list(fpopup->elems, data->popup_list, folder_path);
         dform_synchro_popup(data->form, &data->sel, folder_path);
-        dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, fpopup->elems, folder_path);
+        dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, fpopup->elems, folder_path, colors);
     }
     else if (cell->type == ekCELL_TYPE_LISTBOX)
     {
@@ -854,7 +856,7 @@ static void i_OnElementRemove(PropData *data, Event *e)
         arrst_delete(flistbox->elems, index, i_remove_elem, FElem);
         i_update_elem_list(flistbox->elems, data->listbox_list, folder_path);
         dform_synchro_listbox(data->form, &data->sel, folder_path);
-        dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, flistbox->elems, folder_path);
+        dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, flistbox->elems, folder_path, colors);
     }
     else
     {
@@ -871,10 +873,12 @@ static void i_OnElementClear(PropData *data, Event *e)
 {
     FCell *cell = NULL;
     const char_t *folder_path = NULL;
+    const DColors *colors = NULL;
     cassert_no_null(data);
     unref(e);
     cell = dform_sel_fcell(&data->sel);
     folder_path = designer_folder_path(data->app);
+    colors = designer_colors(data->app);
     cassert_no_null(cell);
 
     if (cell->type == ekCELL_TYPE_POPUP)
@@ -883,7 +887,7 @@ static void i_OnElementClear(PropData *data, Event *e)
         arrst_clear(fpopup->elems, i_remove_elem, FElem);
         i_update_elem_list(fpopup->elems, data->popup_list, folder_path);
         dform_synchro_popup(data->form, &data->sel, folder_path);
-        dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, fpopup->elems, folder_path);
+        dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, fpopup->elems, folder_path, colors);
     }
     else if (cell->type == ekCELL_TYPE_LISTBOX)
     {
@@ -891,7 +895,7 @@ static void i_OnElementClear(PropData *data, Event *e)
         arrst_clear(flistbox->elems, i_remove_elem, FElem);
         i_update_elem_list(flistbox->elems, data->listbox_list, folder_path);
         dform_synchro_listbox(data->form, &data->sel, folder_path);
-        dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, flistbox->elems, folder_path);
+        dlayout_synchro_elems(data->sel.dlayout, data->sel.col, data->sel.row, flistbox->elems, folder_path, colors);
     }
     else
     {
@@ -935,7 +939,7 @@ static Layout *i_elems_layout(PropData *data, ListBox **elist)
     *elist = list;
     return layout1;
 }
-    
+
 /*---------------------------------------------------------------------------*/
 
 static Layout *i_popup_layout(PropData *data)
@@ -1065,9 +1069,9 @@ static Layout *i_combo_layout(PropData *data)
 
 static void i_OnListBoxNotify(PropData *data, Event *e)
 {
-    const char_t *folder_path = NULL;    
+    const char_t *folder_path = NULL;
     cassert_no_null(data);
-    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
+    cassert_unref(event_type(e) == ekGUI_EVENT_OBJCHANGE, e);
     folder_path = designer_folder_path(data->app);
     dform_synchro_listbox(data->form, &data->sel, folder_path);
     dform_compose(data->form);
@@ -1110,7 +1114,7 @@ static Layout *i_listbox_layout(PropData *data)
 static void i_OnSliderNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
-    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
+    cassert_unref(event_type(e) == ekGUI_EVENT_OBJCHANGE, e);
     dform_synchro_slider(data->form, &data->sel);
     dform_compose(data->form);
     designer_canvas_update(data->app);
@@ -1140,7 +1144,7 @@ static Layout *i_slider_layout(PropData *data)
 static void i_OnVSliderNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
-    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
+    cassert_unref(event_type(e) == ekGUI_EVENT_OBJCHANGE, e);
     dform_synchro_vslider(data->form, &data->sel);
     dform_compose(data->form);
     designer_canvas_update(data->app);
@@ -1170,7 +1174,7 @@ static Layout *i_vslider_layout(PropData *data)
 static void i_OnProgressNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
-    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
+    cassert_unref(event_type(e) == ekGUI_EVENT_OBJCHANGE, e);
     dform_synchro_progress(data->form, &data->sel);
     dform_compose(data->form);
     designer_canvas_update(data->app);
@@ -1200,7 +1204,7 @@ static Layout *i_progress_layout(PropData *data)
 static void i_OnTextNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
-    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
+    cassert_unref(event_type(e) == ekGUI_EVENT_OBJCHANGE, e);
     dform_synchro_textview(data->form, &data->sel);
     dform_compose(data->form);
     designer_canvas_update(data->app);
@@ -1220,7 +1224,7 @@ static Layout *i_text_layout(PropData *data)
     cassert_no_null(data);
     label_text(label1, gui_text(TEXT_MIN_WIDTH));
     label_text(label2, gui_text(TEXT_MIN_HEIGHT));
-    label_text(label3, gui_text(TEXT_READ_ONLY));    
+    label_text(label3, gui_text(TEXT_READ_ONLY));
     layout_label(layout1, label1, 0, 0);
     layout_label(layout1, label2, 0, 1);
     layout_label(layout1, label3, 0, 2);
@@ -1242,7 +1246,7 @@ static Layout *i_text_layout(PropData *data)
 static void i_OnImageNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
-    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
+    cassert_unref(event_type(e) == ekGUI_EVENT_OBJCHANGE, e);
     dform_synchro_imageview(data->form, &data->sel);
     dform_compose(data->form);
     designer_canvas_update(data->app);
@@ -1308,7 +1312,7 @@ static void i_init_column(const uint32_t id, FHeader *header)
 static void i_OnTableNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
-    cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
+    cassert_unref(event_type(e) == ekGUI_EVENT_OBJCHANGE, e);
     dform_synchro_table(data->form, &data->sel);
     dform_compose(data->form);
     designer_canvas_update(data->app);
@@ -1343,13 +1347,13 @@ static void i_OnTableColumnRemove(PropData *data, Event *e)
     cassert_no_null(data);
     unref(e);
     id = listbox_get_selected(data->table_list);
-    
+
     if (id != UINT32_MAX)
     {
         FTable *ftable = layout_dbind_get_obj(data->table_layout, FTable);
         FHeader *fheader = NULL;
         uint32_t n = 0;
-        
+
         listbox_del_elem(data->table_list, id);
         arrst_delete(ftable->headers, id, i_remove_header, FHeader);
         n = arrst_size(ftable->headers, FHeader);
@@ -1374,9 +1378,9 @@ static void i_OnTableColumnRemove(PropData *data, Event *e)
 
 static void i_OnTableColumnClear(PropData *data, Event *e)
 {
-    FTable *ftable = NULL;    
+    FTable *ftable = NULL;
     cassert_no_null(data);
-    unref(e);           
+    unref(e);
     ftable = layout_dbind_get_obj(data->table_layout, FTable);
     listbox_clear(data->table_list);
     arrst_clear(ftable->headers, i_remove_header, FHeader);
@@ -1485,7 +1489,7 @@ static Layout *i_table_frame_layout(PropData *data)
 static Layout *i_table_column_layout(void)
 {
     Layout *layout1 = layout_create(2, 7);
-    Layout *layout2 = i_value_updown_layout(gui_text(TIP_COLUMN_WIDTH));
+    Layout *layout2 = i_value_updown_layout(gui_text(TIP_COLUMN_TWIDTH));
     Layout *layout3 = i_value_updown_layout(gui_text(TIP_COLUMN_HALIGN));
     Layout *layout4 = i_value_updown_layout(gui_text(TIP_COLUMN_DALIGN));
     Label *label1 = label_create();

@@ -156,9 +156,10 @@ static const char_t *i_save_file_selected(NSSavePanel *save_panel)
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const bool_t foropen)
+const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint32_t size, const char_t *caption, const char_t *start_dir, const bool_t foropen)
 {
     unref(parent);
+    unref(caption);
     if (foropen == TRUE)
     {
         NSOpenPanel *open_panel = i_open_file(ftypes, size, start_dir);
@@ -275,7 +276,8 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
             case ekRIGHT:
                 origin.x -= size.width;
                 break;
-                cassert_default();
+            default:
+                cassert_default(halign);
             }
 
             switch (valign)
@@ -289,7 +291,8 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
             case ekBOTTOM:
                 origin.x -= size.height;
                 break;
-                cassert_default();
+            default:
+                cassert_default(valign);
             }
         }
 

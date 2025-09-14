@@ -2,6 +2,7 @@
 
 #include <nflib/nflib.h>
 #include <nappgui.h>
+#include "designer.h"
 #include "res_designer.h"
 #include "dlayout.h"
 #include "dform.h"
@@ -82,7 +83,6 @@ struct _desiger_t
     MenuItem *show_widgets;
     MenuItem *show_inspectr;
     MenuItem *show_propedit;
-    Image *add_icon;
     Font *default_font;
     Font *bold_font;
     bool_t dragging;
@@ -99,12 +99,14 @@ static const split_mode_t i_SPLIT3_MODE = ekSPLIT_FIXED1;
 static const split_mode_t i_SPLIT4_MODE = ekSPLIT_FIXED0;
 static const char_t *i_FILE_EXT = "nfm";
 static const char_t *i_SAVE_MARK = "• ";
+static DColors i_COLORS;
 DeclPt(DForm);
 DeclSt(BWidget);
 DeclSt(WDrawer);
 
 /*---------------------------------------------------------------------------*/
 
+static bool_t i_close_app(Designer *);
 static void i_OnShowForms(Designer *, Event *);
 static void i_OnShowWidgets(Designer *, Event *);
 static void i_OnShowInspectr(Designer *, Event *);
@@ -244,6 +246,7 @@ static void i_open_form(Designer *app, const uint32_t index)
         {
             dform_compose(form);
             dform_set(form, app->inspect, app->propedit);
+            dform_origin(form, v2df(50, 50));
         }
     }
 
@@ -350,7 +353,7 @@ static void i_OnOpenFormsClick(Designer *app, Event *e)
     unref(e);
     if (i_need_save(app) == TRUE)
     {
-        uint8_t ret = dialog_unsaved_changes(app->window);
+        uint8_t ret = dialog_unsaved_changes(app->window, app->default_font, gui_text(TEXT_UNSAVED1));
         if (ret == 1)
             i_save_forms(app);
         else if (ret == 2)
@@ -360,7 +363,7 @@ static void i_OnOpenFormsClick(Designer *app, Event *e)
     if (can_open == TRUE)
     {
         const char_t *ftype = "..DIR..";
-        const char_t *folder = comwin_open_file(app->window, &ftype, 1, tc(app->config.folder_path));
+        const char_t *folder = comwin_open_file(app->window, &ftype, 1, gui_text(TEXT_OPEN_CAPTION), tc(app->config.folder_path));
         if (folder != NULL)
             i_init_forms(app, folder);
     }
@@ -372,6 +375,14 @@ static void i_OnSaveFormsClick(Designer *app, Event *e)
 {
     i_save_forms(app);
     i_update_form_controls(app, TRUE);
+    unref(e);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnQuitClick(Designer *app, Event *e)
+{
+    i_close_app(app);
     unref(e);
 }
 
@@ -396,7 +407,7 @@ static void i_OnRemoveClick(Designer *app, Event *e)
     cassert_no_null(app);
     unref(e);
     name = i_list_text(app->form_list, app->config.sel_form);
-    if (dialog_remove_form(app->window, name) == TRUE)
+    if (dialog_remove_form(app->window, app->default_font, name) == TRUE)
     {
         String *path = str_cpath("%s/%s.%s", tc(app->config.folder_path), name, i_FILE_EXT);
         bool_t removed = TRUE;
@@ -452,19 +463,22 @@ static bool_t i_exists_form_name(Designer *app, const char_t *name)
 
 static void i_OnAddFormClick(Designer *app, Event *e)
 {
-    String *fname = NULL;
+    String *filename = NULL;
+    String *desc = NULL;
+    bool_t ok = FALSE;
     cassert_no_null(app);
     unref(e);
-    fname = dialog_form_name(app->window, NULL);
-    if (str_empty(fname) == FALSE)
+    ok = dialog_new_form(app->window, app->default_font, &filename, &desc);
+    if (ok == TRUE)
     {
-        if (i_exists_form_name(app, tc(fname)) == FALSE)
+        if (i_exists_form_name(app, tc(filename)) == FALSE)
         {
             uint32_t n = listbox_count(app->form_list);
             DForm *form = dform_empty(app);
+            dform_description(form, tc(desc));
             dform_compose(form);
             cassert(n == arrpt_size(app->forms, DForm));
-            listbox_add_elem(app->form_list, tc(fname), NULL);
+            listbox_add_elem(app->form_list, tc(filename), NULL);
             listbox_select(app->form_list, n, TRUE);
             arrpt_append(app->forms, form, DForm);
             app->config.sel_form = n;
@@ -473,103 +487,134 @@ static void i_OnAddFormClick(Designer *app, Event *e)
         }
         else
         {
-            dialog_name_already_exists(app->window, tc(fname));
+            dialog_form_name_exists(app->window, app->default_font, tc(filename));
         }
     }
 
-    str_destroy(&fname);
+    str_destopt(&filename);
+    str_destopt(&desc);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnRenameFormClick(Designer *app, Event *e)
+static void i_OnPropsFormClick(Designer *app, Event *e)
 {
+    DForm *form = NULL;
     const char_t *name = NULL;
-    String *fname = NULL;
+    String *filename = NULL;
+    String *desc = NULL;
+    bool_t ok = FALSE;
     cassert_no_null(app);
     unref(e);
+    form = arrpt_get(app->forms, app->config.sel_form, DForm);
     name = i_list_text(app->form_list, app->config.sel_form);
-    fname = dialog_form_name(app->window, name);
-    if (str_empty(fname) == FALSE)
+    filename = str_c(name);
+    desc = str_c(dform_get_description(form));
+    ok = dialog_props_form(app->window, app->default_font, &filename, &desc);
+    if (ok == TRUE)
     {
-        if (i_exists_form_name(app, tc(fname)) == FALSE)
+        if (str_equ(filename, name) == TRUE)
+        {
+            dform_description(form, tc(desc));
+        }
+        else if (i_exists_form_name(app, tc(filename)) == FALSE)
         {
             String *oldpath = str_cpath("%s/%s.%s", tc(app->config.folder_path), name, i_FILE_EXT);
+            bool_t renamed = FALSE;
             if (hfile_exists(tc(oldpath), NULL) == TRUE)
             {
-                String *newpath = str_cpath("%s/%s.%s", tc(app->config.folder_path), tc(fname), i_FILE_EXT);
-                bfile_rename(tc(oldpath), tc(newpath), NULL);
+                String *newpath = str_cpath("%s/%s.%s", tc(app->config.folder_path), tc(filename), i_FILE_EXT);
+                renamed = bfile_rename(tc(oldpath), tc(newpath), NULL);
                 str_destroy(&newpath);
             }
 
+            if (renamed == TRUE)
             {
                 bool_t with_bullet = i_with_save_mark(app->form_list, app->config.sel_form);
                 if (with_bullet == TRUE)
                 {
-                    String *rname = str_printf("%s%s", i_SAVE_MARK, tc(fname));
+                    String *rname = str_printf("%s%s", i_SAVE_MARK, tc(filename));
                     listbox_set_elem(app->form_list, app->config.sel_form, tc(rname), NULL);
                     str_destroy(&rname);
                 }
                 else
                 {
-                    listbox_set_elem(app->form_list, app->config.sel_form, tc(fname), NULL);
+                    listbox_set_elem(app->form_list, app->config.sel_form, tc(filename), NULL);
                 }
+
+                dform_description(form, tc(desc));
+            }
+            else
+            {
+                /* RENAME ERROR */
+                dialog_form_name_exists(app->window, app->default_font, tc(filename));
             }
 
             str_destroy(&oldpath);
         }
         else
         {
-            dialog_name_already_exists(app->window, tc(fname));
+            dialog_form_name_exists(app->window, app->default_font, tc(filename));
         }
+
+        i_update_form_controls(app, TRUE);
     }
 
-    str_destroy(&fname);
+    str_destroy(&filename);
+    str_destroy(&desc);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static Layout *i_tools_layout(Designer *app)
 {
-    Layout *layout = layout_create(9, 1);
+    Layout *layout = layout_create(7, 1);
     Button *button1 = button_flat();
     Button *button2 = button_flat();
     Button *button3 = button_flat();
     Button *button4 = button_flat();
     Button *button5 = button_flat();
     Button *button6 = button_flat();
-    Button *button7 = button_flat();
-    Button *button8 = button_flat();
     cassert_no_null(app);
-    button_image(button1, cast_const(FOLDER24_PNG, Image));
-    button_image(button2, cast_const(DISK24_PNG, Image));
-    button_image(button3, cast_const(PLUS24_PNG, Image));
-    button_image(button4, cast_const(EDIT24_PNG, Image));
-    button_image(button5, cast_const(SEARCH24_PNG, Image));
-    button_image(button6, cast_const(ERROR24_PNG, Image));
-    button_image(button7, cast_const(PLUS24_PNG, Image));
-    button_image(button8, cast_const(ERROR24_PNG, Image));
+    button_image(button1, cast_const(OPEN_PNG, Image));
+    button_image(button2, cast_const(SAVE_PNG, Image));
+    button_image(button3, cast_const(NEW_PNG, Image));
+    button_image(button4, cast_const(PROPS_PNG, Image));
+    button_image(button5, cast_const(SHOW_PNG, Image));
+    button_image(button6, cast_const(REMOVE_PNG, Image));
+    button_hpadding(button1, 6);
+    button_hpadding(button2, 6);
+    button_hpadding(button3, 6);
+    button_hpadding(button4, 6);
+    button_hpadding(button5, 6);
+    button_hpadding(button6, 6);
+    button_vpadding(button1, 6);
+    button_vpadding(button2, 6);
+    button_vpadding(button3, 6);
+    button_vpadding(button4, 6);
+    button_vpadding(button5, 6);
+    button_vpadding(button6, 6);
     button_OnClick(button1, listener(app, i_OnOpenFormsClick, Designer));
     button_OnClick(button2, listener(app, i_OnSaveFormsClick, Designer));
     button_OnClick(button3, listener(app, i_OnAddFormClick, Designer));
-    button_OnClick(button4, listener(app, i_OnRenameFormClick, Designer));
+    button_OnClick(button4, listener(app, i_OnPropsFormClick, Designer));
     button_OnClick(button5, listener(app, i_OnSimulateClick, Designer));
     button_OnClick(button6, listener(app, i_OnRemoveClick, Designer));
-    button_tooltip(button1, "Open forms folder");
-    button_tooltip(button2, "Save all forms");
-    button_tooltip(button3, "Add new form");
-    button_tooltip(button4, "Rename form");
-    button_tooltip(button5, "Simulate current form");
-    button_tooltip(button6, "Remove current form");
+    button_tooltip(button1, gui_text(TOOLBAR_OPEN));
+    button_tooltip(button2, gui_text(TOOLBAR_SAVE));
+    button_tooltip(button3, gui_text(TOOLBAR_NEW));
+    button_tooltip(button4, gui_text(TOOLBAR_PROPS));
+    button_tooltip(button5, gui_text(TOOLBAR_SIMULATE));
+    button_tooltip(button6, gui_text(TOOLBAR_REMOVE));
     layout_button(layout, button1, 0, 0);
     layout_button(layout, button2, 1, 0);
     layout_button(layout, button3, 2, 0);
     layout_button(layout, button4, 3, 0);
     layout_button(layout, button5, 4, 0);
     layout_button(layout, button6, 5, 0);
-    layout_button(layout, button7, 7, 0);
-    layout_button(layout, button8, 8, 0);
+    layout_margin4(layout, 0, 0, 0, 10);
     layout_hexpand(layout, 6);
+    layout_hmargin(layout, 4, 10);
     app->open_form_cell = layout_cell(layout, 0, 0);
     app->save_form_cell = layout_cell(layout, 1, 0);
     app->add_form_cell = layout_cell(layout, 2, 0);
@@ -628,7 +673,7 @@ static void i_OnWidgetLabelClick(Designer *app, Event *e)
 static Panel *i_drawer_widget_panel(Designer *app, const drawer_t drawer)
 {
     Panel *panel = panel_create();
-    uint32_t i = 0, n = 0;    
+    uint32_t i = 0, n = 0;
     cassert_no_null(app);
 
     /* Number of widgets for this drawer */
@@ -647,13 +692,13 @@ static Panel *i_drawer_widget_panel(Designer *app, const drawer_t drawer)
                 Label *label = label_create();
                 cassert(bwidget->button == NULL);
                 cassert(bwidget->label == NULL);
-                button_OnClick(button, listener(app, i_OnWidgetButtonClick, Designer));               
+                button_OnClick(button, listener(app, i_OnWidgetButtonClick, Designer));
                 button_image(button, gui_image(bwidget->imageid));
                 button_vpadding(button, 0);
                 button_hpadding(button, 0);
                 label_text(label, gui_text(bwidget->labelid));
                 label_style_over(label, ekFUNDERLINE);
-                label_OnClick(label, listener(app, i_OnWidgetLabelClick, Designer));               
+                label_OnClick(label, listener(app, i_OnWidgetLabelClick, Designer));
                 layout_button(layout, button, 0, i);
                 layout_label(layout, label, 1, i);
                 layout_tabstop(layout, 0, i, FALSE);
@@ -734,7 +779,8 @@ static bool_t i_is_widget_drawer(const drawer_t drawer)
     case ekDRAWER_TABLE_FRAME_PROPS:
     case ekDRAWER_TABLE_COLS_PROPS:
         return FALSE;
-        cassert_default();
+    default:
+        cassert_default(drawer);
     }
 
     return FALSE;
@@ -750,14 +796,14 @@ static void i_OnDrawerChange(Designer *app, Event *e)
     cassert(drawer->opened != *p);
     drawer->opened = *p;
 }
-    
+
 /*---------------------------------------------------------------------------*/
 
 static Panel *i_widgets_panel(Designer *app)
 {
     Panel *panel = panel_custom(FALSE, TRUE, FALSE);
     uint32_t n = 0;
-    cassert_no_null(app);       
+    cassert_no_null(app);
 
     arrst_foreach_const(wdrawer, app->wdrawers, WDrawer)
         if (i_is_widget_drawer(wdrawer->type) == TRUE)
@@ -887,11 +933,12 @@ static void i_OnDraw(Designer *app, Event *e)
 {
     const EvDraw *p = event_params(e, EvDraw);
     cassert_no_null(app);
-    draw_clear(p->ctx, kCOLOR_YELLOW);
+    draw_clear(p->ctx, i_COLORS.canvas);
     if (app->config.sel_form != UINT32_MAX)
     {
         DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
-        dform_draw(form, app->config.swidget, app->add_icon, app->default_font, p->ctx);
+        const char_t *name = i_list_text(app->form_list, app->config.sel_form);
+        dform_draw(form, app->config.swidget, app->default_font, &i_COLORS, name, p->ctx);
     }
 }
 
@@ -1071,6 +1118,8 @@ static Layout *i_main_layout(Designer *app)
     layout_layout(layout1, layout2, 0, 0);
     layout_splitview(layout1, view, 0, 1);
     layout_layout(layout1, layout4, 0, 2);
+    layout_tabstop(layout1, 0, 0, FALSE);
+
     /*
      * All the vertical expansion will be done in the middle layout
      * tools_layout (top) and statusbar_layout (bottom) will preserve
@@ -1118,7 +1167,7 @@ static gui_state_t i_bool_state(const bool_t state)
 {
     if (state == TRUE)
         return ekGUI_ON;
-    else 
+    else
         return ekGUI_OFF;
 }
 
@@ -1157,7 +1206,7 @@ static void i_restore_splits(Designer *app)
     splitview_visible1(app->split2, app->config.show_widgets);
 
     if (app->config.show_forms == TRUE && app->config.show_widgets == TRUE)
-        splitview_pos(app->split2, i_SPLIT2_MODE, app->config.split2_pos);        
+        splitview_pos(app->split2, i_SPLIT2_MODE, app->config.split2_pos);
 
     if (app->config.show_inspectr == TRUE || app->config.show_propedit == TRUE)
     {
@@ -1173,7 +1222,7 @@ static void i_restore_splits(Designer *app)
     splitview_visible1(app->split4, app->config.show_propedit);
 
     if (app->config.show_inspectr == TRUE && app->config.show_propedit == TRUE)
-        splitview_pos(app->split4, i_SPLIT4_MODE, app->config.split4_pos);        
+        splitview_pos(app->split4, i_SPLIT4_MODE, app->config.split4_pos);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1229,6 +1278,90 @@ static void i_OnShowPropEdit(Designer *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static Menu *i_file_menu(Designer *app)
+{
+    Menu *menu = menu_create();
+    MenuItem *item1 = menuitem_create();
+    MenuItem *item2 = menuitem_create();
+    MenuItem *item3 = menuitem_create();
+    MenuItem *item4 = menuitem_create();
+    cassert_no_null(app);
+    menuitem_text(item1, gui_text(TOOLBAR_NEW_FORM));
+    menuitem_text(item2, gui_text(TOOLBAR_OPEN));
+    menuitem_text(item3, gui_text(TOOLBAR_SAVE));
+    menuitem_text(item4, gui_text(TEXT_QUIT));
+    menuitem_image(item1, gui_image(NEW16_PNG));
+    menuitem_image(item2, gui_image(OPEN16_PNG));
+    menuitem_image(item3, gui_image(SAVE16_PNG));
+    menuitem_OnClick(item1, listener(app, i_OnAddFormClick, Designer));
+    menuitem_OnClick(item2, listener(app, i_OnOpenFormsClick, Designer));
+    menuitem_OnClick(item3, listener(app, i_OnSaveFormsClick, Designer));
+    menuitem_OnClick(item4, listener(app, i_OnQuitClick, Designer));
+    menu_add_item(menu, item1);
+    menu_add_item(menu, item2);
+    menu_add_item(menu, menuitem_separator());
+    menu_add_item(menu, item3);
+    menu_add_item(menu, menuitem_separator());
+    menu_add_item(menu, item4);
+    return menu;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Menu *i_edit_menu(Designer *app)
+{
+    Menu *menu = menu_create();
+    MenuItem *item1 = menuitem_create();
+    MenuItem *item2 = menuitem_create();
+    MenuItem *item3 = menuitem_create();
+    MenuItem *item4 = menuitem_create();
+    MenuItem *item5 = menuitem_create();
+    unref(app);
+    menuitem_text(item1, gui_text(TEXT_UNDO));
+    menuitem_text(item2, gui_text(TEXT_REDO));
+    menuitem_text(item3, gui_text(TEXT_CUT));
+    menuitem_text(item4, gui_text(TEXT_COPY));
+    menuitem_text(item5, gui_text(TEXT_PASTE));
+    menuitem_image(item1, gui_image(UNDO16_PNG));
+    menuitem_image(item2, gui_image(REDO16_PNG));
+    menuitem_image(item3, gui_image(CUT16_PNG));
+    menuitem_image(item4, gui_image(COPY16_PNG));
+    menuitem_image(item5, gui_image(PASTE16_PNG));
+    menu_add_item(menu, item1);
+    menu_add_item(menu, item2);
+    menu_add_item(menu, menuitem_separator());
+    menu_add_item(menu, item3);
+    menu_add_item(menu, item4);
+    menu_add_item(menu, item5);
+    return menu;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Menu *i_form_menu(Designer *app)
+{
+    Menu *menu = menu_create();
+    MenuItem *item1 = menuitem_create();
+    MenuItem *item2 = menuitem_create();
+    MenuItem *item3 = menuitem_create();
+    menuitem_text(item1, gui_text(TEXT_FORM_PROPS));
+    menuitem_text(item2, gui_text(TOOLBAR_SIMULATE));
+    menuitem_text(item3, gui_text(TOOLBAR_REMOVE));
+    menuitem_image(item1, gui_image(PROPS16_PNG));
+    menuitem_image(item2, gui_image(SHOW16_PNG));
+    menuitem_image(item3, gui_image(REMOVE16_PNG));
+    menuitem_OnClick(item1, listener(app, i_OnPropsFormClick, Designer));
+    menuitem_OnClick(item2, listener(app, i_OnSimulateClick, Designer));
+    menuitem_OnClick(item3, listener(app, i_OnRemoveClick, Designer));
+    menu_add_item(menu, item1);
+    menu_add_item(menu, item2);
+    menu_add_item(menu, menuitem_separator());
+    menu_add_item(menu, item3);
+    return menu;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Menu *i_view_menu(Designer *app)
 {
     Menu *menu = menu_create();
@@ -1237,10 +1370,10 @@ static Menu *i_view_menu(Designer *app)
     MenuItem *item3 = menuitem_create();
     MenuItem *item4 = menuitem_create();
     cassert_no_null(app);
-    menuitem_text(item1, "Forms box");
-    menuitem_text(item2, "Widgets box");
-    menuitem_text(item3, "Object inspector");
-    menuitem_text(item4, "Property editor");
+    menuitem_text(item1, gui_text(TEXT_BOX_FORM_BOX));
+    menuitem_text(item2, gui_text(TEXT_BOX_WIDGET_BOX));
+    menuitem_text(item3, gui_text(TEXT_BOX_INSPECTOR));
+    menuitem_text(item4, gui_text(TEXT_BOX_PROPEDIT));
     menuitem_OnClick(item1, listener(app, i_OnShowForms, Designer));
     menuitem_OnClick(item2, listener(app, i_OnShowWidgets, Designer));
     menuitem_OnClick(item3, listener(app, i_OnShowInspectr, Designer));
@@ -1261,11 +1394,26 @@ static Menu *i_view_menu(Designer *app)
 static Menu *i_menu(Designer *app)
 {
     Menu *menu = menu_create();
-    Menu *submenu1 = i_view_menu(app);
+    Menu *submenu1 = i_file_menu(app);
+    Menu *submenu2 = i_edit_menu(app);
+    Menu *submenu3 = i_form_menu(app);
+    Menu *submenu4 = i_view_menu(app);
     MenuItem *item1 = menuitem_create();
-    menuitem_text(item1, "View");
+    MenuItem *item2 = menuitem_create();
+    MenuItem *item3 = menuitem_create();
+    MenuItem *item4 = menuitem_create();
+    menuitem_text(item1, gui_text(TEXT_FILE));
+    menuitem_text(item2, gui_text(TEXT_EDIT));
+    menuitem_text(item3, gui_text(TEXT_FORM));
+    menuitem_text(item4, gui_text(TEXT_VIEW));
     menuitem_submenu(item1, &submenu1);
+    menuitem_submenu(item2, &submenu2);
+    menuitem_submenu(item3, &submenu3);
+    menuitem_submenu(item4, &submenu4);
     menu_add_item(menu, item1);
+    menu_add_item(menu, item2);
+    menu_add_item(menu, item3);
+    menu_add_item(menu, item4);
     return menu;
 }
 
@@ -1277,7 +1425,7 @@ static void i_update_config(Designer *app)
     S2Df size;
     cassert_no_null(app);
     pos = window_get_origin(app->window);
-    size = window_get_size(app->window);
+    size = window_get_client_size(app->window);
     app->config.wx = pos.x;
     app->config.wy = pos.y;
     app->config.wwidth = size.width;
@@ -1295,7 +1443,7 @@ static void i_save_config(const Designer *app)
     String *cfile = hfile_appdata("config.bin");
     Stream *stm = stm_to_file(tc(cfile), NULL);
     cassert_no_null(app);
-    
+
     if (stm != NULL)
     {
         stm_write_u16(stm, i_CONFIG_VERS);
@@ -1358,7 +1506,7 @@ static void i_default_config(Designer *app)
         wdrawer->opened = FALSE;
     arrst_end()
 }
-    
+
 /*---------------------------------------------------------------------------*/
 
 static void i_load_config(Designer *app)
@@ -1402,7 +1550,7 @@ static void i_load_config(Designer *app)
 
     str_destroy(&cfile);
 }
-    
+
 /*---------------------------------------------------------------------------*/
 
 static void i_apply_config(Designer *app)
@@ -1421,12 +1569,34 @@ static void i_apply_config(Designer *app)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnClose(Designer *app, Event *e)
+static bool_t i_close_app(Designer *app)
 {
-    i_update_config(app);
-    i_save_config(app);
-    osapp_finish();
-    unref(e);
+    bool_t close = TRUE;
+    if (i_need_save(app) == TRUE)
+    {
+        uint8_t ret = dialog_unsaved_changes(app->window, app->default_font, gui_text(TEXT_UNSAVED2));
+        if (ret == 1)
+            i_save_forms(app);
+        else if (ret == 2)
+            close = FALSE;
+    }
+
+    if (close == TRUE)
+    {
+        i_update_config(app);
+        i_save_config(app);
+        osapp_finish();
+    }
+
+    return close;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnWindowClose(Designer *app, Event *e)
+{
+    bool_t *close = event_result(e, bool_t);
+    *close = i_close_app(app);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1459,10 +1629,28 @@ static Designer *i_app(void)
     dgui_init();
     nflib_start();
     i_dbind();
-    dialog_dbind();    
+    dialog_dbind();
     dlayout_global_init();
+
+    if (gui_dark_mode() == TRUE)
+    {
+        /* Define Dark-Mode colors */
+        cassert(FALSE);
+    }
+    else
+    {
+        i_COLORS.canvas = color_html("#a0a0a0");
+        i_COLORS.panel = color_html("#f0f0f0");
+        i_COLORS.back = color_html("#e0e0e0");
+        i_COLORS.main = kCOLOR_BLACK;
+        i_COLORS.select = gui_link_color();
+        i_COLORS.title0 = color_html("#99b5d1");
+        i_COLORS.title1 = color_html("#b7cfe8");
+    }
+
+    i_COLORS.add_icon = gui_image(PLUS16_PNG);
+    i_COLORS.nap_icon = gui_image(NAPP_PNG);
     app->forms = arrpt_create(DForm);
-    app->add_icon = image_copy(gui_image(PLUS16_PNG));
     app->default_font = font_system(font_regular_size(), 0);
     app->bold_font = font_system(font_regular_size(), ekFBOLD);
     app->wdrawers = arrst_create(WDrawer);
@@ -1486,11 +1674,11 @@ static Designer *i_app(void)
     i_add_drawer(app->wdrawers, ekDRAWER_EDIT_PROPS, TEXT_EDIT_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_COMBO_PROPS, TEXT_COMBO_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_LIST_PROPS, TEXT_LIST_PROPS);
-    i_add_drawer(app->wdrawers, ekDRAWER_HSLIDER_PROPS, TEXT_SLIDER_PROPS);    
-    i_add_drawer(app->wdrawers, ekDRAWER_VSLIDER_PROPS, TEXT_VSLIDER_PROPS);  
-    i_add_drawer(app->wdrawers, ekDRAWER_PROGRESS_PROPS, TEXT_PROGRESS_PROPS);  
-    i_add_drawer(app->wdrawers, ekDRAWER_TEXT_PROPS, TEXT_TEXT_PROPS);  
-    i_add_drawer(app->wdrawers, ekDRAWER_IMAGE_PROPS, TEXT_IMAGE_PROPS);  
+    i_add_drawer(app->wdrawers, ekDRAWER_HSLIDER_PROPS, TEXT_SLIDER_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_VSLIDER_PROPS, TEXT_VSLIDER_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_PROGRESS_PROPS, TEXT_PROGRESS_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_TEXT_PROPS, TEXT_TEXT_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_IMAGE_PROPS, TEXT_IMAGE_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_TABLE_FRAME_PROPS, TEXT_TABLE_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_TABLE_COLS_PROPS, TEXT_COLUMN_PROPS);
     i_add_widget(app->bwidgets, ekWIDGET_SELECT, TEXT_SELECT, CURSOR_PNG, ekDRAWER_WIDGET_SELECT);
@@ -1525,8 +1713,8 @@ static Designer *i_create(void)
     app->window = window_create(ekWINDOW_STDRES);
     app->menu = i_menu(app);
     window_panel(app->window, panel);
-    window_title(app->window, "GTNAP Designer");
-    window_OnClose(app->window, listener(app, i_OnClose, Designer));
+    window_title(app->window, gui_text(TEXT_APP_TITLE));
+    window_OnClose(app->window, listener(app, i_OnWindowClose, Designer));
     window_hotkey(app->window, ekKEY_SUPR, 0, listener(app, i_OnHotKey, Designer));
     i_apply_config(app);
     window_show(app->window);
@@ -1542,7 +1730,6 @@ static void i_destroy(Designer **app)
     cassert_no_null(app);
     cassert_no_null(*app);
     i_remove_config(&(*app)->config);
-    image_destroy(&(*app)->add_icon);
     font_destroy(&(*app)->default_font);
     font_destroy(&(*app)->bold_font);
     arrst_destroy(&(*app)->wdrawers, NULL, WDrawer);
@@ -1551,6 +1738,7 @@ static void i_destroy(Designer **app)
     menu_destroy(&(*app)->menu);
     window_destroy(&(*app)->window);
     nflib_finish();
+    dgui_finish();
     heap_delete(app, Designer);
 }
 
@@ -1616,6 +1804,14 @@ const Font *designer_default_font(const Designer *app)
 
 /*---------------------------------------------------------------------------*/
 
+const DColors *designer_colors(const Designer *app)
+{
+    unref(app);
+    return &i_COLORS;
+}
+
+/*---------------------------------------------------------------------------*/
+
 Window *designer_main_window(const Designer *app)
 {
     cassert_no_null(app);
@@ -1629,7 +1825,7 @@ Panel *designer_drawer(Designer *app, Panel *child, const drawer_t drawer)
     WDrawer *wdrawer = i_find_drawer_by_type(app, drawer);
     cassert_no_null(wdrawer);
     cassert(wdrawer->panel == NULL);
-    wdrawer->panel = dgui_drawer(gui_text(wdrawer->labelid), app->default_font, child, wdrawer->opened, listener(app, i_OnDrawerChange, Designer));    
+    wdrawer->panel = dgui_drawer(gui_text(wdrawer->labelid), app->default_font, child, wdrawer->opened, listener(app, i_OnDrawerChange, Designer));
     return wdrawer->panel;
 }
 

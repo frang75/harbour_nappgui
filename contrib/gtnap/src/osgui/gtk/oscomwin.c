@@ -38,7 +38,7 @@ struct _cdata_t
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const bool_t open)
+const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint32_t size, const char_t *caption, const char_t *start_dir, const bool_t open)
 {
     GtkWidget *dialog = NULL;
     GtkFileChooserAction action;
@@ -46,6 +46,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
     gint res;
 
     unref(start_dir);
+    unref(caption);
 
     if (size == 1 && str_equ_c(ftypes[0], "..DIR..") == TRUE)
     {
@@ -119,6 +120,8 @@ static void i_OnRealize(GtkWidget *widget, CData *data)
         case ekRIGHT:
             data->x -= width;
             break;
+        default:
+            cassert_default(data->halign);
         }
 
         switch (data->valign)
@@ -132,6 +135,8 @@ static void i_OnRealize(GtkWidget *widget, CData *data)
         case ekRIGHT:
             data->y -= height;
             break;
+        default:
+            cassert_default(data->valign);
         }
     }
 
@@ -166,7 +171,7 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
         GdkRGBA cols[16];
         for (i = 0; i < nm; ++i)
             _oscontrol_to_gdkrgba(colors[i], &cols[i]);
-        gtk_color_chooser_add_palette(chooser, GTK_ORIENTATION_HORIZONTAL, 8, nm, cols);
+        gtk_color_chooser_add_palette(chooser, GTK_ORIENTATION_HORIZONTAL, 8, (gint)nm, cols);
     }
 
     data.x = (gint)x;

@@ -35,6 +35,8 @@ _gui_api void tableview_del_column(TableView *view, const uint32_t column_id);
 
 _gui_api uint32_t tableview_column_count(const TableView *view);
 
+_gui_api void tableview_column_icon(TableView *view, const uint32_t column_id, const real32_t icon_height, const real32_t hmargin);
+
 _gui_api void tableview_column_width(TableView *view, const uint32_t column_id, const real32_t width);
 
 _gui_api void tableview_column_limits(TableView *view, const uint32_t column_id, const real32_t min, const real32_t max);

@@ -3,6 +3,8 @@
 #include "inspect.h"
 #include "designer.h"
 #include "dform.h"
+#include "res_designer.h"
+#include <gui/gui.h>
 #include <gui/layout.h>
 #include <gui/panel.h>
 #include <gui/tableview.h>
@@ -69,6 +71,7 @@ static void i_OnTableData(InspectData *data, Event *e)
         EvTbCell *cell = event_result(e, EvTbCell);
         const EvTbPos *pos = event_params(e, EvTbPos);
         cell->text = dform_selpath_caption(data->form, pos->col, pos->row);
+        cell->icon = dform_selpath_icon(data->form, pos->col, pos->row);
         cell->align = ekLEFT;
         break;
     }
@@ -100,10 +103,13 @@ Panel *inspect_create(Designer *app)
     data->table = table;
     tableview_add_column_text(table);
     tableview_add_column_text(table);
-    tableview_column_width(table, 0, 80);
-    tableview_column_width(table, 1, 80);
-    tableview_header_title(table, 0, "Object");
-    tableview_header_title(table, 1, "Type");
+    tableview_column_width(table, 0, 100);
+    tableview_column_width(table, 1, 100);
+    tableview_header_title(table, 0, gui_text(TEXT_OBJECT));
+    tableview_header_title(table, 1, gui_text(TEXT_TYPE));
+    tableview_header_resizable(table, TRUE);
+    tableview_column_resizable(table, 0, TRUE);
+    tableview_column_icon(table, 0, 16, 6);
     tableview_OnData(table, listener(data, i_OnTableData, InspectData));
     tableview_OnSelect(table, listener(data, i_OnSelect, InspectData));
     tableview_update(table);

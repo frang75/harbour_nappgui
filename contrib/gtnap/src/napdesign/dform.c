@@ -12,6 +12,7 @@
 #include <nflib/fcheck.h>
 #include <nflib/fcombo.h>
 #include <nflib/fedit.h>
+#include <nflib/fform.h>
 #include <nflib/fimage.h>
 #include <nflib/flabel.h>
 #include <nflib/flayout.h>
@@ -57,8 +58,8 @@
 struct _dform_t
 {
     Designer *app;
+    FForm *fform;
     DLayout *dlayout;
-    FLayout *flayout;
     Layout *glayout;
     Window *window;
     V2Df origin;
@@ -117,53 +118,15 @@ static void i_need_save(DForm *form)
 
 /*---------------------------------------------------------------------------*/
 
-DForm *dform_first_example(void)
-{
-    DForm *form = heap_new0(DForm);
-    FLayout *flayout1 = flayout_create(2, 6);
-    FLayout *flayout2 = flayout_create(1, 4);
-    FLayout *flayout3 = flayout_create(2, 1);
-    FLabel *label1 = flabel_create();
-    FLabel *label2 = flabel_create();
-    str_upd(&label1->text, "This is a label");
-    str_upd(&label2->text, "Other");
-    flayout_add_label(flayout1, label1, 0, 0);
-    flayout_add_label(flayout1, label2, 0, 1);
-    flayout_add_layout(flayout3, flayout1, 0, 0);
-    flayout_add_layout(flayout3, flayout2, 1, 0);
-    flayout_margin_col(flayout1, 0, 5);
-    flayout_margin_row(flayout1, 0, 5);
-    flayout_margin_row(flayout1, 1, 5);
-    flayout_margin_row(flayout1, 2, 5);
-    flayout_margin_row(flayout1, 3, 5);
-    flayout_margin_row(flayout1, 4, 5);
-    flayout_margin_row(flayout2, 0, 5);
-    flayout_margin_row(flayout2, 1, 5);
-    flayout_margin_row(flayout2, 2, 5);
-    flayout_margin_left(flayout3, 10);
-    flayout_margin_top(flayout3, 10);
-    flayout_margin_right(flayout3, 10);
-    flayout_margin_bottom(flayout3, 10);
-    flayout_margin_col(flayout3, 0, 5);
-    form->flayout = flayout3;
-    form->temp_path = arrst_create(DSelect);
-    form->sel_path = arrst_create(DSelect);
-    i_layout_obj_names(form, flayout1);
-    i_layout_obj_names(form, flayout2);
-    i_layout_obj_names(form, flayout3);
-    return form;
-}
-
-/*---------------------------------------------------------------------------*/
-
 DForm *dform_empty(Designer *app)
 {
     DForm *form = heap_new0(DForm);
     form->app = app;
-    form->flayout = flayout_create(1, 1);
+    form->fform = fform_create();
     form->temp_path = arrst_create(DSelect);
     form->sel_path = arrst_create(DSelect);
-    i_layout_obj_names(form, form->flayout);
+    cassert_no_null(form->fform);
+    i_layout_obj_names(form, form->fform->layout);
     i_need_save(form);
     return form;
 }
@@ -199,21 +162,22 @@ static uint32_t i_num_layouts(const FLayout *flayout)
 
 DForm *dform_read(Stream *stm, Designer *app)
 {
-    FLayout *flayout = flayout_read(stm);
+    FForm *fform = fform_read(stm);
     if (stm_state(stm) == ekSTOK)
     {
         DForm *form = heap_new0(DForm);
+        cassert_no_null(fform->layout);
         form->app = app;
-        form->flayout = flayout;
+        form->fform = fform;
         form->temp_path = arrst_create(DSelect);
         form->sel_path = arrst_create(DSelect);
-        form->cell_id = i_num_cells(flayout);
-        form->layout_id = i_num_layouts(flayout);
+        form->cell_id = i_num_cells(form->fform->layout);
+        form->layout_id = i_num_layouts(form->fform->layout);
         return form;
     }
     else
     {
-        dbind_destopt(&flayout, FLayout);
+        ptr_destopt(fform_destroy, &fform, FForm);
         return NULL;
     }
 }
@@ -224,7 +188,7 @@ void dform_destroy(DForm **form)
 {
     cassert_no_null(form);
     cassert_no_null(*form);
-    flayout_destroy(&(*form)->flayout);
+    fform_destroy(&(*form)->fform);
     arrst_destroy(&(*form)->temp_path, NULL, DSelect);
     arrst_destroy(&(*form)->sel_path, NULL, DSelect);
     if ((*form)->window != NULL)
@@ -247,7 +211,7 @@ void dform_destroy(DForm **form)
 void dform_write(Stream *stm, DForm *form)
 {
     cassert_no_null(form);
-    flayout_write(stm, form->flayout);
+    fform_write(stm, form->fform);
     form->need_save = FALSE;
 }
 
@@ -260,10 +224,12 @@ void dform_compose(DForm *form)
     {
         Panel *panel = panel_create();
         const char_t *resource_path = designer_folder_path(form->app);
+        const DColors *colors = designer_colors(form->app);
+        cassert_no_null(form->fform);
         cassert(form->window == NULL);
         cassert(form->dlayout == NULL);
-        form->dlayout = dlayout_from_flayout(form->flayout, resource_path);
-        form->glayout = flayout_to_gui(form->flayout, resource_path, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
+        form->dlayout = dlayout_from_flayout(form->fform->layout, resource_path, colors);
+        form->glayout = flayout_to_gui(form->fform->layout, resource_path, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
         panel_layout(panel, form->glayout);
         form->window = window_create(ekWINDOW_STD);
         window_panel(form->window, panel);
@@ -271,6 +237,28 @@ void dform_compose(DForm *form)
 
     window_update(form->window);
     dlayout_synchro_visual(form->dlayout, form->glayout, form->origin);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dform_description(DForm *form, const char_t *desc)
+{
+    cassert_no_null(form);
+    cassert_no_null(form->fform);
+    if (str_equ(form->fform->description, desc) == FALSE)
+    {
+        str_upd(&form->fform->description, desc);
+        form->need_save = TRUE;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t *dform_get_description(const DForm *form)
+{
+    cassert_no_null(form);
+    cassert_no_null(form->fform);
+    return tc(form->fform->description);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -338,7 +326,9 @@ bool_t dform_OnMove(DForm *form, const real32_t mouse_x, const real32_t mouse_y)
 {
     DSelect hover;
     bool_t equ = TRUE;
-    i_elem_at_mouse(form->dlayout, form->flayout, form->glayout, mouse_x, mouse_y, form->temp_path, &hover);
+    cassert_no_null(form);
+    cassert_no_null(form->fform);
+    i_elem_at_mouse(form->dlayout, form->fform->layout, form->glayout, mouse_x, mouse_y, form->temp_path, &hover);
     equ = i_sel_equ(&form->hover, &hover);
     form->hover = hover;
     return !equ;
@@ -357,7 +347,8 @@ static align_t i_halign(const halign_t halign)
         return ekRIGHT;
     case ekHALIGN_JUSTIFY:
         return ekJUSTIFY;
-    cassert_default();
+    default:
+        cassert_default(halign);
     }
     return ekLEFT;
 }
@@ -375,7 +366,8 @@ static align_t i_valign(const valign_t valign)
         return ekBOTTOM;
     case ekVALIGN_JUSTIFY:
         return ekJUSTIFY;
-    cassert_default();
+    default:
+        cassert_default(valign);
     }
     return ekTOP;
 }
@@ -450,15 +442,18 @@ static void i_after_new_widget(DForm *form, Panel *inspect, Panel *propedit, DSe
 bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedit, const Font *font, const widget_t widget, const real32_t mouse_x, const real32_t mouse_y, const gui_mouse_t mbutton)
 {
     cassert_no_null(form);
+    cassert_no_null(form->fform);
     if (mbutton == ekGUI_MOUSE_LEFT)
     {
         DSelect sel;
-        i_elem_at_mouse(form->dlayout, form->flayout, form->glayout, mouse_x, mouse_y, form->sel_path, &sel);
+        i_elem_at_mouse(form->dlayout, form->fform->layout, form->glayout, mouse_x, mouse_y, form->sel_path, &sel);
         inspect_set(inspect, form);
         if (i_sel_empty_cell(&sel) == TRUE)
         {
             const char_t *folder_path = designer_folder_path(form->app);
+            const DColors *colors = designer_colors(form->app);
             cassert_no_null(form->dlayout);
+
             switch(widget) {
             case ekWIDGET_SELECT:
                 break;
@@ -551,7 +546,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     flayout_add_tool(sel.flayout, ftool, sel.col, sel.row);
                     layout_button(sel.glayout, button, sel.col, sel.row);
                     image = button_get_image(button);
-                    dlayout_set_image(sel.dlayout, image, sel.col, sel.row);
+                    dlayout_set_image(sel.dlayout, image, sel.col, sel.row, colors);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -568,7 +563,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 {
                     PopUp *popup = popup_create();
                     fpopup_synchro(fpopup, popup, folder_path);
-                    dlayout_synchro_elems(sel.dlayout, sel.col, sel.row, fpopup->elems, folder_path);
+                    dlayout_synchro_elems(sel.dlayout, sel.col, sel.row, fpopup->elems, folder_path, colors);
                     i_sel_remove_cell(&sel);
                     flayout_add_popup(sel.flayout, fpopup, sel.col, sel.row);
                     layout_popup(sel.glayout, popup, sel.col, sel.row);
@@ -626,7 +621,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 {
                     ListBox *listbox = listbox_create();
                     flistbox_synchro(flistbox, listbox, folder_path);
-                    dlayout_synchro_elems(sel.dlayout, sel.col, sel.row, flistbox->elems, folder_path);
+                    dlayout_synchro_elems(sel.dlayout, sel.col, sel.row, flistbox->elems, folder_path, colors);
                     i_sel_remove_cell(&sel);
                     flayout_add_listbox(sel.flayout, flistbox, sel.col, sel.row);
                     layout_listbox(sel.glayout, listbox, sel.col, sel.row);
@@ -725,7 +720,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     i_sel_remove_cell(&sel);
                     flayout_add_image(sel.flayout, fimage, sel.col, sel.row);
                     layout_imageview(sel.glayout, view, sel.col, sel.row);
-                    dlayout_set_image(sel.dlayout, imageview_get_image(view), sel.col, sel.row);
+                    dlayout_set_image(sel.dlayout, imageview_get_image(view), sel.col, sel.row, colors);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -769,7 +764,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 if (fsublayout != NULL)
                 {
                     const char_t *resource_path = designer_folder_path(form->app);
-                    DLayout *dsublayout = dlayout_from_flayout(fsublayout, resource_path);
+                    DLayout *dsublayout = dlayout_from_flayout(fsublayout, resource_path, colors);
                     Layout *gsublayout = flayout_to_gui(fsublayout, resource_path, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
                     i_layout_obj_names(form, fsublayout);
                     i_sel_remove_cell(&sel);
@@ -1252,10 +1247,11 @@ FCell *dform_sel_fcell(const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-void dform_draw(const DForm *form, const widget_t swidget, const Image *add_icon, const Font *default_font, DCtx *ctx)
+void dform_draw(const DForm *form, const widget_t swidget, const Font *default_font, const DColors *colors, const char_t *form_name, DCtx *ctx)
 {
     cassert_no_null(form);
-    dlayout_draw(form->dlayout, form->flayout, form->glayout, &form->hover, &form->sel, swidget, add_icon, default_font, ctx);
+    cassert_no_null(form->fform);
+    dlayout_draw(form->dlayout, form->fform->layout, form->glayout, &form->hover, &form->sel, swidget, default_font, colors, form_name, ctx);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1318,10 +1314,58 @@ const char_t* dform_cell_type(const celltype_t type)
         return gui_text(TEXT_CELL_TABLE);
     case ekCELL_TYPE_LAYOUT:
         return gui_text(TEXT_CELL_LAYOUT);
-    cassert_default();
+    default:
+        cassert_default(type);
     }
 
     return "";
+}
+
+/*---------------------------------------------------------------------------*/
+
+const Image *dform_cell_icon(const celltype_t type)
+{
+    switch(type)
+    {
+    case ekCELL_TYPE_EMPTY:
+        return NULL;
+    case ekCELL_TYPE_LABEL:
+        return gui_image(LABEL16_PNG);
+    case ekCELL_TYPE_BUTTON:
+        return gui_image(PUSHBUT16_PNG);
+    case ekCELL_TYPE_CHECK:
+        return gui_image(CHECBUT16_PNG);
+    case ekCELL_TYPE_RADIO:
+        return gui_image(RADBUT16_PNG);
+    case ekCELL_TYPE_TOOL:
+        return gui_image(TOOLBUT16_PNG);        
+    case ekCELL_TYPE_POPUP:
+        return gui_image(POPUP16_PNG);
+    case ekCELL_TYPE_EDIT:
+        return gui_image(EDITBOX16_PNG);
+    case ekCELL_TYPE_COMBO:
+        return gui_image(COMBOBOX16_PNG);
+    case ekCELL_TYPE_LISTBOX:
+        return gui_image(LISTVIEW16_PNG);
+    case ekCELL_TYPE_SLIDER:
+        return gui_image(HORSLIDER16_PNG);
+    case ekCELL_TYPE_VSLIDER:
+        return gui_image(VERSLIDER16_PNG);
+    case ekCELL_TYPE_PROGRESS:
+        return gui_image(PROGRESSBAR16_PNG);
+    case ekCELL_TYPE_TEXT:
+        return gui_image(TEXTVIEW16_PNG);
+    case ekCELL_TYPE_IMAGE:
+        return gui_image(IMAGEVIEW16_PNG);
+    case ekCELL_TYPE_TABLEVIEW:
+        return gui_image(TABLEVIEW16_PNG);
+    case ekCELL_TYPE_LAYOUT:
+        return gui_image(GLAYOUT16_PNG);
+    default:
+        cassert_default(type);
+    }
+
+    return NULL;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1340,9 +1384,18 @@ const char_t *dform_selpath_caption(const DForm *form, const uint32_t col, const
     if (row % 2 == 0)
     {
         if (col == 0)
+        {
             return tc(sel->flayout->name);
+        }
         else
-            return gui_text(TEXT_LAYOUT);
+        {
+            if (arrst_size(sel->flayout->cols, FColumn) == 1)
+                return gui_text(TEXT_VERT_LAYOUT);
+            else if (arrst_size(sel->flayout->rows, FRow) == 1)
+                return gui_text(TEXT_HORZ_LAYOUT);
+            else
+                return gui_text(TEXT_GRID_LAYOUT);
+        }
     }
     /* Odd rows == cell */
     else
@@ -1358,6 +1411,41 @@ const char_t *dform_selpath_caption(const DForm *form, const uint32_t col, const
             return dform_cell_type(cell->type);
         }
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+const Image *dform_selpath_icon(const DForm *form, const uint32_t col, const uint32_t row)
+{
+    const DSelect *sel = NULL;
+    cassert_no_null(form);
+    sel = arrst_get_const(form->sel_path, row / 2, DSelect);
+    cassert(col <= 1);
+    cassert_no_null(sel);
+    cassert_no_null(sel->dlayout);
+    cassert_no_null(sel->flayout);
+
+    if (col == 0)
+    {
+        /* Even rows == layout */
+        if (row % 2 == 0)
+        {
+            if (arrst_size(sel->flayout->cols, FColumn) == 1)
+                return gui_image(VLAYOUT16_PNG);
+            else if (arrst_size(sel->flayout->rows, FRow) == 1)
+                return gui_image(HLAYOUT16_PNG);
+            else
+                return gui_image(GLAYOUT16_PNG);
+        }
+        /* Odd rows == cell */
+        else
+        {
+            const FCell *cell = i_sel_fcell(sel);
+            return dform_cell_icon(cell->type);
+        }
+    }
+
+    return NULL;
 }
 
 /*---------------------------------------------------------------------------*/

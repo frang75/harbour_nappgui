@@ -1,3 +1,4 @@
+TEXT_APP_TITLE      GTNAP Designer
 TEXT_OK             Ok
 TEXT_CANCEL         Cancel
 TEXT_COLUMNS        Columns
@@ -20,6 +21,9 @@ TEXT_NEW_TEXTVIEW   A new textview will be placed in cell (%d, %d) of '%s' layou
 TEXT_NEW_IMAGEVIEW  A new imageview will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_TABLEVIEW  A new tableview will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SUBLAYOUT  A new sublayout will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_FORM       A new form will be created with this filename and properties
+TEXT_PROPS_FORM     Change the filename and forms properties
+
 TEXT_LAYOUT_PROPS   Layout properties
 TEXT_COLUMN_PROPS   Column properties
 TEXT_ROW_PROPS      Row properties
@@ -66,10 +70,16 @@ TEXT_PROGRESS_BAR   Progress Bar
 TEXT_TEXT_VIEW      Text View
 TEXT_IMAGE_VIEW     Image View
 TEXT_TABLE_VIEW     Table View
+TEXT_VIEW           View
+TEXT_FORM           Form
+TEXT_FORM_PROPS     Form properties
 TEXT_BOX_FORMS      Forms
+TEXT_BOX_FORM_BOX   Forms box
+TEXT_BOX_WIDGET_BOX Widgets box
 TEXT_BOX_INSPECTOR  Object inspector
 TEXT_BOX_PROPEDIT   Property editor
 TEXT_BOX_WIDGETS    Widgets
+TEXT_OBJECT         Object
 TEXT_TYPE           Type
 TEXT_NAME           Name
 TEXT_TOP            Top
@@ -129,6 +139,34 @@ TEXT_CELL_TEXT      TextViewCell
 TEXT_CELL_IMAGE     ImageViewCell
 TEXT_CELL_TABLE     TableCell
 TEXT_CELL_LAYOUT    LayoutCell
+TEXT_FILE           File
+TEXT_FILENAME       Filename
+TEXT_DESCRIPTION    Description
+TEXT_EDIT           Edit
+TEXT_UNDO           Undo
+TEXT_REDO           Redo
+TEXT_CUT            Cut
+TEXT_COPY           Copy
+TEXT_PASTE          Paste
+TOOLBAR_OPEN        Open forms folder
+TOOLBAR_SAVE        Save all forms
+TOOLBAR_NEW         Add new form
+TOOLBAR_NEW_FORM    New form
+TOOLBAR_PROPS       Form properties
+TOOLBAR_SIMULATE    Simulate current form
+TOOLBAR_REMOVE      Remove current form
+TEXT_QUIT           Quit
+TEXT_OPEN_CAPTION   Select the form folder you want to work with.
+TEXT_ERROR_NAME     Error in form name
+TEXT_NAME_EXISTS    Form name '%s' already exists
+TEXT_REMOVE_MSG     The form '%s'will be deleted from the disk. This operation is irreversible. Do you really want to continue?
+TEXT_FORM_REMOVE    Remove form
+TEXT_SAVE_CHANGES   Save changes
+TEXT_DISC_CHANGES   Discard changes
+TEXT_UNSAVE_CHANGES There are unsaved changes
+TEXT_UNSAVED1       There are unsaved changes in your current forms.\nChanges will be lost if you open another project folder.\nDo you want to save your changes?
+TEXT_UNSAVED2       There are unsaved changes in your current forms.\nChanges will be lost if you close the application.\nDo you want to save your changes?
+
 
 TIP_LAYOUT_NAME     Layout name. It will be useful to locate the layout at runtime.
 TIP_CELL_NAME       Cell name. It will be useful to locate the cell at runtime.
@@ -183,7 +221,7 @@ TIP_TABLE_MHEIGHT   Tableview height.
 TIP_COLUMN_TITLE    Column title.
 TIP_COLUMN_HALIGN   Column header alignment.
 TIP_COLUMN_DALIGN   Column data alignment.
-TIP_COLUMN_WIDTH    Column width.
+TIP_COLUMN_TWIDTH   Column width.
 TIP_COLUMN_MINWIDTH Column minimum width.
 TIP_COLUMN_MAXWIDTH Column maximum width.
 TIP_COLUMN_RESIZE   Column is resizable.

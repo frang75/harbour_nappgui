@@ -2,8 +2,6 @@
 
 #include "designer.hxx"
 
-DForm *dform_first_example(void);
-
 DForm *dform_empty(Designer *app);
 
 DForm *dform_read(Stream *stm, Designer *app);
@@ -13,6 +11,10 @@ void dform_destroy(DForm **form);
 void dform_write(Stream *stm, DForm *form);
 
 void dform_compose(DForm *form);
+
+void dform_description(DForm *form, const char_t *desc);
+
+const char_t* dform_get_description(const DForm *form);
 
 void dform_set(DForm *form, Panel *inspect, Panel *propedit);
 
@@ -78,13 +80,17 @@ void dform_synchro_cell_valign(DForm *form, const DSelect *sel, const FCell *fce
 
 FCell *dform_sel_fcell(const DSelect *sel);
 
-void dform_draw(const DForm *form, const widget_t swidget, const Image *add_icon, const Font *default_font, DCtx *ctx);
+void dform_draw(const DForm *form, const widget_t swidget, const Font *default_font, const DColors *colors, const char_t *form_name, DCtx *ctx);
 
 uint32_t dform_selpath_size(const DForm *form);
 
 const char_t *dform_cell_type(const celltype_t type);
 
+const Image *dform_cell_icon(const celltype_t type);
+
 const char_t *dform_selpath_caption(const DForm *form, const uint32_t col, const uint32_t row);
+
+const Image *dform_selpath_icon(const DForm *form, const uint32_t col, const uint32_t row);
 
 void dform_inspect_select(DForm *form, Panel *propedit, const uint32_t row);
 

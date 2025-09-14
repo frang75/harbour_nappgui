@@ -166,13 +166,14 @@ Image *image_from_pixels(const uint32_t width, const uint32_t height, const pixf
         break;
 
     case ekFIMAGE:
-        cassert_default();
+    default:
+        cassert_default(format);
     }
 
     if (rgb_pixels != NULL)
     {
         nformat = pixbuf_format(rgb_pixels);
-        cassert(nformat == ekRGB24 || nformat == ekRGBA32);
+        cassert(nformat == ekRGB24 || nformat == ekRGBA32 || nformat == ekGRAY8);
         osimage = osimage_create_from_pixels(width, height, nformat, pixbuf_data(rgb_pixels));
         pixbuf_destroy(&rgb_pixels);
     }
@@ -283,12 +284,12 @@ Image *image_copy(const Image *image)
 
 Image *image_trim(const Image *image, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height)
 {
-    T2Df t2d;
-    DCtx *ctx = dctx_bitmap(width, height, ekRGB24);
-    t2d_movef(&t2d, kT2D_IDENTf, -(real32_t)x, -(real32_t)y);
-    draw_matrixf(ctx, &t2d);
-    draw_image(ctx, image, 0, 0);
-    return dctx_image(&ctx);
+    Pixbuf *ipixbuf = image_pixels(image, ekFIMAGE);
+    Pixbuf *tpixbuf = pixbuf_trim(ipixbuf, x, y, width, height);
+    Image *nimage = image_from_pixbuf(tpixbuf, NULL);
+    pixbuf_destroy(&ipixbuf);
+    pixbuf_destroy(&tpixbuf);
+    return nimage;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -341,8 +342,8 @@ Image *image_rotate(const Image *image, const real32_t angle, const bool_t nsize
 
     cassert_no_null(image);
     osimage_info(image->osimage, &width, &height, NULL, NULL);
-    cx = width / 2.f;
-    cy = height / 2.f;
+    cx = (real32_t)width / 2;
+    cy = (real32_t)height / 2;
     t2d_movef(&t2d, kT2D_IDENTf, cx, cy);
     t2d_rotatef(&t2d, &t2d, angle);
     t2d_movef(&t2d, &t2d, -cx, -cy);

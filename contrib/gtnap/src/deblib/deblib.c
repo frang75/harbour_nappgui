@@ -294,7 +294,8 @@ void deblib_recv_message(Stream *stm, DebMsg *msg)
 
 const char_t *deblib_msg_str(const msg_type_t msg)
 {
-    switch(msg) {
+    switch(msg) 
+    {
     case ekMSG_CONNECT:
         return "ekMSG_CONNECT";
     case ekMSG_SET_SIZE:
@@ -322,7 +323,8 @@ const char_t *deblib_msg_str(const msg_type_t msg)
     case ekMSG_SHOW:
     case ekMSG_GET_POS:
         break;
-        cassert_default();
+    default:
+        cassert_default(msg);
     }
 
     return "";
@@ -343,7 +345,8 @@ const char_t *deblib_cursor_str(const cursor_t cursor)
         return "CURSOR_SPECIAL1";
     case ekCURSOR_SPECIAL2:
         return "CURSOR_SPECIAL2";
-    cassert_default();
+    default:
+        cassert_default(cursor);
     }
 
     return "";

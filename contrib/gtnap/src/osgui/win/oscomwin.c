@@ -15,6 +15,8 @@
 #include "../oscomwin.h"
 #include <draw2d/color.h>
 #include <core/event.h>
+#include <core/heap.h>
+#include <core/strings.h>
 #include <sewer/cassert.h>
 #include <sewer/unicode.h>
 
@@ -136,14 +138,14 @@ static void i_force_extension(WCHAR *file, INT buffer_size, const char_t *extens
     if (file_ext != NULL)
         file_ext[0] = '\0';
     else
-        wcscat_s(file, buffer_size, L".");
+        wcscat_s(file, (rsize_t)buffer_size, L".");
 
-    wcscat_s(file, buffer_size, ext);
+    wcscat_s(file, (rsize_t)buffer_size, ext);
 }
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const bool_t open)
+const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint32_t size, const char_t *caption, const char_t *start_dir, const bool_t open)
 {
     TCHAR file_types[256];
     BOOL dirselect;
@@ -155,12 +157,23 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
         {
             BROWSEINFO bi;
             TCHAR dir[MAX_PATH];
+            TCHAR lcaption[WCHAR_BUFFER_SIZE];
             LPITEMIDLIST item;
             ZeroMemory(&bi, sizeof(bi));
+
+            if (str_empty_c(caption) == FALSE)
+            {
+                unicode_convers(caption, cast(lcaption, char_t), ekUTF8, ekUTF16, sizeof(lcaption));
+                bi.lpszTitle = lcaption;
+            }
+            else
+            {
+                bi.lpszTitle = NULL;
+            }
+
             bi.hwndOwner = _oswindow_hwnd(parent);
             bi.pidlRoot = NULL;
             bi.pszDisplayName = dir;
-            bi.lpszTitle = NULL;
             bi.ulFlags = 0;
 
             if (start_dir != NULL)
@@ -268,6 +281,8 @@ static UINT_PTR CALLBACK i_color_msg(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             case ekRIGHT:
                 cdata->x -= rect.right - rect.left;
                 break;
+            default:
+                cassert_default(cdata->halign);
             }
 
             switch (cdata->valign)
@@ -281,6 +296,8 @@ static UINT_PTR CALLBACK i_color_msg(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             case ekRIGHT:
                 cdata->y -= rect.bottom - rect.top;
                 break;
+            default:
+                cassert_default(cdata->valign);
             }
         }
 

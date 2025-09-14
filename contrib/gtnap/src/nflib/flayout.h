@@ -8,6 +8,8 @@ _nflib_api FLayout *flayout_create(const uint32_t ncols, const uint32_t nrows);
 
 _nflib_api FLayout *flayout_read(Stream *stm);
 
+_nflib_api FLayout *flayout_read_with_vers(Stream *stm, const uint16_t vers);
+
 _nflib_api void flayout_destroy(FLayout **layout);
 
 _nflib_api void flayout_write(Stream *stm, const FLayout *layout);

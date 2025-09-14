@@ -138,7 +138,8 @@ static void i_remove_cell(FCell *cell)
         flayout_destroy(&cell->widget.layout);
         break;
 
-        cassert_default();
+    default:
+        cassert_default(cell->type);
     }
 
     cassert(cell->widget.label == NULL);
@@ -490,7 +491,8 @@ static void i_read_cell(Stream *stm, FCell *cell)
     case ekCELL_TYPE_LAYOUT:
         cell->widget.layout = flayout_read(stm);
         break;
-        cassert_default();
+    default:
+        cassert_default(cell->type);
     }
 }
 
@@ -498,7 +500,15 @@ static void i_read_cell(Stream *stm, FCell *cell)
 
 FLayout *flayout_read(Stream *stm)
 {
-    i_STM_VERSION = stm_read_u16(stm);
+    uint16_t vers = stm_read_u16(stm);
+    return flayout_read_with_vers(stm, vers);
+}
+
+/*---------------------------------------------------------------------------*/
+
+FLayout *flayout_read_with_vers(Stream *stm, const uint16_t vers)
+{
+    i_STM_VERSION = vers;
     if (i_STM_VERSION <= i_VERSION)
     {
         FLayout *layout = heap_new0(FLayout);
@@ -777,7 +787,8 @@ static void i_write_cell(Stream *stm, const FCell *cell)
     case ekCELL_TYPE_LAYOUT:
         flayout_write(stm, cell->widget.layout);
         break;
-        cassert_default();
+    default:
+        cassert_default(cell->type);
     }
 }
 
@@ -1424,6 +1435,9 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     layout_layout(glayout, gsublayout, i, j);
                     break;
                 }
+
+                default:
+                    cassert_default(cells->type);
                 }
 
                 cells += 1;
@@ -1476,7 +1490,8 @@ GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout
                 case ekCELL_TYPE_LAYOUT:
                 case ekCELL_TYPE_EMPTY:
                     break;
-                    cassert_default();
+                default:
+                    cassert_default(cells->type);
                 }
             }
 

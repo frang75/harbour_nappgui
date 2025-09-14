@@ -1342,9 +1342,11 @@ static void i_attach_to_panel(ArrPt(GtNapObject) *objects, Panel *main_panel, Pa
                 case ekOBJ_MENU:
                     pos.y += toolbar->heightf;
                     break;
+
                 case ekOBJ_TABLEVIEW:
                 case ekOBJ_TEXTVIEW:
                     break;
+
                 case ekOBJ_BUTTON:
                     if (object->editBoxIndexForButton != UINT32_MAX)
                     {
@@ -1355,7 +1357,9 @@ static void i_attach_to_panel(ArrPt(GtNapObject) *objects, Panel *main_panel, Pa
                     if (GTNAP_GLOBAL->cell_y_sizef > GTNAP_GLOBAL->button_y_sizef)
                         pos.y += (GTNAP_GLOBAL->cell_y_sizef - GTNAP_GLOBAL->button_y_sizef) / 2.f;
                     break;
-                    cassert_default();
+
+                default:
+                    cassert_default(type);
                 }
             }
 
@@ -1444,7 +1448,8 @@ static void i_component_tabstop(ArrPt(GtNapObject) *objects, Window *window, Arr
             case ekOBJ_EDIT:
                 arrpt_append(tabstops, object->component, GuiComponent);
                 break;
-                cassert_default();
+            default:
+                cassert_default(object->type);
             }
         }
     arrpt_end();
@@ -6847,7 +6852,8 @@ static HB_BOOL hb_gtnap_Info(PHB_GT pGT, int iType, PHB_GT_INFO pInfo)
                 break;
             }
 
-                cassert_default();
+            default:
+                cassert_default(type);
             }
         }
         else
@@ -6877,7 +6883,8 @@ static HB_BOOL hb_gtnap_Info(PHB_GT pGT, int iType, PHB_GT_INFO pInfo)
         }
         break;
 
-        cassert_default();
+    default:
+        cassert_default(iType);
     }
 
     return TRUE;

@@ -63,7 +63,7 @@ static void i_update_text_buffer(App *app, const uint32_t nrows, const uint32_t 
     app->text_buffer = heap_new_n0(app->nrows * app->ncols, BufChar);
 
     if (app->view != NULL)
-        view_size(app->view, s2df(app->ncols * app->cell_width, app->nrows * app->cell_height));
+        view_size(app->view, s2df((real32_t)app->ncols * app->cell_width, (real32_t)app->nrows * app->cell_height));
 
     if (app->window != NULL)
         window_update(app->window);
@@ -98,10 +98,10 @@ static void i_OnDraw(App *app, Event *e)
     draw_font(p->ctx, app->font);
     for (i = 0; i < app->nrows; ++i)
     {
-        real32_t y = i * app->cell_height;
+        real32_t y = (real32_t)i * app->cell_height;
         for (j = 0; j < app->ncols; ++j, ++bchar)
         {
-            real32_t x = j * app->cell_width;
+            real32_t x = (real32_t)j * app->cell_width;
             if (bchar->utf8[0] != 0)
             {
                 byte_t fore = bchar->colorb & 0x0F;
@@ -120,8 +120,8 @@ static void i_OnDraw(App *app, Event *e)
     {
         if (app->cursor_row < app->nrows && app->cursor_col < app->ncols)
         {
-            real32_t x = app->cursor_col * app->cell_width;
-            real32_t y = app->cursor_row * app->cell_height;
+            real32_t x = (real32_t)app->cursor_col * app->cell_width;
+            real32_t y = (real32_t)app->cursor_row * app->cell_height;
             color_t cfore = i_COLORS[COL_WHITE];
             color_t cback = i_COLORS[COL_BLACK];
             bchar = app->text_buffer + (app->cursor_row * app->ncols) + app->cursor_col;
@@ -841,7 +841,7 @@ static App *i_create(void)
     Panel *panel = i_panel(app);
     cassert_set_func((void *)app, i_assert);
     deblib_init_colors(i_COLORS);
-    view_size(app->view, s2df(app->ncols * app->cell_width, app->nrows * app->cell_height));
+    view_size(app->view, s2df((real32_t)app->ncols * app->cell_width, (real32_t)app->nrows * app->cell_height));
     app->window = window_create(ekWINDOW_STD);
     window_panel(app->window, panel);
     window_title(app->window, "GTNap Debugger");
