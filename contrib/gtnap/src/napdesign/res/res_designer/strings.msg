@@ -139,11 +139,15 @@ TEXT_CELL_TEXT      TextViewCell
 TEXT_CELL_IMAGE     ImageViewCell
 TEXT_CELL_TABLE     TableCell
 TEXT_CELL_LAYOUT    LayoutCell
-
 TEXT_FILE           File
 TEXT_FILENAME       Filename
 TEXT_DESCRIPTION    Description
-
+TEXT_EDIT           Edit
+TEXT_UNDO           Undo
+TEXT_REDO           Redo
+TEXT_CUT            Cut
+TEXT_COPY           Copy
+TEXT_PASTE          Paste
 TOOLBAR_OPEN        Open forms folder
 TOOLBAR_SAVE        Save all forms
 TOOLBAR_NEW         Add new form

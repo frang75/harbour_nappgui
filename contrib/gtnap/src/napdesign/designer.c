@@ -1307,6 +1307,36 @@ static Menu *i_file_menu(Designer *app)
 
 /*---------------------------------------------------------------------------*/
 
+static Menu *i_edit_menu(Designer *app)
+{
+    Menu *menu = menu_create();
+    MenuItem *item1 = menuitem_create();
+    MenuItem *item2 = menuitem_create();
+    MenuItem *item3 = menuitem_create();
+    MenuItem *item4 = menuitem_create();
+    MenuItem *item5 = menuitem_create();
+    unref(app);
+    menuitem_text(item1, gui_text(TEXT_UNDO));
+    menuitem_text(item2, gui_text(TEXT_REDO));
+    menuitem_text(item3, gui_text(TEXT_CUT));
+    menuitem_text(item4, gui_text(TEXT_COPY));
+    menuitem_text(item5, gui_text(TEXT_PASTE));
+    menuitem_image(item1, gui_image(UNDO16_PNG));
+    menuitem_image(item2, gui_image(REDO16_PNG));
+    menuitem_image(item3, gui_image(CUT16_PNG));
+    menuitem_image(item4, gui_image(COPY16_PNG));
+    menuitem_image(item5, gui_image(PASTE16_PNG));
+    menu_add_item(menu, item1);
+    menu_add_item(menu, item2);
+    menu_add_item(menu, menuitem_separator());
+    menu_add_item(menu, item3);
+    menu_add_item(menu, item4);
+    menu_add_item(menu, item5);
+    return menu;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Menu *i_view_menu(Designer *app)
 {
     Menu *menu = menu_create();
@@ -1340,15 +1370,20 @@ static Menu *i_menu(Designer *app)
 {
     Menu *menu = menu_create();
     Menu *submenu1 = i_file_menu(app);
-    Menu *submenu2 = i_view_menu(app);
+    Menu *submenu2 = i_edit_menu(app);
+    Menu *submenu3 = i_view_menu(app);
     MenuItem *item1 = menuitem_create();
     MenuItem *item2 = menuitem_create();
+    MenuItem *item3 = menuitem_create();
     menuitem_text(item1, gui_text(TEXT_FILE));
-    menuitem_text(item2, gui_text(TEXT_VIEW));
+    menuitem_text(item2, gui_text(TEXT_EDIT));
+    menuitem_text(item3, gui_text(TEXT_VIEW));
     menuitem_submenu(item1, &submenu1);
     menuitem_submenu(item2, &submenu2);
+    menuitem_submenu(item3, &submenu3);
     menu_add_item(menu, item1);
     menu_add_item(menu, item2);
+    menu_add_item(menu, item3);
     return menu;
 }
 
