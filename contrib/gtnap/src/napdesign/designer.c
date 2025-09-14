@@ -2,6 +2,7 @@
 
 #include <nflib/nflib.h>
 #include <nappgui.h>
+#include "designer.h"
 #include "res_designer.h"
 #include "dlayout.h"
 #include "dform.h"
@@ -672,7 +673,7 @@ static void i_OnWidgetLabelClick(Designer *app, Event *e)
 static Panel *i_drawer_widget_panel(Designer *app, const drawer_t drawer)
 {
     Panel *panel = panel_create();
-    uint32_t i = 0, n = 0;    
+    uint32_t i = 0, n = 0;
     cassert_no_null(app);
 
     /* Number of widgets for this drawer */
@@ -691,13 +692,13 @@ static Panel *i_drawer_widget_panel(Designer *app, const drawer_t drawer)
                 Label *label = label_create();
                 cassert(bwidget->button == NULL);
                 cassert(bwidget->label == NULL);
-                button_OnClick(button, listener(app, i_OnWidgetButtonClick, Designer));               
+                button_OnClick(button, listener(app, i_OnWidgetButtonClick, Designer));
                 button_image(button, gui_image(bwidget->imageid));
                 button_vpadding(button, 0);
                 button_hpadding(button, 0);
                 label_text(label, gui_text(bwidget->labelid));
                 label_style_over(label, ekFUNDERLINE);
-                label_OnClick(label, listener(app, i_OnWidgetLabelClick, Designer));               
+                label_OnClick(label, listener(app, i_OnWidgetLabelClick, Designer));
                 layout_button(layout, button, 0, i);
                 layout_label(layout, label, 1, i);
                 layout_tabstop(layout, 0, i, FALSE);
@@ -795,14 +796,14 @@ static void i_OnDrawerChange(Designer *app, Event *e)
     cassert(drawer->opened != *p);
     drawer->opened = *p;
 }
-    
+
 /*---------------------------------------------------------------------------*/
 
 static Panel *i_widgets_panel(Designer *app)
 {
     Panel *panel = panel_custom(FALSE, TRUE, FALSE);
     uint32_t n = 0;
-    cassert_no_null(app);       
+    cassert_no_null(app);
 
     arrst_foreach_const(wdrawer, app->wdrawers, WDrawer)
         if (i_is_widget_drawer(wdrawer->type) == TRUE)
@@ -1166,7 +1167,7 @@ static gui_state_t i_bool_state(const bool_t state)
 {
     if (state == TRUE)
         return ekGUI_ON;
-    else 
+    else
         return ekGUI_OFF;
 }
 
@@ -1205,7 +1206,7 @@ static void i_restore_splits(Designer *app)
     splitview_visible1(app->split2, app->config.show_widgets);
 
     if (app->config.show_forms == TRUE && app->config.show_widgets == TRUE)
-        splitview_pos(app->split2, i_SPLIT2_MODE, app->config.split2_pos);        
+        splitview_pos(app->split2, i_SPLIT2_MODE, app->config.split2_pos);
 
     if (app->config.show_inspectr == TRUE || app->config.show_propedit == TRUE)
     {
@@ -1221,7 +1222,7 @@ static void i_restore_splits(Designer *app)
     splitview_visible1(app->split4, app->config.show_propedit);
 
     if (app->config.show_inspectr == TRUE && app->config.show_propedit == TRUE)
-        splitview_pos(app->split4, i_SPLIT4_MODE, app->config.split4_pos);        
+        splitview_pos(app->split4, i_SPLIT4_MODE, app->config.split4_pos);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1295,7 +1296,7 @@ static Menu *i_file_menu(Designer *app)
     menuitem_OnClick(item1, listener(app, i_OnAddFormClick, Designer));
     menuitem_OnClick(item2, listener(app, i_OnOpenFormsClick, Designer));
     menuitem_OnClick(item3, listener(app, i_OnSaveFormsClick, Designer));
-    menuitem_OnClick(item4, listener(app, i_OnQuitClick, Designer));    
+    menuitem_OnClick(item4, listener(app, i_OnQuitClick, Designer));
     menu_add_item(menu, item1);
     menu_add_item(menu, item2);
     menu_add_item(menu, menuitem_separator());
@@ -1442,7 +1443,7 @@ static void i_save_config(const Designer *app)
     String *cfile = hfile_appdata("config.bin");
     Stream *stm = stm_to_file(tc(cfile), NULL);
     cassert_no_null(app);
-    
+
     if (stm != NULL)
     {
         stm_write_u16(stm, i_CONFIG_VERS);
@@ -1505,7 +1506,7 @@ static void i_default_config(Designer *app)
         wdrawer->opened = FALSE;
     arrst_end()
 }
-    
+
 /*---------------------------------------------------------------------------*/
 
 static void i_load_config(Designer *app)
@@ -1549,7 +1550,7 @@ static void i_load_config(Designer *app)
 
     str_destroy(&cfile);
 }
-    
+
 /*---------------------------------------------------------------------------*/
 
 static void i_apply_config(Designer *app)
@@ -1628,7 +1629,7 @@ static Designer *i_app(void)
     dgui_init();
     nflib_start();
     i_dbind();
-    dialog_dbind();    
+    dialog_dbind();
     dlayout_global_init();
 
     if (gui_dark_mode() == TRUE)
@@ -1673,11 +1674,11 @@ static Designer *i_app(void)
     i_add_drawer(app->wdrawers, ekDRAWER_EDIT_PROPS, TEXT_EDIT_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_COMBO_PROPS, TEXT_COMBO_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_LIST_PROPS, TEXT_LIST_PROPS);
-    i_add_drawer(app->wdrawers, ekDRAWER_HSLIDER_PROPS, TEXT_SLIDER_PROPS);    
-    i_add_drawer(app->wdrawers, ekDRAWER_VSLIDER_PROPS, TEXT_VSLIDER_PROPS);  
-    i_add_drawer(app->wdrawers, ekDRAWER_PROGRESS_PROPS, TEXT_PROGRESS_PROPS);  
-    i_add_drawer(app->wdrawers, ekDRAWER_TEXT_PROPS, TEXT_TEXT_PROPS);  
-    i_add_drawer(app->wdrawers, ekDRAWER_IMAGE_PROPS, TEXT_IMAGE_PROPS);  
+    i_add_drawer(app->wdrawers, ekDRAWER_HSLIDER_PROPS, TEXT_SLIDER_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_VSLIDER_PROPS, TEXT_VSLIDER_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_PROGRESS_PROPS, TEXT_PROGRESS_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_TEXT_PROPS, TEXT_TEXT_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_IMAGE_PROPS, TEXT_IMAGE_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_TABLE_FRAME_PROPS, TEXT_TABLE_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_TABLE_COLS_PROPS, TEXT_COLUMN_PROPS);
     i_add_widget(app->bwidgets, ekWIDGET_SELECT, TEXT_SELECT, CURSOR_PNG, ekDRAWER_WIDGET_SELECT);
@@ -1712,7 +1713,7 @@ static Designer *i_create(void)
     app->window = window_create(ekWINDOW_STDRES);
     app->menu = i_menu(app);
     window_panel(app->window, panel);
-    window_title(app->window, gui_text(TEXT_TITLE));
+    window_title(app->window, gui_text(TEXT_APP_TITLE));
     window_OnClose(app->window, listener(app, i_OnWindowClose, Designer));
     window_hotkey(app->window, ekKEY_SUPR, 0, listener(app, i_OnHotKey, Designer));
     i_apply_config(app);
@@ -1824,7 +1825,7 @@ Panel *designer_drawer(Designer *app, Panel *child, const drawer_t drawer)
     WDrawer *wdrawer = i_find_drawer_by_type(app, drawer);
     cassert_no_null(wdrawer);
     cassert(wdrawer->panel == NULL);
-    wdrawer->panel = dgui_drawer(gui_text(wdrawer->labelid), app->default_font, child, wdrawer->opened, listener(app, i_OnDrawerChange, Designer));    
+    wdrawer->panel = dgui_drawer(gui_text(wdrawer->labelid), app->default_font, child, wdrawer->opened, listener(app, i_OnDrawerChange, Designer));
     return wdrawer->panel;
 }
 

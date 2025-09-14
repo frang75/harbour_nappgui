@@ -1,4 +1,4 @@
-TEXT_TITLE          GTNAP Designer
+TEXT_APP_TITLE      GTNAP Designer
 TEXT_OK             Ok
 TEXT_CANCEL         Cancel
 TEXT_COLUMNS        Columns

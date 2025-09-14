@@ -527,7 +527,6 @@ FLayout *flayout_read_with_vers(Stream *stm, const uint16_t vers)
         stm_corrupt(stm);
         return NULL;
     }
-
 }
 
 /*---------------------------------------------------------------------------*/
@@ -786,7 +785,7 @@ static void i_write_cell(Stream *stm, const FCell *cell)
         i_write_table(stm, cell->widget.table);
         break;
     case ekCELL_TYPE_LAYOUT:
-        flayout_write(stm, cell->widget.layout);        
+        flayout_write(stm, cell->widget.layout);
         break;
     default:
         cassert_default(cell->type);
@@ -1436,6 +1435,9 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     layout_layout(glayout, gsublayout, i, j);
                     break;
                 }
+
+                default:
+                    cassert_default(cells->type);
                 }
 
                 cells += 1;

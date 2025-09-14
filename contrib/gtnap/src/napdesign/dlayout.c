@@ -95,7 +95,7 @@ DLayout *dlayout_from_flayout(const FLayout *flayout, const char_t *resource_pat
                 {
                     dlayout_set_image(layout, nflib_default_icon(), i, j, colors);
                 }
-                    
+
                 str_destroy(&path);
             }
             else if (fcell->type == ekCELL_TYPE_IMAGE)
@@ -641,6 +641,9 @@ static R2Df i_get_rect(const DLayout *dlayout, const DSelect *sel)
 
     case ekLAYELEM_CELL:
         return i_cell_rect(dlayout, sel);
+
+    default:
+        cassert_default(sel->elem);
     }
 
     return kR2D_ZEROf;
@@ -665,6 +668,9 @@ static R2Df i_get_full_rect(const DLayout *dlayout, const DSelect *sel)
 
     case ekLAYELEM_CELL:
         return i_cell_rect(dlayout, sel);
+
+    default:
+        cassert_default(sel->elem);
     }
 
     return kR2D_ZEROf;
@@ -769,7 +775,7 @@ static void i_draw_grid(DCtx *ctx, const DColors *colors, const R2Df *rect)
     nr = (uint32_t)bmath_ceilf(rect->size.height / sep);
     x = rect->pos.x;
     draw_fill_color(ctx, colors->main);
-    for (i = 0; i < nc; ++i, x+= sep)
+    for (i = 0; i < nc; ++i, x += sep)
     {
         y = rect->pos.y;
         for (j = 0; j < nr; ++j, y += sep)
@@ -797,7 +803,7 @@ static void i_draw_frame(DCtx *ctx, const Font *font, const DColors *colors, con
     draw_rect(ctx, ekFILL, rect->pos.x - EDGE, rect->pos.y - HEADER, rect->size.width + EDGE * 2, HEADER);
     draw_line_color(ctx, kCOLOR_BLACK);
     draw_rect(ctx, ekSTROKE, rect->pos.x - EDGE, rect->pos.y - HEADER, rect->size.width + EDGE * 2, rect->size.height + HEADER + EDGE);
-    
+
     /* Icon and title */
     {
         real32_t iwidth = (real32_t)image_width(colors->nap_icon);
@@ -865,7 +871,7 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                     draw_text_halign(ctx, ekCENTER);
                     break;
                 case ekHALIGN_RIGHT:
-                    origin_x = - dcell->content_rect.size.width;
+                    origin_x = -dcell->content_rect.size.width;
                     draw_text_halign(ctx, ekRIGHT);
                     break;
                 default:
@@ -1204,7 +1210,7 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                 draw_fill_color(ctx, colors->back);
                 draw_font(ctx, font);
                 draw_text_color(ctx, wcolor);
-                for(k = 0; k < n; ++k)
+                for (k = 0; k < n; ++k)
                 {
                     real32_t width = tableview_get_column_width(gtable, k);
                     align_t align = tableview_get_header_align(gtable, k);
@@ -1218,7 +1224,7 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                         draw_rect(ctx, ekFILLSK, px, py, width, head_height);
                         draw_text_width(ctx, width);
                         draw_text_align(ctx, align, ekTOP);
-                        switch (align) 
+                        switch (align)
                         {
                         case ekLEFT:
                         case ekJUSTIFY:
@@ -1244,8 +1250,8 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                     x += width;
                 }
 
-                if (x < dcell->content_rect.size.width) 
-                {                        
+                if (x < dcell->content_rect.size.width)
+                {
                     real32_t px = dcell->content_rect.pos.x + x;
                     real32_t py = dcell->content_rect.pos.y;
                     real32_t width = dcell->content_rect.size.width - x;
@@ -1254,7 +1260,7 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
 
                 draw_line_width(ctx, 2);
                 draw_rect(ctx, ekSTROKE, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
-                draw_line_width(ctx, 1);                
+                draw_line_width(ctx, 1);
                 draw_line_color(ctx, colors->main);
                 break;
             }
@@ -1265,6 +1271,9 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                 i_draw_layout(dcell->sublayout, fcell->widget.layout, gsublayout, hover, sel, swidget, default_font, colors, ctx);
                 break;
             }
+
+            default:
+                cassert_default(fcell->type);
             }
 
             dcell += 1;
@@ -1289,8 +1298,8 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
             {
                 uint32_t iw = image_width(colors->add_icon);
                 uint32_t ih = image_height(colors->add_icon);
-                real32_t x = rect.pos.x + (rect.size.width - iw) / 2;
-                real32_t y = rect.pos.y + (rect.size.height - ih) / 2;
+                real32_t x = rect.pos.x + (rect.size.width - (real32_t)iw) / 2;
+                real32_t y = rect.pos.y + (rect.size.height - (real32_t)ih) / 2;
                 draw_image(ctx, colors->add_icon, x, y);
             }
         }

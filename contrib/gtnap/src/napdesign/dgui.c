@@ -124,7 +124,7 @@ static void i_OnHeaderDraw(HeaderData *data, Event *e)
         int32_t xpos = (int32_t)(p->width - p->height);
 
         if (data->over == TRUE)
-            drawctrl_fill(p->ctx, xpos, 0, (int32_t)p->height, (int32_t)p->height, data->on_down ? ekCTRL_STATE_PRESSED : ekCTRL_STATE_HOT);
+            drawctrl_fill(p->ctx, xpos, 0, (uint32_t)p->height, (uint32_t)p->height, data->on_down ? ekCTRL_STATE_PRESSED : ekCTRL_STATE_HOT);
 
         draw_text_width(p->ctx, p->height);
         draw_text_halign(p->ctx, ekCENTER);
@@ -243,7 +243,7 @@ View *dgui_panel_header(const char_t *title, const Font *font, Listener *OnClose
 
 /*---------------------------------------------------------------------------*/
 
-const Image *i_drawer_image(const bool_t open, const bool_t over)
+static const Image *i_drawer_image(const bool_t open, const bool_t over)
 {
     if (open == TRUE && over == TRUE)
         return i_DOWN_ARROW_HOVER;
@@ -280,9 +280,6 @@ static void i_OnDrawerDraw(HeaderData *data, Event *e)
         draw_text_trim(p->ctx, ekELLIPEND);
         drawctrl_text(p->ctx, tc(data->title), (int32_t)(i_HEADER_TEXT_MARGIN + i_DRAWER_TRIANGLE_WIDTH), text_ypos, ekCTRL_STATE_NORMAL);
         drawctrl_image(p->ctx, image, 0, icon_ypos);
-        //draw_text_halign(p->ctx, ekLEFT);
-        //draw_text_color(p->ctx, data->over ? gui_link_color() : kCOLOR_DEFAULT);
-        //drawctrl_text(p->ctx, data->open ? i_UTF8_DOWN_ARROW : i_UTF8_RIGHT_ARROW, (int32_t)i_HEADER_TEXT_MARGIN, text_ypos, ekCTRL_STATE_HOT);
     }
 
     /* Frame */
@@ -360,7 +357,7 @@ static View *i_drawer_header(const char_t *title, const Font *font)
     data->view = view;
     size.width = 100;
     size.height = font_height(data->font) + 4;
-    
+
     if (size.height < i_DRAWER_TRIANGLE_HEIGHT)
         size.height = i_DRAWER_TRIANGLE_HEIGHT;
 

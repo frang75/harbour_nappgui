@@ -1,6 +1,6 @@
 /* NAppGUI form */
 
-#include "nforms.hxx"
+#include "nform.h"
 #include <nflib/fform.h>
 #include <nflib/flayout.h>
 #include <gui/button.h>
@@ -194,7 +194,7 @@ void nform_set_control_int(NForm *form, const char_t *cell_name, const int32_t v
             {
                 uint32_t v = 0;
                 if (value > 0)
-                    v = value - 1;
+                    v = (uint32_t)value - 1;
                 if (v >= n)
                     v = n - 1;
                 popup_selected(popup, v);
@@ -207,7 +207,7 @@ void nform_set_control_int(NForm *form, const char_t *cell_name, const int32_t v
             {
                 uint32_t v = 0;
                 if (value > 0)
-                    v = value - 1;
+                    v = (uint32_t)value - 1;
                 if (v >= n)
                     v = n - 1;
                 listbox_select(listbox, v, TRUE);
@@ -324,7 +324,7 @@ bool_t nform_get_control_int(const NForm *form, const char_t *cell_name, int32_t
         else if (popup != NULL)
         {
             if (popup_count(popup) > 0)
-                *value = popup_get_selected(popup) + 1;
+                *value = (int32_t)popup_get_selected(popup) + 1;
             else
                 *value = 0;
 
@@ -333,7 +333,7 @@ bool_t nform_get_control_int(const NForm *form, const char_t *cell_name, int32_t
         else if (listbox != NULL)
         {
             if (listbox_count(listbox) > 0)
-                *value = listbox_get_selected(listbox) + 1;
+                *value = (int32_t)listbox_get_selected(listbox) + 1;
             else
                 *value = 0;
 
