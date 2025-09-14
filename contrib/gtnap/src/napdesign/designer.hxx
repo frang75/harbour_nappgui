@@ -136,6 +136,8 @@ struct _dcolors_t
     color_t select;
     color_t title0;
     color_t title1;
+    const Image *add_icon;
+    const Image *nap_icon;
 };
 
 DeclSt(DColumn);

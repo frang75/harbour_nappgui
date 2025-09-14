@@ -1247,11 +1247,11 @@ FCell *dform_sel_fcell(const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-void dform_draw(const DForm *form, const widget_t swidget, const Image *add_icon, const Font *default_font, const DColors *colors, DCtx *ctx)
+void dform_draw(const DForm *form, const widget_t swidget, const Font *default_font, const DColors *colors, const char_t *form_name, DCtx *ctx)
 {
     cassert_no_null(form);
     cassert_no_null(form->fform);
-    dlayout_draw(form->dlayout, form->fform->layout, form->glayout, &form->hover, &form->sel, swidget, add_icon, default_font, colors, ctx);
+    dlayout_draw(form->dlayout, form->fform->layout, form->glayout, &form->hover, &form->sel, swidget, default_font, colors, form_name, ctx);
 }
 
 /*---------------------------------------------------------------------------*/

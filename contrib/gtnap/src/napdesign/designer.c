@@ -82,7 +82,6 @@ struct _desiger_t
     MenuItem *show_widgets;
     MenuItem *show_inspectr;
     MenuItem *show_propedit;
-    Image *add_icon;
     Font *default_font;
     Font *bold_font;
     bool_t dragging;
@@ -937,7 +936,8 @@ static void i_OnDraw(Designer *app, Event *e)
     if (app->config.sel_form != UINT32_MAX)
     {
         DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
-        dform_draw(form, app->config.swidget, app->add_icon, app->default_font, &i_COLORS, p->ctx);
+        const char_t *name = i_list_text(app->form_list, app->config.sel_form);
+        dform_draw(form, app->config.swidget, app->default_font, &i_COLORS, name, p->ctx);
     }
 }
 
@@ -1583,8 +1583,9 @@ static Designer *i_app(void)
         i_COLORS.title1 = color_html("#b7cfe8");
     }
 
+    i_COLORS.add_icon = gui_image(PLUS16_PNG);
+    i_COLORS.nap_icon = gui_image(NAPP_PNG);
     app->forms = arrpt_create(DForm);
-    app->add_icon = image_copy(gui_image(PLUS16_PNG));
     app->default_font = font_system(font_regular_size(), 0);
     app->bold_font = font_system(font_regular_size(), ekFBOLD);
     app->wdrawers = arrst_create(WDrawer);
@@ -1664,7 +1665,6 @@ static void i_destroy(Designer **app)
     cassert_no_null(app);
     cassert_no_null(*app);
     i_remove_config(&(*app)->config);
-    image_destroy(&(*app)->add_icon);
     font_destroy(&(*app)->default_font);
     font_destroy(&(*app)->bold_font);
     arrst_destroy(&(*app)->wdrawers, NULL, WDrawer);

@@ -2,6 +2,7 @@
 
 #include "dlayout.h"
 #include "imgproc.h"
+#include "res_designer.h"
 #include <nflib/nflib.h>
 #include <nflib/flayout.h>
 #include <gui/gui.h>
@@ -778,7 +779,7 @@ static void i_draw_grid(DCtx *ctx, const DColors *colors, const R2Df *rect)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_draw_frame(DCtx *ctx, const DColors *colors, const R2Df *rect)
+static void i_draw_frame(DCtx *ctx, const Font *font, const DColors *colors, const char_t *form_name, const R2Df *rect)
 {
     const real32_t HEADER = 30;
     const real32_t EDGE = 10;
@@ -796,11 +797,25 @@ static void i_draw_frame(DCtx *ctx, const DColors *colors, const R2Df *rect)
     draw_rect(ctx, ekFILL, rect->pos.x - EDGE, rect->pos.y - HEADER, rect->size.width + EDGE * 2, HEADER);
     draw_line_color(ctx, kCOLOR_BLACK);
     draw_rect(ctx, ekSTROKE, rect->pos.x - EDGE, rect->pos.y - HEADER, rect->size.width + EDGE * 2, rect->size.height + HEADER + EDGE);
+    
+    /* Icon and title */
+    {
+        real32_t iwidth = (real32_t)image_width(colors->nap_icon);
+        real32_t iheight = (real32_t)image_height(colors->nap_icon);
+        real32_t xpos = rect->pos.x;
+        real32_t ypos = rect->pos.y - iheight - 4;
+        String *name = str_printf("%s - %s", gui_text(TEXT_FORM), form_name);
+        draw_image(ctx, colors->nap_icon, xpos, ypos);
+        draw_text_width(ctx, rect->size.width - (real32_t)iwidth - 5);
+        draw_font(ctx, font);
+        drawctrl_text(ctx, tc(name), (int32_t)(xpos + iwidth + 5), (int32_t)ypos, ekCTRL_STATE_NORMAL);
+        str_destroy(&name);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Image *add_icon, const Font *default_font, const DColors *colors, DCtx *ctx)
+static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Font *default_font, const DColors *colors, DCtx *ctx)
 {
     uint32_t ncols, nrows, i, j, radio_i = 0;
     const DCell *dcell = NULL;
@@ -1247,7 +1262,7 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
             case ekCELL_TYPE_LAYOUT:
             {
                 Layout *gsublayout = cell_layout(gcell);
-                i_draw_layout(dcell->sublayout, fcell->widget.layout, gsublayout, hover, sel, swidget, add_icon, default_font, colors, ctx);
+                i_draw_layout(dcell->sublayout, fcell->widget.layout, gsublayout, hover, sel, swidget, default_font, colors, ctx);
                 break;
             }
             }
@@ -1272,11 +1287,11 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
             draw_r2df(ctx, ekSTROKE, &rect);
             if (fcell->type == ekCELL_TYPE_EMPTY && swidget != ekWIDGET_SELECT)
             {
-                uint32_t iw = image_width(add_icon);
-                uint32_t ih = image_height(add_icon);
+                uint32_t iw = image_width(colors->add_icon);
+                uint32_t ih = image_height(colors->add_icon);
                 real32_t x = rect.pos.x + (rect.size.width - iw) / 2;
                 real32_t y = rect.pos.y + (rect.size.height - ih) / 2;
-                draw_image(ctx, add_icon, x, y);
+                draw_image(ctx, colors->add_icon, x, y);
             }
         }
         draw_line_color(ctx, colors->main);
@@ -1305,14 +1320,14 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
 
 /*---------------------------------------------------------------------------*/
 
-void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Image *add_icon, const Font *default_font, const DColors *colors, DCtx *ctx)
+void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Font *default_font, const DColors *colors, const char_t *form_name, DCtx *ctx)
 {
     cassert_no_null(colors);
     draw_line_color(ctx, colors->main);
     draw_fill_color(ctx, colors->panel);
     draw_r2df(ctx, ekFILLSK, &dlayout->rect);
     i_draw_grid(ctx, colors, &dlayout->rect);
-    i_draw_frame(ctx, colors, &dlayout->rect);
+    i_draw_frame(ctx, default_font, colors, form_name, &dlayout->rect);
     draw_fill_color(ctx, colors->main);
-    i_draw_layout(dlayout, flayout, glayout, hover, sel, swidget, add_icon, default_font, colors, ctx);
+    i_draw_layout(dlayout, flayout, glayout, hover, sel, swidget, default_font, colors, ctx);
 }
