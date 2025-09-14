@@ -1316,7 +1316,7 @@ static void i_update_config(Designer *app)
     S2Df size;
     cassert_no_null(app);
     pos = window_get_origin(app->window);
-    size = window_get_size(app->window);
+    size = window_get_client_size(app->window);
     app->config.wx = pos.x;
     app->config.wy = pos.y;
     app->config.wwidth = size.width;

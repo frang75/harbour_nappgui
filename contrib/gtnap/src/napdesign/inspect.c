@@ -103,8 +103,8 @@ Panel *inspect_create(Designer *app)
     data->table = table;
     tableview_add_column_text(table);
     tableview_add_column_text(table);
-    tableview_column_width(table, 0, 80);
-    tableview_column_width(table, 1, 80);
+    tableview_column_width(table, 0, 100);
+    tableview_column_width(table, 1, 100);
     tableview_header_title(table, 0, gui_text(TEXT_OBJECT));
     tableview_header_title(table, 1, gui_text(TEXT_TYPE));
     tableview_header_resizable(table, TRUE);
