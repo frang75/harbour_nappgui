@@ -1,3 +1,4 @@
+TEXT_TITLE          GTNAP Designer
 TEXT_OK             Ok
 TEXT_CANCEL         Cancel
 TEXT_COLUMNS        Columns
@@ -69,9 +70,12 @@ TEXT_PROGRESS_BAR   Progress Bar
 TEXT_TEXT_VIEW      Text View
 TEXT_IMAGE_VIEW     Image View
 TEXT_TABLE_VIEW     Table View
+TEXT_VIEW           View
 TEXT_FORM           Form
 TEXT_FORM_PROPS     Form properties
 TEXT_BOX_FORMS      Forms
+TEXT_BOX_FORM_BOX   Forms box
+TEXT_BOX_WIDGET_BOX Widgets box
 TEXT_BOX_INSPECTOR  Object inspector
 TEXT_BOX_PROPEDIT   Property editor
 TEXT_BOX_WIDGETS    Widgets
@@ -136,15 +140,18 @@ TEXT_CELL_IMAGE     ImageViewCell
 TEXT_CELL_TABLE     TableCell
 TEXT_CELL_LAYOUT    LayoutCell
 
+TEXT_FILE           File
 TEXT_FILENAME       Filename
 TEXT_DESCRIPTION    Description
 
 TOOLBAR_OPEN        Open forms folder
 TOOLBAR_SAVE        Save all forms
 TOOLBAR_NEW         Add new form
+TOOLBAR_NEW_FORM    New form
 TOOLBAR_PROPS       Form properties
 TOOLBAR_SIMULATE    Simulate current form
 TOOLBAR_REMOVE      Remove current form
+TEXT_QUIT           Quit
 TEXT_OPEN_CAPTION   Select the form folder you want to work with.
 TEXT_ERROR_NAME     Error in form name
 TEXT_NAME_EXISTS    Form name '%s' already exists

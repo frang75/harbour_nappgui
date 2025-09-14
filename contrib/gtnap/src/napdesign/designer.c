@@ -106,6 +106,7 @@ DeclSt(WDrawer);
 
 /*---------------------------------------------------------------------------*/
 
+static bool_t i_close_app(Designer *);
 static void i_OnShowForms(Designer *, Event *);
 static void i_OnShowWidgets(Designer *, Event *);
 static void i_OnShowInspectr(Designer *, Event *);
@@ -374,6 +375,14 @@ static void i_OnSaveFormsClick(Designer *app, Event *e)
 {
     i_save_forms(app);
     i_update_form_controls(app, TRUE);
+    unref(e);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnQuitClick(Designer *app, Event *e)
+{
+    i_close_app(app);
     unref(e);
 }
 
@@ -1268,6 +1277,36 @@ static void i_OnShowPropEdit(Designer *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static Menu *i_file_menu(Designer *app)
+{
+    Menu *menu = menu_create();
+    MenuItem *item1 = menuitem_create();
+    MenuItem *item2 = menuitem_create();
+    MenuItem *item3 = menuitem_create();
+    MenuItem *item4 = menuitem_create();
+    cassert_no_null(app);
+    menuitem_text(item1, gui_text(TOOLBAR_NEW_FORM));
+    menuitem_text(item2, gui_text(TOOLBAR_OPEN));
+    menuitem_text(item3, gui_text(TOOLBAR_SAVE));
+    menuitem_text(item4, gui_text(TEXT_QUIT));
+    menuitem_image(item1, gui_image(NEW16_PNG));
+    menuitem_image(item2, gui_image(OPEN16_PNG));
+    menuitem_image(item3, gui_image(SAVE16_PNG));
+    menuitem_OnClick(item1, listener(app, i_OnAddFormClick, Designer));
+    menuitem_OnClick(item2, listener(app, i_OnOpenFormsClick, Designer));
+    menuitem_OnClick(item3, listener(app, i_OnSaveFormsClick, Designer));
+    menuitem_OnClick(item4, listener(app, i_OnQuitClick, Designer));    
+    menu_add_item(menu, item1);
+    menu_add_item(menu, item2);
+    menu_add_item(menu, menuitem_separator());
+    menu_add_item(menu, item3);
+    menu_add_item(menu, menuitem_separator());
+    menu_add_item(menu, item4);
+    return menu;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Menu *i_view_menu(Designer *app)
 {
     Menu *menu = menu_create();
@@ -1276,10 +1315,10 @@ static Menu *i_view_menu(Designer *app)
     MenuItem *item3 = menuitem_create();
     MenuItem *item4 = menuitem_create();
     cassert_no_null(app);
-    menuitem_text(item1, "Forms box");
-    menuitem_text(item2, "Widgets box");
-    menuitem_text(item3, "Object inspector");
-    menuitem_text(item4, "Property editor");
+    menuitem_text(item1, gui_text(TEXT_BOX_FORM_BOX));
+    menuitem_text(item2, gui_text(TEXT_BOX_WIDGET_BOX));
+    menuitem_text(item3, gui_text(TEXT_BOX_INSPECTOR));
+    menuitem_text(item4, gui_text(TEXT_BOX_PROPEDIT));
     menuitem_OnClick(item1, listener(app, i_OnShowForms, Designer));
     menuitem_OnClick(item2, listener(app, i_OnShowWidgets, Designer));
     menuitem_OnClick(item3, listener(app, i_OnShowInspectr, Designer));
@@ -1300,11 +1339,16 @@ static Menu *i_view_menu(Designer *app)
 static Menu *i_menu(Designer *app)
 {
     Menu *menu = menu_create();
-    Menu *submenu1 = i_view_menu(app);
+    Menu *submenu1 = i_file_menu(app);
+    Menu *submenu2 = i_view_menu(app);
     MenuItem *item1 = menuitem_create();
-    menuitem_text(item1, "View");
+    MenuItem *item2 = menuitem_create();
+    menuitem_text(item1, gui_text(TEXT_FILE));
+    menuitem_text(item2, gui_text(TEXT_VIEW));
     menuitem_submenu(item1, &submenu1);
+    menuitem_submenu(item2, &submenu2);
     menu_add_item(menu, item1);
+    menu_add_item(menu, item2);
     return menu;
 }
 
@@ -1460,26 +1504,34 @@ static void i_apply_config(Designer *app)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnClose(Designer *app, Event *e)
+static bool_t i_close_app(Designer *app)
 {
-    bool_t *close = event_result(e, bool_t);
-    *close = TRUE;
-
+    bool_t close = TRUE;
     if (i_need_save(app) == TRUE)
     {
         uint8_t ret = dialog_unsaved_changes(app->window, app->default_font, gui_text(TEXT_UNSAVED2));
         if (ret == 1)
             i_save_forms(app);
         else if (ret == 2)
-            *close = FALSE;
+            close = FALSE;
     }
 
-    if (*close == TRUE)
+    if (close == TRUE)
     {
         i_update_config(app);
         i_save_config(app);
         osapp_finish();
     }
+
+    return close;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnWindowClose(Designer *app, Event *e)
+{
+    bool_t *close = event_result(e, bool_t);
+    *close = i_close_app(app);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1595,8 +1647,8 @@ static Designer *i_create(void)
     app->window = window_create(ekWINDOW_STDRES);
     app->menu = i_menu(app);
     window_panel(app->window, panel);
-    window_title(app->window, "GTNAP Designer");
-    window_OnClose(app->window, listener(app, i_OnClose, Designer));
+    window_title(app->window, gui_text(TEXT_TITLE));
+    window_OnClose(app->window, listener(app, i_OnWindowClose, Designer));
     window_hotkey(app->window, ekKEY_SUPR, 0, listener(app, i_OnHotKey, Designer));
     i_apply_config(app);
     window_show(app->window);
