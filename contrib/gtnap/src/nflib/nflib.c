@@ -350,7 +350,8 @@ align_t _nflib_halign(const halign_t halign)
         return ekRIGHT;
     case ekHALIGN_JUSTIFY:
         return ekJUSTIFY;
-    cassert_default();
+    default:
+        cassert_default(halign);
     }
     return ekLEFT;
 }
@@ -369,7 +370,8 @@ align_t _nflib_valign(const valign_t valign)
         return ekBOTTOM;
     case ekVALIGN_JUSTIFY:
         return ekJUSTIFY;
-        cassert_default();
+    default:
+        cassert_default(valign);
     }
     return ekTOP;
 }
@@ -387,7 +389,8 @@ gui_scale_t _nflib_scale(const scale_t scale)
         return ekGUI_SCALE_ASPECT;
     case ekSCALE_FIT:
         return ekGUI_SCALE_ADJUST;
-    cassert_default();
+    default:
+        cassert_default(scale);
     }
     return ekGUI_SCALE_ASPECT;
 }

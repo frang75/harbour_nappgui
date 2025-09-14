@@ -138,7 +138,8 @@ static void i_remove_cell(FCell *cell)
         flayout_destroy(&cell->widget.layout);
         break;
 
-        cassert_default();
+    default:
+        cassert_default(cell->type);
     }
 
     cassert(cell->widget.label == NULL);
@@ -490,7 +491,8 @@ static void i_read_cell(Stream *stm, FCell *cell)
     case ekCELL_TYPE_LAYOUT:
         cell->widget.layout = flayout_read(stm);
         break;
-        cassert_default();
+    default:
+        cassert_default(cell->type);
     }
 }
 
@@ -784,9 +786,10 @@ static void i_write_cell(Stream *stm, const FCell *cell)
         i_write_table(stm, cell->widget.table);
         break;
     case ekCELL_TYPE_LAYOUT:
-        flayout_write(stm, cell->widget.layout);
+        flayout_write(stm, cell->widget.layout);        
         break;
-        cassert_default();
+    default:
+        cassert_default(cell->type);
     }
 }
 
@@ -1485,7 +1488,8 @@ GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout
                 case ekCELL_TYPE_LAYOUT:
                 case ekCELL_TYPE_EMPTY:
                     break;
-                    cassert_default();
+                default:
+                    cassert_default(cells->type);
                 }
             }
 

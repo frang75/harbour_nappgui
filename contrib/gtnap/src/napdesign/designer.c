@@ -770,7 +770,8 @@ static bool_t i_is_widget_drawer(const drawer_t drawer)
     case ekDRAWER_TABLE_FRAME_PROPS:
     case ekDRAWER_TABLE_COLS_PROPS:
         return FALSE;
-        cassert_default();
+    default:
+        cassert_default(drawer);
     }
 
     return FALSE;

@@ -106,7 +106,7 @@ void nap_debugger_box(GtNapDebugger *debug, const uint32_t top, const uint32_t l
 
 static cursor_t i_cursor(const uint32_t style)
 {
-    switch( style ) {
+    switch(style) {
     case SC_NONE:
         return ekCURSOR_NONE;
     case SC_NORMAL:
@@ -117,7 +117,8 @@ static cursor_t i_cursor(const uint32_t style)
         return ekCURSOR_SPECIAL1;
     case SC_SPECIAL2:
         return ekCURSOR_SPECIAL2;
-    cassert_default();
+    default:
+        cassert_default(style);
     }
 
     return ekCURSOR_NORMAL;

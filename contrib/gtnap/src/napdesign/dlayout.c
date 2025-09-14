@@ -455,7 +455,8 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
                 case ekJUSTIFY:
                     cellx = x;
                     break;
-                    cassert_default();
+                default:
+                    cassert_default(halign);
                 }
 
                 switch (valign)
@@ -472,7 +473,8 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
                 case ekJUSTIFY:
                     celly = y;
                     break;
-                    cassert_default();
+                default:
+                    cassert_default(valign);
                 }
 
                 if (dcell->sublayout != NULL)
@@ -712,7 +714,8 @@ static V2Df i_image_transform(T2Df *t2d, const scale_t scale, const R2Df *cell_r
             ratio_x = ratio_y;
         break;
 
-        cassert_default();
+    default:
+        cassert_default(scale);
     }
 
     {
@@ -850,7 +853,8 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                     origin_x = - dcell->content_rect.size.width;
                     draw_text_halign(ctx, ekRIGHT);
                     break;
-                    cassert_default();                
+                default:
+                    cassert_default(fcell->widget.label->align);
                 }
 
                 if (fcell->widget.label->multiline == TRUE)
@@ -1199,7 +1203,8 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                         draw_rect(ctx, ekFILLSK, px, py, width, head_height);
                         draw_text_width(ctx, width);
                         draw_text_align(ctx, align, ekTOP);
-                        switch (align) {
+                        switch (align) 
+                        {
                         case ekLEFT:
                         case ekJUSTIFY:
                             px += 4;
@@ -1210,7 +1215,8 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                         case ekRIGHT:
                             px += width - 4;
                             break;
-                        cassert_default();
+                        default:
+                            cassert_default(align);
                         }
 
                         draw_text(ctx, text, px, py + (head_height - fheight) / 2);

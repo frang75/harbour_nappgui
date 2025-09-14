@@ -242,8 +242,8 @@ static Layout *i_buttons_layout(DialogData *data, const dbuttons_t buttons)
         return i_ok_cancel(data, FALSE);
     case ekDBUT_SAVE_OPTS:
         return i_save_buttons(data);
-
-        cassert_default();
+    default:
+        cassert_default(buttons);
     }
 
     return NULL;

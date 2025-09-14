@@ -351,7 +351,8 @@ sdkres_t OfficeSdk::KillLibreOffice()
         kill = "killall soffice";
         break;
     case ekIOS:
-        cassert_default();
+    default:
+        cassert_default(pt);
     }
 
     proc = bproc_exec(kill, NULL);
@@ -388,7 +389,8 @@ sdkres_t OfficeSdk::WakeUpServer()
         break;
     }
     case ekIOS:
-        cassert_default();
+    default:
+        cassert_default(pt);
     }
 
     // /Applications/LibreOffice.app/Content/MacOS/soffice --accept="socket,host=localhost,port=2083;urp;StarOffice.ServiceManager" --nodefault --nologo
@@ -598,7 +600,8 @@ sdkres_t OfficeSdk::SaveTextDocument(const css::uno::Reference<css::text::XTextD
             break;
         }
 
-            cassert_default();
+        default:
+            cassert_default(format);
         }
 
         xStorable->storeToURL(docUrl, storeProps);
@@ -646,7 +649,8 @@ sdkres_t OfficeSdk::SaveSheetDocument(const css::uno::Reference<css::sheet::XSpr
             break;
         }
 
-            cassert_default();
+        default:
+            cassert_default(format);
         }
 
         xStorable->storeToURL(docUrl, storeProps);

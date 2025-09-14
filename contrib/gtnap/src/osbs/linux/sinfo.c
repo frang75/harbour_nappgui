@@ -11,6 +11,7 @@
 /* Machine info */
 
 #include "../bfile.h"
+#include "../osbs.h"
 
 #if !defined(__LINUX__)
 #error This file is only for Linux system
@@ -29,9 +30,9 @@ ssize_t readlink(const char *pathname, char *buf, size_t bufsiz);
 
 uint32_t bfile_dir_exec(char_t *pathname, const uint32_t size)
 {
-    size_t lsize = readlink("/proc/self/exe", pathname, size);
+    ssize_t lsize = readlink("/proc/self/exe", pathname, size);
     pathname[lsize] = '\0';
-    return lsize;
+    return (uint32_t)lsize;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -51,4 +52,11 @@ uint32_t bfile_dir_home(char_t *pathname, const uint32_t size)
 {
     struct passwd *pw = getpwuid(getuid());
     return unicode_convers(cast_const(pw->pw_dir, char_t), pathname, ekUTF8, ekUTF8, size);
+}
+
+/*---------------------------------------------------------------------------*/
+
+macos_t osbs_macos(void)
+{
+    return ekMACOS_NO;
 }

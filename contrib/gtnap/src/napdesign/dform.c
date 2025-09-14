@@ -347,7 +347,8 @@ static align_t i_halign(const halign_t halign)
         return ekRIGHT;
     case ekHALIGN_JUSTIFY:
         return ekJUSTIFY;
-    cassert_default();
+    default:
+        cassert_default(halign);
     }
     return ekLEFT;
 }
@@ -365,7 +366,8 @@ static align_t i_valign(const valign_t valign)
         return ekBOTTOM;
     case ekVALIGN_JUSTIFY:
         return ekJUSTIFY;
-    cassert_default();
+    default:
+        cassert_default(valign);
     }
     return ekTOP;
 }
@@ -1312,7 +1314,8 @@ const char_t* dform_cell_type(const celltype_t type)
         return gui_text(TEXT_CELL_TABLE);
     case ekCELL_TYPE_LAYOUT:
         return gui_text(TEXT_CELL_LAYOUT);
-    cassert_default();
+    default:
+        cassert_default(type);
     }
 
     return "";

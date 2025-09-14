@@ -39,6 +39,11 @@
 
 void _draw_alloc_globals(void)
 {
+    /* GObject system must be initializated explicitly in older GLIB versions */
+#if !GLIB_CHECK_VERSION(2, 36, 0)
+    g_type_init();
+#endif
+
     /* This for 'gtk_settings_get_default' works
     Used in osfont::i_default_font()
     gtk_init(0, NULL); */
@@ -116,6 +121,8 @@ void _draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, c
         case ekRIGHT:
             nx -= w;
             break;
+        default:
+            cassert_default(ctx->image_halign);
         }
 
         switch (ctx->image_valign)
@@ -129,6 +136,8 @@ void _draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, c
         case ekBOTTOM:
             ny -= h;
             break;
+        default:
+            cassert_default(ctx->image_valign);
         }
     }
 
@@ -165,7 +174,7 @@ static void i_line_path(cairo_t *cairo, const V2Df *points, const uint32_t n, co
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE void i_color(cairo_t *cairo, const color_t color, color_t *source_color)
+static void i_color(cairo_t *cairo, const color_t color, color_t *source_color)
 {
     /* Check ColorView if de-comment
     if (color != *source_color) */
@@ -179,7 +188,7 @@ static ___INLINE void i_color(cairo_t *cairo, const color_t color, color_t *sour
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE void i_fill_pattern(cairo_t *cairo, color_t fill_color, cairo_pattern_t *lpattern, fillmode_t fillmode, color_t *source_color)
+static void i_fill_pattern(cairo_t *cairo, color_t fill_color, cairo_pattern_t *lpattern, fillmode_t fillmode, color_t *source_color)
 {
     switch (fillmode)
     {
@@ -190,13 +199,14 @@ static ___INLINE void i_fill_pattern(cairo_t *cairo, color_t fill_color, cairo_p
         cairo_set_source(cairo, lpattern);
         *source_color = 0;
         break;
-        cassert_default();
+    default:
+        cassert_default(fillmode);
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE void i_line_pattern(DCtx *ctx)
+static void i_line_pattern(DCtx *ctx)
 {
     if (ctx->fill_line == TRUE)
         i_fill_pattern(ctx->cairo, ctx->fill_color, ctx->lpattern, ctx->fillmode, &ctx->source_color);
@@ -286,7 +296,7 @@ void draw_line_width(DCtx *ctx, const real32_t width)
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE cairo_line_cap_t i_linecap(const linecap_t cap)
+static cairo_line_cap_t i_linecap(const linecap_t cap)
 {
     switch (cap)
     {
@@ -296,8 +306,9 @@ static ___INLINE cairo_line_cap_t i_linecap(const linecap_t cap)
         return CAIRO_LINE_CAP_SQUARE;
     case ekLCROUND:
         return CAIRO_LINE_CAP_ROUND;
-        cassert_default();
-    };
+    default:
+        cassert_default(cap);
+    }
 
     return CAIRO_LINE_CAP_BUTT;
 }
@@ -312,7 +323,7 @@ void draw_line_cap(DCtx *ctx, const linecap_t cap)
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE cairo_line_join_t i_linejoin(const linejoin_t join)
+static cairo_line_join_t i_linejoin(const linejoin_t join)
 {
     switch (join)
     {
@@ -322,8 +333,9 @@ static ___INLINE cairo_line_join_t i_linejoin(const linejoin_t join)
         return CAIRO_LINE_JOIN_ROUND;
     case ekLJBEVEL:
         return CAIRO_LINE_JOIN_BEVEL;
-        cassert_default();
-    };
+    default:
+        cassert_default(join);
+    }
 
     return CAIRO_LINE_JOIN_MITER;
 }
@@ -344,7 +356,7 @@ void draw_line_dash(DCtx *ctx, const real32_t *pattern, const uint32_t n)
     {
         double p[16];
         double width = cairo_get_line_width(ctx->cairo);
-        uint32_t i, pn = n < 16 ? n : 16;
+        int i, pn = (int)n < 16 ? (int)n : 16;
 
         for (i = 0; i < pn; ++i)
         {
@@ -393,7 +405,8 @@ static void i_draw(DCtx *ctx, const drawop_t op)
         cairo_stroke(ctx->cairo);
         break;
 
-        cassert_default();
+    default:
+        cassert_default(op);
     }
 }
 
@@ -518,7 +531,7 @@ void draw_fill_matrix(DCtx *ctx, const T2Df *t2d)
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE cairo_extend_t i_wrap(const fillwrap_t wrap)
+static cairo_extend_t i_wrap(const fillwrap_t wrap)
 {
     switch (wrap)
     {
@@ -528,7 +541,8 @@ static ___INLINE cairo_extend_t i_wrap(const fillwrap_t wrap)
         return CAIRO_EXTEND_REPEAT;
     case ekFFLIP:
         return CAIRO_EXTEND_REFLECT;
-        cassert_default();
+    default:
+        cassert_default(wrap);
     }
 
     return CAIRO_EXTEND_PAD;
@@ -619,12 +633,13 @@ static void i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, const 
         case ekJUSTIFY:
             break;
         case ekRIGHT:
-            nx = (double)(x - w);
+            nx = (double)((int)x - w);
             break;
         case ekCENTER:
-            nx = (double)(x - (w / 2));
+            nx = (double)((int)x - (w / 2));
             break;
-            cassert_default();
+        default:
+            cassert_default(ctx->text_halign);
         }
 
         switch (ctx->text_valign)
@@ -633,12 +648,13 @@ static void i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, const 
         case ekJUSTIFY:
             break;
         case ekBOTTOM:
-            ny = (double)(y - h);
+            ny = (double)((int)y - h);
             break;
         case ekCENTER:
-            ny = (double)(y - (h / 2));
+            ny = (double)((int)y - (h / 2));
             break;
-            cassert_default();
+        default:
+            cassert_default(ctx->text_valign);
         }
     }
 
@@ -720,7 +736,7 @@ void draw_text_width(DCtx *ctx, const real32_t width)
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE PangoEllipsizeMode i_ellipsis(const ellipsis_t ellipsis)
+static PangoEllipsizeMode i_ellipsis(const ellipsis_t ellipsis)
 {
     switch (ellipsis)
     {
@@ -733,7 +749,8 @@ static ___INLINE PangoEllipsizeMode i_ellipsis(const ellipsis_t ellipsis)
         return PANGO_ELLIPSIZE_MIDDLE;
     case ekELLIPEND:
         return PANGO_ELLIPSIZE_END;
-        cassert_default();
+    default:
+        cassert_default(ellipsis);
     }
 
     return PANGO_ELLIPSIZE_NONE;
@@ -758,7 +775,7 @@ void draw_text_align(DCtx *ctx, const align_t halign, const align_t valign)
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE PangoAlignment i_align(const align_t align)
+static PangoAlignment i_align(const align_t align)
 {
     switch (align)
     {
@@ -769,7 +786,8 @@ static ___INLINE PangoAlignment i_align(const align_t align)
         return PANGO_ALIGN_CENTER;
     case ekRIGHT:
         return PANGO_ALIGN_RIGHT;
-        cassert_default();
+    default:
+        cassert_default(align);
     }
 
     return PANGO_ALIGN_LEFT;
