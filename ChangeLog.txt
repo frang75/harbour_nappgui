@@ -7,6 +7,232 @@
    Entries may not always be in chronological/commit order.
    See license at the end of file. */
 
+2025-08-29 12:49 UTC+0200 Przemyslaw Czerpak (druzus/at/poczta.onet.pl)
+  * contrib/hbbmp/core.c
+  * contrib/hbbmp/hbbmp.ch
+  * contrib/hbbmp/hbbmp.h
+  * contrib/hbbmp/hbbmp.hbx
+    + added new PRG functions:
+         hb_bmp_frombitmap( <cBitMap>, <nAlign>, <nWidth>, <nHeight>, ;
+                            [<nDepth>=1], [<nDPI>=72], [<aPalette>], ;
+                            [@<nError>] ) -> <pBMP> | NIL
+         hb_bmp_colorreset( <pBMP> )
+
+  * contrib/hbct/dattime3.c
+    ! struct timespec initialization
+
+  * contrib/hbplist.txt
+    + added hbbmp library
+
+  * contrib/hbzebra/coredraw.c
+  * contrib/hbzebra/hbzebra.hbx
+    + added new PRG function:
+         hb_zebra_getbitmap( <hZebra>, <nAlign>=8, <lBottomUp>=.F., ;
+                             @<nWidth>, @<nHeight>, <nScaleX>, <nScaleY>, ;
+                             <nBorder> ) -> <cBitMap> | NIL
+
+  * contrib/hbzebra/tests/bmp.prg
+    + added example for much faster BMP creation using hb_zebra_getbitmap() and
+      hb_bmp_frombitmap() functions
+
+  * src/rtl/filebuf.c
+    ! casting
+
+  * src/vm/extrap.c
+    * allocate stack buffer dynamically, in new Linux version IGSTKSZ is
+      defined as sysconf( _SC_SIGSTKSZ ) so it cannot be used as legal size
+      for static arrays
+
+2025-08-23 18:49 UTC+0200 Przemyslaw Czerpak (druzus/at/poczta.onet.pl)
+  * contrib/hbbmp/core.c
+    ! fixed copy & past typos reported by Grigory Filatov. Thanks a lot.
+
+2025-08-22 21:50 UTC+0200 Przemyslaw Czerpak (druzus/at/poczta.onet.pl)
+  + contrib/hbbmp/core.c
+  + contrib/hbbmp/hbbmp.ch
+  + contrib/hbbmp/hbbmp.h
+  + contrib/hbbmp/hbbmp.hbc
+  + contrib/hbbmp/hbbmp.hbp
+  + contrib/hbbmp/hbbmp.hbx
+  + contrib/hbbmp/readme.txt
+  + contrib/hbbmp/tests/hbbmptst.prg
+  + contrib/hbbmp/tests/hbmk.hbm
+    + added new BMP image library for Harbour
+    ; HBBMP is small library for Harbour dedicated to create and modify
+      BMP images. It has not any 3rd party libs dependencies.
+      See readme.txt for more information
+
+  + contrib/hbzebra/tests/bmp.prg
+    + added example code which uses HBBMP as backend for HBZEBRA and
+      creates BMP images with generated barcodes.
+
+2025-08-22 12:00 UTC+0200 Przemyslaw Czerpak (druzus/at/poczta.onet.pl)
+  * contrib/hbzebra/coredraw.c
+  * contrib/hbzebra/hbzebra.hbx
+    + added new PRG function:
+         hb_zebra_getsize( <hZebra>, @<nWidth>, @<nHeight> ) -> <nError>
+      it calculates size in points of the created barcode and returns 0 on
+      success or error code
+
+  + contrib/hbzebra/tests/gtgfx.prg
+    + borrowed from Viktor's fork, thanks
+      2014-09-18 22:32 UTC+0200 Viktor Szakats (vszakats users.noreply.github.com)
+       + added on-screen barcode example, created by elch
+         (with some minor cleanups)
+         https://groups.google.com/d/msg/harbour-users/_Wht51JZGgE/ZXyvaJNH9ggJ
+         https://github.com/vszakats/hb/commit/feb4fc0e204388fd88ce0456564894469355affa
+
+  * contrib/sddoci/core.c
+    * map ostrlen() to strlen() or wcslen() in OCI_CHARSET_UNICODE builds
+    ; TOFIX: this library uses wchar_t for unicode strings, it means that
+             in *nixes where wchar_t is 32-bit integer mapping to Harbour
+             HB_WCHAR is wrong and has to be fixed
+
+  * include/hbapifs.h
+  * src/harbour.def
+  * src/rtl/filebuf.c
+   + added new C function:
+         HB_BOOL hb_fileSave( const char * pszFileName,
+                              const void * buffer, HB_SIZE nSize );
+
+  * include/harbour.hbx
+  * src/harbour.def
+  * src/rtl/vfile.c
+    + added new PRG function:
+         hb_vfSave(  <cFileName>, <cFileBody> ) --> <lOK>
+
+  * src/rtl/vfile.c
+    * set FError() code in hb_vfLoad()
+
+2025-08-17 18:27 UTC+0200 Przemyslaw Czerpak (druzus/at/poczta.onet.pl)
+  * contrib/gtqtc/gtqtc.h
+  * contrib/gtqtc/gtqtc1.cpp
+    + added support for disabling title and frames of console window by
+         hb_gtInfo( HB_GTI_WINTITLE, <lNoFrame> )
+
+  * src/rtl/transfrm.c
+    ! fixed bug in "@S<n>" transformation when multibyte CDP is used
+
+2025-07-19 19:44 UTC+0200 Aleksander Czajczynski (hb fki.pl)
+  * contrib/hbhpdf/core.c
+    + HPDF_GetPageByIndex( hDoc, nIndex ) --> hPage / NIL
+      suggested by Luigi Ferraris
+
+  * contrib/hbhpdf/tests/harupdf.prg
+    + test the above (disabled by default)
+
+  * README.md
+    * updated CI badge(s) to GitHub Actions - they also cover
+      the strict compilation mode, definitions are currently
+      located in the same file as normal
+
+    ! cleaned up links, mostly in tools section, some were
+      broken, for others switched to https where applicable
+
+    * mention HB_CCPREFIX= support for clang
+
+  * contrib/hbdoc/hbdoc.prg
+  * contrib/hbformat/utils/hbformat.prg
+  * contrib/hbnetio/utils/hbnetio/hbnetio.prg
+  * package/harbour.mft
+  * package/harbour.rc
+  * src/compiler/hbusage.c
+  * utils/hbi18n/hbi18n.prg
+  * utils/hbtest/hbtest.prg
+    * bumped copyright year to 2025
+
+2025-07-10 14:04 UTC+0200 Aleksander Czajczynski (hb fki.pl)
+  * contrib/hbpost.hbm
+    ! fix missing contrib/*/tests/files when using "make install"
+      and HB_INSTALL_PREFIX.
+      Thanks Jose Quintas for reporting (issue #310)
+
+2025-07-09 15:04 UTC+0200 Przemyslaw Czerpak (druzus/at/poczta.onet.pl)
+  * include/hbclass.ch
+    ! fixed class declaration to allow muliple PP run - thanks to Wen Sheng
+      for slef conatin example
+
+2025-07-07 16:17 UTC+0200 Aleksander Czajczynski (hb fki.pl)
+  * config/win/clang.mk
+    + add resource compiler detection chain to first stage,
+      now harbour.exe binary should also have manifest resource
+      compiled in when clang is used. Previously second stage rc
+      calling was implemented only in hbmk2.
+
+  * utils/hbmk2/hbmk2.prg
+    ! fixed disappearing llvm-ar with fallback to ar, spotted
+      in windows-ci/MSYS2
+
+2025-07-07 13:42 UTC+0200 Aleksander Czajczynski (hb fki.pl)
+  * .github/workflows/windows-ci.yml
+    * libgd, qt5-base not available in MSYS x86
+
+  * ChangeLog.txt
+    + entry in prev skipped during merge
+
+2025-07-05 20:20 UTC+0200 Aleksander Czajczynski (hb fki.pl)
+  + config/wasm/global.mk
+  + config/wasm/libs.mk
+  + config/wasm/emcc.mk
+  * utils/hbmk2/hbmk2.prg
+  * contrib/hbrun/hbrun.hbp
+    + add basic support for build Harbour into JS/WebAssembly using
+      emscripten, using these settings:
+        HB_PLATFORM=wasm HB_COMPILER=emcc HB_BUILD_3RDEXT=no
+
+    * {abstr} is now a hbmk2 keyword to possibly group all
+      toolsets similar in flavour: WASI/clang, JS/emscripten
+      These most likely will be targeting plaforms which are not
+      full operating-systems, they are also commonly qualified as
+      sandbox solutions.
+
+    * introduced __PLATFORM__WASM and __PLATFORM__ABSTRACT .prg defines
+
+  * utils/hbmk2/hbmk2.prg
+    + allow to specify hb_ProgName() value at build-time for platforms
+      where the function cannot return a meaningful value (f.e.
+      JS/WebAssembly)
+    ; TODO: Add support for passing hb_ProgName() value command-line
+            parameter, f.e. `--hb:self=hbrun`
+
+  * config/global.mk
+  * include/hbsetup.h
+    * consider abstract/emscripten targets similar to linux-like
+
+  * src/rtl/arc4.c
+    ! fix to build under emscripten (which is assumed to be a
+      linux-like environment)
+
+  * src/vm/extrap.c
+    ! emscripten mimics UNIX/Linux to some extent, but there is no
+      sigaltstack() implementation
+
+  ; though platform/compiler names are not currently compatible
+    with origin, this WebAssembly platform support was guided by
+    Harbour 3.4:
+    2017-06-09 01:10 UTC Viktor Szakats (vszakats users.noreply.github.com)
+    as usual Viktor was here before, many thanks!
+
+  ; example project, how to make a multi-platform GUI application which
+    also targets WebAssembly, can be found here:
+    https://github.com/alcz/harbour-cimgui-sokol-starterkit/
+
+2025-03-25 13:54 UTC+0100 Przemyslaw Czerpak (druzus/at/poczta.onet.pl)
+  * contrib/hbcurl/core.c
+    ! pacified warnings
+
+  * contrib/hbssl/ssl.c
+  * contrib/hbssl/sslctx.c
+    ! use 64-bit integers in SSL_[CTX]_[s|g]et_options() for OpenSSL >= 3.0
+
+2025-03-20 06:30 UTC+0100 Przemyslaw Czerpak (druzus/at/poczta.onet.pl)
+  * src/rtl/cdpapihb.c
+    ! fixed hb_transalte() to not clear passed string
+      when neither CPIN nor CPOUT is set
+
+  * src/rtl/hbgtcore.c
+    ! fixed hb_gtAttach() to properly work with empty GT pointer
+
 2025-02-21 11:16 UTC+0100 Aleksander Czajczynski (hb fki.pl)
   * contrib/hbcurl/hbcurl.hbp
     + added Windows architecture specific libcurl names:
@@ -296,7 +522,7 @@
       we are switching to: http://timestamp.comodoca.com/authenticode
     ; It allows the user to choose the algorithm: SHA256 or SHA384,
       by appending ?td=sha384 to above URL
-      
+
 2025-01-24 15:02 UTC+0100 Aleksander Czajczynski (hb fki.pl)
   * contrib/hbct/dattime3.c
     ! fixed in block variable declaration for strict ANSI C compat
