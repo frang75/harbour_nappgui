@@ -722,6 +722,34 @@ cmake -G Xcode -S . -B build
 
   ![xcode_debugging](https://github.com/frang75/harbour_nappgui/assets/42999199/f0f4af86-5241-44bf-8ad7-711e47deb541)
 
+### Full Harbour update
+
+```
+# Check remotes
+
+git remote -v
+origin  https://github.com/frang75/harbour_nappgui.git (fetch)
+origin  https://github.com/frang75/harbour_nappgui.git (push)
+upstream        https://github.com/harbour/core.git (fetch)
+upstream        https://github.com/harbour/core.git (push)
+
+# Fetch original repo
+
+git fetch upstream
+
+# Check branch in local fork
+
+git branch
+  Sprint-90
+* Sprint-91
+  master
+  master-2
+
+# Merge desired commit into current branch
+
+git merge c4b2a030c4434381fd3452e4207358282886a191
+```
+
 
 ## GTNap design
 

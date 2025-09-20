@@ -12,9 +12,9 @@ int main()
 
     Aws::InitAPI(options);
     {
-        Aws::String access_key_id = "----------------";
-        Aws::String secret_access_key = "--------------";
-        Aws::String bucket = "----------------";
+        Aws::String access_key_id = "AKIATLNLGH7ZTYLBJUZV";
+        Aws::String secret_access_key = "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";
+        Aws::String bucket = "fran-s3-tests";
         Aws::Auth::AWSCredentials credentials(access_key_id, secret_access_key);
 
         auto start = std::chrono::high_resolution_clock::now();
@@ -43,7 +43,7 @@ int main()
             }
         }
 
-        Aws::S3::Model::ListObjectsV2Request *request = new Aws::S3::Model::ListObjectsV2Request;
+        Aws::S3::Model::ListObjectsV2Request *request = new Aws::S3::Model::ListObjectsV2Request();
         request->SetBucket(bucket);
 
         Aws::S3::Model::ListObjectsV2Outcome res = s3_client.ListObjectsV2(*request);

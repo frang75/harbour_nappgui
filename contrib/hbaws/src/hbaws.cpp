@@ -206,20 +206,19 @@ const char *hb_aws_last_error(void)
 
 static Aws::S3::Model::ListObjectsV2Outcome i_list_request(const Aws::String &bucket, const Aws::String &prefix, const Aws::String &continuation_token, const Aws::String &start_after, int max_keys)
 {
-    Aws::S3::Model::ListObjectsV2Request *request = new Aws::S3::Model::ListObjectsV2Request;
-    request->SetBucket(bucket);
-    request->SetPrefix(prefix);
+    Aws::S3::Model::ListObjectsV2Request request;
+    request.SetBucket(bucket);
+    request.SetPrefix(prefix);
 
     if (!continuation_token.empty())
-        request->SetContinuationToken(continuation_token);
+        request.SetContinuationToken(continuation_token);
 
     if (!start_after.empty())
-        request->SetStartAfter(start_after);
+        request.SetStartAfter(start_after);
 
-    request->SetMaxKeys(std::min(max_keys, 1000));
+    request.SetMaxKeys(std::min(max_keys, 1000));
 
-    Aws::S3::Model::ListObjectsV2Outcome res = HBAWS_GLOBAL.s3_client->ListObjectsV2(*request);
-    delete request;
+    Aws::S3::Model::ListObjectsV2Outcome res = HBAWS_GLOBAL.s3_client->ListObjectsV2(request);
     return res;
 }
 
@@ -382,7 +381,7 @@ HB_BOOL hb_aws_s3_upload_simple(HB_ITEM *bucket_block, HB_ITEM *local_file_block
             Aws::S3::Model::PutObjectOutcome res;
 
             {
-                Aws::S3::Model::PutObjectRequest *request = new Aws::S3::Model::PutObjectRequest;
+                Aws::S3::Model::PutObjectRequest *request = new Aws::S3::Model::PutObjectRequest();
                 request->SetBucket(bucket);
                 request->SetKey(remote_key);
                 request->SetContentType(content_type);
@@ -449,7 +448,7 @@ HB_BOOL hb_aws_s3_upload_multipart(HB_ITEM *bucket_block, HB_ITEM *local_file_bl
             Aws::S3::Model::CreateMultipartUploadOutcome upload_res;
 
             {
-                Aws::S3::Model::CreateMultipartUploadRequest *upload_request = new Aws::S3::Model::CreateMultipartUploadRequest;
+                Aws::S3::Model::CreateMultipartUploadRequest *upload_request = new Aws::S3::Model::CreateMultipartUploadRequest();
                 upload_request->SetBucket(bucket);
                 upload_request->SetKey(remote_key);
                 upload_request->SetContentType(content_type);
@@ -486,7 +485,7 @@ HB_BOOL hb_aws_s3_upload_multipart(HB_ITEM *bucket_block, HB_ITEM *local_file_bl
 
                     // Create an uploadable part
                     {
-                        Aws::S3::Model::UploadPartRequest *upload_part_request = new Aws::S3::Model::UploadPartRequest;
+                        Aws::S3::Model::UploadPartRequest *upload_part_request = new Aws::S3::Model::UploadPartRequest();
                         uint32_t retries = 0;
                         upload_part_request->SetBucket(bucket);
                         upload_part_request->SetKey(remote_key);
@@ -540,7 +539,7 @@ HB_BOOL hb_aws_s3_upload_multipart(HB_ITEM *bucket_block, HB_ITEM *local_file_bl
             Aws::S3::Model::CompleteMultipartUploadOutcome complete_res;
 
             {
-                Aws::S3::Model::CompleteMultipartUploadRequest *complete_request = new Aws::S3::Model::CompleteMultipartUploadRequest;
+                Aws::S3::Model::CompleteMultipartUploadRequest *complete_request = new Aws::S3::Model::CompleteMultipartUploadRequest();
                 complete_request->SetBucket(bucket);
                 complete_request->SetKey(remote_key);
                 complete_request->SetUploadId(upload_id);
@@ -569,7 +568,7 @@ HB_BOOL hb_aws_s3_upload_multipart(HB_ITEM *bucket_block, HB_ITEM *local_file_bl
             // log << "Aborting upload" << std::endl;
 
             {
-                Aws::S3::Model::AbortMultipartUploadRequest *abort_request = new Aws::S3::Model::AbortMultipartUploadRequest;
+                Aws::S3::Model::AbortMultipartUploadRequest *abort_request = new Aws::S3::Model::AbortMultipartUploadRequest();
                 abort_request->SetBucket(bucket);
                 abort_request->SetKey(remote_key);
                 abort_request->SetUploadId(upload_id);
@@ -612,7 +611,7 @@ HB_BOOL hb_aws_s3_copy_simple(HB_ITEM *src_bucket_block, HB_ITEM *src_key_block,
         Aws::S3::Model::CopyObjectOutcome res;
 
         {
-            Aws::S3::Model::CopyObjectRequest *request = new Aws::S3::Model::CopyObjectRequest;
+            Aws::S3::Model::CopyObjectRequest *request = new Aws::S3::Model::CopyObjectRequest();
             request->SetCopySource(src_bucket + "/" + src_key);
             request->SetBucket(dest_bucket);
             request->SetKey(dest_key);
@@ -667,7 +666,7 @@ HB_BOOL hb_aws_s3_copy_multipart(HB_ITEM *src_bucket_block, HB_ITEM *src_key_blo
             Aws::S3::Model::HeadObjectOutcome head_res;
 
             {
-                Aws::S3::Model::HeadObjectRequest *head_request = new Aws::S3::Model::HeadObjectRequest;
+                Aws::S3::Model::HeadObjectRequest *head_request = new Aws::S3::Model::HeadObjectRequest();
                 head_request->SetBucket(src_bucket);
                 head_request->SetKey(src_key);
                 head_res = HBAWS_GLOBAL.s3_client->HeadObject(*head_request);
@@ -693,7 +692,7 @@ HB_BOOL hb_aws_s3_copy_multipart(HB_ITEM *src_bucket_block, HB_ITEM *src_key_blo
             Aws::S3::Model::CreateMultipartUploadOutcome upload_res;
 
             {
-                Aws::S3::Model::CreateMultipartUploadRequest *upload_request = new Aws::S3::Model::CreateMultipartUploadRequest;
+                Aws::S3::Model::CreateMultipartUploadRequest *upload_request = new Aws::S3::Model::CreateMultipartUploadRequest();
                 upload_request->SetBucket(dest_bucket);
                 upload_request->SetKey(dest_key);
                 upload_request->SetContentType(dest_content_type);
@@ -727,7 +726,7 @@ HB_BOOL hb_aws_s3_copy_multipart(HB_ITEM *src_bucket_block, HB_ITEM *src_key_blo
                     file_chunk_end = object_size;
 
                 {
-                    Aws::S3::Model::UploadPartCopyRequest *upload_part_request = new Aws::S3::Model::UploadPartCopyRequest;
+                    Aws::S3::Model::UploadPartCopyRequest *upload_part_request = new Aws::S3::Model::UploadPartCopyRequest();
                     uint32_t retries = 0;
                     upload_part_request->SetBucket(dest_bucket);
                     upload_part_request->SetKey(dest_key);
@@ -776,7 +775,7 @@ HB_BOOL hb_aws_s3_copy_multipart(HB_ITEM *src_bucket_block, HB_ITEM *src_key_blo
             Aws::S3::Model::CompleteMultipartUploadOutcome complete_res;
 
             {
-                Aws::S3::Model::CompleteMultipartUploadRequest *complete_request = new Aws::S3::Model::CompleteMultipartUploadRequest;
+                Aws::S3::Model::CompleteMultipartUploadRequest *complete_request = new Aws::S3::Model::CompleteMultipartUploadRequest();
                 complete_request->SetBucket(dest_bucket);
                 complete_request->SetKey(dest_key);
                 complete_request->SetUploadId(upload_id);
@@ -805,7 +804,7 @@ HB_BOOL hb_aws_s3_copy_multipart(HB_ITEM *src_bucket_block, HB_ITEM *src_key_blo
             // log << "Aborting upload" << std::endl;
 
             {
-                Aws::S3::Model::AbortMultipartUploadRequest *abort_request = new Aws::S3::Model::AbortMultipartUploadRequest;
+                Aws::S3::Model::AbortMultipartUploadRequest *abort_request = new Aws::S3::Model::AbortMultipartUploadRequest();
                 abort_request->SetBucket(dest_bucket);
                 abort_request->SetKey(dest_key);
                 abort_request->SetUploadId(upload_id);
@@ -846,7 +845,7 @@ HB_BOOL hb_aws_s3_download(HB_ITEM *bucket_block, HB_ITEM *key_block, HB_ITEM *l
         Aws::S3::Model::GetObjectOutcome res;
 
         {
-            Aws::S3::Model::GetObjectRequest *request = new Aws::S3::Model::GetObjectRequest;
+            Aws::S3::Model::GetObjectRequest *request = new Aws::S3::Model::GetObjectRequest();
             request->SetBucket(bucket);
             request->SetKey(key);
             res = HBAWS_GLOBAL.s3_client->GetObject(*request);
@@ -896,7 +895,7 @@ HB_BOOL hb_aws_s3_delete(HB_ITEM *bucket_block, HB_ITEM *key_block)
         Aws::S3::Model::DeleteObjectOutcome res;
 
         {
-            Aws::S3::Model::DeleteObjectRequest *request = new Aws::S3::Model::DeleteObjectRequest;
+            Aws::S3::Model::DeleteObjectRequest *request = new Aws::S3::Model::DeleteObjectRequest();
             request->SetBucket(bucket);
             request->SetKey(key);
             res = HBAWS_GLOBAL.s3_client->DeleteObject(*request);
@@ -947,7 +946,7 @@ HB_BOOL hb_aws_s3_restore(HB_ITEM *bucket_block, HB_ITEM *key_block, const int n
         Aws::S3::Model::RestoreObjectOutcome res;
 
         {
-            Aws::S3::Model::RestoreObjectRequest *request = new Aws::S3::Model::RestoreObjectRequest;
+            Aws::S3::Model::RestoreObjectRequest *request = new Aws::S3::Model::RestoreObjectRequest();
             Aws::S3::Model::RestoreRequest settings;
             request->SetBucket(bucket);
             request->SetKey(key);
