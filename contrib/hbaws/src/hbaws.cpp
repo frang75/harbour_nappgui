@@ -381,14 +381,13 @@ HB_BOOL hb_aws_s3_upload_simple(HB_ITEM *bucket_block, HB_ITEM *local_file_block
             Aws::S3::Model::PutObjectOutcome res;
 
             {
-                Aws::S3::Model::PutObjectRequest *request = new Aws::S3::Model::PutObjectRequest();
-                request->SetBucket(bucket);
-                request->SetKey(remote_key);
-                request->SetContentType(content_type);
-                request->SetStorageClass(i_storage_class(storage));
-                request->SetBody(data);
-                res = HBAWS_GLOBAL.s3_client->PutObject(*request);
-                delete request;
+                Aws::S3::Model::PutObjectRequest request;
+                request.SetBucket(bucket);
+                request.SetKey(remote_key);
+                request.SetContentType(content_type);
+                request.SetStorageClass(i_storage_class(storage));
+                request.SetBody(data);
+                res = HBAWS_GLOBAL.s3_client->PutObject(request);
             }
 
             if (!res.IsSuccess())
@@ -611,14 +610,13 @@ HB_BOOL hb_aws_s3_copy_simple(HB_ITEM *src_bucket_block, HB_ITEM *src_key_block,
         Aws::S3::Model::CopyObjectOutcome res;
 
         {
-            Aws::S3::Model::CopyObjectRequest *request = new Aws::S3::Model::CopyObjectRequest();
-            request->SetCopySource(src_bucket + "/" + src_key);
-            request->SetBucket(dest_bucket);
-            request->SetKey(dest_key);
-            request->SetContentType(dest_content_type);
-            request->SetStorageClass(i_storage_class(dest_storage));
-            res = HBAWS_GLOBAL.s3_client->CopyObject(*request);
-            delete request;
+            Aws::S3::Model::CopyObjectRequest request;
+            request.SetCopySource(src_bucket + "/" + src_key);
+            request.SetBucket(dest_bucket);
+            request.SetKey(dest_key);
+            request.SetContentType(dest_content_type);
+            request.SetStorageClass(i_storage_class(dest_storage));
+            res = HBAWS_GLOBAL.s3_client->CopyObject(request);
         }
 
         if (!res.IsSuccess())
@@ -845,11 +843,10 @@ HB_BOOL hb_aws_s3_download(HB_ITEM *bucket_block, HB_ITEM *key_block, HB_ITEM *l
         Aws::S3::Model::GetObjectOutcome res;
 
         {
-            Aws::S3::Model::GetObjectRequest *request = new Aws::S3::Model::GetObjectRequest();
-            request->SetBucket(bucket);
-            request->SetKey(key);
-            res = HBAWS_GLOBAL.s3_client->GetObject(*request);
-            delete request;
+            Aws::S3::Model::GetObjectRequest request;
+            request.SetBucket(bucket);
+            request.SetKey(key);
+            res = HBAWS_GLOBAL.s3_client->GetObject(request);
         }
 
         if (res.IsSuccess())
@@ -895,11 +892,10 @@ HB_BOOL hb_aws_s3_delete(HB_ITEM *bucket_block, HB_ITEM *key_block)
         Aws::S3::Model::DeleteObjectOutcome res;
 
         {
-            Aws::S3::Model::DeleteObjectRequest *request = new Aws::S3::Model::DeleteObjectRequest();
-            request->SetBucket(bucket);
-            request->SetKey(key);
-            res = HBAWS_GLOBAL.s3_client->DeleteObject(*request);
-            delete request;
+            Aws::S3::Model::DeleteObjectRequest request;
+            request.SetBucket(bucket);
+            request.SetKey(key);
+            res = HBAWS_GLOBAL.s3_client->DeleteObject(request);
         }
 
         if (!res.IsSuccess())
@@ -946,15 +942,14 @@ HB_BOOL hb_aws_s3_restore(HB_ITEM *bucket_block, HB_ITEM *key_block, const int n
         Aws::S3::Model::RestoreObjectOutcome res;
 
         {
-            Aws::S3::Model::RestoreObjectRequest *request = new Aws::S3::Model::RestoreObjectRequest();
+            Aws::S3::Model::RestoreObjectRequest request;
             Aws::S3::Model::RestoreRequest settings;
-            request->SetBucket(bucket);
-            request->SetKey(key);
+            request.SetBucket(bucket);
+            request.SetKey(key);
             settings.SetDays(num_days);
             settings.SetTier(stier);
-            request->SetRestoreRequest(settings);
-            res = HBAWS_GLOBAL.s3_client->RestoreObject(*request);
-            delete request;
+            request.SetRestoreRequest(settings);
+            res = HBAWS_GLOBAL.s3_client->RestoreObject(request);
         }
 
         if (!res.IsSuccess())
