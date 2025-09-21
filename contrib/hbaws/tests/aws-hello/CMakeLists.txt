@@ -1,5 +1,8 @@
+# Windows
 # cmake -G "Visual Studio 17 2022" -S . -B build
 # cmake -G "MinGW Makefiles" -S . -B build
+# Linux
+# cmake -S . -B build
 
 cmake_minimum_required(VERSION 3.13)
 project(hello_s3)
@@ -33,5 +36,4 @@ set(CMAKE_PREFIX_PATH "${AWSROOT}" ${CMAKE_PREFIX_PATH})
 find_package(AWSSDK REQUIRED COMPONENTS s3)
 
 add_executable(${PROJECT_NAME} hello.cpp)
-message("Ehhhhhhhhhhhhh ${AWSSDK_LINK_LIBRARIES}")
 target_link_libraries(${PROJECT_NAME} ${AWSSDK_LINK_LIBRARIES})
