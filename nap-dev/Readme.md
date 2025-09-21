@@ -34,6 +34,14 @@ git merge c4b2a030c4434381fd3452e4207358282886a191
 - Change the download branch `git clone --recurse-submodules --depth 1 --branch 1.11.652`.
 - Run the script.
 
+> Important!!!!  AWS-SDK-CPP with MinGW present build/link problems. Review `hbaws/prj/mingw.patch` after future AWS-SDK-CPP updates.
+
+## Update MinGW
+
+- Open a MSYS2 terminal.
+- `pacman -Suy`.
+- Check `gcc --version`, `clang --version`.
+
 ## Rebuild all projects
 
 - Go to `/nap-dev`.

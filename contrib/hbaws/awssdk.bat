@@ -54,6 +54,8 @@ IF "%AWS_SDK_ROOT%"=="" GOTO error_no_root
 :: clone AWS-SDK repo and apply MinGW patch
 IF exist %AWS_SDK_ROOT%\src goto check_aws
 git clone --recurse-submodules --depth 1 --branch 1.11.652 https://github.com/aws/aws-sdk-cpp %AWS_SDK_ROOT%\src
+cd %AWS_SDK_ROOT%\src
+git apply %CWD%\prj\mingw.patch
 
 :check_aws
 cd %AWS_SDK_ROOT%\src

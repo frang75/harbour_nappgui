@@ -1,10 +1,10 @@
 # hbaws options for projects that use it
 
 incpaths=.
-{allmingw&!debug}libpaths=build/Release/lib ${AWS_SDK_ROOT}/mingw64/Release/lib ${AWS_SDK_ROOT}/mingw64/Release/bin
-{allmingw&debug}libpaths=build/Debug/lib ${AWS_SDK_ROOT}/mingw64/Debug/lib ${AWS_SDK_ROOT}/mingw64/Debug/bin
-{clang&!debug}libpaths=build/Release/lib ${AWS_SDK_ROOT}/clang/Release/lib ${AWS_SDK_ROOT}/clang/Release/bin
-{clang&debug}libpaths=build/Debug/lib ${AWS_SDK_ROOT}/clang/Debug/lib ${AWS_SDK_ROOT}/clang/Debug/bin
+{allmingw&!debug}libpaths=build/Release/lib ${AWS_SDK_ROOT}/mingw64/Release/bin
+{allmingw&debug}libpaths=build/Debug/lib ${AWS_SDK_ROOT}/mingw64/Debug/bin
+{clang&!debug}libpaths=build/Release/lib ${AWS_SDK_ROOT}/clang/Release/bin
+{clang&debug}libpaths=build/Debug/lib ${AWS_SDK_ROOT}/clang/Debug/bin
 {allmsvc&!debug}libpaths=build/Release/lib ${AWS_SDK_ROOT}/msvc64/Release/bin
 {allmsvc&debug}libpaths=build/Debug/lib ${AWS_SDK_ROOT}/msvc64/Debug/bin
 {allgcc&!debug}libpaths=build/Release/lib ${AWS_SDK_ROOT}/gcc/Release/lib ${AWS_SDK_ROOT}/gcc/Release/bin
