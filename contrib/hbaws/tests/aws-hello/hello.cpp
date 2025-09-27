@@ -12,11 +12,11 @@ int main()
 
     Aws::InitAPI(options);
     {
-        Aws::String access_key_id = "----------------";
-        Aws::String secret_access_key = "--------------";
-        Aws::String bucket = "----------------";
-        Aws::Auth::AWSCredentials credentials(access_key_id, secret_access_key);
+        Aws::String access_key_id = "-------------------";
+        Aws::String secret_access_key = "-------------------------";
+        Aws::String bucket = "------------------";
 
+        Aws::Auth::AWSCredentials credentials(access_key_id, secret_access_key);
         auto start = std::chrono::high_resolution_clock::now();
         std::cout << "Hello HBAWS World!" << std::endl;
         std::cout << "Waiting for AWS connection..." << std::endl;
@@ -43,11 +43,10 @@ int main()
             }
         }
 
-        Aws::S3::Model::ListObjectsV2Request *request = new Aws::S3::Model::ListObjectsV2Request;
-        request->SetBucket(bucket);
+        Aws::S3::Model::ListObjectsV2Request request;
+        request.SetBucket(bucket);
 
-        Aws::S3::Model::ListObjectsV2Outcome res = s3_client.ListObjectsV2(*request);
-
+        Aws::S3::Model::ListObjectsV2Outcome res = s3_client.ListObjectsV2(request);
         if (res.IsSuccess())
         {
             const Aws::S3::Model::ListObjectsV2Result &result = res.GetResult();
@@ -58,8 +57,6 @@ int main()
                 std::cout << "* " << object.GetKey() << std::endl;
             }
         }
-
-        delete request;
     }
 
     Aws::ShutdownAPI(options);

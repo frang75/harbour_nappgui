@@ -52,7 +52,7 @@ set HBMK_FLAGS=
 IF "%AWS_SDK_ROOT%"=="" GOTO error_no_aws_root
 
 IF "%BUILD%"=="Debug" GOTO hbmk2_debug
-goto hbmk2
+GOTO hbmk2
 
 :hbmk2_debug
 set HBMK_FLAGS=-debug

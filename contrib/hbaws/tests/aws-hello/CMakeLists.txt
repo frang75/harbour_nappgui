@@ -1,3 +1,9 @@
+# Windows
+# cmake -G "Visual Studio 17 2022" -S . -B build
+# cmake -G "MinGW Makefiles" -S . -B build
+# Linux
+# cmake -S . -B build
+
 cmake_minimum_required(VERSION 3.13)
 project(hello_s3)
 
@@ -25,25 +31,8 @@ else()
 
 endif()
 
-set(AWSROOT ${AWSROOT}/Debug)
-set(CMAKE_PREFIX_PATH "${AWSROOT}/lib/cmake" ${CMAKE_PREFIX_PATH})
-set(CMAKE_PREFIX_PATH "${AWSROOT}/lib/aws-crt-cpp" ${CMAKE_PREFIX_PATH})
-set(CMAKE_PREFIX_PATH "${AWSROOT}/lib/aws-c-http" ${CMAKE_PREFIX_PATH})
-set(CMAKE_PREFIX_PATH "${AWSROOT}/lib/aws-c-io" ${CMAKE_PREFIX_PATH})
-set(CMAKE_PREFIX_PATH "${AWSROOT}/lib/aws-c-common" ${CMAKE_PREFIX_PATH})
-set(CMAKE_PREFIX_PATH "${AWSROOT}/lib/aws-c-cal" ${CMAKE_PREFIX_PATH})
-set(CMAKE_PREFIX_PATH "${AWSROOT}/lib/aws-c-compression" ${CMAKE_PREFIX_PATH})
-set(CMAKE_PREFIX_PATH "${AWSROOT}/lib/aws-c-mqtt" ${CMAKE_PREFIX_PATH})
-set(CMAKE_PREFIX_PATH "${AWSROOT}/lib/aws-c-auth" ${CMAKE_PREFIX_PATH})
-set(CMAKE_PREFIX_PATH "${AWSROOT}/lib/aws-c-sdkutils" ${CMAKE_PREFIX_PATH})
-set(CMAKE_PREFIX_PATH "${AWSROOT}/lib/aws-c-event-stream" ${CMAKE_PREFIX_PATH})
-set(CMAKE_PREFIX_PATH "${AWSROOT}/lib/aws-checksums" ${CMAKE_PREFIX_PATH})
-set(CMAKE_PREFIX_PATH "${AWSROOT}/lib/aws-c-s3" ${CMAKE_PREFIX_PATH})
-
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-    set(CMAKE_PREFIX_PATH "${AWSROOT}/lib/s2n" ${CMAKE_PREFIX_PATH})
-endif()
-
+set(AWSROOT ${AWSROOT}/Release)
+set(CMAKE_PREFIX_PATH "${AWSROOT}" ${CMAKE_PREFIX_PATH})
 find_package(AWSSDK REQUIRED COMPONENTS s3)
 
 add_executable(${PROJECT_NAME} hello.cpp)

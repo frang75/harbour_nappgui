@@ -722,7 +722,6 @@ cmake -G Xcode -S . -B build
 
   ![xcode_debugging](https://github.com/frang75/harbour_nappgui/assets/42999199/f0f4af86-5241-44bf-8ad7-711e47deb541)
 
-
 ## GTNap design
 
 GTNAP has been designed with two modes of operation in mind:

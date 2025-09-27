@@ -48,6 +48,13 @@ if [[ "$ALL_BUILD_COMPILER" != "gcc" && "$ALL_BUILD_COMPILER" != "clang" ]]; the
     exit 1
 fi
 
+echo ----------------------------------------
+echo Beginning BUILD_ALL script
+echo BUILD_HARBOUR=$BUILD_HARBOUR
+echo ALL_BUILD_COMPILER=$ALL_BUILD_COMPILER
+echo BUILD=$BUILD
+echo ----------------------------------------
+
 # Compile Harbour with gcc or clang
 if [[ "$BUILD_HARBOUR" == "yes" ]]; then
     # Remove previous compilations

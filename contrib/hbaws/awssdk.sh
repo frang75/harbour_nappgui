@@ -59,7 +59,7 @@ fi
 
 # clone AWS-SDK repo
 if [ ! -d "$AWS_SDK_ROOT/src" ]; then
-    git clone --recurse-submodules --depth 1 --branch 1.11.271 https://github.com/aws/aws-sdk-cpp $AWS_SDK_ROOT/src
+    git clone --recurse-submodules --depth 1 --branch 1.11.652 https://github.com/aws/aws-sdk-cpp $AWS_SDK_ROOT/src
 fi
 
 # Check AWS repo
