@@ -52,9 +52,17 @@ IF "%AWS_SDK_ROOT%"=="" GOTO error_no_root
 
 :download_aws
 :: clone AWS-SDK repo and apply MinGW patch
-IF exist %AWS_SDK_ROOT%\src goto check_aws
+IF exist %AWS_SDK_ROOT%\src goto apply_patch
 git clone --recurse-submodules --depth 1 --branch 1.11.652 https://github.com/aws/aws-sdk-cpp %AWS_SDK_ROOT%\src
+
+:apply_patch
+:: Revert previous patch changes. patch is only valid for mingw
 cd %AWS_SDK_ROOT%\src
+git checkout -- .
+IF "%COMPILER%"=="mingw64" GOTO mingw_patch
+goto check_aws
+
+:mingw_patch
 git apply %CWD%\prj\mingw.patch
 
 :check_aws
