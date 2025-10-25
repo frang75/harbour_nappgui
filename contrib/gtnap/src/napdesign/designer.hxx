@@ -84,6 +84,12 @@ typedef enum _devent_t
     ekDEVENT_DRAWER_CHANGE
 } devent_t;
 
+typedef enum _cmode_t
+{
+    ekCMODE_DETAIL = 1,
+    ekCMODE_SKELETON
+} cmode_t;
+
 struct _dcolumn_t
 {
     real32_t width;

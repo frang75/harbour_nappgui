@@ -62,6 +62,7 @@ struct _desiger_t
     ArrPt(DForm) *forms;
     ArrSt(WDrawer) *wdrawers;
     ArrSt(BWidget) *bwidgets;
+    cmode_t cmode;
     ListBox *form_list;
     Label *status_label;
     Label *cells_label;
@@ -938,7 +939,7 @@ static void i_OnDraw(Designer *app, Event *e)
     {
         DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
         const char_t *name = i_list_text(app->form_list, app->config.sel_form);
-        dform_draw(form, app->config.swidget, app->default_font, &i_COLORS, name, p->ctx);
+        dform_draw(form, app->config.swidget, app->default_font, app->cmode, &i_COLORS, name, p->ctx);
     }
 }
 
@@ -1158,6 +1159,14 @@ static void i_OnHotKey(Designer *app, Event *e)
             if (dform_OnSupr(form, app->inspect, app->propedit) == TRUE)
                 view_update(app->canvas);
         }
+    }
+    else if (p->key == ekKEY_F5)
+    {
+        if (app->cmode == ekCMODE_DETAIL)
+            app->cmode = ekCMODE_SKELETON;
+        else
+            app->cmode = ekCMODE_DETAIL;
+        view_update(app->canvas);
     }
 }
 
@@ -1655,6 +1664,7 @@ static Designer *i_app(void)
     app->bold_font = font_system(font_regular_size(), ekFBOLD);
     app->wdrawers = arrst_create(WDrawer);
     app->bwidgets = arrst_create(BWidget);
+    app->cmode = ekCMODE_DETAIL;
     i_add_drawer(app->wdrawers, ekDRAWER_WIDGET_SELECT, "");
     i_add_drawer(app->wdrawers, ekDRAWER_WIDGET_LAYOUTS, TEXT_LAYOUTS);
     i_add_drawer(app->wdrawers, ekDRAWER_WIDGET_BUTTONS, TEXT_BUTTONS);
@@ -1716,6 +1726,7 @@ static Designer *i_create(void)
     window_title(app->window, gui_text(TEXT_APP_TITLE));
     window_OnClose(app->window, listener(app, i_OnWindowClose, Designer));
     window_hotkey(app->window, ekKEY_SUPR, 0, listener(app, i_OnHotKey, Designer));
+    window_hotkey(app->window, ekKEY_F5, 0, listener(app, i_OnHotKey, Designer));
     i_apply_config(app);
     window_show(app->window);
     osapp_menubar(app->menu, app->window);

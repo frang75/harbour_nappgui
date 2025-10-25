@@ -80,7 +80,7 @@ void dform_synchro_cell_valign(DForm *form, const DSelect *sel, const FCell *fce
 
 FCell *dform_sel_fcell(const DSelect *sel);
 
-void dform_draw(const DForm *form, const widget_t swidget, const Font *default_font, const DColors *colors, const char_t *form_name, DCtx *ctx);
+void dform_draw(const DForm *form, const widget_t swidget, const Font *default_font, const cmode_t cmode, const DColors *colors, const char_t *form_name, DCtx *ctx);
 
 uint32_t dform_selpath_size(const DForm *form);
 
