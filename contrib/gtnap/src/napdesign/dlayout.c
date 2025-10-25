@@ -1370,7 +1370,7 @@ static DCell *i_sel_cell(const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_draw_sel_rect(const DSelect *sel, DCtx *ctx)
+static void i_draw_sel_rect(const DSelect *sel, const bool_t draw_cell, DCtx *ctx)
 {
     cassert_no_null(sel);
     if (sel->dlayout != NULL)
@@ -1403,6 +1403,11 @@ static void i_draw_sel_rect(const DSelect *sel, DCtx *ctx)
         }
 
         case ekLAYELEM_CELL:
+            if (draw_cell == TRUE)
+            {
+                R2Df rect = i_cell_rect(sel->dlayout, sel);
+                draw_r2df(ctx, ekFILL, &rect);
+            }
             break;
 
         default:
@@ -1413,18 +1418,15 @@ static void i_draw_sel_rect(const DSelect *sel, DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_draw_shading(const DSelect *sel, const DSelect *hover, const DColors *colors, DCtx *ctx)
+static void i_draw_shading(const DSelect *sel, const DColors *colors, DCtx *ctx)
 {
     cassert_no_null(sel);
     cassert_no_null(colors);
     if (sel->dlayout != NULL)
     {
         const DCell *selcell = i_sel_cell(sel);
-        const DCell *hovcell = i_sel_cell(hover);
         arrst_foreach_const(cell, sel->dlayout->cells, DCell)
-            if (cell == hovcell)
-                draw_fill_color(ctx, colors->borderhot);
-            else if (cell == selcell)
+            if (cell == selcell)
                 draw_fill_color(ctx, colors->cellhot);
             else
                 draw_fill_color(ctx, colors->cell);
@@ -1450,7 +1452,7 @@ static void i_draw_shading(const DSelect *sel, const DSelect *hover, const DColo
 
             /* Selected border */
             draw_fill_color(ctx, colors->cellhot);
-            i_draw_sel_rect(sel, ctx);
+            i_draw_sel_rect(sel, FALSE, ctx);
         }
     }
 }
@@ -1500,12 +1502,12 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
         break;
 
     case ekCMODE_SKELETON:
-        i_draw_shading(sel, hover, colors, ctx);
+        i_draw_shading(sel, colors, ctx);
         i_draw_skeleton(dlayout, colors, ctx);
-        i_draw_cell_ids(sel, default_font, colors, ctx);
         draw_fill_color(ctx, colors->borderhot);
-        i_draw_sel_rect(hover, ctx);
+        i_draw_sel_rect(hover, TRUE, ctx);
         draw_fill_color(ctx, colors->main);
+        i_draw_cell_ids(sel, default_font, colors, ctx);
         i_draw_bounds(sel, colors, ctx);
         break;
 
