@@ -1355,61 +1355,12 @@ static void i_draw_bounds(const DSelect *sel, const DColors *colors, DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
-//static R2Df i_offset_rect(const R2Df *rect, const V2Df *offset)
-//{
-//    R2Df r;
-//    cassert_no_null(rect);
-//    cassert_no_null(offset);
-//    r.pos.x = rect->pos.x + offset->x;
-//    r.pos.y = rect->pos.y + offset->y;
-//    r.size = rect->size;
-//    return r;
-//}
-    
-/*---------------------------------------------------------------------------*/
-
 static void i_draw_skeleton(const DLayout *dlayout, const DColors *colors, DCtx *ctx)
 {
-//    real32_t x0, x1, y0, y1;
     cassert_no_null(dlayout);
     cassert_no_null(colors);
     draw_line_color(ctx, colors->main);
     draw_r2df(ctx, ekSTROKE, &dlayout->rect);
-    //x0 = dlayout->rect_left.pos.x + dlayout->rect_left.size.width;
-    //x1 = dlayout->rect_right.pos.x;
-    //y0 = dlayout->rect_top.pos.y + dlayout->rect_top.size.height;
-    //y1 = dlayout->rect_bottom.pos.y;
-    //draw_line(ctx, x0, y0, x0, y1);
-    //draw_line(ctx, x1, y0, x1, y1);
-    //draw_line(ctx, x0, y0, x1, y0);
-    //draw_line(ctx, x0, y1, x1, y1);
-
-    //{
-    //    uint32_t i = 0, n = arrst_size(dlayout->cols, DColumn);
-    //    const DColumn *col = arrst_all(dlayout->cols, DColumn);
-    //    real32_t x = x0;
-    //    for (i = 0; i < n - 1; ++i, ++col)
-    //    {
-    //        x += col->width;
-    //        draw_line(ctx, x, y0, x, y1);
-    //        x += col->margin_rect.size.width;
-    //        draw_line(ctx, x, y0, x, y1);
-    //    }
-    //}
-
-    //{
-    //    uint32_t i = 0, n = arrst_size(dlayout->rows, DRow);
-    //    const DRow *row = arrst_all(dlayout->rows, DRow);
-    //    real32_t y = y0;
-    //    for (i = 0; i < n - 1; ++i, ++row)
-    //    {
-    //        y += row->height;
-    //        draw_line(ctx, x0, y, x1, y);
-    //        y += row->margin_rect.size.height;
-    //        draw_line(ctx, x0, y, x1, y);
-    //    }
-    //}
-
     arrst_foreach_const(cell, dlayout->cells, DCell)
         draw_r2df(ctx, ekSTROKE, &cell->rect);
         if (cell->sublayout != NULL)
@@ -1419,14 +1370,20 @@ static void i_draw_skeleton(const DLayout *dlayout, const DColors *colors, DCtx 
    
 /*---------------------------------------------------------------------------*/
 
-static void i_draw_layout_shading(const DLayout *dlayout, const DColors *colors, DCtx *ctx)
+static DCell *i_sel_cell(const DSelect *sel)
 {
-    cassert_no_null(dlayout);
-    cassert_no_null(colors);
-    draw_fill_color(ctx, colors->select);
-    arrst_foreach_const(cell, dlayout->cells, DCell)
-        draw_r2df(ctx, ekFILL, &cell->rect);
-    arrst_end()
+    cassert_no_null(sel);
+    if (sel->dlayout == NULL)
+        return NULL;
+
+    if (sel->elem != ekLAYELEM_CELL)
+        return NULL;
+
+    {
+        uint32_t ncols = arrst_size(sel->dlayout->cols, DColumn);
+        uint32_t pos = sel->row * ncols + sel->col;
+        return arrst_get(sel->dlayout->cells, pos, DCell);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1435,26 +1392,25 @@ static void i_draw_shading(const DSelect *sel, const DColors *colors, DCtx *ctx)
 {
     cassert_no_null(sel);
     cassert_no_null(colors);
-    /* This layout has the selected element */
     if (sel->dlayout != NULL)
     {
-        switch (sel->elem)
+        const DCell *selcell = i_sel_cell(sel);
+        arrst_foreach_const(cell, sel->dlayout->cells, DCell)
+            if (cell == selcell)
+                draw_fill_color(ctx, colors->cellhot);
+            else
+                draw_fill_color(ctx, colors->cell);
+            draw_r2df(ctx, ekFILL, &cell->rect);
+        arrst_end()
+
+        /* We are in layout shading, draw the margins */
+        if (selcell == NULL)
         {
-        case ekLAYELEM_MARGIN_LEFT:
-        case ekLAYELEM_MARGIN_TOP:
-        case ekLAYELEM_MARGIN_RIGHT:
-        case ekLAYELEM_MARGIN_BOTTOM:
-        case ekLAYELEM_MARGIN_COLUMN:
-        case ekLAYELEM_MARGIN_ROW:
-            i_draw_layout_shading(sel->dlayout, colors, ctx);
-            break;
-
-        case ekLAYELEM_CELL:
-            i_draw_layout_shading(sel->dlayout, colors, ctx);
-            break;
-
-        default:
-            cassert_default(sel->elem);
+            draw_fill_color(ctx, colors->cell);
+            draw_r2df(ctx, ekFILL, &sel->dlayout->rect_top);
+            draw_r2df(ctx, ekFILL, &sel->dlayout->rect_bottom);
+            draw_r2df(ctx, ekFILL, &sel->dlayout->rect_left);
+            draw_r2df(ctx, ekFILL, &sel->dlayout->rect_right);
         }
     }
 }

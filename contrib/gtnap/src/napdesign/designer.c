@@ -1655,6 +1655,8 @@ static Designer *i_app(void)
         i_COLORS.select = gui_link_color();
         i_COLORS.title0 = color_html("#99b5d1");
         i_COLORS.title1 = color_html("#b7cfe8");
+        i_COLORS.cell = color_html("#ffe082");
+        i_COLORS.cellhot = color_html("#ffa000");
     }
 
     i_COLORS.add_icon = gui_image(PLUS16_PNG);
