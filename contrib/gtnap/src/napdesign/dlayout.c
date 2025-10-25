@@ -1304,28 +1304,6 @@ static void i_draw_rect_bounds(const R2Df *rect, DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_draw_layout_bounds(const DLayout *dlayout, const DColors *colors, DCtx *ctx)
-{
-    cassert_no_null(dlayout);
-    cassert_no_null(colors);
-    draw_fill_color(ctx, colors->main);
-    i_draw_rect_bounds(&dlayout->rect, ctx);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_draw_cell_bounds(const DSelect *sel, const DColors *colors, DCtx *ctx)
-{
-    R2Df rect;
-    cassert_no_null(sel);
-    cassert_no_null(colors);
-    rect = i_cell_rect(sel->dlayout, sel);
-    draw_fill_color(ctx, colors->main);
-    i_draw_rect_bounds(&rect, ctx);
-}
-
-/*---------------------------------------------------------------------------*/
-
 static void i_draw_bounds(const DSelect *sel, const DColors *colors, DCtx *ctx)
 {
     cassert_no_null(sel);
@@ -1341,12 +1319,15 @@ static void i_draw_bounds(const DSelect *sel, const DColors *colors, DCtx *ctx)
         case ekLAYELEM_MARGIN_BOTTOM:
         case ekLAYELEM_MARGIN_COLUMN:
         case ekLAYELEM_MARGIN_ROW:
-            i_draw_layout_bounds(sel->dlayout, colors, ctx);
+            i_draw_rect_bounds(&sel->dlayout->rect, ctx);
             break;
 
         case ekLAYELEM_CELL:
-            i_draw_cell_bounds(sel, colors, ctx);
+        {
+            R2Df rect = i_cell_rect(sel->dlayout, sel);
+            i_draw_rect_bounds(&rect, ctx);
             break;
+        }
 
         default:
             cassert_default(sel->elem);
@@ -1389,25 +1370,71 @@ static DCell *i_sel_cell(const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_draw_shading(const DSelect *sel, const DColors *colors, DCtx *ctx)
+static void i_draw_sel_rect(const DSelect *sel, DCtx *ctx)
+{
+    cassert_no_null(sel);
+    if (sel->dlayout != NULL)
+    {
+        switch (sel->elem)
+        {
+        case ekLAYELEM_MARGIN_LEFT:
+            draw_r2df(ctx, ekFILL, &sel->dlayout->rect_left);
+            break;
+        case ekLAYELEM_MARGIN_TOP:
+            draw_r2df(ctx, ekFILL, &sel->dlayout->rect_top);
+            break;
+        case ekLAYELEM_MARGIN_RIGHT:
+            draw_r2df(ctx, ekFILL, &sel->dlayout->rect_right);
+            break;
+        case ekLAYELEM_MARGIN_BOTTOM:
+            draw_r2df(ctx, ekFILL, &sel->dlayout->rect_bottom);
+            break;
+        case ekLAYELEM_MARGIN_COLUMN:
+        {
+            const DColumn *col = arrst_get_const(sel->dlayout->cols, sel->col, DColumn);
+            draw_r2df(ctx, ekFILL, &col->margin_rect);
+            break;
+        }
+        case ekLAYELEM_MARGIN_ROW:
+        {
+            const DRow *row = arrst_get_const(sel->dlayout->rows, sel->row, DRow);
+            draw_r2df(ctx, ekFILL, &row->margin_rect);
+            break;
+        }
+
+        case ekLAYELEM_CELL:
+            break;
+
+        default:
+            cassert_default(sel->elem);
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_draw_shading(const DSelect *sel, const DSelect *hover, const DColors *colors, DCtx *ctx)
 {
     cassert_no_null(sel);
     cassert_no_null(colors);
     if (sel->dlayout != NULL)
     {
         const DCell *selcell = i_sel_cell(sel);
+        const DCell *hovcell = i_sel_cell(hover);
         arrst_foreach_const(cell, sel->dlayout->cells, DCell)
-            if (cell == selcell)
+            if (cell == hovcell)
+                draw_fill_color(ctx, colors->borderhot);
+            else if (cell == selcell)
                 draw_fill_color(ctx, colors->cellhot);
             else
                 draw_fill_color(ctx, colors->cell);
             draw_r2df(ctx, ekFILL, &cell->rect);
         arrst_end()
 
-        /* We are in layout shading, draw the margins */
+        /* We are in layout shading, draw the borders */
         if (selcell == NULL)
         {
-            draw_fill_color(ctx, colors->borders);
+            draw_fill_color(ctx, colors->border);
             draw_r2df(ctx, ekFILL, &sel->dlayout->rect_top);
             draw_r2df(ctx, ekFILL, &sel->dlayout->rect_bottom);
             draw_r2df(ctx, ekFILL, &sel->dlayout->rect_left);
@@ -1420,6 +1447,10 @@ static void i_draw_shading(const DSelect *sel, const DColors *colors, DCtx *ctx)
             arrst_foreach_const(row, sel->dlayout->rows, DRow)
                 draw_r2df(ctx, ekFILL, &row->margin_rect);
             arrst_end()
+
+            /* Selected border */
+            draw_fill_color(ctx, colors->cellhot);
+            i_draw_sel_rect(sel, ctx);
         }
     }
 }
@@ -1463,15 +1494,19 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
         draw_r2df(ctx, ekFILLSK, &dlayout->rect);
         i_draw_grid(ctx, colors, &dlayout->rect);
         i_draw_frame(ctx, default_font, colors, form_name, &dlayout->rect);
-        draw_fill_color(ctx, colors->main);
         i_draw_layout(dlayout, flayout, glayout, hover, sel, swidget, default_font, colors, ctx);
+        draw_fill_color(ctx, colors->main);
         i_draw_bounds(sel, colors, ctx);
         break;
 
     case ekCMODE_SKELETON:
-        i_draw_shading(sel, colors, ctx);
+        i_draw_shading(sel, hover, colors, ctx);
         i_draw_skeleton(dlayout, colors, ctx);
         i_draw_cell_ids(sel, default_font, colors, ctx);
+        draw_fill_color(ctx, colors->borderhot);
+        i_draw_sel_rect(hover, ctx);
+        draw_fill_color(ctx, colors->main);
+        i_draw_bounds(sel, colors, ctx);
         break;
 
     default:
