@@ -1360,7 +1360,7 @@ const Image *dform_cell_icon(const celltype_t type)
     case ekCELL_TYPE_TABLEVIEW:
         return gui_image(TABLEVIEW16_PNG);
     case ekCELL_TYPE_LAYOUT:
-        return gui_image(GLAYOUT16_PNG);
+        return gui_image(LCELL16_PNG);
     default:
         cassert_default(type);
     }
@@ -1389,7 +1389,9 @@ const char_t *dform_selpath_caption(const DForm *form, const uint32_t col, const
         }
         else
         {
-            if (arrst_size(sel->flayout->cols, FColumn) == 1)
+            if (arrst_size(sel->flayout->cols, FColumn) == 1 && arrst_size(sel->flayout->rows, FRow) == 1)
+                return gui_text(TEXT_SINGLE_LAYOUT);
+            else if (arrst_size(sel->flayout->cols, FColumn) == 1)
                 return gui_text(TEXT_VERT_LAYOUT);
             else if (arrst_size(sel->flayout->rows, FRow) == 1)
                 return gui_text(TEXT_HORZ_LAYOUT);
@@ -1430,7 +1432,9 @@ const Image *dform_selpath_icon(const DForm *form, const uint32_t col, const uin
         /* Even rows == layout */
         if (row % 2 == 0)
         {
-            if (arrst_size(sel->flayout->cols, FColumn) == 1)
+            if (arrst_size(sel->flayout->cols, FColumn) == 1 && arrst_size(sel->flayout->rows, FRow) == 1)
+                return gui_image(SLAYOUT16_PNG);
+            else if (arrst_size(sel->flayout->cols, FColumn) == 1)
                 return gui_image(VLAYOUT16_PNG);
             else if (arrst_size(sel->flayout->rows, FRow) == 1)
                 return gui_image(HLAYOUT16_PNG);

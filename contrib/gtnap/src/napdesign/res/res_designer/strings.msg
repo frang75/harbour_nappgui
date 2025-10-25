@@ -50,6 +50,7 @@ TEXT_TEXT_WIDGETS   Text Widgets
 TEXT_ITEM_WIDGETS   Item Widgets
 TEXT_OTHER_WIDGETS  Other Widgets
 TEXT_SELECT         Select
+TEXT_SINGLE_LAYOUT  Single Layout
 TEXT_VERT_LAYOUT    Vertical Layout
 TEXT_HORZ_LAYOUT    Horizontal Layout
 TEXT_GRID_LAYOUT    Grid Layout
