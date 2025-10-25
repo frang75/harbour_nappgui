@@ -892,6 +892,7 @@ void flayout_remove_col(FLayout *layout, const uint32_t col)
 {
     uint32_t ncols = 0, nrows = 0, i = 0;
     cassert_no_null(layout);
+    cassert(arrst_size(layout->cols, FColumn) >= 1);
     cassert(col < arrst_size(layout->cols, FColumn));
     ncols = arrst_size(layout->cols, FColumn);
     nrows = arrst_size(layout->rows, FRow);
@@ -939,6 +940,7 @@ void flayout_remove_row(FLayout *layout, const uint32_t row)
 {
     uint32_t i, ncols = 0;
     cassert_no_null(layout);
+    cassert(arrst_size(layout->rows, FRow) >= 1);
     cassert(row < arrst_size(layout->rows, FRow));
     ncols = arrst_size(layout->cols, FColumn);
 

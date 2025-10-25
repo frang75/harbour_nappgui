@@ -157,7 +157,19 @@ void dlayout_destroy(DLayout **layout)
 
 void dlayout_insert_col(DLayout *layout, const uint32_t col)
 {
+    uint32_t ncols = 0, nrows = 0, i = 0;
     cassert_no_null(layout);
+    ncols = arrst_size(layout->cols, DColumn);
+    nrows = arrst_size(layout->rows, DRow);
+
+    /* Insert and init (empty) the new cells */
+    for (i = 0; i < nrows; ++i)
+    {
+        uint32_t inspos = ((ncols + 1) * i) + col;
+        arrst_insert_n0(layout->cells, inspos, 1, DCell);
+    }
+
+    /* Add a new column */
     arrst_insert_n0(layout->cols, col, 1, DColumn);
 }
 
@@ -165,7 +177,22 @@ void dlayout_insert_col(DLayout *layout, const uint32_t col)
 
 void dlayout_remove_col(DLayout *layout, const uint32_t col)
 {
+    uint32_t ncols = 0, nrows = 0, i = 0;
     cassert_no_null(layout);
+    cassert(arrst_size(layout->cols, DColumn) >= 1);
+    cassert(col < arrst_size(layout->cols, DColumn));
+    ncols = arrst_size(layout->cols, DColumn);
+    nrows = arrst_size(layout->rows, DRow);
+
+    /* Destroy the column cells */
+    for (i = 0; i < nrows; ++i)
+    {
+        uint32_t delrow = nrows - i - 1;
+        uint32_t delpos = (ncols * delrow) + col;
+        arrst_delete(layout->cells, delpos, i_remove_cell, DCell);
+    }
+
+    /* Destroy the column */
     arrst_delete(layout->cols, col, NULL, DColumn);
 }
 
@@ -173,7 +200,15 @@ void dlayout_remove_col(DLayout *layout, const uint32_t col)
 
 void dlayout_insert_row(DLayout *layout, const uint32_t row)
 {
+    uint32_t ncols = 0;
+    uint32_t inspos = 0;
     cassert_no_null(layout);
+    ncols = arrst_size(layout->cols, DColumn);
+    /* Cells insert position */
+    inspos = row * ncols;
+    /* Cells array is in row-major order. All row cells are together in memory */
+    arrst_insert_n0(layout->cells, inspos, ncols, DCell);
+    /* Add a new row */
     arrst_insert_n0(layout->rows, row, 1, DRow);
 }
 
@@ -181,7 +216,21 @@ void dlayout_insert_row(DLayout *layout, const uint32_t row)
 
 void dlayout_remove_row(DLayout *layout, const uint32_t row)
 {
+    uint32_t i, ncols = 0;
     cassert_no_null(layout);
+    cassert(arrst_size(layout->rows, DRow) >= 1);
+    cassert(row < arrst_size(layout->rows, DRow));
+    ncols = arrst_size(layout->cols, DColumn);
+
+    /* Destroy the row cells */
+    for (i = 0; i < ncols; ++i)
+    {
+        uint32_t delcol = ncols - i - 1;
+        uint32_t delpos = (ncols * row) + delcol;
+        arrst_delete(layout->cells, delpos, i_remove_cell, DCell);
+    }
+
+    /* Destroy the row */
     arrst_delete(layout->rows, row, NULL, DRow);
 }
 
