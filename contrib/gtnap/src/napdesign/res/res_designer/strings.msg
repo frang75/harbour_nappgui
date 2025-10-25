@@ -226,3 +226,9 @@ TIP_COLUMN_TWIDTH   Column width.
 TIP_COLUMN_MINWIDTH Column minimum width.
 TIP_COLUMN_MAXWIDTH Column maximum width.
 TIP_COLUMN_RESIZE   Column is resizable.
+TIP_COLUMN_LEFT     Insert a new column at left of current column
+TIP_COLUMN_RIGHT    Insert a new column at right of current column
+TIP_COLUMN_DELETE   Delete current column
+TIP_ROW_TOP         Insert a new row at top of current row
+TIP_ROW_BOTTOM      Insert a new row at bottom of current row
+TIP_ROW_DELETE      Delete current row
