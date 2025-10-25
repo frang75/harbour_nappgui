@@ -144,6 +144,7 @@ struct _dcolors_t
     color_t title1;
     color_t cell;
     color_t cellhot;
+    color_t borders;
     const Image *add_icon;
     const Image *nap_icon;
 };

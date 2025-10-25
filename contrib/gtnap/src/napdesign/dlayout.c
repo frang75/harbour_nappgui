@@ -1407,11 +1407,19 @@ static void i_draw_shading(const DSelect *sel, const DColors *colors, DCtx *ctx)
         /* We are in layout shading, draw the margins */
         if (selcell == NULL)
         {
-            draw_fill_color(ctx, colors->cell);
+            draw_fill_color(ctx, colors->borders);
             draw_r2df(ctx, ekFILL, &sel->dlayout->rect_top);
             draw_r2df(ctx, ekFILL, &sel->dlayout->rect_bottom);
             draw_r2df(ctx, ekFILL, &sel->dlayout->rect_left);
             draw_r2df(ctx, ekFILL, &sel->dlayout->rect_right);
+
+            arrst_foreach_const(col, sel->dlayout->cols, DColumn)
+                draw_r2df(ctx, ekFILL, &col->margin_rect);
+            arrst_end()
+
+            arrst_foreach_const(row, sel->dlayout->rows, DRow)
+                draw_r2df(ctx, ekFILL, &row->margin_rect);
+            arrst_end()
         }
     }
 }
