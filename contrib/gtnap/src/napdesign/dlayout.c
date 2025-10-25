@@ -31,6 +31,7 @@
 #include <core/strings.h>
 #include <sewer/bmath.h>
 #include <sewer/bmem.h>
+#include <sewer/bstd.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
@@ -1417,6 +1418,31 @@ static void i_draw_shading(const DSelect *sel, const DColors *colors, DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_draw_cell_ids(const DSelect *sel, const Font *font, const DColors *colors, DCtx *ctx)
+{
+    cassert_no_null(sel);
+    cassert_no_null(colors);
+    if (sel->dlayout != NULL)
+    {
+        uint32_t i, ncols = arrst_size(sel->dlayout->cols, DColumn);
+        uint32_t j, nrows = arrst_size(sel->dlayout->rows, DRow);
+        const DCell *cell = arrst_all_const(sel->dlayout->cells, DCell);
+        draw_font(ctx, font);
+        draw_text_color(ctx, colors->main);
+        for (j = 0; j < nrows; ++j)
+        {
+            for (i = 0; i < ncols; ++i, ++cell)
+            {
+                char_t text[64];
+                bstd_sprintf(text, sizeof(text), "(%d,%d)", i, j);
+                draw_text(ctx, text, cell->rect.pos.x, cell->rect.pos.y);
+            }
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Font *default_font, const cmode_t cmode, const DColors *colors, const char_t *form_name, DCtx *ctx)
 {
     cassert_no_null(colors);
@@ -1437,6 +1463,7 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
     case ekCMODE_SKELETON:
         i_draw_shading(sel, colors, ctx);
         i_draw_skeleton(dlayout, colors, ctx);
+        i_draw_cell_ids(sel, default_font, colors, ctx);
         break;
 
     default:
