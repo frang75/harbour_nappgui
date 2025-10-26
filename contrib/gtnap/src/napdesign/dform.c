@@ -974,6 +974,30 @@ void dform_remove_col(DForm *form, const DSelect *sel, const uint32_t col_id)
 
 /*---------------------------------------------------------------------------*/
 
+void dform_remove_row(DForm *form, const DSelect *sel, const uint32_t row_id)
+{
+    uint32_t n, row = row_id;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    flayout_remove_row(sel->flayout, row_id);
+    layout_remove_row(sel->glayout, row_id);
+    dlayout_remove_row(sel->dlayout, row_id);
+    n = layout_nrows(sel->glayout);
+    cassert(n == flayout_nrows(sel->flayout));
+    cassert(n == dlayout_nrows(sel->dlayout));
+    cassert(n > 0);
+
+    if (row_id == n)
+        row = row_id - 1;
+
+    dform_compose(form);
+    i_need_save(form);
+    form->sel = *sel;
+    form->sel.row = row;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static FCell *i_sel_fcell(const DSelect *sel)
 {
     cassert_no_null(sel);

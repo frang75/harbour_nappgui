@@ -40,6 +40,8 @@ void dform_insert_row(DForm *form, const DSelect *sel, const uint32_t row_id);
 
 void dform_remove_col(DForm *form, const DSelect *sel, const uint32_t col_id);
 
+void dform_remove_row(DForm *form, const DSelect *sel, const uint32_t row_id);
+
 void dform_synchro_cell_image(DForm *form, const DSelect *sel, const Image *image, const char_t *imgname);
 
 void dform_synchro_label(DForm *form, const DSelect *sel);

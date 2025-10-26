@@ -318,6 +318,19 @@ void dialog_no_remove_col(Window *parent, const Font *font, const char_t *layout
 
 /*---------------------------------------------------------------------------*/
 
+void dialog_no_remove_row(Window *parent, const Font *font, const char_t *layout_name)
+{
+    DialogData data = i_dialog_data();
+    Layout *layout = layout_create(1, 1);
+    String *caption = NULL;
+    caption = str_printf(gui_text(TEXT_NO_REMOVE_ROW), layout_name);
+    i_modal_launch(parent, &data, layout, font, ERROR24_PNG, TEXT_REMOVE_ROWC, tc(caption), ekDBUT_ONLY_OK);
+    str_destroy(&caption);
+    i_remove_dialog_data(&data);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static bool_t i_form_dialog(Window *parent, const Font *font, const char_t *caption, ResId icon_id, ResId title_id, String **filename, String **desc)
 {
     bool_t ok = FALSE;
@@ -413,6 +426,25 @@ bool_t dialog_remove_col(Window *parent, const Font *font, const char_t *layout_
     uint32_t ret = 0;
     caption = str_printf(gui_text(TEXT_REMOVE_COL), col, layout_name);
     ret = i_modal_launch(parent, &data, layout, font, REMOVE_PNG, TEXT_COL_REMOVE, tc(caption), ekDBUT_OK_CANCEL_DEF_CANCEL);
+    str_destroy(&caption);
+    i_remove_dialog_data(&data);
+
+    if (ret != BUTTON_OK && ret != ekGUI_CLOSE_INTRO)
+        return FALSE;
+    else
+        return TRUE;    
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t dialog_remove_row(Window *parent, const Font *font, const char_t *layout_name, const uint32_t row)
+{
+    DialogData data = i_dialog_data();
+    Layout *layout = layout_create(1, 1);
+    String *caption = NULL;
+    uint32_t ret = 0;
+    caption = str_printf(gui_text(TEXT_REMOVE_ROW), row, layout_name);
+    ret = i_modal_launch(parent, &data, layout, font, REMOVE_PNG, TEXT_ROW_REMOVE, tc(caption), ekDBUT_OK_CANCEL_DEF_CANCEL);
     str_destroy(&caption);
     i_remove_dialog_data(&data);
 

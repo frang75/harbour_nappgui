@@ -427,13 +427,39 @@ static void i_OnRowBottom(PropData *data, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_remove_row(PropData *data, const uint32_t row_id)
+{
+    Window *parent = NULL;
+    const Font *font = NULL;    
+    cassert_no_null(data);
+    cassert_no_null(data->sel.dlayout);
+    parent = designer_main_window(data->app);
+    font = designer_default_font(data->app);
+    if (dlayout_nrows(data->sel.dlayout) > 1)
+    {
+        if (dialog_remove_row(parent, font, tc(data->sel.flayout->name), row_id) == TRUE)
+        {
+            dform_remove_row(data->form, &data->sel, row_id);
+            data->sel = dform_get_sel(data->form);
+            i_row_selector(data);
+            designer_canvas_update(data->app);
+        }
+    }
+    else
+    {
+        dialog_no_remove_row(parent, font, tc(data->sel.flayout->name));
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnRowDelete(PropData *data, Event *e)
 {
-    //uint32_t col_id = 0;
+    uint32_t row_id = 0;
     unref(e);
     cassert_no_null(data);
-    //col_id = popup_get_selected(data->column_popup);
-    //i_remove_column(data, col_id);
+    row_id = popup_get_selected(data->row_popup);
+    i_remove_row(data, row_id);
 }
 
 /*---------------------------------------------------------------------------*/
