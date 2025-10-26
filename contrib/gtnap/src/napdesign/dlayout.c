@@ -410,7 +410,11 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
     for (i = 0; i < ncols; ++i)
     {
         col[i].width = layout_get_hsize(glayout, i);
+        col[i].rect.pos.x = origin.x + mleft + inner_width;
+        col[i].rect.pos.y = origin.y + mtop;
+        col[i].rect.size.width = col[i].width;             
         inner_width += col[i].width;
+
         if (i < ncols - 1)
             inner_width += layout_get_hmargin(glayout, i);
         else
@@ -423,6 +427,9 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
     for (j = 0; j < nrows; ++j)
     {
         row[j].height = layout_get_vsize(glayout, j);
+        row[j].rect.pos.x = origin.x + mleft;
+        row[j].rect.pos.y = origin.y + mtop + inner_height;
+        row[j].rect.size.height = row[j].height;
         inner_height += row[j].height;
         if (j < nrows - 1)
             inner_height += layout_get_vmargin(glayout, j);
@@ -432,6 +439,13 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
 
     /* Global layout rectangle */
     layout->rect = r2df(origin.x, origin.y, total_width, total_height);
+
+    /* Complete the columns and rows */
+    for (i = 0; i < ncols; ++i)
+        col[i].rect.size.height = total_height - mtop - mbottom;
+
+    for (j = 0; j < nrows; ++j)
+        row[j].rect.size.width = total_width - mleft - mright;
 
     /* Compute the vertical rectangles */
     layout->rect_left = r2df(origin.x, origin.y, mleft, total_height);
@@ -1411,7 +1425,7 @@ static DCell *i_sel_cell(const DSelect *sel)
     if (sel->dlayout == NULL)
         return NULL;
 
-    if (sel->elem != ekLAYELEM_CELL)
+    if (sel->elem != ekLAYELEM_CELL && sel->elem != ekLAYELEM_LAYOUT)
         return NULL;
 
     {
@@ -1490,27 +1504,68 @@ static void i_draw_shading(const DSelect *sel, const DColors *colors, DCtx *ctx)
             draw_r2df(ctx, ekFILL, &cell->rect);
         arrst_end()
 
-        /* We are in layout shading, draw the borders */
-        if (selcell == NULL)
-        {
-            draw_fill_color(ctx, colors->border);
-            draw_r2df(ctx, ekFILL, &sel->dlayout->rect_top);
-            draw_r2df(ctx, ekFILL, &sel->dlayout->rect_bottom);
-            draw_r2df(ctx, ekFILL, &sel->dlayout->rect_left);
-            draw_r2df(ctx, ekFILL, &sel->dlayout->rect_right);
+        ///* We are in layout shading, draw the borders */
+        //if (selcell == NULL)
+        //{
+        //    draw_fill_color(ctx, colors->border);
+        //    draw_r2df(ctx, ekFILL, &sel->dlayout->rect_top);
+        //    draw_r2df(ctx, ekFILL, &sel->dlayout->rect_bottom);
+        //    draw_r2df(ctx, ekFILL, &sel->dlayout->rect_left);
+        //    draw_r2df(ctx, ekFILL, &sel->dlayout->rect_right);
 
-            arrst_foreach_const(col, sel->dlayout->cols, DColumn)
-                draw_r2df(ctx, ekFILL, &col->margin_rect);
-            arrst_end()
+        //    arrst_foreach_const(col, sel->dlayout->cols, DColumn)
+        //        draw_r2df(ctx, ekFILL, &col->margin_rect);
+        //    arrst_end()
 
-            arrst_foreach_const(row, sel->dlayout->rows, DRow)
-                draw_r2df(ctx, ekFILL, &row->margin_rect);
-            arrst_end()
+        //    arrst_foreach_const(row, sel->dlayout->rows, DRow)
+        //        draw_r2df(ctx, ekFILL, &row->margin_rect);
+        //    arrst_end()
 
-            /* Selected border */
-            draw_fill_color(ctx, colors->cellhot);
-            i_draw_sel_rect(sel, FALSE, ctx);
-        }
+        //    /* Selected border */
+        //    draw_fill_color(ctx, colors->cellhot);
+        //    i_draw_sel_rect(sel, FALSE, ctx);
+        //}
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_draw_col_row(const DSelect *sel, const Font *font, const DColors *colors, DCtx *ctx)
+{
+    cassert_no_null(sel);
+    cassert_no_null(colors);
+    if (sel->elem == ekLAYELEM_LAYOUT)
+    {
+        const DColumn *col = NULL;        
+        const DRow *row = NULL;
+        const real32_t offset = 10;
+        R2Df crect, rrect;
+        char_t text[64];
+        cassert_no_null(sel->dlayout);
+        col = arrst_get_const(sel->dlayout->cols, sel->col, DColumn);
+        row = arrst_get_const(sel->dlayout->rows, sel->row, DRow);
+        crect = col->rect;
+        rrect = row->rect;
+        draw_line_width(ctx, 2);
+        crect.pos.y -= offset / 2;
+        crect.size.height += offset;
+        rrect.pos.x -= offset / 2;
+        rrect.size.width += offset;
+        draw_font(ctx, font);
+        draw_line_color(ctx, colors->col);
+        draw_text_color(ctx, colors->col);
+        draw_r2df(ctx, ekSTROKE, &crect);
+        bstd_sprintf(text, sizeof(text), "Col %d", sel->col);
+        draw_text_align(ctx, ekCENTER, ekBOTTOM);
+        draw_text(ctx, text, crect.pos.x + crect.size.width / 2, crect.pos.y);
+        
+        draw_line_color(ctx, colors->row);
+        draw_text_color(ctx, colors->row);
+        draw_r2df(ctx, ekSTROKE, &rrect);
+        bstd_sprintf(text, sizeof(text), "Row %d", sel->row);
+        draw_text_align(ctx, ekLEFT, ekCENTER);
+        draw_text(ctx, text, rrect.pos.x + rrect.size.width, rrect.pos.y + rrect.size.height / 2);
+        draw_line_width(ctx, 1);
     }
 }
 
@@ -1527,6 +1582,7 @@ static void i_draw_cell_ids(const DSelect *sel, const Font *font, const DColors 
         const DCell *cell = arrst_all_const(sel->dlayout->cells, DCell);
         draw_font(ctx, font);
         draw_text_color(ctx, colors->main);
+        draw_text_align(ctx, ekLEFT, ekTOP);
         for (j = 0; j < nrows; ++j)
         {
             for (i = 0; i < ncols; ++i, ++cell)
@@ -1541,7 +1597,7 @@ static void i_draw_cell_ids(const DSelect *sel, const Font *font, const DColors 
 
 /*---------------------------------------------------------------------------*/
 
-void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Font *default_font, const cmode_t cmode, const DColors *colors, const char_t *form_name, DCtx *ctx)
+void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Font *default_font, const Font *bold_font, const cmode_t cmode, const DColors *colors, const char_t *form_name, DCtx *ctx)
 {
     cassert_no_null(colors);
     cassert_no_null(dlayout);
@@ -1561,8 +1617,10 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
     case ekCMODE_SKELETON:
         i_draw_shading(sel, colors, ctx);
         i_draw_skeleton(dlayout, colors, ctx);
-        draw_fill_color(ctx, colors->borderhot);
-        i_draw_sel_rect(hover, TRUE, ctx);
+        //draw_fill_color(ctx, colors->borderhot);
+        //i_draw_sel_rect(hover, TRUE, ctx);
+
+        i_draw_col_row(sel, bold_font, colors, ctx);
         draw_fill_color(ctx, colors->main);
         i_draw_cell_ids(sel, default_font, colors, ctx);
         i_draw_bounds(sel, colors, ctx);

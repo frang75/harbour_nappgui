@@ -94,12 +94,14 @@ typedef enum _cmode_t
 struct _dcolumn_t
 {
     real32_t width;
+    R2Df rect;
     R2Df margin_rect;
 };
 
 struct _drow_t
 {
     real32_t height;
+    R2Df rect;
     R2Df margin_rect;
 };
 
@@ -145,8 +147,10 @@ struct _dcolors_t
     color_t title1;
     color_t cell;
     color_t cellhot;
-    color_t border;
-    color_t borderhot;
+    color_t col;
+    color_t row;
+    //color_t border;
+    //color_t borderhot;
     const Image *add_icon;
     const Image *nap_icon;
 };

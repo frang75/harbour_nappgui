@@ -939,7 +939,7 @@ static void i_OnDraw(Designer *app, Event *e)
     {
         DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
         const char_t *name = i_list_text(app->form_list, app->config.sel_form);
-        dform_draw(form, app->config.swidget, app->default_font, app->cmode, &i_COLORS, name, p->ctx);
+        dform_draw(form, app->config.swidget, app->default_font, app->bold_font, app->cmode, &i_COLORS, name, p->ctx);
     }
 }
 
@@ -1657,8 +1657,10 @@ static Designer *i_app(void)
         i_COLORS.title1 = color_html("#b7cfe8");
         i_COLORS.cell = color_html("#ffe082");
         i_COLORS.cellhot = color_html("#ffa000");
-        i_COLORS.border = color_html("#ffecb3");
-        i_COLORS.borderhot = color_html("#fff8e1");
+        i_COLORS.col = color_html("#8e03a3");
+        i_COLORS.row = kCOLOR_BLUE;
+        //i_COLORS.border = color_html("#ffecb3");
+        //i_COLORS.borderhot = color_html("#fff8e1");
     }
 
     i_COLORS.add_icon = gui_image(PLUS16_PNG);
