@@ -1497,7 +1497,7 @@ static void i_draw_col_row(const DSelect *sel, const Font *font, const DColors *
 {
     cassert_no_null(sel);
     cassert_no_null(colors);
-    if (sel->elem != ekLAYELEM_CELL)
+    if (sel->dlayout != NULL && sel->elem != ekLAYELEM_CELL)
     {
         char_t text[64];
         const real32_t offset = 10;
@@ -1584,12 +1584,19 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
     case ekCMODE_SKELETON:
         i_draw_shading(sel, colors, ctx);
         i_draw_skeleton(dlayout, colors, ctx);
-        //draw_fill_color(ctx, colors->borderhot);
-        //i_draw_sel_rect(hover, TRUE, ctx);
-
         i_draw_col_row(sel, bold_font, colors, ctx);
         draw_fill_color(ctx, colors->main);
         i_draw_cell_ids(sel, default_font, colors, ctx);
+
+        if (hover->dlayout != NULL)
+        {
+            R2Df hrect = i_get_rect(hover->dlayout, hover);
+            draw_line_color(ctx, colors->select);
+            draw_line_width(ctx, 2);
+            draw_r2df(ctx, ekSTROKE, &hrect);
+            draw_line_width(ctx, 1);
+        }
+
         i_draw_bounds(sel, colors, ctx);
         break;
 
