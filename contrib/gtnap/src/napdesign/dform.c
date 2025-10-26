@@ -1525,6 +1525,15 @@ void dform_set_need_save(DForm *form)
 
 /*---------------------------------------------------------------------------*/
 
+void dform_update_sel(DForm *form, const DSelect *sel)
+{
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    form->sel = *sel;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dform_simulate(DForm *form, Window *window)
 {
     cassert_no_null(form);

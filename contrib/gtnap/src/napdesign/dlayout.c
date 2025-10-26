@@ -1437,11 +1437,23 @@ static DCell *i_sel_cell(const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_draw_sel_rect(const DSelect *sel, const bool_t draw_cell, DCtx *ctx)
+static void i_draw_shading(const DSelect *sel, const DColors *colors, DCtx *ctx)
 {
     cassert_no_null(sel);
+    cassert_no_null(colors);
     if (sel->dlayout != NULL)
     {
+        const DCell *selcell = i_sel_cell(sel);
+        arrst_foreach_const(cell, sel->dlayout->cells, DCell)
+            if (cell == selcell)
+                draw_fill_color(ctx, colors->cellhot);
+            else
+                draw_fill_color(ctx, colors->cell);
+            draw_r2df(ctx, ekFILL, &cell->rect);
+        arrst_end()
+
+        /* Selected border */
+        draw_fill_color(ctx, colors->cellhot);
         switch (sel->elem)
         {
         case ekLAYELEM_MARGIN_LEFT:
@@ -1469,16 +1481,8 @@ static void i_draw_sel_rect(const DSelect *sel, const bool_t draw_cell, DCtx *ct
             break;
         }
 
-        case ekLAYELEM_LAYOUT:
-            draw_r2df(ctx, ekFILL, &sel->dlayout->rect);
-            break;
-
         case ekLAYELEM_CELL:
-            if (draw_cell == TRUE)
-            {
-                R2Df rect = i_cell_rect(sel->dlayout, sel);
-                draw_r2df(ctx, ekFILL, &rect);
-            }
+        case ekLAYELEM_LAYOUT:
             break;
 
         default:
@@ -1489,82 +1493,45 @@ static void i_draw_sel_rect(const DSelect *sel, const bool_t draw_cell, DCtx *ct
 
 /*---------------------------------------------------------------------------*/
 
-static void i_draw_shading(const DSelect *sel, const DColors *colors, DCtx *ctx)
-{
-    cassert_no_null(sel);
-    cassert_no_null(colors);
-    if (sel->dlayout != NULL)
-    {
-        const DCell *selcell = i_sel_cell(sel);
-        arrst_foreach_const(cell, sel->dlayout->cells, DCell)
-            if (cell == selcell)
-                draw_fill_color(ctx, colors->cellhot);
-            else
-                draw_fill_color(ctx, colors->cell);
-            draw_r2df(ctx, ekFILL, &cell->rect);
-        arrst_end()
-
-        ///* We are in layout shading, draw the borders */
-        //if (selcell == NULL)
-        //{
-        //    draw_fill_color(ctx, colors->border);
-        //    draw_r2df(ctx, ekFILL, &sel->dlayout->rect_top);
-        //    draw_r2df(ctx, ekFILL, &sel->dlayout->rect_bottom);
-        //    draw_r2df(ctx, ekFILL, &sel->dlayout->rect_left);
-        //    draw_r2df(ctx, ekFILL, &sel->dlayout->rect_right);
-
-        //    arrst_foreach_const(col, sel->dlayout->cols, DColumn)
-        //        draw_r2df(ctx, ekFILL, &col->margin_rect);
-        //    arrst_end()
-
-        //    arrst_foreach_const(row, sel->dlayout->rows, DRow)
-        //        draw_r2df(ctx, ekFILL, &row->margin_rect);
-        //    arrst_end()
-
-        //    /* Selected border */
-        //    draw_fill_color(ctx, colors->cellhot);
-        //    i_draw_sel_rect(sel, FALSE, ctx);
-        //}
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
 static void i_draw_col_row(const DSelect *sel, const Font *font, const DColors *colors, DCtx *ctx)
 {
     cassert_no_null(sel);
     cassert_no_null(colors);
-    if (sel->elem == ekLAYELEM_LAYOUT)
+    if (sel->elem != ekLAYELEM_CELL)
     {
-        const DColumn *col = NULL;        
-        const DRow *row = NULL;
-        const real32_t offset = 10;
-        R2Df crect, rrect;
         char_t text[64];
+        const real32_t offset = 10;
         cassert_no_null(sel->dlayout);
-        col = arrst_get_const(sel->dlayout->cols, sel->col, DColumn);
-        row = arrst_get_const(sel->dlayout->rows, sel->row, DRow);
-        crect = col->rect;
-        rrect = row->rect;
         draw_line_width(ctx, 2);
-        crect.pos.y -= offset / 2;
-        crect.size.height += offset;
-        rrect.pos.x -= offset / 2;
-        rrect.size.width += offset;
         draw_font(ctx, font);
-        draw_line_color(ctx, colors->col);
-        draw_text_color(ctx, colors->col);
-        draw_r2df(ctx, ekSTROKE, &crect);
-        bstd_sprintf(text, sizeof(text), "Col %d", sel->col);
-        draw_text_align(ctx, ekCENTER, ekBOTTOM);
-        draw_text(ctx, text, crect.pos.x + crect.size.width / 2, crect.pos.y);
-        
-        draw_line_color(ctx, colors->row);
-        draw_text_color(ctx, colors->row);
-        draw_r2df(ctx, ekSTROKE, &rrect);
-        bstd_sprintf(text, sizeof(text), "Row %d", sel->row);
-        draw_text_align(ctx, ekLEFT, ekCENTER);
-        draw_text(ctx, text, rrect.pos.x + rrect.size.width, rrect.pos.y + rrect.size.height / 2);
+
+        if (sel->col != UINT32_MAX)
+        {
+            const DColumn *col = arrst_get_const(sel->dlayout->cols, sel->col, DColumn);
+            R2Df rect = col->rect;
+            rect.pos.y -= offset / 2;
+            rect.size.height += offset;
+            draw_line_color(ctx, colors->col);
+            draw_text_color(ctx, colors->col);
+            draw_r2df(ctx, ekSTROKE, &rect);
+            bstd_sprintf(text, sizeof(text), "Col %d", sel->col);
+            draw_text_align(ctx, ekCENTER, ekBOTTOM);
+            draw_text(ctx, text, rect.pos.x + rect.size.width / 2, rect.pos.y);
+        }
+
+        if (sel->row != UINT32_MAX)
+        {
+            const DRow *row = arrst_get_const(sel->dlayout->rows, sel->row, DRow);
+            R2Df rect = row->rect;
+            rect.pos.x -= offset / 2;
+            rect.size.width += offset;
+            draw_line_color(ctx, colors->row);
+            draw_text_color(ctx, colors->row);
+            draw_r2df(ctx, ekSTROKE, &rect);
+            bstd_sprintf(text, sizeof(text), "Row %d", sel->row);
+            draw_text_align(ctx, ekLEFT, ekCENTER);
+            draw_text(ctx, text, rect.pos.x + rect.size.width, rect.pos.y + rect.size.height / 2);
+        }
         draw_line_width(ctx, 1);
     }
 }

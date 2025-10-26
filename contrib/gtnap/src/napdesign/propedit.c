@@ -206,6 +206,9 @@ static void i_OnColumnSelect(PropData *data, Event *e)
     const EvButton *p = event_params(e, EvButton);
     cassert_no_null(data);
     i_set_column_obj(data, p->index);
+    data->sel.col = p->index;
+    dform_update_sel(data->form, &data->sel);
+    designer_canvas_update(data->app);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -215,6 +218,9 @@ static void i_OnRowSelect(PropData *data, Event *e)
     const EvButton *p = event_params(e, EvButton);
     cassert_no_null(data);
     i_set_row_obj(data, p->index);
+    data->sel.row = p->index;
+    dform_update_sel(data->form, &data->sel);
+    designer_canvas_update(data->app);
 }
 
 /*---------------------------------------------------------------------------*/
