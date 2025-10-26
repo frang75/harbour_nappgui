@@ -160,8 +160,16 @@ TEXT_QUIT           Quit
 TEXT_OPEN_CAPTION   Select the form folder you want to work with.
 TEXT_ERROR_NAME     Error in form name
 TEXT_NAME_EXISTS    Form name '%s' already exists
-TEXT_REMOVE_MSG     The form '%s'will be deleted from the disk. This operation is irreversible. Do you really want to continue?
+TEXT_REMOVE_COLC    Remove column
+TEXT_REMOVE_ROWC    Remove row
+TEXT_NO_REMOVE_COL  Column '0' of layout '%s' can't be removed. At least, one column is required in the layout.
+TEXT_NO_REMOVE_ROW  Row '0' of layout '%s' can't be removed. At least, one row is required in the layout.
+TEXT_REMOVE_FORM    The form '%s' will be deleted from the disk. This operation is irreversible. Do you really want to continue?
+TEXT_REMOVE_COL     The column '%d' of layout '%s' will be removed. Do you really want to continue?
+TEXT_REMOVE_ROW     The row '%d' of layout '%s' will be removed. Do you really want to continue?
 TEXT_FORM_REMOVE    Remove form
+TEXT_COL_REMOVE     Remove column
+TEXT_ROW_REMOVE     Remove row
 TEXT_SAVE_CHANGES   Save changes
 TEXT_DISC_CHANGES   Discard changes
 TEXT_UNSAVE_CHANGES There are unsaved changes

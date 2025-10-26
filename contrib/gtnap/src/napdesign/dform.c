@@ -898,27 +898,51 @@ void dform_origin(DForm *form, const V2Df origin)
 
 void dform_insert_col(DForm *form, const DSelect *sel, const uint32_t col_id)
 {
+    uint32_t i, n;
     cassert_no_null(form);
     cassert_no_null(sel);
     flayout_insert_col(sel->flayout, col_id);
     layout_insert_col(sel->glayout, col_id);
     dlayout_insert_col(sel->dlayout, col_id);
 
+    n = layout_nrows(sel->glayout);
+    cassert(n == flayout_nrows(sel->flayout));
+    cassert(n == dlayout_nrows(sel->dlayout));
+    for (i = 0; i < n; ++i)
     {
-        uint32_t i, n = layout_nrows(sel->glayout);
-        cassert(n == flayout_nrows(sel->flayout));
-        for (i = 0; i < n; ++i)
-        {
-            Cell *cell = layout_cell(sel->glayout, col_id, i);
-            cell_force_size(cell, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
-            i_cell_obj_name(form, sel->flayout, col_id, i);
-        }
+        Cell *cell = layout_cell(sel->glayout, col_id, i);
+        cell_force_size(cell, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
+        i_cell_obj_name(form, sel->flayout, col_id, i);
     }
 
     dform_compose(form);
     i_need_save(form);
     form->sel = *sel;
     form->sel.col = col_id;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dform_remove_col(DForm *form, const DSelect *sel, const uint32_t col_id)
+{
+    uint32_t n, col = col_id;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    flayout_remove_col(sel->flayout, col_id);
+    layout_remove_col(sel->glayout, col_id);
+    dlayout_remove_col(sel->dlayout, col_id);
+    n = layout_ncols(sel->glayout);
+    cassert(n == flayout_ncols(sel->flayout));
+    cassert(n == dlayout_ncols(sel->dlayout));
+    cassert(n > 0);
+
+    if (col_id == n)
+        col = col_id - 1;
+
+    dform_compose(form);
+    i_need_save(form);
+    form->sel = *sel;
+    form->sel.col = col;
 }
 
 /*---------------------------------------------------------------------------*/

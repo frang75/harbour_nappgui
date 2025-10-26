@@ -8,6 +8,10 @@ DLayout *dlayout_from_flayout(const FLayout *flayout, const char_t *resource_pat
 
 void dlayout_destroy(DLayout **layout);
 
+uint32_t dlayout_ncols(const DLayout *layout);
+
+uint32_t dlayout_nrows(const DLayout *layout);
+
 void dlayout_insert_col(DLayout *layout, const uint32_t col);
 
 void dlayout_remove_col(DLayout *layout, const uint32_t col);

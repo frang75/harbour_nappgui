@@ -282,10 +282,39 @@ static void i_OnColumnRight(PropData *data, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_remove_column(PropData *data, const uint32_t col_id)
+{
+    Window *parent = NULL;
+    const Font *font = NULL;    
+    cassert_no_null(data);
+    cassert_no_null(data->sel.dlayout);
+    parent = designer_main_window(data->app);
+    font = designer_default_font(data->app);
+    if (dlayout_ncols(data->sel.dlayout) > 1)
+    {
+        if (dialog_remove_col(parent, font, tc(data->sel.flayout->name), col_id) == TRUE)
+        {
+            dform_remove_col(data->form, &data->sel, col_id);
+            data->sel = dform_get_sel(data->form);
+            i_column_selector(data);
+            designer_canvas_update(data->app);
+        }
+    }
+    else
+    {
+        dialog_no_remove_col(parent, font, tc(data->sel.flayout->name));
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnColumnDelete(PropData *data, Event *e)
 {
+    uint32_t col_id = 0;
     unref(e);
     cassert_no_null(data);
+    col_id = popup_get_selected(data->column_popup);
+    i_remove_column(data, col_id);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -851,7 +880,6 @@ static void i_OnElementAdd(PropData *data, Event *e)
     ResId headerId = NULL;
     String *caption = NULL;
     FElem *elem = NULL;
-
     cassert_no_null(data);
     unref(e);
     window = designer_main_window(data->app);

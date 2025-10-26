@@ -36,6 +36,8 @@ void dform_origin(DForm *form, const V2Df origin);
 
 void dform_insert_col(DForm *form, const DSelect *sel, const uint32_t col_id);
 
+void dform_remove_col(DForm *form, const DSelect *sel, const uint32_t col_id);
+
 void dform_synchro_cell_image(DForm *form, const DSelect *sel, const Image *image, const char_t *imgname);
 
 void dform_synchro_label(DForm *form, const DSelect *sel);

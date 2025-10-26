@@ -155,6 +155,22 @@ void dlayout_destroy(DLayout **layout)
 
 /*---------------------------------------------------------------------------*/
 
+uint32_t dlayout_ncols(const DLayout *layout)
+{
+    cassert_no_null(layout);
+    return arrst_size(layout->cols, DColumn);
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t dlayout_nrows(const DLayout *layout)
+{
+    cassert_no_null(layout);
+    return arrst_size(layout->rows, DRow);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dlayout_insert_col(DLayout *layout, const uint32_t col)
 {
     uint32_t ncols = 0, nrows = 0, i = 0;
