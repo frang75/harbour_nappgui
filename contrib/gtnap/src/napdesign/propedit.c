@@ -370,13 +370,50 @@ static Layout *i_column_layout(PropData *data)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnRowTop(PropData *data, Event *e)
+{
+    //uint32_t col_id = 0;
+    unref(e);
+    cassert_no_null(data);
+    //col_id = popup_get_selected(data->column_popup);
+    //i_add_column(data, col_id);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnRowBottom(PropData *data, Event *e)
+{
+    //uint32_t col_id = 0;
+    unref(e);
+    cassert_no_null(data);
+    //col_id = popup_get_selected(data->column_popup);
+    //i_add_column(data, col_id + 1);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnRowDelete(PropData *data, Event *e)
+{
+    //uint32_t col_id = 0;
+    unref(e);
+    cassert_no_null(data);
+    //col_id = popup_get_selected(data->column_popup);
+    //i_remove_column(data, col_id);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Layout *i_row_layout(PropData *data)
 {
-    Layout *layout = layout_create(2, 3);
+    Layout *layout1 = layout_create(2, 4);
+    Layout *layout2 = layout_create(3, 1);
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
     PopUp *popup = popup_create();
+    Button *button1 = button_flat();
+    Button *button2 = button_flat();
+    Button *button3 = button_flat();
     Layout *val1 = i_value_updown_layout(gui_text(TIP_ROW_MARGIN));
     Layout *val2 = i_value_updown_layout(gui_text(TIP_ROW_HEIGHT));
     cassert_no_null(data);
@@ -385,20 +422,34 @@ static Layout *i_row_layout(PropData *data)
     label_text(label3, gui_text(TEXT_HEIGHT));
     popup_tooltip(popup, gui_text(TIP_ROW));
     popup_OnSelect(popup, listener(data, i_OnRowSelect, PropData));
-    layout_label(layout, label1, 0, 0);
-    layout_label(layout, label2, 0, 1);
-    layout_label(layout, label3, 0, 2);
-    layout_popup(layout, popup, 1, 0);
-    layout_layout(layout, val1, 1, 1);
-    layout_layout(layout, val2, 1, 2);
-    layout_vmargin(layout, 0, 1);
-    layout_hexpand(layout, 1);
-    layout_hmargin(layout, 0, i_LABEL_COLUMN_MARGIN);
+    button_image(button1, gui_image(TROW16_PNG));
+    button_image(button2, gui_image(BROW16_PNG));
+    button_image(button3, gui_image(DROW16_PNG));
+    button_tooltip(button1, gui_text(TIP_ROW_TOP));
+    button_tooltip(button2, gui_text(TIP_ROW_BOTTOM));
+    button_tooltip(button3, gui_text(TIP_ROW_DELETE));
+    button_OnClick(button1, listener(data, i_OnRowTop, PropData));
+    button_OnClick(button2, listener(data, i_OnRowBottom, PropData));
+    button_OnClick(button3, listener(data, i_OnRowDelete, PropData));
+    layout_label(layout1, label1, 0, 0);
+    layout_label(layout1, label2, 0, 1);
+    layout_label(layout1, label3, 0, 2);
+    layout_popup(layout1, popup, 1, 0);
+    layout_button(layout2, button1, 0, 0);
+    layout_button(layout2, button2, 1, 0);
+    layout_button(layout2, button3, 2, 0);
+    layout_layout(layout1, val1, 1, 1);
+    layout_layout(layout1, val2, 1, 2);
+    layout_layout(layout1, layout2, 1, 3);
+    layout_halign(layout1, 1, 3, ekLEFT);
+    layout_vmargin(layout1, 0, 1);
+    layout_hexpand(layout1, 1);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
     data->row_popup = popup;
-    data->row_margin_cell = layout_cell(layout, 1, 1);
-    cell_dbind(layout_cell(layout, 1, 1), FRow, real32_t, margin_bottom);
-    cell_dbind(layout_cell(layout, 1, 2), FRow, real32_t, forced_height);
-    return layout;
+    data->row_margin_cell = layout_cell(layout1, 1, 1);
+    cell_dbind(layout_cell(layout1, 1, 1), FRow, real32_t, margin_bottom);
+    cell_dbind(layout_cell(layout1, 1, 2), FRow, real32_t, forced_height);
+    return layout1;
 }
 
 /*---------------------------------------------------------------------------*/
