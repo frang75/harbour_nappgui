@@ -1836,7 +1836,7 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
                 popup_add_elem(data->column_popup, text, NULL);
             }
 
-            if (sel->elem == ekLAYELEM_MARGIN_COLUMN)
+            if (sel->elem == ekLAYELEM_MARGIN_COLUMN || sel->elem == ekLAYELEM_LAYOUT)
                 col = sel->col;
 
             popup_selected(data->column_popup, col);
@@ -1854,7 +1854,7 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
                 popup_add_elem(data->row_popup, text, NULL);
             }
 
-            if (sel->elem == ekLAYELEM_MARGIN_ROW)
+            if (sel->elem == ekLAYELEM_MARGIN_ROW || sel->elem == ekLAYELEM_LAYOUT)
                 row = sel->row;
 
             popup_selected(data->row_popup, row);

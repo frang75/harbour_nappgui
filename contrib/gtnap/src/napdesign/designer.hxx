@@ -75,6 +75,7 @@ typedef enum _layelem_t
     ekLAYELEM_MARGIN_BOTTOM,
     ekLAYELEM_MARGIN_COLUMN,
     ekLAYELEM_MARGIN_ROW,
+    ekLAYELEM_LAYOUT,
     ekLAYELEM_CELL
 } layelem_t;
 

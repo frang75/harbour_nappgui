@@ -1457,21 +1457,42 @@ const Image *dform_selpath_icon(const DForm *form, const uint32_t col, const uin
 void dform_inspect_select(DForm *form, Panel *propedit, const uint32_t row)
 {
     const DSelect *sel = NULL;
+    bool_t laysel = FALSE;
+    uint32_t i = row / 2;
+    uint32_t n;
     cassert_no_null(form);
-    sel = arrst_get_const(form->sel_path, row / 2, DSelect);
+    sel = arrst_get_const(form->sel_path, i, DSelect);
+    n = arrst_size(form->sel_path, DSelect);
+
+    {
+        const DSelect *lsel = arrst_last_const(form->sel_path, DSelect);
+        cassert_no_null(lsel);
+        laysel = lsel->elem != ekLAYELEM_CELL;
+    }
 
     /* Even rows == layout */
     if (row % 2 == 0)
     {
-        DSelect propsel;
-        propsel.dlayout = sel->dlayout;
-        propsel.flayout = sel->flayout;
-        propsel.glayout = sel->glayout;
-        propsel.elem = ekLAYELEM_MARGIN_LEFT;
-        propsel.col = UINT32_MAX;
-        propsel.row = UINT32_MAX;
-        form->sel = propsel;
-        propedit_set(propedit, form, &propsel);
+        /* This layout has a cell below */
+        if (laysel == FALSE || i < n - 1)
+        {
+            DSelect propsel;
+            propsel.dlayout = sel->dlayout;
+            propsel.flayout = sel->flayout;
+            propsel.glayout = sel->glayout;
+            propsel.elem = ekLAYELEM_LAYOUT;
+            propsel.col = sel->col;
+            propsel.row = sel->row;
+            form->sel = propsel;
+            propedit_set(propedit, form, &propsel);
+        }
+        else
+        {
+            /* This layout is the final leaf in object inspector */
+            cassert(sel->elem != ekLAYELEM_CELL);
+            form->sel = *sel;
+            propedit_set(propedit, form, sel);
+        }
     }
     /* Odd rows == cell */
     else

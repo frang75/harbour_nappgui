@@ -689,6 +689,9 @@ static R2Df i_get_rect(const DLayout *dlayout, const DSelect *sel)
         return row->margin_rect;
     }
 
+    case ekLAYELEM_LAYOUT:
+        return dlayout->rect;
+
     case ekLAYELEM_CELL:
         return i_cell_rect(dlayout, sel);
 
@@ -1368,6 +1371,7 @@ static void i_draw_bounds(const DSelect *sel, const DColors *colors, DCtx *ctx)
         case ekLAYELEM_MARGIN_BOTTOM:
         case ekLAYELEM_MARGIN_COLUMN:
         case ekLAYELEM_MARGIN_ROW:
+        case ekLAYELEM_LAYOUT:
             i_draw_rect_bounds(&sel->dlayout->rect, ctx);
             break;
 
@@ -1450,6 +1454,10 @@ static void i_draw_sel_rect(const DSelect *sel, const bool_t draw_cell, DCtx *ct
             draw_r2df(ctx, ekFILL, &row->margin_rect);
             break;
         }
+
+        case ekLAYELEM_LAYOUT:
+            draw_r2df(ctx, ekFILL, &sel->dlayout->rect);
+            break;
 
         case ekLAYELEM_CELL:
             if (draw_cell == TRUE)
