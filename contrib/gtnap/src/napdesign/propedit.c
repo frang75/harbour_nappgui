@@ -229,10 +229,10 @@ static void i_column_selector(PropData *data)
 {
     uint32_t i, ncols, col = 0;
     char_t text[64];
-
     cassert_no_null(data);
     ncols = flayout_ncols(data->sel.flayout);
     popup_clear(data->column_popup);
+
     for (i = 0; i < ncols; ++i)
     {
         bstd_sprintf(text, sizeof(text), "%d", i);
@@ -244,6 +244,29 @@ static void i_column_selector(PropData *data)
 
     popup_selected(data->column_popup, col);
     i_set_column_obj(data, col);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_row_selector(PropData *data)
+{
+    uint32_t i, nrows, row = 0;
+    char_t text[64];
+    cassert_no_null(data);
+    nrows = flayout_nrows(data->sel.flayout);
+    popup_clear(data->row_popup);
+
+    for (i = 0; i < nrows; ++i)
+    {
+        bstd_sprintf(text, sizeof(text), "%d", i);
+        popup_add_elem(data->row_popup, text, NULL);
+    }
+
+    if (data->sel.elem == ekLAYELEM_MARGIN_ROW || data->sel.elem == ekLAYELEM_LAYOUT)
+        row = data->sel.row;
+
+    popup_selected(data->row_popup, row);
+    i_set_row_obj(data, row);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -370,24 +393,36 @@ static Layout *i_column_layout(PropData *data)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_add_row(PropData *data, const uint32_t row_id)
+{
+    cassert_no_null(data);
+    cassert_no_null(data->sel.dlayout);
+    dform_insert_row(data->form, &data->sel, row_id);
+    data->sel = dform_get_sel(data->form);
+    i_row_selector(data);
+    designer_canvas_update(data->app);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnRowTop(PropData *data, Event *e)
 {
-    //uint32_t col_id = 0;
+    uint32_t row_id = 0;
     unref(e);
     cassert_no_null(data);
-    //col_id = popup_get_selected(data->column_popup);
-    //i_add_column(data, col_id);
+    row_id = popup_get_selected(data->row_popup);
+    i_add_row(data, row_id);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static void i_OnRowBottom(PropData *data, Event *e)
 {
-    //uint32_t col_id = 0;
+    uint32_t row_id = 0;
     unref(e);
     cassert_no_null(data);
-    //col_id = popup_get_selected(data->column_popup);
-    //i_add_column(data, col_id + 1);
+    row_id = popup_get_selected(data->row_popup);
+    i_add_row(data, row_id + 1);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1950,26 +1985,8 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
             bstd_sprintf(text, sizeof(text), gui_text(TEXT_LTYPE_GRID), ncols, nrows);
 
         label_text(data->layout_type_label, text);
-
         i_column_selector(data);
-        /* Row selector */
-        {
-            uint32_t j, row = 0;
-            popup_clear(data->row_popup);
-
-            for (j = 0; j < nrows; ++j)
-            {
-                bstd_sprintf(text, sizeof(text), "%d", j);
-                popup_add_elem(data->row_popup, text, NULL);
-            }
-
-            if (sel->elem == ekLAYELEM_MARGIN_ROW || sel->elem == ekLAYELEM_LAYOUT)
-                row = sel->row;
-
-            popup_selected(data->row_popup, row);
-            i_set_row_obj(data, row);
-        }
-
+        i_row_selector(data);
         layout_dbind_obj(data->layout_layout, sel->flayout, FLayout);
         panel_visible_layout(panel, 1);
     }

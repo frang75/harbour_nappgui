@@ -923,6 +923,33 @@ void dform_insert_col(DForm *form, const DSelect *sel, const uint32_t col_id)
 
 /*---------------------------------------------------------------------------*/
 
+void dform_insert_row(DForm *form, const DSelect *sel, const uint32_t row_id)
+{
+    uint32_t i, n;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    flayout_insert_row(sel->flayout, row_id);
+    layout_insert_row(sel->glayout, row_id);
+    dlayout_insert_row(sel->dlayout, row_id);
+
+    n = layout_ncols(sel->glayout);
+    cassert(n == flayout_ncols(sel->flayout));
+    cassert(n == dlayout_ncols(sel->dlayout));
+    for (i = 0; i < n; ++i)
+    {
+        Cell *cell = layout_cell(sel->glayout, i, row_id);
+        cell_force_size(cell, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
+        i_cell_obj_name(form, sel->flayout, i, row_id);
+    }
+
+    dform_compose(form);
+    i_need_save(form);
+    form->sel = *sel;
+    form->sel.row = row_id;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dform_remove_col(DForm *form, const DSelect *sel, const uint32_t col_id)
 {
     uint32_t n, col = col_id;
