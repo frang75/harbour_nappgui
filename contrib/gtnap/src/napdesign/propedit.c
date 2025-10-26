@@ -225,18 +225,59 @@ static void i_OnRowSelect(PropData *data, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_column_selector(PropData *data)
+{
+    uint32_t i, ncols, col = 0;
+    char_t text[64];
+
+    cassert_no_null(data);
+    ncols = flayout_ncols(data->sel.flayout);
+    popup_clear(data->column_popup);
+    for (i = 0; i < ncols; ++i)
+    {
+        bstd_sprintf(text, sizeof(text), "%d", i);
+        popup_add_elem(data->column_popup, text, NULL);
+    }
+
+    if (data->sel.elem == ekLAYELEM_MARGIN_COLUMN || data->sel.elem == ekLAYELEM_LAYOUT)
+        col = data->sel.col;
+
+    popup_selected(data->column_popup, col);
+    i_set_column_obj(data, col);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_add_column(PropData *data, const uint32_t col_id)
+{
+    cassert_no_null(data);
+    cassert_no_null(data->sel.dlayout);
+    dform_insert_col(data->form, &data->sel, col_id);
+    data->sel = dform_get_sel(data->form);
+    i_column_selector(data);
+    designer_canvas_update(data->app);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnColumnLeft(PropData *data, Event *e)
 {
+    uint32_t col_id = 0;
     unref(e);
     cassert_no_null(data);
+    col_id = popup_get_selected(data->column_popup);
+    i_add_column(data, col_id);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static void i_OnColumnRight(PropData *data, Event *e)
 {
+    uint32_t col_id = 0;
     unref(e);
     cassert_no_null(data);
+    col_id = popup_get_selected(data->column_popup);
+    i_add_column(data, col_id + 1);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1831,24 +1872,7 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
 
         label_text(data->layout_type_label, text);
 
-        /* Column selector */
-        {
-            uint32_t i, col = 0;
-            popup_clear(data->column_popup);
-
-            for (i = 0; i < ncols; ++i)
-            {
-                bstd_sprintf(text, sizeof(text), "%d", i);
-                popup_add_elem(data->column_popup, text, NULL);
-            }
-
-            if (sel->elem == ekLAYELEM_MARGIN_COLUMN || sel->elem == ekLAYELEM_LAYOUT)
-                col = sel->col;
-
-            popup_selected(data->column_popup, col);
-            i_set_column_obj(data, col);
-        }
-
+        i_column_selector(data);
         /* Row selector */
         {
             uint32_t j, row = 0;

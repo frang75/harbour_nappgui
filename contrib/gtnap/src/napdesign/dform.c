@@ -79,6 +79,18 @@ static real32_t i_EMPTY_CELL_HEIGHT = 20;
 
 /*---------------------------------------------------------------------------*/
 
+static void i_cell_obj_name(DForm *form, FLayout *flayout, const uint32_t col, const uint32_t row)
+{
+    char_t name[64];
+    FCell *fcell = flayout_cell(flayout, col, row);
+    cassert_no_null(form);
+    bstd_sprintf(name, sizeof(name), "cell%d", form->cell_id);
+    str_upd(&fcell->name, name);
+    form->cell_id += 1;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_layout_obj_names(DForm *form, FLayout *flayout)
 {
     cassert_no_null(form);
@@ -94,16 +106,8 @@ static void i_layout_obj_names(DForm *form, FLayout *flayout)
         uint32_t i, ncols = flayout_ncols(flayout);
         uint32_t j, nrows = flayout_nrows(flayout);
         for (j = 0; j < nrows; ++j)
-        {
             for (i = 0; i < ncols; ++i)
-            {
-                char_t name[64];
-                FCell *fcell = flayout_cell(flayout, i, j);
-                bstd_sprintf(name, sizeof(name), "cell%d", form->cell_id);
-                str_upd(&fcell->name, name);
-                form->cell_id += 1;
-            }
-        }
+                i_cell_obj_name(form, flayout, i, j);
     }
 }
 
@@ -875,11 +879,46 @@ V2Df dform_get_origin(const DForm *form)
 
 /*---------------------------------------------------------------------------*/
 
+DSelect dform_get_sel(const DForm *form)
+{
+    cassert_no_null(form);
+    return form->sel;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dform_origin(DForm *form, const V2Df origin)
 {
     cassert_no_null(form);
     form->origin = origin;
     dlayout_synchro_visual(form->dlayout, form->glayout, form->origin);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dform_insert_col(DForm *form, const DSelect *sel, const uint32_t col_id)
+{
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    flayout_insert_col(sel->flayout, col_id);
+    layout_insert_col(sel->glayout, col_id);
+    dlayout_insert_col(sel->dlayout, col_id);
+
+    {
+        uint32_t i, n = layout_nrows(sel->glayout);
+        cassert(n == flayout_nrows(sel->flayout));
+        for (i = 0; i < n; ++i)
+        {
+            Cell *cell = layout_cell(sel->glayout, col_id, i);
+            cell_force_size(cell, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
+            i_cell_obj_name(form, sel->flayout, col_id, i);
+        }
+    }
+
+    dform_compose(form);
+    i_need_save(form);
+    form->sel = *sel;
+    form->sel.col = col_id;
 }
 
 /*---------------------------------------------------------------------------*/

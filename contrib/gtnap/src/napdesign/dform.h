@@ -30,7 +30,11 @@ bool_t dform_OnSupr(DForm *form, Panel *inspect, Panel *propedit);
 
 V2Df dform_get_origin(const DForm *form);
 
+DSelect dform_get_sel(const DForm *form);
+
 void dform_origin(DForm *form, const V2Df origin);
+
+void dform_insert_col(DForm *form, const DSelect *sel, const uint32_t col_id);
 
 void dform_synchro_cell_image(DForm *form, const DSelect *sel, const Image *image, const char_t *imgname);
 

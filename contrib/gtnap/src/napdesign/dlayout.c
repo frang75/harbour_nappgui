@@ -521,7 +521,8 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
                     cellx = x;
                     break;
                 default:
-                    cassert_default(halign);
+                    cellx = x;
+                    break;
                 }
 
                 switch (valign)
@@ -539,7 +540,8 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
                     celly = y;
                     break;
                 default:
-                    cassert_default(valign);
+                    celly = y;
+                    break;
                 }
 
                 if (dcell->sublayout != NULL)
