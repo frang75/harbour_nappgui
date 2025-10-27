@@ -149,8 +149,6 @@ struct _dcolors_t
     color_t cellhot;
     color_t col;
     color_t row;
-    //color_t border;
-    //color_t borderhot;
     const Image *add_icon;
     const Image *nap_icon;
 };

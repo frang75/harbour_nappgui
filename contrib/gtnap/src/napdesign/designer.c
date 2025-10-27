@@ -1696,8 +1696,6 @@ static Designer *i_app(void)
         i_COLORS.cellhot = color_html("#ffa000");
         i_COLORS.col = color_html("#8e03a3");
         i_COLORS.row = kCOLOR_BLUE;
-        //i_COLORS.border = color_html("#ffecb3");
-        //i_COLORS.borderhot = color_html("#fff8e1");
     }
 
     i_COLORS.add_icon = gui_image(PLUS16_PNG);
