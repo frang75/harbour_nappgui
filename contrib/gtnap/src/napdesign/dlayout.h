@@ -8,6 +8,10 @@ DLayout *dlayout_from_flayout(const FLayout *flayout, const char_t *resource_pat
 
 void dlayout_destroy(DLayout **layout);
 
+uint32_t dlayout_ncols(const DLayout *layout);
+
+uint32_t dlayout_nrows(const DLayout *layout);
+
 void dlayout_insert_col(DLayout *layout, const uint32_t col);
 
 void dlayout_remove_col(DLayout *layout, const uint32_t col);
@@ -34,4 +38,4 @@ void dlayout_synchro_visual(DLayout *dlayout, const Layout *glayout, const V2Df 
 
 void dlayout_elem_at_pos(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const real32_t x, const real32_t y, ArrSt(DSelect) *selpath);
 
-void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Font *default_font, const DColors *colors, const char_t *form_name, DCtx *ctx);
+void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Font *default_font, const Font *bold_font, const cmode_t cmode, const DColors *colors, const char_t *form_name, DCtx *ctx);

@@ -50,6 +50,7 @@ TEXT_TEXT_WIDGETS   Text Widgets
 TEXT_ITEM_WIDGETS   Item Widgets
 TEXT_OTHER_WIDGETS  Other Widgets
 TEXT_SELECT         Select
+TEXT_SINGLE_LAYOUT  Single Layout
 TEXT_VERT_LAYOUT    Vertical Layout
 TEXT_HORZ_LAYOUT    Horizontal Layout
 TEXT_GRID_LAYOUT    Grid Layout
@@ -154,13 +155,22 @@ TOOLBAR_NEW         Add new form
 TOOLBAR_NEW_FORM    New form
 TOOLBAR_PROPS       Form properties
 TOOLBAR_SIMULATE    Simulate current form
+TOOLBAR_LSKEL       Layout design view
 TOOLBAR_REMOVE      Remove current form
 TEXT_QUIT           Quit
 TEXT_OPEN_CAPTION   Select the form folder you want to work with.
 TEXT_ERROR_NAME     Error in form name
 TEXT_NAME_EXISTS    Form name '%s' already exists
-TEXT_REMOVE_MSG     The form '%s'will be deleted from the disk. This operation is irreversible. Do you really want to continue?
+TEXT_REMOVE_COLC    Remove column
+TEXT_REMOVE_ROWC    Remove row
+TEXT_NO_REMOVE_COL  Column '0' of layout '%s' can't be removed. At least, one column is required in the layout.
+TEXT_NO_REMOVE_ROW  Row '0' of layout '%s' can't be removed. At least, one row is required in the layout.
+TEXT_REMOVE_FORM    The form '%s' will be deleted from the disk. This operation is irreversible. Do you really want to continue?
+TEXT_REMOVE_COL     The column '%d' of layout '%s' will be removed. Do you really want to continue?
+TEXT_REMOVE_ROW     The row '%d' of layout '%s' will be removed. Do you really want to continue?
 TEXT_FORM_REMOVE    Remove form
+TEXT_COL_REMOVE     Remove column
+TEXT_ROW_REMOVE     Remove row
 TEXT_SAVE_CHANGES   Save changes
 TEXT_DISC_CHANGES   Discard changes
 TEXT_UNSAVE_CHANGES There are unsaved changes
@@ -225,3 +235,9 @@ TIP_COLUMN_TWIDTH   Column width.
 TIP_COLUMN_MINWIDTH Column minimum width.
 TIP_COLUMN_MAXWIDTH Column maximum width.
 TIP_COLUMN_RESIZE   Column is resizable.
+TIP_COLUMN_LEFT     Insert a new column at left of current column
+TIP_COLUMN_RIGHT    Insert a new column at right of current column
+TIP_COLUMN_DELETE   Delete current column
+TIP_ROW_TOP         Insert a new row at top of current row
+TIP_ROW_BOTTOM      Insert a new row at bottom of current row
+TIP_ROW_DELETE      Delete current row

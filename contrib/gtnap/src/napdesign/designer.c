@@ -62,6 +62,7 @@ struct _desiger_t
     ArrPt(DForm) *forms;
     ArrSt(WDrawer) *wdrawers;
     ArrSt(BWidget) *bwidgets;
+    cmode_t cmode;
     ListBox *form_list;
     Label *status_label;
     Label *cells_label;
@@ -73,6 +74,7 @@ struct _desiger_t
     Cell *save_form_cell;
     Cell *run_form_cell;
     Cell *add_form_cell;
+    Cell *skeleton_form_cell;
     Cell *remove_form_cell;
     Cell *rename_form_cell;
     SplitView *split1;
@@ -83,6 +85,7 @@ struct _desiger_t
     MenuItem *show_widgets;
     MenuItem *show_inspectr;
     MenuItem *show_propedit;
+    MenuItem *layout_skeleton;
     Font *default_font;
     Font *bold_font;
     bool_t dragging;
@@ -212,6 +215,7 @@ static void i_update_form_controls(Designer *app, const bool_t enable)
     cell_enabled(app->save_form_cell, enable_save);
     cell_enabled(app->run_form_cell, enable_run);
     cell_enabled(app->add_form_cell, enable);
+    cell_enabled(app->skeleton_form_cell, enable_run);
     cell_enabled(app->remove_form_cell, enable_remove);
     cell_enabled(app->rename_form_cell, enable_rename);
 }
@@ -401,6 +405,30 @@ static void i_OnSimulateClick(Designer *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnSkeletonClick(Designer *app, Event *e)
+{
+    Button *button = NULL;
+    cassert_no_null(app);
+    unref(e);
+    button = cell_button(app->skeleton_form_cell);
+    if (app->cmode == ekCMODE_DETAIL)
+    {
+        app->cmode = ekCMODE_SKELETON;
+        button_state(button, ekGUI_ON);
+        menuitem_state(app->layout_skeleton, ekGUI_ON);
+    }
+    else
+    {
+        app->cmode = ekCMODE_DETAIL;
+        button_state(button, ekGUI_OFF);
+        menuitem_state(app->layout_skeleton, ekGUI_OFF);
+    }
+
+    view_update(app->canvas);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnRemoveClick(Designer *app, Event *e)
 {
     const char_t *name = NULL;
@@ -568,59 +596,68 @@ static void i_OnPropsFormClick(Designer *app, Event *e)
 
 static Layout *i_tools_layout(Designer *app)
 {
-    Layout *layout = layout_create(7, 1);
+    Layout *layout = layout_create(8, 1);
     Button *button1 = button_flat();
     Button *button2 = button_flat();
     Button *button3 = button_flat();
     Button *button4 = button_flat();
     Button *button5 = button_flat();
-    Button *button6 = button_flat();
+    Button *button6 = button_flatgle();
+    Button *button7 = button_flat();
     cassert_no_null(app);
     button_image(button1, cast_const(OPEN_PNG, Image));
     button_image(button2, cast_const(SAVE_PNG, Image));
     button_image(button3, cast_const(NEW_PNG, Image));
     button_image(button4, cast_const(PROPS_PNG, Image));
     button_image(button5, cast_const(SHOW_PNG, Image));
-    button_image(button6, cast_const(REMOVE_PNG, Image));
+    button_image(button6, cast_const(LSKEL24_PNG, Image));
+    button_image(button7, cast_const(REMOVE_PNG, Image));
     button_hpadding(button1, 6);
     button_hpadding(button2, 6);
     button_hpadding(button3, 6);
     button_hpadding(button4, 6);
     button_hpadding(button5, 6);
     button_hpadding(button6, 6);
+    button_hpadding(button7, 6);
     button_vpadding(button1, 6);
     button_vpadding(button2, 6);
     button_vpadding(button3, 6);
     button_vpadding(button4, 6);
     button_vpadding(button5, 6);
     button_vpadding(button6, 6);
+    button_vpadding(button7, 6);
     button_OnClick(button1, listener(app, i_OnOpenFormsClick, Designer));
     button_OnClick(button2, listener(app, i_OnSaveFormsClick, Designer));
     button_OnClick(button3, listener(app, i_OnAddFormClick, Designer));
     button_OnClick(button4, listener(app, i_OnPropsFormClick, Designer));
     button_OnClick(button5, listener(app, i_OnSimulateClick, Designer));
-    button_OnClick(button6, listener(app, i_OnRemoveClick, Designer));
+    button_OnClick(button6, listener(app, i_OnSkeletonClick, Designer));
+    button_OnClick(button7, listener(app, i_OnRemoveClick, Designer));
     button_tooltip(button1, gui_text(TOOLBAR_OPEN));
     button_tooltip(button2, gui_text(TOOLBAR_SAVE));
     button_tooltip(button3, gui_text(TOOLBAR_NEW));
     button_tooltip(button4, gui_text(TOOLBAR_PROPS));
     button_tooltip(button5, gui_text(TOOLBAR_SIMULATE));
-    button_tooltip(button6, gui_text(TOOLBAR_REMOVE));
+    button_tooltip(button6, gui_text(TOOLBAR_LSKEL));
+    button_tooltip(button7, gui_text(TOOLBAR_REMOVE));
     layout_button(layout, button1, 0, 0);
     layout_button(layout, button2, 1, 0);
     layout_button(layout, button3, 2, 0);
     layout_button(layout, button4, 3, 0);
     layout_button(layout, button5, 4, 0);
     layout_button(layout, button6, 5, 0);
+    layout_button(layout, button7, 6, 0);
     layout_margin4(layout, 0, 0, 0, 10);
-    layout_hexpand(layout, 6);
+    layout_hexpand(layout, 7);
     layout_hmargin(layout, 4, 10);
+    layout_hmargin(layout, 5, 10);
     app->open_form_cell = layout_cell(layout, 0, 0);
     app->save_form_cell = layout_cell(layout, 1, 0);
     app->add_form_cell = layout_cell(layout, 2, 0);
     app->rename_form_cell = layout_cell(layout, 3, 0);
     app->run_form_cell = layout_cell(layout, 4, 0);
-    app->remove_form_cell = layout_cell(layout, 5, 0);
+    app->skeleton_form_cell = layout_cell(layout, 5, 0);
+    app->remove_form_cell = layout_cell(layout, 6, 0);
     return layout;
 }
 
@@ -938,7 +975,7 @@ static void i_OnDraw(Designer *app, Event *e)
     {
         DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
         const char_t *name = i_list_text(app->form_list, app->config.sel_form);
-        dform_draw(form, app->config.swidget, app->default_font, &i_COLORS, name, p->ctx);
+        dform_draw(form, app->config.swidget, app->default_font, app->bold_font, app->cmode, &i_COLORS, name, p->ctx);
     }
 }
 
@@ -1344,19 +1381,28 @@ static Menu *i_form_menu(Designer *app)
     MenuItem *item1 = menuitem_create();
     MenuItem *item2 = menuitem_create();
     MenuItem *item3 = menuitem_create();
+    MenuItem *item4 = menuitem_create();
+    cassert_no_null(app);
     menuitem_text(item1, gui_text(TEXT_FORM_PROPS));
     menuitem_text(item2, gui_text(TOOLBAR_SIMULATE));
-    menuitem_text(item3, gui_text(TOOLBAR_REMOVE));
+    menuitem_text(item3, gui_text(TOOLBAR_LSKEL));
+    menuitem_text(item4, gui_text(TOOLBAR_REMOVE));
     menuitem_image(item1, gui_image(PROPS16_PNG));
     menuitem_image(item2, gui_image(SHOW16_PNG));
-    menuitem_image(item3, gui_image(REMOVE16_PNG));
+    menuitem_image(item3, gui_image(LSKEL16_PNG));
+    menuitem_image(item4, gui_image(REMOVE16_PNG));
+    menuitem_key(item3, ekKEY_F5, 0);
     menuitem_OnClick(item1, listener(app, i_OnPropsFormClick, Designer));
     menuitem_OnClick(item2, listener(app, i_OnSimulateClick, Designer));
-    menuitem_OnClick(item3, listener(app, i_OnRemoveClick, Designer));
+    menuitem_OnClick(item3, listener(app, i_OnSkeletonClick, Designer));
+    menuitem_OnClick(item4, listener(app, i_OnRemoveClick, Designer));
     menu_add_item(menu, item1);
     menu_add_item(menu, item2);
     menu_add_item(menu, menuitem_separator());
     menu_add_item(menu, item3);
+    menu_add_item(menu, menuitem_separator());
+    menu_add_item(menu, item4);
+    app->layout_skeleton = item3;
     return menu;
 }
 
@@ -1646,6 +1692,10 @@ static Designer *i_app(void)
         i_COLORS.select = gui_link_color();
         i_COLORS.title0 = color_html("#99b5d1");
         i_COLORS.title1 = color_html("#b7cfe8");
+        i_COLORS.cell = color_html("#ffe082");
+        i_COLORS.cellhot = color_html("#ffa000");
+        i_COLORS.col = color_html("#8e03a3");
+        i_COLORS.row = kCOLOR_BLUE;
     }
 
     i_COLORS.add_icon = gui_image(PLUS16_PNG);
@@ -1655,6 +1705,7 @@ static Designer *i_app(void)
     app->bold_font = font_system(font_regular_size(), ekFBOLD);
     app->wdrawers = arrst_create(WDrawer);
     app->bwidgets = arrst_create(BWidget);
+    app->cmode = ekCMODE_DETAIL;
     i_add_drawer(app->wdrawers, ekDRAWER_WIDGET_SELECT, "");
     i_add_drawer(app->wdrawers, ekDRAWER_WIDGET_LAYOUTS, TEXT_LAYOUTS);
     i_add_drawer(app->wdrawers, ekDRAWER_WIDGET_BUTTONS, TEXT_BUTTONS);

@@ -75,6 +75,7 @@ typedef enum _layelem_t
     ekLAYELEM_MARGIN_BOTTOM,
     ekLAYELEM_MARGIN_COLUMN,
     ekLAYELEM_MARGIN_ROW,
+    ekLAYELEM_LAYOUT,
     ekLAYELEM_CELL
 } layelem_t;
 
@@ -84,15 +85,23 @@ typedef enum _devent_t
     ekDEVENT_DRAWER_CHANGE
 } devent_t;
 
+typedef enum _cmode_t
+{
+    ekCMODE_DETAIL = 1,
+    ekCMODE_SKELETON
+} cmode_t;
+
 struct _dcolumn_t
 {
     real32_t width;
+    R2Df rect;
     R2Df margin_rect;
 };
 
 struct _drow_t
 {
     real32_t height;
+    R2Df rect;
     R2Df margin_rect;
 };
 
@@ -136,6 +145,10 @@ struct _dcolors_t
     color_t select;
     color_t title0;
     color_t title1;
+    color_t cell;
+    color_t cellhot;
+    color_t col;
+    color_t row;
     const Image *add_icon;
     const Image *nap_icon;
 };

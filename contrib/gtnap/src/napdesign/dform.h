@@ -30,7 +30,17 @@ bool_t dform_OnSupr(DForm *form, Panel *inspect, Panel *propedit);
 
 V2Df dform_get_origin(const DForm *form);
 
+DSelect dform_get_sel(const DForm *form);
+
 void dform_origin(DForm *form, const V2Df origin);
+
+void dform_insert_col(DForm *form, const DSelect *sel, const uint32_t col_id);
+
+void dform_insert_row(DForm *form, const DSelect *sel, const uint32_t row_id);
+
+void dform_remove_col(DForm *form, const DSelect *sel, const uint32_t col_id);
+
+void dform_remove_row(DForm *form, const DSelect *sel, const uint32_t row_id);
 
 void dform_synchro_cell_image(DForm *form, const DSelect *sel, const Image *image, const char_t *imgname);
 
@@ -80,7 +90,7 @@ void dform_synchro_cell_valign(DForm *form, const DSelect *sel, const FCell *fce
 
 FCell *dform_sel_fcell(const DSelect *sel);
 
-void dform_draw(const DForm *form, const widget_t swidget, const Font *default_font, const DColors *colors, const char_t *form_name, DCtx *ctx);
+void dform_draw(const DForm *form, const widget_t swidget, const Font *default_font, const Font *bold_font, const cmode_t cmode, const DColors *colors, const char_t *form_name, DCtx *ctx);
 
 uint32_t dform_selpath_size(const DForm *form);
 
@@ -95,5 +105,7 @@ const Image *dform_selpath_icon(const DForm *form, const uint32_t col, const uin
 void dform_inspect_select(DForm *form, Panel *propedit, const uint32_t row);
 
 void dform_set_need_save(DForm *form);
+
+void dform_update_sel(DForm *form, const DSelect *sel);
 
 void dform_simulate(DForm *form, Window *window);

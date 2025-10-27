@@ -206,6 +206,9 @@ static void i_OnColumnSelect(PropData *data, Event *e)
     const EvButton *p = event_params(e, EvButton);
     cassert_no_null(data);
     i_set_column_obj(data, p->index);
+    data->sel.col = p->index;
+    dform_update_sel(data->form, &data->sel);
+    designer_canvas_update(data->app);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -215,17 +218,141 @@ static void i_OnRowSelect(PropData *data, Event *e)
     const EvButton *p = event_params(e, EvButton);
     cassert_no_null(data);
     i_set_row_obj(data, p->index);
+    data->sel.row = p->index;
+    dform_update_sel(data->form, &data->sel);
+    designer_canvas_update(data->app);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_column_selector(PropData *data)
+{
+    uint32_t i, ncols, col = 0;
+    char_t text[64];
+    cassert_no_null(data);
+    ncols = flayout_ncols(data->sel.flayout);
+    popup_clear(data->column_popup);
+
+    for (i = 0; i < ncols; ++i)
+    {
+        bstd_sprintf(text, sizeof(text), "%d", i);
+        popup_add_elem(data->column_popup, text, NULL);
+    }
+
+    if (data->sel.elem == ekLAYELEM_MARGIN_COLUMN || data->sel.elem == ekLAYELEM_LAYOUT)
+        col = data->sel.col;
+
+    popup_selected(data->column_popup, col);
+    i_set_column_obj(data, col);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_row_selector(PropData *data)
+{
+    uint32_t i, nrows, row = 0;
+    char_t text[64];
+    cassert_no_null(data);
+    nrows = flayout_nrows(data->sel.flayout);
+    popup_clear(data->row_popup);
+
+    for (i = 0; i < nrows; ++i)
+    {
+        bstd_sprintf(text, sizeof(text), "%d", i);
+        popup_add_elem(data->row_popup, text, NULL);
+    }
+
+    if (data->sel.elem == ekLAYELEM_MARGIN_ROW || data->sel.elem == ekLAYELEM_LAYOUT)
+        row = data->sel.row;
+
+    popup_selected(data->row_popup, row);
+    i_set_row_obj(data, row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_add_column(PropData *data, const uint32_t col_id)
+{
+    cassert_no_null(data);
+    cassert_no_null(data->sel.dlayout);
+    dform_insert_col(data->form, &data->sel, col_id);
+    data->sel = dform_get_sel(data->form);
+    i_column_selector(data);
+    designer_canvas_update(data->app);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnColumnLeft(PropData *data, Event *e)
+{
+    uint32_t col_id = 0;
+    unref(e);
+    cassert_no_null(data);
+    col_id = popup_get_selected(data->column_popup);
+    i_add_column(data, col_id);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnColumnRight(PropData *data, Event *e)
+{
+    uint32_t col_id = 0;
+    unref(e);
+    cassert_no_null(data);
+    col_id = popup_get_selected(data->column_popup);
+    i_add_column(data, col_id + 1);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_remove_column(PropData *data, const uint32_t col_id)
+{
+    Window *parent = NULL;
+    const Font *font = NULL;    
+    cassert_no_null(data);
+    cassert_no_null(data->sel.dlayout);
+    parent = designer_main_window(data->app);
+    font = designer_default_font(data->app);
+    if (dlayout_ncols(data->sel.dlayout) > 1)
+    {
+        if (dialog_remove_col(parent, font, tc(data->sel.flayout->name), col_id) == TRUE)
+        {
+            dform_remove_col(data->form, &data->sel, col_id);
+            data->sel = dform_get_sel(data->form);
+            i_column_selector(data);
+            designer_canvas_update(data->app);
+        }
+    }
+    else
+    {
+        dialog_no_remove_col(parent, font, tc(data->sel.flayout->name));
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnColumnDelete(PropData *data, Event *e)
+{
+    uint32_t col_id = 0;
+    unref(e);
+    cassert_no_null(data);
+    col_id = popup_get_selected(data->column_popup);
+    i_remove_column(data, col_id);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static Layout *i_column_layout(PropData *data)
 {
-    Layout *layout = layout_create(2, 3);
+    Layout *layout1 = layout_create(2, 4);
+    Layout *layout2 = layout_create(3, 1);
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
     PopUp *popup = popup_create();
+    Button *button1 = button_flat();
+    Button *button2 = button_flat();
+    Button *button3 = button_flat();
     Layout *val1 = i_value_updown_layout(gui_text(TIP_COLUMN_MARGIN));
     Layout *val2 = i_value_updown_layout(gui_text(TIP_COLUMN_WIDTH));
     cassert_no_null(data);
@@ -234,31 +361,120 @@ static Layout *i_column_layout(PropData *data)
     label_text(label3, gui_text(TEXT_WIDTH));
     popup_tooltip(popup, gui_text(TIP_COLUMN));
     popup_OnSelect(popup, listener(data, i_OnColumnSelect, PropData));
-    layout_label(layout, label1, 0, 0);
-    layout_label(layout, label2, 0, 1);
-    layout_label(layout, label3, 0, 2);
-    layout_popup(layout, popup, 1, 0);
-    layout_layout(layout, val1, 1, 1);
-    layout_layout(layout, val2, 1, 2);
-    layout_vmargin(layout, 0, 1);
-    layout_hexpand(layout, 1);
-    layout_hmargin(layout, 0, i_LABEL_COLUMN_MARGIN);
+    button_image(button1, gui_image(LCOL16_PNG));
+    button_image(button2, gui_image(RCOL16_PNG));
+    button_image(button3, gui_image(DCOL16_PNG));
+    button_tooltip(button1, gui_text(TIP_COLUMN_LEFT));
+    button_tooltip(button2, gui_text(TIP_COLUMN_RIGHT));
+    button_tooltip(button3, gui_text(TIP_COLUMN_DELETE));
+    button_OnClick(button1, listener(data, i_OnColumnLeft, PropData));
+    button_OnClick(button2, listener(data, i_OnColumnRight, PropData));
+    button_OnClick(button3, listener(data, i_OnColumnDelete, PropData));
+    layout_label(layout1, label1, 0, 0);
+    layout_label(layout1, label2, 0, 1);
+    layout_label(layout1, label3, 0, 2);
+    layout_popup(layout1, popup, 1, 0);
+    layout_button(layout2, button1, 0, 0);
+    layout_button(layout2, button2, 1, 0);
+    layout_button(layout2, button3, 2, 0);
+    layout_layout(layout1, val1, 1, 1);
+    layout_layout(layout1, val2, 1, 2);
+    layout_layout(layout1, layout2, 1, 3);
+    layout_halign(layout1, 1, 3, ekLEFT);
+    layout_vmargin(layout1, 0, 1);
+    layout_hexpand(layout1, 1);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
     data->column_popup = popup;
-    data->column_margin_cell = layout_cell(layout, 1, 1);
-    cell_dbind(layout_cell(layout, 1, 1), FColumn, real32_t, margin_right);
-    cell_dbind(layout_cell(layout, 1, 2), FColumn, real32_t, forced_width);
-    return layout;
+    data->column_margin_cell = layout_cell(layout1, 1, 1);
+    cell_dbind(layout_cell(layout1, 1, 1), FColumn, real32_t, margin_right);
+    cell_dbind(layout_cell(layout1, 1, 2), FColumn, real32_t, forced_width);
+    return layout1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_add_row(PropData *data, const uint32_t row_id)
+{
+    cassert_no_null(data);
+    cassert_no_null(data->sel.dlayout);
+    dform_insert_row(data->form, &data->sel, row_id);
+    data->sel = dform_get_sel(data->form);
+    i_row_selector(data);
+    designer_canvas_update(data->app);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnRowTop(PropData *data, Event *e)
+{
+    uint32_t row_id = 0;
+    unref(e);
+    cassert_no_null(data);
+    row_id = popup_get_selected(data->row_popup);
+    i_add_row(data, row_id);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnRowBottom(PropData *data, Event *e)
+{
+    uint32_t row_id = 0;
+    unref(e);
+    cassert_no_null(data);
+    row_id = popup_get_selected(data->row_popup);
+    i_add_row(data, row_id + 1);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_remove_row(PropData *data, const uint32_t row_id)
+{
+    Window *parent = NULL;
+    const Font *font = NULL;    
+    cassert_no_null(data);
+    cassert_no_null(data->sel.dlayout);
+    parent = designer_main_window(data->app);
+    font = designer_default_font(data->app);
+    if (dlayout_nrows(data->sel.dlayout) > 1)
+    {
+        if (dialog_remove_row(parent, font, tc(data->sel.flayout->name), row_id) == TRUE)
+        {
+            dform_remove_row(data->form, &data->sel, row_id);
+            data->sel = dform_get_sel(data->form);
+            i_row_selector(data);
+            designer_canvas_update(data->app);
+        }
+    }
+    else
+    {
+        dialog_no_remove_row(parent, font, tc(data->sel.flayout->name));
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnRowDelete(PropData *data, Event *e)
+{
+    uint32_t row_id = 0;
+    unref(e);
+    cassert_no_null(data);
+    row_id = popup_get_selected(data->row_popup);
+    i_remove_row(data, row_id);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static Layout *i_row_layout(PropData *data)
 {
-    Layout *layout = layout_create(2, 3);
+    Layout *layout1 = layout_create(2, 4);
+    Layout *layout2 = layout_create(3, 1);
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
     PopUp *popup = popup_create();
+    Button *button1 = button_flat();
+    Button *button2 = button_flat();
+    Button *button3 = button_flat();
     Layout *val1 = i_value_updown_layout(gui_text(TIP_ROW_MARGIN));
     Layout *val2 = i_value_updown_layout(gui_text(TIP_ROW_HEIGHT));
     cassert_no_null(data);
@@ -267,20 +483,34 @@ static Layout *i_row_layout(PropData *data)
     label_text(label3, gui_text(TEXT_HEIGHT));
     popup_tooltip(popup, gui_text(TIP_ROW));
     popup_OnSelect(popup, listener(data, i_OnRowSelect, PropData));
-    layout_label(layout, label1, 0, 0);
-    layout_label(layout, label2, 0, 1);
-    layout_label(layout, label3, 0, 2);
-    layout_popup(layout, popup, 1, 0);
-    layout_layout(layout, val1, 1, 1);
-    layout_layout(layout, val2, 1, 2);
-    layout_vmargin(layout, 0, 1);
-    layout_hexpand(layout, 1);
-    layout_hmargin(layout, 0, i_LABEL_COLUMN_MARGIN);
+    button_image(button1, gui_image(TROW16_PNG));
+    button_image(button2, gui_image(BROW16_PNG));
+    button_image(button3, gui_image(DROW16_PNG));
+    button_tooltip(button1, gui_text(TIP_ROW_TOP));
+    button_tooltip(button2, gui_text(TIP_ROW_BOTTOM));
+    button_tooltip(button3, gui_text(TIP_ROW_DELETE));
+    button_OnClick(button1, listener(data, i_OnRowTop, PropData));
+    button_OnClick(button2, listener(data, i_OnRowBottom, PropData));
+    button_OnClick(button3, listener(data, i_OnRowDelete, PropData));
+    layout_label(layout1, label1, 0, 0);
+    layout_label(layout1, label2, 0, 1);
+    layout_label(layout1, label3, 0, 2);
+    layout_popup(layout1, popup, 1, 0);
+    layout_button(layout2, button1, 0, 0);
+    layout_button(layout2, button2, 1, 0);
+    layout_button(layout2, button3, 2, 0);
+    layout_layout(layout1, val1, 1, 1);
+    layout_layout(layout1, val2, 1, 2);
+    layout_layout(layout1, layout2, 1, 3);
+    layout_halign(layout1, 1, 3, ekLEFT);
+    layout_vmargin(layout1, 0, 1);
+    layout_hexpand(layout1, 1);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
     data->row_popup = popup;
-    data->row_margin_cell = layout_cell(layout, 1, 1);
-    cell_dbind(layout_cell(layout, 1, 1), FRow, real32_t, margin_bottom);
-    cell_dbind(layout_cell(layout, 1, 2), FRow, real32_t, forced_height);
-    return layout;
+    data->row_margin_cell = layout_cell(layout1, 1, 1);
+    cell_dbind(layout_cell(layout1, 1, 1), FRow, real32_t, margin_bottom);
+    cell_dbind(layout_cell(layout1, 1, 2), FRow, real32_t, forced_height);
+    return layout1;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -762,7 +992,6 @@ static void i_OnElementAdd(PropData *data, Event *e)
     ResId headerId = NULL;
     String *caption = NULL;
     FElem *elem = NULL;
-
     cassert_no_null(data);
     unref(e);
     window = designer_main_window(data->app);
@@ -1782,43 +2011,8 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
             bstd_sprintf(text, sizeof(text), gui_text(TEXT_LTYPE_GRID), ncols, nrows);
 
         label_text(data->layout_type_label, text);
-
-        /* Column selector */
-        {
-            uint32_t i, col = 0;
-            popup_clear(data->column_popup);
-
-            for (i = 0; i < ncols; ++i)
-            {
-                bstd_sprintf(text, sizeof(text), "%d", i);
-                popup_add_elem(data->column_popup, text, NULL);
-            }
-
-            if (sel->elem == ekLAYELEM_MARGIN_COLUMN)
-                col = sel->col;
-
-            popup_selected(data->column_popup, col);
-            i_set_column_obj(data, col);
-        }
-
-        /* Row selector */
-        {
-            uint32_t j, row = 0;
-            popup_clear(data->row_popup);
-
-            for (j = 0; j < nrows; ++j)
-            {
-                bstd_sprintf(text, sizeof(text), "%d", j);
-                popup_add_elem(data->row_popup, text, NULL);
-            }
-
-            if (sel->elem == ekLAYELEM_MARGIN_ROW)
-                row = sel->row;
-
-            popup_selected(data->row_popup, row);
-            i_set_row_obj(data, row);
-        }
-
+        i_column_selector(data);
+        i_row_selector(data);
         layout_dbind_obj(data->layout_layout, sel->flayout, FLayout);
         panel_visible_layout(panel, 1);
     }

@@ -31,6 +31,7 @@
 #include <core/strings.h>
 #include <sewer/bmath.h>
 #include <sewer/bmem.h>
+#include <sewer/bstd.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
@@ -154,9 +155,37 @@ void dlayout_destroy(DLayout **layout)
 
 /*---------------------------------------------------------------------------*/
 
-void dlayout_insert_col(DLayout *layout, const uint32_t col)
+uint32_t dlayout_ncols(const DLayout *layout)
 {
     cassert_no_null(layout);
+    return arrst_size(layout->cols, DColumn);
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t dlayout_nrows(const DLayout *layout)
+{
+    cassert_no_null(layout);
+    return arrst_size(layout->rows, DRow);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dlayout_insert_col(DLayout *layout, const uint32_t col)
+{
+    uint32_t ncols = 0, nrows = 0, i = 0;
+    cassert_no_null(layout);
+    ncols = arrst_size(layout->cols, DColumn);
+    nrows = arrst_size(layout->rows, DRow);
+
+    /* Insert and init (empty) the new cells */
+    for (i = 0; i < nrows; ++i)
+    {
+        uint32_t inspos = ((ncols + 1) * i) + col;
+        arrst_insert_n0(layout->cells, inspos, 1, DCell);
+    }
+
+    /* Add a new column */
     arrst_insert_n0(layout->cols, col, 1, DColumn);
 }
 
@@ -164,7 +193,22 @@ void dlayout_insert_col(DLayout *layout, const uint32_t col)
 
 void dlayout_remove_col(DLayout *layout, const uint32_t col)
 {
+    uint32_t ncols = 0, nrows = 0, i = 0;
     cassert_no_null(layout);
+    cassert(arrst_size(layout->cols, DColumn) >= 1);
+    cassert(col < arrst_size(layout->cols, DColumn));
+    ncols = arrst_size(layout->cols, DColumn);
+    nrows = arrst_size(layout->rows, DRow);
+
+    /* Destroy the column cells */
+    for (i = 0; i < nrows; ++i)
+    {
+        uint32_t delrow = nrows - i - 1;
+        uint32_t delpos = (ncols * delrow) + col;
+        arrst_delete(layout->cells, delpos, i_remove_cell, DCell);
+    }
+
+    /* Destroy the column */
     arrst_delete(layout->cols, col, NULL, DColumn);
 }
 
@@ -172,7 +216,15 @@ void dlayout_remove_col(DLayout *layout, const uint32_t col)
 
 void dlayout_insert_row(DLayout *layout, const uint32_t row)
 {
+    uint32_t ncols = 0;
+    uint32_t inspos = 0;
     cassert_no_null(layout);
+    ncols = arrst_size(layout->cols, DColumn);
+    /* Cells insert position */
+    inspos = row * ncols;
+    /* Cells array is in row-major order. All row cells are together in memory */
+    arrst_insert_n0(layout->cells, inspos, ncols, DCell);
+    /* Add a new row */
     arrst_insert_n0(layout->rows, row, 1, DRow);
 }
 
@@ -180,7 +232,21 @@ void dlayout_insert_row(DLayout *layout, const uint32_t row)
 
 void dlayout_remove_row(DLayout *layout, const uint32_t row)
 {
+    uint32_t i, ncols = 0;
     cassert_no_null(layout);
+    cassert(arrst_size(layout->rows, DRow) >= 1);
+    cassert(row < arrst_size(layout->rows, DRow));
+    ncols = arrst_size(layout->cols, DColumn);
+
+    /* Destroy the row cells */
+    for (i = 0; i < ncols; ++i)
+    {
+        uint32_t delcol = ncols - i - 1;
+        uint32_t delpos = (ncols * row) + delcol;
+        arrst_delete(layout->cells, delpos, i_remove_cell, DCell);
+    }
+
+    /* Destroy the row */
     arrst_delete(layout->rows, row, NULL, DRow);
 }
 
@@ -360,7 +426,11 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
     for (i = 0; i < ncols; ++i)
     {
         col[i].width = layout_get_hsize(glayout, i);
+        col[i].rect.pos.x = origin.x + mleft + inner_width;
+        col[i].rect.pos.y = origin.y + mtop;
+        col[i].rect.size.width = col[i].width;             
         inner_width += col[i].width;
+
         if (i < ncols - 1)
             inner_width += layout_get_hmargin(glayout, i);
         else
@@ -373,6 +443,9 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
     for (j = 0; j < nrows; ++j)
     {
         row[j].height = layout_get_vsize(glayout, j);
+        row[j].rect.pos.x = origin.x + mleft;
+        row[j].rect.pos.y = origin.y + mtop + inner_height;
+        row[j].rect.size.height = row[j].height;
         inner_height += row[j].height;
         if (j < nrows - 1)
             inner_height += layout_get_vmargin(glayout, j);
@@ -382,6 +455,13 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
 
     /* Global layout rectangle */
     layout->rect = r2df(origin.x, origin.y, total_width, total_height);
+
+    /* Complete the columns and rows */
+    for (i = 0; i < ncols; ++i)
+        col[i].rect.size.height = total_height - mtop - mbottom;
+
+    for (j = 0; j < nrows; ++j)
+        row[j].rect.size.width = total_width - mleft - mright;
 
     /* Compute the vertical rectangles */
     layout->rect_left = r2df(origin.x, origin.y, mleft, total_height);
@@ -457,7 +537,8 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
                     cellx = x;
                     break;
                 default:
-                    cassert_default(halign);
+                    cellx = x;
+                    break;
                 }
 
                 switch (valign)
@@ -475,7 +556,8 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
                     celly = y;
                     break;
                 default:
-                    cassert_default(valign);
+                    celly = y;
+                    break;
                 }
 
                 if (dcell->sublayout != NULL)
@@ -639,31 +721,7 @@ static R2Df i_get_rect(const DLayout *dlayout, const DSelect *sel)
         return row->margin_rect;
     }
 
-    case ekLAYELEM_CELL:
-        return i_cell_rect(dlayout, sel);
-
-    default:
-        cassert_default(sel->elem);
-    }
-
-    return kR2D_ZEROf;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static R2Df i_get_full_rect(const DLayout *dlayout, const DSelect *sel)
-{
-    cassert_no_null(dlayout);
-    cassert_no_null(sel);
-    cassert(dlayout == sel->dlayout);
-    switch (sel->elem)
-    {
-    case ekLAYELEM_MARGIN_LEFT:
-    case ekLAYELEM_MARGIN_TOP:
-    case ekLAYELEM_MARGIN_RIGHT:
-    case ekLAYELEM_MARGIN_BOTTOM:
-    case ekLAYELEM_MARGIN_COLUMN:
-    case ekLAYELEM_MARGIN_ROW:
+    case ekLAYELEM_LAYOUT:
         return dlayout->rect;
 
     case ekLAYELEM_CELL:
@@ -1305,38 +1363,262 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
         }
         draw_line_color(ctx, colors->main);
     }
+}
 
+/*---------------------------------------------------------------------------*/
+
+static void i_draw_rect_bounds(const R2Df *rect, DCtx *ctx)
+{
+    real32_t rsize = 5;
+    real32_t x1, x2, y1, y2;
+    cassert_no_null(rect);
+    x1 = rect->pos.x;
+    x2 = x1 + rect->size.width;
+    y1 = rect->pos.y;
+    y2 = y1 + rect->size.height;
+    draw_rect(ctx, ekFILL, x1, y1, rsize, rsize);
+    draw_rect(ctx, ekFILL, x2 - rsize, y1, rsize, rsize);
+    draw_rect(ctx, ekFILL, x1, y2 - rsize, rsize, rsize);
+    draw_rect(ctx, ekFILL, x2 - rsize, y2 - rsize, rsize, rsize);
+    draw_rect(ctx, ekFILL, (x1 + x2 - rsize) / 2, y1, rsize, rsize);
+    draw_rect(ctx, ekFILL, (x1 + x2 - rsize) / 2, y2 - rsize, rsize, rsize);
+    draw_rect(ctx, ekFILL, x1, (y1 + y2 - rsize) / 2, rsize, rsize);
+    draw_rect(ctx, ekFILL, x2 - rsize, (y1 + y2 - rsize) / 2, rsize, rsize);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_draw_bounds(const DSelect *sel, const DColors *colors, DCtx *ctx)
+{
+    cassert_no_null(sel);
+    cassert_no_null(colors);
     /* This layout has the selected element */
-    if (sel->dlayout == dlayout)
+    if (sel->dlayout != NULL)
     {
-        R2Df rect = i_get_full_rect(dlayout, sel);
-        real32_t rsize = 5;
-        real32_t x1 = rect.pos.x;
-        real32_t x2 = rect.pos.x + rect.size.width;
-        real32_t y1 = rect.pos.y;
-        real32_t y2 = rect.pos.y + rect.size.height;
-        draw_fill_color(ctx, color_rgb(0, 40, 85));
-        draw_rect(ctx, ekFILL, x1, y1, rsize, rsize);
-        draw_rect(ctx, ekFILL, x2 - rsize, y1, rsize, rsize);
-        draw_rect(ctx, ekFILL, x1, y2 - rsize, rsize, rsize);
-        draw_rect(ctx, ekFILL, x2 - rsize, y2 - rsize, rsize, rsize);
-        draw_rect(ctx, ekFILL, (x1 + x2 - rsize) / 2, y1, rsize, rsize);
-        draw_rect(ctx, ekFILL, (x1 + x2 - rsize) / 2, y2 - rsize, rsize, rsize);
-        draw_rect(ctx, ekFILL, x1, (y1 + y2 - rsize) / 2, rsize, rsize);
-        draw_rect(ctx, ekFILL, x2 - rsize, (y1 + y2 - rsize) / 2, rsize, rsize);
+        switch (sel->elem)
+        {
+        case ekLAYELEM_MARGIN_LEFT:
+        case ekLAYELEM_MARGIN_TOP:
+        case ekLAYELEM_MARGIN_RIGHT:
+        case ekLAYELEM_MARGIN_BOTTOM:
+        case ekLAYELEM_MARGIN_COLUMN:
+        case ekLAYELEM_MARGIN_ROW:
+        case ekLAYELEM_LAYOUT:
+            i_draw_rect_bounds(&sel->dlayout->rect, ctx);
+            break;
+
+        case ekLAYELEM_CELL:
+        {
+            R2Df rect = i_cell_rect(sel->dlayout, sel);
+            i_draw_rect_bounds(&rect, ctx);
+            break;
+        }
+
+        default:
+            cassert_default(sel->elem);
+        }
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Font *default_font, const DColors *colors, const char_t *form_name, DCtx *ctx)
+static void i_draw_skeleton(const DLayout *dlayout, const DColors *colors, DCtx *ctx)
 {
+    cassert_no_null(dlayout);
     cassert_no_null(colors);
     draw_line_color(ctx, colors->main);
-    draw_fill_color(ctx, colors->panel);
-    draw_r2df(ctx, ekFILLSK, &dlayout->rect);
-    i_draw_grid(ctx, colors, &dlayout->rect);
-    i_draw_frame(ctx, default_font, colors, form_name, &dlayout->rect);
-    draw_fill_color(ctx, colors->main);
-    i_draw_layout(dlayout, flayout, glayout, hover, sel, swidget, default_font, colors, ctx);
+    draw_r2df(ctx, ekSTROKE, &dlayout->rect);
+    arrst_foreach_const(cell, dlayout->cells, DCell)
+        draw_r2df(ctx, ekSTROKE, &cell->rect);
+        if (cell->sublayout != NULL)
+            i_draw_skeleton(cell->sublayout, colors, ctx);
+    arrst_end()
+}
+   
+/*---------------------------------------------------------------------------*/
+
+static DCell *i_sel_cell(const DSelect *sel)
+{
+    cassert_no_null(sel);
+    if (sel->dlayout == NULL)
+        return NULL;
+
+    if (sel->elem != ekLAYELEM_CELL && sel->elem != ekLAYELEM_LAYOUT)
+        return NULL;
+
+    {
+        uint32_t ncols = arrst_size(sel->dlayout->cols, DColumn);
+        uint32_t pos = sel->row * ncols + sel->col;
+        return arrst_get(sel->dlayout->cells, pos, DCell);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_draw_shading(const DSelect *sel, const DColors *colors, DCtx *ctx)
+{
+    cassert_no_null(sel);
+    cassert_no_null(colors);
+    if (sel->dlayout != NULL)
+    {
+        const DCell *selcell = i_sel_cell(sel);
+        arrst_foreach_const(cell, sel->dlayout->cells, DCell)
+            if (cell == selcell)
+                draw_fill_color(ctx, colors->cellhot);
+            else
+                draw_fill_color(ctx, colors->cell);
+            draw_r2df(ctx, ekFILL, &cell->rect);
+        arrst_end()
+
+        /* Selected border */
+        draw_fill_color(ctx, colors->cellhot);
+        switch (sel->elem)
+        {
+        case ekLAYELEM_MARGIN_LEFT:
+            draw_r2df(ctx, ekFILL, &sel->dlayout->rect_left);
+            break;
+        case ekLAYELEM_MARGIN_TOP:
+            draw_r2df(ctx, ekFILL, &sel->dlayout->rect_top);
+            break;
+        case ekLAYELEM_MARGIN_RIGHT:
+            draw_r2df(ctx, ekFILL, &sel->dlayout->rect_right);
+            break;
+        case ekLAYELEM_MARGIN_BOTTOM:
+            draw_r2df(ctx, ekFILL, &sel->dlayout->rect_bottom);
+            break;
+        case ekLAYELEM_MARGIN_COLUMN:
+        {
+            const DColumn *col = arrst_get_const(sel->dlayout->cols, sel->col, DColumn);
+            draw_r2df(ctx, ekFILL, &col->margin_rect);
+            break;
+        }
+        case ekLAYELEM_MARGIN_ROW:
+        {
+            const DRow *row = arrst_get_const(sel->dlayout->rows, sel->row, DRow);
+            draw_r2df(ctx, ekFILL, &row->margin_rect);
+            break;
+        }
+
+        case ekLAYELEM_CELL:
+        case ekLAYELEM_LAYOUT:
+            break;
+
+        default:
+            cassert_default(sel->elem);
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_draw_col_row(const DSelect *sel, const Font *font, const DColors *colors, DCtx *ctx)
+{
+    cassert_no_null(sel);
+    cassert_no_null(colors);
+    if (sel->dlayout != NULL && sel->elem != ekLAYELEM_CELL)
+    {
+        char_t text[64];
+        const real32_t offset = 10;
+        cassert_no_null(sel->dlayout);
+        draw_line_width(ctx, 2);
+        draw_font(ctx, font);
+
+        if (sel->col != UINT32_MAX)
+        {
+            const DColumn *col = arrst_get_const(sel->dlayout->cols, sel->col, DColumn);
+            R2Df rect = col->rect;
+            rect.pos.y -= offset / 2;
+            rect.size.height += offset;
+            draw_line_color(ctx, colors->col);
+            draw_text_color(ctx, colors->col);
+            draw_r2df(ctx, ekSTROKE, &rect);
+            bstd_sprintf(text, sizeof(text), "Col %d", sel->col);
+            draw_text_align(ctx, ekCENTER, ekBOTTOM);
+            draw_text(ctx, text, rect.pos.x + rect.size.width / 2, rect.pos.y);
+        }
+
+        if (sel->row != UINT32_MAX)
+        {
+            const DRow *row = arrst_get_const(sel->dlayout->rows, sel->row, DRow);
+            R2Df rect = row->rect;
+            rect.pos.x -= offset / 2;
+            rect.size.width += offset;
+            draw_line_color(ctx, colors->row);
+            draw_text_color(ctx, colors->row);
+            draw_r2df(ctx, ekSTROKE, &rect);
+            bstd_sprintf(text, sizeof(text), "Row %d", sel->row);
+            draw_text_align(ctx, ekLEFT, ekCENTER);
+            draw_text(ctx, text, rect.pos.x + rect.size.width, rect.pos.y + rect.size.height / 2);
+        }
+        draw_line_width(ctx, 1);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_draw_cell_ids(const DSelect *sel, const Font *font, const DColors *colors, DCtx *ctx)
+{
+    cassert_no_null(sel);
+    cassert_no_null(colors);
+    if (sel->dlayout != NULL)
+    {
+        uint32_t i, ncols = arrst_size(sel->dlayout->cols, DColumn);
+        uint32_t j, nrows = arrst_size(sel->dlayout->rows, DRow);
+        const DCell *cell = arrst_all_const(sel->dlayout->cells, DCell);
+        draw_font(ctx, font);
+        draw_text_color(ctx, colors->main);
+        draw_text_align(ctx, ekLEFT, ekTOP);
+        for (j = 0; j < nrows; ++j)
+        {
+            for (i = 0; i < ncols; ++i, ++cell)
+            {
+                char_t text[64];
+                bstd_sprintf(text, sizeof(text), "(%d,%d)", i, j);
+                draw_text(ctx, text, cell->rect.pos.x, cell->rect.pos.y);
+            }
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Font *default_font, const Font *bold_font, const cmode_t cmode, const DColors *colors, const char_t *form_name, DCtx *ctx)
+{
+    cassert_no_null(colors);
+    cassert_no_null(dlayout);
+    switch (cmode)
+    {
+    case ekCMODE_DETAIL:
+        draw_line_color(ctx, colors->main);
+        draw_fill_color(ctx, colors->panel);
+        draw_r2df(ctx, ekFILLSK, &dlayout->rect);
+        i_draw_grid(ctx, colors, &dlayout->rect);
+        i_draw_frame(ctx, default_font, colors, form_name, &dlayout->rect);
+        i_draw_layout(dlayout, flayout, glayout, hover, sel, swidget, default_font, colors, ctx);
+        draw_fill_color(ctx, colors->main);
+        i_draw_bounds(sel, colors, ctx);
+        break;
+
+    case ekCMODE_SKELETON:
+        i_draw_shading(sel, colors, ctx);
+        i_draw_skeleton(dlayout, colors, ctx);
+        i_draw_col_row(sel, bold_font, colors, ctx);
+        draw_fill_color(ctx, colors->main);
+        i_draw_cell_ids(sel, default_font, colors, ctx);
+
+        if (hover->dlayout != NULL)
+        {
+            R2Df hrect = i_get_rect(hover->dlayout, hover);
+            draw_line_color(ctx, colors->select);
+            draw_line_width(ctx, 2);
+            draw_r2df(ctx, ekSTROKE, &hrect);
+            draw_line_width(ctx, 1);
+        }
+
+        i_draw_bounds(sel, colors, ctx);
+        break;
+
+    default:
+        cassert_default(cmode);
+    }
 }

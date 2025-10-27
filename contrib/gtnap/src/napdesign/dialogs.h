@@ -6,11 +6,19 @@ void dialog_dbind(void);
 
 void dialog_form_name_exists(Window *parent, const Font *font, const char_t *name);
 
+void dialog_no_remove_col(Window *parent, const Font *font, const char_t *layout_name);
+
+void dialog_no_remove_row(Window *parent, const Font *font, const char_t *layout_name);
+
 bool_t dialog_new_form(Window *parent, const Font *font, String **filename, String **desc);
 
 bool_t dialog_props_form(Window *parent, const Font *font, String **filename, String **desc);
 
 bool_t dialog_remove_form(Window *parent, const Font *font, const char_t *name);
+
+bool_t dialog_remove_col(Window *parent, const Font *font, const char_t *layout_name, const uint32_t col);
+
+bool_t dialog_remove_row(Window *parent, const Font *font, const char_t *layout_name, const uint32_t row);
 
 uint8_t dialog_unsaved_changes(Window *parent, const Font *font, const char_t *text);
 

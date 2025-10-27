@@ -79,6 +79,18 @@ static real32_t i_EMPTY_CELL_HEIGHT = 20;
 
 /*---------------------------------------------------------------------------*/
 
+static void i_cell_obj_name(DForm *form, FLayout *flayout, const uint32_t col, const uint32_t row)
+{
+    char_t name[64];
+    FCell *fcell = flayout_cell(flayout, col, row);
+    cassert_no_null(form);
+    bstd_sprintf(name, sizeof(name), "cell%d", form->cell_id);
+    str_upd(&fcell->name, name);
+    form->cell_id += 1;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_layout_obj_names(DForm *form, FLayout *flayout)
 {
     cassert_no_null(form);
@@ -94,16 +106,8 @@ static void i_layout_obj_names(DForm *form, FLayout *flayout)
         uint32_t i, ncols = flayout_ncols(flayout);
         uint32_t j, nrows = flayout_nrows(flayout);
         for (j = 0; j < nrows; ++j)
-        {
             for (i = 0; i < ncols; ++i)
-            {
-                char_t name[64];
-                FCell *fcell = flayout_cell(flayout, i, j);
-                bstd_sprintf(name, sizeof(name), "cell%d", form->cell_id);
-                str_upd(&fcell->name, name);
-                form->cell_id += 1;
-            }
-        }
+                i_cell_obj_name(form, flayout, i, j);
     }
 }
 
@@ -875,11 +879,121 @@ V2Df dform_get_origin(const DForm *form)
 
 /*---------------------------------------------------------------------------*/
 
+DSelect dform_get_sel(const DForm *form)
+{
+    cassert_no_null(form);
+    return form->sel;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dform_origin(DForm *form, const V2Df origin)
 {
     cassert_no_null(form);
     form->origin = origin;
     dlayout_synchro_visual(form->dlayout, form->glayout, form->origin);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dform_insert_col(DForm *form, const DSelect *sel, const uint32_t col_id)
+{
+    uint32_t i, n;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    flayout_insert_col(sel->flayout, col_id);
+    layout_insert_col(sel->glayout, col_id);
+    dlayout_insert_col(sel->dlayout, col_id);
+
+    n = layout_nrows(sel->glayout);
+    cassert(n == flayout_nrows(sel->flayout));
+    cassert(n == dlayout_nrows(sel->dlayout));
+    for (i = 0; i < n; ++i)
+    {
+        Cell *cell = layout_cell(sel->glayout, col_id, i);
+        cell_force_size(cell, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
+        i_cell_obj_name(form, sel->flayout, col_id, i);
+    }
+
+    dform_compose(form);
+    i_need_save(form);
+    form->sel = *sel;
+    form->sel.col = col_id;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dform_insert_row(DForm *form, const DSelect *sel, const uint32_t row_id)
+{
+    uint32_t i, n;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    flayout_insert_row(sel->flayout, row_id);
+    layout_insert_row(sel->glayout, row_id);
+    dlayout_insert_row(sel->dlayout, row_id);
+
+    n = layout_ncols(sel->glayout);
+    cassert(n == flayout_ncols(sel->flayout));
+    cassert(n == dlayout_ncols(sel->dlayout));
+    for (i = 0; i < n; ++i)
+    {
+        Cell *cell = layout_cell(sel->glayout, i, row_id);
+        cell_force_size(cell, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
+        i_cell_obj_name(form, sel->flayout, i, row_id);
+    }
+
+    dform_compose(form);
+    i_need_save(form);
+    form->sel = *sel;
+    form->sel.row = row_id;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dform_remove_col(DForm *form, const DSelect *sel, const uint32_t col_id)
+{
+    uint32_t n, col = col_id;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    flayout_remove_col(sel->flayout, col_id);
+    layout_remove_col(sel->glayout, col_id);
+    dlayout_remove_col(sel->dlayout, col_id);
+    n = layout_ncols(sel->glayout);
+    cassert(n == flayout_ncols(sel->flayout));
+    cassert(n == dlayout_ncols(sel->dlayout));
+    cassert(n > 0);
+
+    if (col_id == n)
+        col = col_id - 1;
+
+    dform_compose(form);
+    i_need_save(form);
+    form->sel = *sel;
+    form->sel.col = col;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dform_remove_row(DForm *form, const DSelect *sel, const uint32_t row_id)
+{
+    uint32_t n, row = row_id;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    flayout_remove_row(sel->flayout, row_id);
+    layout_remove_row(sel->glayout, row_id);
+    dlayout_remove_row(sel->dlayout, row_id);
+    n = layout_nrows(sel->glayout);
+    cassert(n == flayout_nrows(sel->flayout));
+    cassert(n == dlayout_nrows(sel->dlayout));
+    cassert(n > 0);
+
+    if (row_id == n)
+        row = row_id - 1;
+
+    dform_compose(form);
+    i_need_save(form);
+    form->sel = *sel;
+    form->sel.row = row;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1247,11 +1361,11 @@ FCell *dform_sel_fcell(const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-void dform_draw(const DForm *form, const widget_t swidget, const Font *default_font, const DColors *colors, const char_t *form_name, DCtx *ctx)
+void dform_draw(const DForm *form, const widget_t swidget, const Font *default_font, const Font *bold_font, const cmode_t cmode, const DColors *colors, const char_t *form_name, DCtx *ctx)
 {
     cassert_no_null(form);
     cassert_no_null(form->fform);
-    dlayout_draw(form->dlayout, form->fform->layout, form->glayout, &form->hover, &form->sel, swidget, default_font, colors, form_name, ctx);
+    dlayout_draw(form->dlayout, form->fform->layout, form->glayout, &form->hover, &form->sel, swidget, default_font, bold_font, cmode, colors, form_name, ctx);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1360,7 +1474,7 @@ const Image *dform_cell_icon(const celltype_t type)
     case ekCELL_TYPE_TABLEVIEW:
         return gui_image(TABLEVIEW16_PNG);
     case ekCELL_TYPE_LAYOUT:
-        return gui_image(GLAYOUT16_PNG);
+        return gui_image(LCELL16_PNG);
     default:
         cassert_default(type);
     }
@@ -1389,7 +1503,9 @@ const char_t *dform_selpath_caption(const DForm *form, const uint32_t col, const
         }
         else
         {
-            if (arrst_size(sel->flayout->cols, FColumn) == 1)
+            if (arrst_size(sel->flayout->cols, FColumn) == 1 && arrst_size(sel->flayout->rows, FRow) == 1)
+                return gui_text(TEXT_SINGLE_LAYOUT);
+            else if (arrst_size(sel->flayout->cols, FColumn) == 1)
                 return gui_text(TEXT_VERT_LAYOUT);
             else if (arrst_size(sel->flayout->rows, FRow) == 1)
                 return gui_text(TEXT_HORZ_LAYOUT);
@@ -1430,7 +1546,9 @@ const Image *dform_selpath_icon(const DForm *form, const uint32_t col, const uin
         /* Even rows == layout */
         if (row % 2 == 0)
         {
-            if (arrst_size(sel->flayout->cols, FColumn) == 1)
+            if (arrst_size(sel->flayout->cols, FColumn) == 1 && arrst_size(sel->flayout->rows, FRow) == 1)
+                return gui_image(SLAYOUT16_PNG);
+            else if (arrst_size(sel->flayout->cols, FColumn) == 1)
                 return gui_image(VLAYOUT16_PNG);
             else if (arrst_size(sel->flayout->rows, FRow) == 1)
                 return gui_image(HLAYOUT16_PNG);
@@ -1453,21 +1571,42 @@ const Image *dform_selpath_icon(const DForm *form, const uint32_t col, const uin
 void dform_inspect_select(DForm *form, Panel *propedit, const uint32_t row)
 {
     const DSelect *sel = NULL;
+    bool_t laysel = FALSE;
+    uint32_t i = row / 2;
+    uint32_t n;
     cassert_no_null(form);
-    sel = arrst_get_const(form->sel_path, row / 2, DSelect);
+    sel = arrst_get_const(form->sel_path, i, DSelect);
+    n = arrst_size(form->sel_path, DSelect);
+
+    {
+        const DSelect *lsel = arrst_last_const(form->sel_path, DSelect);
+        cassert_no_null(lsel);
+        laysel = lsel->elem != ekLAYELEM_CELL;
+    }
 
     /* Even rows == layout */
     if (row % 2 == 0)
     {
-        DSelect propsel;
-        propsel.dlayout = sel->dlayout;
-        propsel.flayout = sel->flayout;
-        propsel.glayout = sel->glayout;
-        propsel.elem = ekLAYELEM_MARGIN_LEFT;
-        propsel.col = UINT32_MAX;
-        propsel.row = UINT32_MAX;
-        form->sel = propsel;
-        propedit_set(propedit, form, &propsel);
+        /* This layout has a cell below */
+        if (laysel == FALSE || i < n - 1)
+        {
+            DSelect propsel;
+            propsel.dlayout = sel->dlayout;
+            propsel.flayout = sel->flayout;
+            propsel.glayout = sel->glayout;
+            propsel.elem = ekLAYELEM_LAYOUT;
+            propsel.col = sel->col;
+            propsel.row = sel->row;
+            form->sel = propsel;
+            propedit_set(propedit, form, &propsel);
+        }
+        else
+        {
+            /* This layout is the final leaf in object inspector */
+            cassert(sel->elem != ekLAYELEM_CELL);
+            form->sel = *sel;
+            propedit_set(propedit, form, sel);
+        }
     }
     /* Odd rows == cell */
     else
@@ -1496,6 +1635,15 @@ static void i_center_window(const Window *parent, Window *window)
 void dform_set_need_save(DForm *form)
 {
     i_need_save(form);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dform_update_sel(DForm *form, const DSelect *sel)
+{
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    form->sel = *sel;
 }
 
 /*---------------------------------------------------------------------------*/
