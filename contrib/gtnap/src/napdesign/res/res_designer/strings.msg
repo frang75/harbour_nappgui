@@ -155,6 +155,7 @@ TOOLBAR_NEW         Add new form
 TOOLBAR_NEW_FORM    New form
 TOOLBAR_PROPS       Form properties
 TOOLBAR_SIMULATE    Simulate current form
+TOOLBAR_LSKEL       Layout design view
 TOOLBAR_REMOVE      Remove current form
 TEXT_QUIT           Quit
 TEXT_OPEN_CAPTION   Select the form folder you want to work with.
