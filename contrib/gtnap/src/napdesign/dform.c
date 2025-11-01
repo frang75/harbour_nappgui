@@ -1648,12 +1648,15 @@ void dform_update_sel(DForm *form, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-void dform_simulate(DForm *form, Window *window)
+void dform_simulate(DForm *form, const char_t *form_name, Window *window)
 {
     cassert_no_null(form);
     if (form->window != NULL)
     {
+        String *name = str_printf("%s - %s", gui_text(TEXT_FORM), form_name);
         i_center_window(window, form->window);
+        window_title(form->window, tc(name));
         window_modal(form->window, window);
+        str_destroy(&name);
     }
 }

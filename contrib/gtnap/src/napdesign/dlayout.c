@@ -912,7 +912,6 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
             {
                 const Label *glabel = cell_label(gcell);
                 const Font *gfont = label_get_font(glabel);
-                real32_t origin_x = 0;
                 draw_font(ctx, gfont);
                 draw_fill_color(ctx, colors->back);
                 draw_text_color(ctx, wcolor);
@@ -929,7 +928,6 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                     draw_text_halign(ctx, ekCENTER);
                     break;
                 case ekHALIGN_RIGHT:
-                    origin_x = -dcell->content_rect.size.width;
                     draw_text_halign(ctx, ekRIGHT);
                     break;
                 default:
@@ -937,15 +935,11 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                 }
 
                 if (fcell->widget.label->multiline == TRUE)
-                {
-                    draw_text(ctx, tc(fcell->widget.label->text), origin_x + dcell->content_rect.pos.x, dcell->content_rect.pos.y);
-                }
+                    draw_text_trim(ctx, ekELLIPMLINE);
                 else
-                {
-                    /* TODO: Clipping */
-                    drawctrl_text(ctx, tc(fcell->widget.label->text), (int32_t)dcell->content_rect.pos.x, (int32_t)dcell->content_rect.pos.y, ekCTRL_STATE_NORMAL);
-                }
+                    draw_text_trim(ctx, ekELLIPEND);
 
+                drawctrl_text(ctx, tc(fcell->widget.label->text), (int32_t)dcell->content_rect.pos.x, (int32_t)dcell->content_rect.pos.y, ekCTRL_STATE_NORMAL);
                 draw_text_width(ctx, -1);
                 draw_text_halign(ctx, ekLEFT);
                 break;
@@ -966,8 +960,10 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                 draw_line_width(ctx, 1);
                 draw_line_color(ctx, colors->main);
                 font_extents(gfont, tc(fcell->widget.button->text), -1.f, &twidth, &theight);
-                tx = dcell->content_rect.pos.x + ((dcell->content_rect.size.width - twidth) / 2);
+                tx = dcell->content_rect.pos.x;
                 ty = dcell->content_rect.pos.y + ((dcell->content_rect.size.height - theight) / 2);
+                draw_text_width(ctx, dcell->content_rect.size.width);
+                draw_text_halign(ctx, ekCENTER);
                 drawctrl_text(ctx, tc(fcell->widget.button->text), (int32_t)tx, (int32_t)ty, ekCTRL_STATE_NORMAL);
                 break;
             }
@@ -976,8 +972,8 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
             {
                 const Button *gcheck = cell_button(gcell);
                 const Font *gfont = button_get_font(gcheck);
-                real32_t cwidth = (real32_t)drawctrl_check_width(ctx) - 2;
-                real32_t cheight = (real32_t)drawctrl_check_height(ctx) - 2;
+                real32_t cwidth = (real32_t)drawctrl_check_width(ctx);
+                real32_t cheight = (real32_t)drawctrl_check_height(ctx);
                 real32_t twidth, theight;
                 real32_t tx;
                 draw_font(ctx, gfont);
@@ -985,10 +981,12 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                 draw_text_color(ctx, wcolor);
                 draw_fill_color(ctx, colors->back);
                 font_extents(gfont, tc(fcell->widget.check->text), -1.f, &twidth, &theight);
-                tx = dcell->content_rect.pos.x + (dcell->content_rect.size.width - twidth);
+                tx = dcell->content_rect.pos.x + cwidth + 2;
+                draw_text_width(ctx, dcell->content_rect.size.width - cwidth - 2);
+                draw_text_halign(ctx, ekLEFT);
                 draw_rect(ctx, ekFILL, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
                 drawctrl_text(ctx, tc(fcell->widget.check->text), (int32_t)tx, (int32_t)dcell->content_rect.pos.y, ekCTRL_STATE_NORMAL);
-                draw_rect(ctx, ekSTROKE, dcell->content_rect.pos.x, dcell->content_rect.pos.y, cwidth, cheight);
+                draw_rect(ctx, ekSTROKE, dcell->content_rect.pos.x, dcell->content_rect.pos.y + 1, cwidth - 2, cheight - 2);
                 draw_line_color(ctx, colors->main);
                 break;
             }
@@ -997,7 +995,8 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
             {
                 const Button *gradio = cell_button(gcell);
                 const Font *gfont = button_get_font(gradio);
-                real32_t cradio = (real32_t)drawctrl_check_width(ctx) * .5f;
+                real32_t cwidth = (real32_t)drawctrl_check_width(ctx);
+                real32_t cradio = cwidth / 2;
                 real32_t twidth, theight;
                 real32_t tx;
                 draw_font(ctx, gfont);
@@ -1005,7 +1004,9 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                 draw_text_color(ctx, wcolor);
                 draw_fill_color(ctx, colors->back);
                 font_extents(gfont, tc(fcell->widget.radio->text), -1.f, &twidth, &theight);
-                tx = dcell->content_rect.pos.x + (dcell->content_rect.size.width - twidth);
+                tx = dcell->content_rect.pos.x + cwidth + 2;
+                draw_text_width(ctx, dcell->content_rect.size.width - cwidth - 2);
+                draw_text_halign(ctx, ekLEFT);
                 draw_rect(ctx, ekFILL, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
                 drawctrl_text(ctx, tc(fcell->widget.radio->text), (int32_t)tx, (int32_t)dcell->content_rect.pos.y, ekCTRL_STATE_NORMAL);
                 draw_circle(ctx, ekSTROKE, dcell->content_rect.pos.x + cradio, dcell->content_rect.pos.y + cradio, cradio - 2);

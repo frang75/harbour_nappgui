@@ -399,7 +399,8 @@ static void i_OnSimulateClick(Designer *app, Event *e)
     if (app->config.sel_form != UINT32_MAX)
     {
         DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
-        dform_simulate(form, app->window);
+        const char_t *name = i_list_text(app->form_list, app->config.sel_form);
+        dform_simulate(form, name, app->window);
     }
 }
 
