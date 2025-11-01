@@ -367,7 +367,7 @@ static void i_OnOpenFormsClick(Designer *app, Event *e)
     if (can_open == TRUE)
     {
         const char_t *ftype = "..DIR..";
-        const char_t *folder = comwin_open_file(app->window, &ftype, 1, gui_text(TEXT_OPEN_CAPTION), tc(app->config.folder_path));
+        const char_t *folder = comwin_open_file(app->window, gui_text(TEXT_OPEN_CAPTION), &ftype, 1, tc(app->config.folder_path));
         if (folder != NULL)
             i_init_forms(app, folder);
     }
