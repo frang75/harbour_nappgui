@@ -872,6 +872,7 @@ static void i_draw_frame(DCtx *ctx, const Font *font, const DColors *colors, con
         draw_image(ctx, colors->nap_icon, xpos, ypos);
         draw_text_width(ctx, rect->size.width - (real32_t)iwidth - 5);
         draw_font(ctx, font);
+        draw_text_trim(ctx, ekELLIPEND);
         drawctrl_text(ctx, tc(name), (int32_t)(xpos + iwidth + 5), (int32_t)ypos, ekCTRL_STATE_NORMAL);
         str_destroy(&name);
     }

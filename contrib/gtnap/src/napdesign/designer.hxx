@@ -5,7 +5,7 @@
 #ifndef __DESIGNER_HXX__
 #define __DESIGNER_HXX__
 
-typedef struct _desiger_t Designer;
+typedef struct _designer_t Designer;
 typedef struct _dcolumn_t DColumn;
 typedef struct _drow_t DRow;
 typedef struct _dcell_t DCell;

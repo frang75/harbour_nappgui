@@ -54,7 +54,7 @@ struct _bwidget_t
     bool_t opened;
 };
 
-struct _desiger_t
+struct _designer_t
 {
     Window *window;
     Config config;
@@ -89,6 +89,7 @@ struct _desiger_t
     Font *default_font;
     Font *bold_font;
     bool_t dragging;
+    bool_t focus;
     V2Df drag_mouse;
     V2Df drag_form;
 };
@@ -982,6 +983,19 @@ static void i_OnDraw(Designer *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnOverlay(Designer *app, Event *e)
+{
+    const EvDraw *p = event_params(e, EvDraw);
+    cassert_no_null(app);
+    if (app->focus == TRUE)
+    {
+        draw_image_align(p->ctx, ekRIGHT, ekBOTTOM);
+        draw_image(p->ctx, gui_image(KEYBOARD_PNG), p->width - 5, p->height - 5);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnMove(Designer *app, Event *e)
 {
     cassert_no_null(app);
@@ -1059,6 +1073,36 @@ static void i_OnClick(Designer *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnKey(Designer *app, Event *e)
+{
+    const EvKey *p = event_params(e, EvKey);
+    cassert_no_null(app);
+    if (p->key == ekKEY_SUPR)
+    {
+        if (app->config.sel_form != UINT32_MAX)
+        {
+            DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
+            if (dform_OnSupr(form, app->inspect, app->propedit) == TRUE)
+                view_update(app->canvas);
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnFocus(Designer *app, Event *e)
+{
+    const bool_t *focus = event_params(e, bool_t);
+    cassert_no_null(app);
+    if (app->focus != *focus)
+    {
+        app->focus = *focus;
+        view_update(app->canvas);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnSize(Designer *app, Event *e)
 {
     unref(app);
@@ -1069,14 +1113,17 @@ static void i_OnSize(Designer *app, Event *e)
 
 static View *i_canvas_view(Designer *app)
 {
-    View *view = view_scroll();
+    View *view = view_custom(FALSE, TRUE);
     view_size(view, s2df(450, 200));
     view_OnDraw(view, listener(app, i_OnDraw, Designer));
+    view_OnOverlay(view, listener(app, i_OnOverlay, Designer));
     view_OnMove(view, listener(app, i_OnMove, Designer));
     view_OnDrag(view, listener(app, i_OnDrag, Designer));
     view_OnUp(view, listener(app, i_OnUp, Designer));
     view_OnExit(view, listener(app, i_OnExit, Designer));
     view_OnClick(view, listener(app, i_OnClick, Designer));
+    view_OnKeyDown(view, listener(app, i_OnKey, Designer));
+    view_OnFocus(view, listener(app, i_OnFocus, Designer));
     view_OnSize(view, listener(app, i_OnSize, Designer));
     app->canvas = view;
     return view;
@@ -1099,7 +1146,7 @@ static SplitView *i_middle_view(Designer *app)
     splitview_splitview(split1, split3);
     splitview_panel(split2, panel1);
     splitview_panel(split2, panel2);
-    splitview_view(split3, view, FALSE);
+    splitview_view(split3, view, TRUE);
     splitview_splitview(split3, split4);
     splitview_panel(split4, panel3);
     splitview_panel(split4, panel4);
@@ -1180,23 +1227,6 @@ static Panel *i_panel(Designer *app)
     Layout *layout = i_main_layout(app);
     panel_layout(panel, layout);
     return panel;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_OnHotKey(Designer *app, Event *e)
-{
-    const EvKey *p = event_params(e, EvKey);
-    cassert_no_null(app);
-    if (p->key == ekKEY_SUPR)
-    {
-        if (app->config.sel_form != UINT32_MAX)
-        {
-            DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
-            if (dform_OnSupr(form, app->inspect, app->propedit) == TRUE)
-                view_update(app->canvas);
-        }
-    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1767,7 +1797,7 @@ static Designer *i_create(void)
     window_panel(app->window, panel);
     window_title(app->window, gui_text(TEXT_APP_TITLE));
     window_OnClose(app->window, listener(app, i_OnWindowClose, Designer));
-    window_hotkey(app->window, ekKEY_SUPR, 0, listener(app, i_OnHotKey, Designer));
+    //window_hotkey(app->window, ekKEY_SUPR, 0, listener(app, i_OnHotKey, Designer));
     i_apply_config(app);
     window_show(app->window);
     osapp_menubar(app->menu, app->window);
