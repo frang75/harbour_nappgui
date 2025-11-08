@@ -829,10 +829,13 @@ bool_t dform_OnExit(DForm *form)
 
 static const DSelect *i_parent_sel(const ArrSt(DSelect) *path, const DSelect *sel)
 {
+    cassert_no_null(sel);
     arrst_foreach_const(nsel, path, DSelect)
-        if (i_sel_equ(nsel, sel) == TRUE)
+        if (nsel->dlayout == sel->dlayout)
+        {
             if (nsel_i > 0)
                 return nsel - 1;
+        }
     arrst_end()
     return NULL;
 }
@@ -937,12 +940,23 @@ static DCell *i_right_cell(const ArrSt(DSelect) *path, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+static DCell *i_first_cell(DLayout *dlayout)
+{
+    DCell *cell = dlayout_cell(dlayout, 0, 0);
+    while (cell->sublayout != NULL)
+        cell = dlayout_cell(cell->sublayout, 0, 0);
+    return cell;
+}
+
+/*---------------------------------------------------------------------------*/
+
 bool_t dform_OnCursorNav(DForm *form, const vkey_t key, Panel *inspect, Panel *propedit)
 {
+    const DCell *dcell = NULL;
     cassert_no_null(form);
+
     if (form->sel.elem == ekLAYELEM_CELL)
     {
-        const DCell *dcell = NULL;
         if (key == ekKEY_UP)
             dcell = i_up_cell(form->sel_path, &form->sel);
         else if (key == ekKEY_DOWN)
@@ -951,20 +965,28 @@ bool_t dform_OnCursorNav(DForm *form, const vkey_t key, Panel *inspect, Panel *p
             dcell = i_left_cell(form->sel_path, &form->sel);
         else if (key == ekKEY_RIGHT)
             dcell = i_right_cell(form->sel_path, &form->sel);
+    }
+    else
+    {
+        dcell = i_first_cell(form->dlayout);
+    }
 
-        if (dcell != NULL)
+    if (dcell != NULL)
+    {
+        DCell *ccell = NULL;
+        
+        if (form->sel.elem == ekLAYELEM_CELL)
+            ccell = dlayout_cell(form->sel.dlayout, form->sel.col, form->sel.row);
+
+        if (dcell != ccell)
         {
-            DCell *ccell = dlayout_cell(form->sel.dlayout, form->sel.col, form->sel.row);
-            if (dcell != ccell)
-            {
-                /* We reuse the click process to create the selection path and update property editor / inspector */
-                DSelect sel;
-                i_elem_at_mouse(form->dlayout, form->fform->layout, form->glayout, dcell->rect.pos.x + 1, dcell->rect.pos.y + 1, form->sel_path, &sel);
-                inspect_set(inspect, form);
-                propedit_set(propedit, form, &sel);
-                form->sel = sel;
-                return TRUE;
-            }
+            /* We reuse the click process to create the selection path and update property editor / inspector */
+            DSelect sel;
+            i_elem_at_mouse(form->dlayout, form->fform->layout, form->glayout, dcell->rect.pos.x + 1, dcell->rect.pos.y + 1, form->sel_path, &sel);
+            inspect_set(inspect, form);
+            propedit_set(propedit, form, &sel);
+            form->sel = sel;
+            return TRUE;
         }
     }
 
