@@ -827,6 +827,152 @@ bool_t dform_OnExit(DForm *form)
 
 /*---------------------------------------------------------------------------*/
 
+static const DSelect *i_parent_sel(const ArrSt(DSelect) *path, const DSelect *sel)
+{
+    arrst_foreach_const(nsel, path, DSelect)
+        if (i_sel_equ(nsel, sel) == TRUE)
+            if (nsel_i > 0)
+                return nsel - 1;
+    arrst_end()
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static DCell *i_up_cell(const ArrSt(DSelect) *path, const DSelect *sel)
+{
+    cassert_no_null(sel);
+    cassert(sel->elem == ekLAYELEM_CELL);
+    while (sel != NULL)
+    {
+        if (sel->row > 0)
+        {
+            DCell *cell = dlayout_cell(sel->dlayout, sel->col, sel->row - 1);
+            while (cell->sublayout != NULL)
+            {
+                uint32_t n = dlayout_nrows(cell->sublayout);
+                cell = dlayout_cell(cell->sublayout, 0, n - 1);
+            }
+
+            return cell;
+        }
+
+        sel = i_parent_sel(path, sel);
+    }
+
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static DCell *i_down_cell(const ArrSt(DSelect) *path, const DSelect *sel)
+{
+    cassert_no_null(sel);
+    cassert(sel->elem == ekLAYELEM_CELL);
+    while (sel != NULL)
+    {
+        uint32_t n = dlayout_nrows(sel->dlayout);
+        if (sel->row < n - 1)
+        {
+            DCell *cell = dlayout_cell(sel->dlayout, sel->col, sel->row + 1);
+            while (cell->sublayout != NULL)
+                cell = dlayout_cell(cell->sublayout, 0, 0);
+            return cell;
+        }
+
+        sel = i_parent_sel(path, sel);
+    }
+
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static DCell *i_left_cell(const ArrSt(DSelect) *path, const DSelect *sel)
+{
+    cassert_no_null(sel);
+    cassert(sel->elem == ekLAYELEM_CELL);
+    while (sel != NULL)
+    {
+        if (sel->col > 0)
+        {
+            DCell *cell = dlayout_cell(sel->dlayout, sel->col - 1, sel->row);
+            while (cell->sublayout != NULL)
+            {
+                uint32_t n = dlayout_ncols(cell->sublayout);
+                cell = dlayout_cell(cell->sublayout, n - 1, 0);
+            }
+
+            return cell;
+        }
+
+        sel = i_parent_sel(path, sel);
+    }
+
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static DCell *i_right_cell(const ArrSt(DSelect) *path, const DSelect *sel)
+{
+    cassert_no_null(sel);
+    cassert(sel->elem == ekLAYELEM_CELL);
+    while (sel != NULL)
+    {
+        uint32_t n = dlayout_ncols(sel->dlayout);
+        if (sel->col < n - 1)
+        {
+            DCell *cell = dlayout_cell(sel->dlayout, sel->col + 1, sel->row);
+            while (cell->sublayout != NULL)
+                cell = dlayout_cell(cell->sublayout, 0, 0);
+            return cell;
+        }
+
+        sel = i_parent_sel(path, sel);
+    }
+
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t dform_OnCursorNav(DForm *form, const vkey_t key, Panel *inspect, Panel *propedit)
+{
+    cassert_no_null(form);
+    if (form->sel.elem == ekLAYELEM_CELL)
+    {
+        const DCell *dcell = NULL;
+        if (key == ekKEY_UP)
+            dcell = i_up_cell(form->sel_path, &form->sel);
+        else if (key == ekKEY_DOWN)
+            dcell = i_down_cell(form->sel_path, &form->sel);
+        else if (key == ekKEY_LEFT)
+            dcell = i_left_cell(form->sel_path, &form->sel);
+        else if (key == ekKEY_RIGHT)
+            dcell = i_right_cell(form->sel_path, &form->sel);
+
+        if (dcell != NULL)
+        {
+            DCell *ccell = dlayout_cell(form->sel.dlayout, form->sel.col, form->sel.row);
+            if (dcell != ccell)
+            {
+                /* We reuse the click process to create the selection path and update property editor / inspector */
+                DSelect sel;
+                i_elem_at_mouse(form->dlayout, form->fform->layout, form->glayout, dcell->rect.pos.x + 1, dcell->rect.pos.y + 1, form->sel_path, &sel);
+                inspect_set(inspect, form);
+                propedit_set(propedit, form, &sel);
+                form->sel = sel;
+                return TRUE;
+            }
+        }
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 bool_t dform_OnSupr(DForm *form, Panel *inspect, Panel *propedit)
 {
     cassert_no_null(form);
@@ -857,6 +1003,7 @@ bool_t dform_OnSupr(DForm *form, Panel *inspect, Panel *propedit)
                 cell_force_size(cell, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
                 i_sel_synchro_cell(&form->sel);
                 dform_compose(form);
+                dform_need_save(form);
                 propedit_set(propedit, form, &form->sel);
                 inspect_set(inspect, form);
             }
@@ -1361,11 +1508,11 @@ FCell *dform_sel_fcell(const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-void dform_draw(const DForm *form, const widget_t swidget, const Font *default_font, const Font *bold_font, const cmode_t cmode, const DColors *colors, const char_t *form_name, DCtx *ctx)
+void dform_draw(const DForm *form, const widget_t swidget, const Font *default_font, const Font *bold_font, const cmode_t cmode, const DColors *colors, const char_t *form_name, const bool_t focus, DCtx *ctx)
 {
     cassert_no_null(form);
     cassert_no_null(form->fform);
-    dlayout_draw(form->dlayout, form->fform->layout, form->glayout, &form->hover, &form->sel, swidget, default_font, bold_font, cmode, colors, form_name, ctx);
+    dlayout_draw(form->dlayout, form->fform->layout, form->glayout, &form->hover, &form->sel, swidget, default_font, bold_font, cmode, colors, form_name, focus, ctx);
 }
 
 /*---------------------------------------------------------------------------*/

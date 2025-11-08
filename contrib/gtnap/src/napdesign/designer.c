@@ -977,7 +977,7 @@ static void i_OnDraw(Designer *app, Event *e)
     {
         DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
         const char_t *name = i_list_text(app->form_list, app->config.sel_form);
-        dform_draw(form, app->config.swidget, app->default_font, app->bold_font, app->cmode, &i_COLORS, name, p->ctx);
+        dform_draw(form, app->config.swidget, app->default_font, app->bold_font, app->cmode, &i_COLORS, name, app->focus, p->ctx);
     }
 }
 
@@ -1077,14 +1077,17 @@ static void i_OnKey(Designer *app, Event *e)
 {
     const EvKey *p = event_params(e, EvKey);
     cassert_no_null(app);
-    if (p->key == ekKEY_SUPR)
+    if (app->config.sel_form != UINT32_MAX)
     {
-        if (app->config.sel_form != UINT32_MAX)
-        {
-            DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
-            if (dform_OnSupr(form, app->inspect, app->propedit) == TRUE)
-                view_update(app->canvas);
-        }
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
+        bool_t update = FALSE;
+        if (p->key == ekKEY_SUPR)
+            update = dform_OnSupr(form, app->inspect, app->propedit);
+        else if (p->key == ekKEY_UP || p->key == ekKEY_DOWN || p->key == ekKEY_LEFT || p->key == ekKEY_RIGHT)
+            update = dform_OnCursorNav(form, p->key, app->inspect, app->propedit);
+
+        if (update == TRUE)
+            view_update(app->canvas);
     }
 }
 

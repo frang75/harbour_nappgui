@@ -143,6 +143,25 @@ DLayout *dlayout_from_flayout(const FLayout *flayout, const char_t *resource_pat
 
 /*---------------------------------------------------------------------------*/
 
+static ___INLINE DCell *i_cell(DLayout *layout, const uint32_t col, const uint32_t row)
+{
+    uint32_t ncols = UINT32_MAX;
+    uint32_t pos = UINT32_MAX;
+    cassert_no_null(layout);
+    ncols = arrst_size(layout->cols, DColumn);
+    pos = row * ncols + col;
+    return arrst_get(layout->cells, pos, DCell);
+}
+
+/*---------------------------------------------------------------------------*/
+
+DCell *dlayout_cell(DLayout *layout, const uint32_t col, const uint32_t row)
+{
+    return i_cell(layout, col, row);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dlayout_destroy(DLayout **layout)
 {
     cassert_no_null(layout);
@@ -248,18 +267,6 @@ void dlayout_remove_row(DLayout *layout, const uint32_t row)
 
     /* Destroy the row */
     arrst_delete(layout->rows, row, NULL, DRow);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static ___INLINE DCell *i_cell(DLayout *layout, const uint32_t col, const uint32_t row)
-{
-    uint32_t ncols = UINT32_MAX;
-    uint32_t pos = UINT32_MAX;
-    cassert_no_null(layout);
-    ncols = arrst_size(layout->cols, DColumn);
-    pos = row * ncols + col;
-    return arrst_get(layout->cells, pos, DCell);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1584,7 +1591,7 @@ static void i_draw_cell_ids(const DSelect *sel, const Font *font, const DColors 
 
 /*---------------------------------------------------------------------------*/
 
-void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Font *default_font, const Font *bold_font, const cmode_t cmode, const DColors *colors, const char_t *form_name, DCtx *ctx)
+void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Font *default_font, const Font *bold_font, const cmode_t cmode, const DColors *colors, const char_t *form_name, const bool_t focus, DCtx *ctx)
 {
     cassert_no_null(colors);
     cassert_no_null(dlayout);
@@ -1597,7 +1604,7 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
         i_draw_grid(ctx, colors, &dlayout->rect);
         i_draw_frame(ctx, default_font, colors, form_name, &dlayout->rect);
         i_draw_layout(dlayout, flayout, glayout, hover, sel, swidget, default_font, colors, ctx);
-        draw_fill_color(ctx, colors->main);
+        draw_fill_color(ctx, (focus == TRUE) ? colors->select : colors->main);
         i_draw_bounds(sel, colors, ctx);
         break;
 
@@ -1617,6 +1624,7 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
             draw_line_width(ctx, 1);
         }
 
+        draw_fill_color(ctx, (focus == TRUE) ? colors->select : colors->main);
         i_draw_bounds(sel, colors, ctx);
         break;
 
