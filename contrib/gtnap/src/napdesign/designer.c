@@ -605,8 +605,16 @@ static void i_OnRemoveClick(Designer *app, Event *e)
 
 static void i_OnCutClick(Designer *app, Event *e)
 {
-    unref(app);
+    cassert_no_null(app);
     unref(e);
+    if (app->config.sel_form != UINT32_MAX)
+    {
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
+        bool_t ok = dform_OnCopy(form, &app->clipboard);
+        cassert_unref(ok == TRUE, ok);
+        ok = dform_OnSupr(form, app->inspect, app->propedit);
+        cassert_unref(ok == TRUE, ok);
+    }
 }
 
 /*---------------------------------------------------------------------------*/

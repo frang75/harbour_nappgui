@@ -997,12 +997,22 @@ bool_t dform_OnCursorNav(DForm *form, const vkey_t key, Panel *inspect, Panel *p
 
 bool_t dform_OnSupr(DForm *form, Panel *inspect, Panel *propedit)
 {
+    const DSelect *sel = NULL;
     cassert_no_null(form);
-    if (form->sel.dlayout != NULL && form->sel.elem == ekLAYELEM_CELL)
+    if (form->sel.dlayout != NULL)
     {
-        cassert_no_null(form->sel.flayout);
-        cassert_no_null(form->sel.glayout);
-        if (i_sel_empty_cell(&form->sel) == FALSE)
+        if (form->sel.elem == ekLAYELEM_CELL)
+            sel = &form->sel;
+        else
+            sel = i_parent_sel(form->sel_path, &form->sel);
+    }
+
+    if (sel != NULL)
+    {
+        cassert(sel->elem == ekLAYELEM_CELL);
+        cassert_no_null(sel->flayout);
+        cassert_no_null(sel->glayout);
+        if (i_sel_empty_cell(sel) == FALSE)
         {
             /* Remove all inspector path steps after deleted cell */
             {
@@ -1010,7 +1020,7 @@ bool_t dform_OnSupr(DForm *form, Panel *inspect, Panel *propedit)
                 while (n > 0)
                 {
                     const DSelect *last = arrst_last_const(form->sel_path, DSelect);
-                    if (i_sel_equ(&form->sel, last) == TRUE)
+                    if (i_sel_equ(sel, last) == TRUE)
                         break;
 
                     arrst_delete(form->sel_path, n - 1, NULL, DSelect);
@@ -1020,13 +1030,13 @@ bool_t dform_OnSupr(DForm *form, Panel *inspect, Panel *propedit)
 
             /* Remove the cell itself */
             {
-                Cell *cell = layout_cell(form->sel.glayout, form->sel.col, form->sel.row);
-                i_sel_remove_cell(&form->sel);
+                Cell *cell = layout_cell(sel->glayout, sel->col, sel->row);
+                i_sel_remove_cell(sel);
                 cell_force_size(cell, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
-                i_sel_synchro_cell(&form->sel);
+                i_sel_synchro_cell(sel);
                 dform_compose(form);
                 dform_need_save(form);
-                propedit_set(propedit, form, &form->sel);
+                propedit_set(propedit, form, sel);
                 inspect_set(inspect, form);
             }
 
