@@ -1040,6 +1040,32 @@ bool_t dform_OnSupr(DForm *form, Panel *inspect, Panel *propedit)
 
 /*---------------------------------------------------------------------------*/
 
+bool_t dform_OnCopy(DForm *form, DClipBoard *clipboard)
+{
+    cassert_no_null(form);
+    cassert_no_null(clipboard);
+    if (form->sel.elem == ekLAYELEM_CELL)
+    {
+        const FCell *cell = flayout_ccell(form->sel.flayout, form->sel.col, form->sel.row);
+        FCell *ccell = dbind_copy(cell, FCell);
+        cassert_no_null(ccell);
+        dbind_destopt(&clipboard->fcell, FCell);
+        dbind_destopt(&clipboard->flayout, FLayout);
+        clipboard->fcell = ccell;
+        return TRUE;
+    }
+    else
+    {
+        FLayout *clayout = dbind_copy(form->sel.flayout, FLayout);
+        dbind_destopt(&clipboard->fcell, FCell);
+        dbind_destopt(&clipboard->flayout, FLayout);
+        clipboard->flayout = clayout;
+        return TRUE;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 V2Df dform_get_origin(const DForm *form)
 {
     cassert_no_null(form);

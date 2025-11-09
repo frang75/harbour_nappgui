@@ -613,8 +613,14 @@ static void i_OnCutClick(Designer *app, Event *e)
 
 static void i_OnCopyClick(Designer *app, Event *e)
 {
-    unref(app);
+    cassert_no_null(app);
     unref(e);
+    if (app->config.sel_form != UINT32_MAX)
+    {
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
+        bool_t ok = dform_OnCopy(form, &app->clipboard);
+        cassert_unref(ok == TRUE, ok);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1885,6 +1891,8 @@ static void i_destroy(Designer **app)
     arrst_destroy(&(*app)->wdrawers, NULL, WDrawer);
     arrst_destroy(&(*app)->bwidgets, NULL, BWidget);
     arrpt_destroy(&(*app)->forms, i_destroy_form_opt, DForm);
+    dbind_destopt(&(*app)->clipboard.fcell, FCell);
+    dbind_destopt(&(*app)->clipboard.flayout, FLayout);
     menu_destroy(&(*app)->menu);
     window_destroy(&(*app)->window);
     nflib_finish();

@@ -30,6 +30,8 @@ bool_t dform_OnCursorNav(DForm *form, const vkey_t key, Panel *inspect, Panel *p
 
 bool_t dform_OnSupr(DForm *form, Panel *inspect, Panel *propedit);
 
+bool_t dform_OnCopy(DForm *form, DClipBoard *clipboard);
+
 V2Df dform_get_origin(const DForm *form);
 
 DSelect dform_get_sel(const DForm *form);
