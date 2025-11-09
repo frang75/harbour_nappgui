@@ -12,6 +12,7 @@ typedef struct _dcell_t DCell;
 typedef struct _dlayout_t DLayout;
 typedef struct _dform_t DForm;
 typedef struct _dselect_t DSelect;
+typedef struct _dclipboard_t DClipBoard;
 typedef struct _dcolors_t DColors;
 
 typedef enum _widget_t
@@ -134,6 +135,12 @@ struct _dselect_t
     layelem_t elem;
     uint32_t col;
     uint32_t row;
+};
+
+struct _dclipboard_t
+{
+    FCell *fcell;
+    FLayout *flayout;
 };
 
 struct _dcolors_t
