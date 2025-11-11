@@ -515,6 +515,40 @@ static void i_new_tool(FTool *ftool, const DSelect *sel, const char_t *folder_pa
 
 /*---------------------------------------------------------------------------*/
 
+static void i_new_popup(FPopUp *fpopup, const DSelect *sel, const char_t *folder_path, const DColors *colors)
+{
+    PopUp *popup = popup_create();
+    cassert_no_null(sel);
+    fpopup_synchro(fpopup, popup, folder_path);
+    dlayout_synchro_elems(sel->dlayout, sel->col, sel->row, fpopup->elems, folder_path, colors);
+    flayout_add_popup(sel->flayout, fpopup, sel->col, sel->row);
+    layout_popup(sel->glayout, popup, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_edit(FEdit *fedit, const DSelect *sel)
+{
+    Edit *edit = edit_create();
+    cassert_no_null(sel);
+    fedit_synchro(fedit, edit);
+    flayout_add_edit(sel->flayout, fedit, sel->col, sel->row);
+    layout_edit(sel->glayout, edit, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_combo(FCombo *fcombo, const DSelect *sel)
+{
+    Combo *combo = combo_create();
+    cassert_no_null(sel);
+    fcombo_synchro(fcombo, combo);
+    flayout_add_combo(sel->flayout, fcombo, sel->col, sel->row);
+    layout_combo(sel->glayout, combo, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
 bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedit, const Font *font, const widget_t widget, const real32_t mouse_x, const real32_t mouse_y, const gui_mouse_t mbutton)
 {
     cassert_no_null(form);
@@ -616,12 +650,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FPopUp *fpopup = dialog_new_popup(window, font, &sel);
                 if (fpopup != NULL)
                 {
-                    PopUp *popup = popup_create();
-                    fpopup_synchro(fpopup, popup, folder_path);
-                    dlayout_synchro_elems(sel.dlayout, sel.col, sel.row, fpopup->elems, folder_path, colors);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_popup(sel.flayout, fpopup, sel.col, sel.row);
-                    layout_popup(sel.glayout, popup, sel.col, sel.row);
+                    i_new_popup(fpopup, &sel, folder_path, colors);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -636,11 +665,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FEdit *fedit = dialog_new_edit(window, font, &sel);
                 if (fedit != NULL)
                 {
-                    Edit *edit = edit_create();
-                    fedit_synchro(fedit, edit);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_edit(sel.flayout, fedit, sel.col, sel.row);
-                    layout_edit(sel.glayout, edit, sel.col, sel.row);
+                    i_new_edit(fedit, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -655,11 +680,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FCombo *fcombo = dialog_new_combo(window, font, &sel);
                 if (fcombo != NULL)
                 {
-                    Combo *combo = combo_create();
-                    fcombo_synchro(fcombo, combo);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_combo(sel.flayout, fcombo, sel.col, sel.row);
-                    layout_combo(sel.glayout, combo, sel.col, sel.row);
+                    i_new_combo(fcombo, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -1177,18 +1198,35 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
                 i_new_tool(ftool, &form->sel, folder_path, colors);
                 break;
             }
-            
+
+            case ekCELL_TYPE_POPUP:
+            {
+                FPopUp *fpopup = dbind_copy(clipboard->fcell->widget.popup, FPopUp);
+                i_new_popup(fpopup, &form->sel, folder_path, colors);
+                break;
+            }
 
             case ekCELL_TYPE_EDIT:
+            {
+                FEdit *fedit = dbind_copy(clipboard->fcell->widget.edit, FEdit);
+                i_new_edit(fedit, &form->sel);
+                break;
+            }
+
+            case ekCELL_TYPE_COMBO:
+            {
+                FCombo *fcombo = dbind_copy(clipboard->fcell->widget.combo, FCombo);
+                i_new_combo(fcombo, &form->sel);
+                break;
+            }
+
             case ekCELL_TYPE_LAYOUT:
             case ekCELL_TYPE_TEXT:
             case ekCELL_TYPE_IMAGE:
             case ekCELL_TYPE_SLIDER:
             case ekCELL_TYPE_PROGRESS:
-            case ekCELL_TYPE_POPUP:
             case ekCELL_TYPE_LISTBOX:
             case ekCELL_TYPE_TABLEVIEW:
-            case ekCELL_TYPE_COMBO:
             case ekCELL_TYPE_VSLIDER:
             default:
                 cassert_default(clipboard->fcell->type);
