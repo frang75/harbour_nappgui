@@ -460,13 +460,59 @@ static void i_after_new_widget(DForm *form, Panel *inspect, Panel *propedit, DSe
 static void i_new_label(FLabel *flabel, const DSelect *sel)
 {
     Label *label = label_create();
-    cassert_no_null(label);
     cassert_no_null(sel);
     flabel_synchro(flabel, label);
     flayout_add_label(sel->flayout, flabel, sel->col, sel->row);
     layout_label(sel->glayout, label, sel->col, sel->row);
 }
-    
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_button(FButton *fbutton, const DSelect *sel)
+{
+    Button *button = button_push();
+    cassert_no_null(sel);
+    fbutton_synchro(fbutton, button);
+    flayout_add_button(sel->flayout, fbutton, sel->col, sel->row);
+    layout_button(sel->glayout, button, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_check(FCheck *fcheck, const DSelect *sel)
+{
+    Button *button = button_check();
+    cassert_no_null(sel);
+    fcheck_synchro(fcheck, button);
+    flayout_add_check(sel->flayout, fcheck, sel->col, sel->row);
+    layout_button(sel->glayout, button, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_radio(FRadio *fradio, const DSelect *sel)
+{
+    Button *button = button_radio();
+    cassert_no_null(sel);
+    fradio_synchro(fradio, button);
+    flayout_add_radio(sel->flayout, fradio, sel->col, sel->row);
+    layout_button(sel->glayout, button, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_tool(FTool *ftool, const DSelect *sel, const char_t *folder_path, const DColors *colors)
+{
+    Button *button = button_flat();
+    const Image *image = NULL;
+    cassert_no_null(sel);
+    ftool_synchro(ftool, button, folder_path);
+    flayout_add_tool(sel->flayout, ftool, sel->col, sel->row);
+    layout_button(sel->glayout, button, sel->col, sel->row);
+    image = button_get_image(button);
+    dlayout_set_image(sel->dlayout, image, sel->col, sel->row, colors);
+}
+
 /*---------------------------------------------------------------------------*/
 
 bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedit, const Font *font, const widget_t widget, const real32_t mouse_x, const real32_t mouse_y, const gui_mouse_t mbutton)
@@ -510,11 +556,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FButton *fbutton = dialog_new_button(window, font, &sel);
                 if (fbutton != NULL)
                 {
-                    Button *button = button_push();
-                    fbutton_synchro(fbutton, button);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_button(sel.flayout, fbutton, sel.col, sel.row);
-                    layout_button(sel.glayout, button, sel.col, sel.row);
+                    i_new_button(fbutton, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -529,11 +571,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FCheck *fcheck = dialog_new_check(window, font, &sel);
                 if (fcheck != NULL)
                 {
-                    Button *button = button_check();
-                    fcheck_synchro(fcheck, button);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_check(sel.flayout, fcheck, sel.col, sel.row);
-                    layout_button(sel.glayout, button, sel.col, sel.row);
+                    i_new_check(fcheck, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -548,11 +586,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FRadio *fradio = dialog_new_radio(window, font, &sel);
                 if (fradio != NULL)
                 {
-                    Button *button = button_radio();
-                    fradio_synchro(fradio, button);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_radio(sel.flayout, fradio, sel.col, sel.row);
-                    layout_button(sel.glayout, button, sel.col, sel.row);
+                    i_new_radio(fradio, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -567,14 +601,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FTool *ftool = dialog_new_tool(window, font, &sel, folder_path);
                 if (ftool != NULL)
                 {
-                    Button *button = button_flat();
-                    const Image *image = NULL;
-                    ftool_synchro(ftool, button, folder_path);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_tool(sel.flayout, ftool, sel.col, sel.row);
-                    layout_button(sel.glayout, button, sel.col, sel.row);
-                    image = button_get_image(button);
-                    dlayout_set_image(sel.dlayout, image, sel.col, sel.row, colors);
+                    i_new_tool(ftool, &sel, folder_path, colors);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -1108,6 +1135,9 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
     {
         if (clipboard->fcell != NULL)
         {
+            const char_t *folder_path = designer_folder_path(form->app);
+            const DColors *colors = designer_colors(form->app);
+
             switch (clipboard->fcell->type)
             {
             case ekCELL_TYPE_EMPTY:
@@ -1121,7 +1151,34 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
             }
 
             case ekCELL_TYPE_BUTTON:
+            {
+                FButton *fbutton = dbind_copy(clipboard->fcell->widget.button, FButton);
+                i_new_button(fbutton, &form->sel);
+                break;
+            }
+
             case ekCELL_TYPE_CHECK:
+            {
+                FCheck *fcheck = dbind_copy(clipboard->fcell->widget.check, FCheck);
+                i_new_check(fcheck, &form->sel);
+                break;
+            }
+
+            case ekCELL_TYPE_RADIO:
+            {
+                FRadio *fradio = dbind_copy(clipboard->fcell->widget.radio, FRadio);
+                i_new_radio(fradio, &form->sel);
+                break;
+            }
+
+            case ekCELL_TYPE_TOOL:
+            {
+                FTool *ftool = dbind_copy(clipboard->fcell->widget.tool, FTool);
+                i_new_tool(ftool, &form->sel, folder_path, colors);
+                break;
+            }
+            
+
             case ekCELL_TYPE_EDIT:
             case ekCELL_TYPE_LAYOUT:
             case ekCELL_TYPE_TEXT:
@@ -1131,8 +1188,6 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
             case ekCELL_TYPE_POPUP:
             case ekCELL_TYPE_LISTBOX:
             case ekCELL_TYPE_TABLEVIEW:
-            case ekCELL_TYPE_TOOL:
-            case ekCELL_TYPE_RADIO:
             case ekCELL_TYPE_COMBO:
             case ekCELL_TYPE_VSLIDER:
             default:
