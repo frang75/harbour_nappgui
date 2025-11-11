@@ -388,6 +388,20 @@ static void i_sel_remove_cell(const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_copy_cell_props(const FCell *fcell, const DSelect *sel)
+{
+    FCell *sfcell = NULL;
+    cassert_no_null(fcell);
+    cassert_no_null(sel);
+    sfcell = flayout_cell(sel->flayout, sel->col, sel->row);
+    cassert(sfcell->type == fcell->type);
+    str_upd(&sfcell->name, tc(fcell->name));
+    sfcell->halign = fcell->halign;
+    sfcell->valign = fcell->valign;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_sel_synchro_cell(const DSelect *sel)
 {
     const FCell *fcell = NULL;
@@ -440,6 +454,18 @@ static void i_after_new_widget(DForm *form, Panel *inspect, Panel *propedit, DSe
     form->sel = *sel;
     i_need_save(form);
 }
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_label(FLabel *flabel, const DSelect *sel)
+{
+    Label *label = label_create();
+    cassert_no_null(label);
+    cassert_no_null(sel);
+    flabel_synchro(flabel, label);
+    flayout_add_label(sel->flayout, flabel, sel->col, sel->row);
+    layout_label(sel->glayout, label, sel->col, sel->row);
+}
     
 /*---------------------------------------------------------------------------*/
 
@@ -458,6 +484,8 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
             const DColors *colors = designer_colors(form->app);
             cassert_no_null(form->dlayout);
 
+            i_sel_remove_cell(&sel);
+
             switch(widget) {
             case ekWIDGET_SELECT:
                 break;
@@ -467,11 +495,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FLabel *flabel = dialog_new_label(window, font, &sel);
                 if (flabel != NULL)
                 {
-                    Label *label = label_create();
-                    flabel_synchro(flabel, label);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_label(sel.flayout, flabel, sel.col, sel.row);
-                    layout_label(sel.glayout, label, sel.col, sel.row);
+                    i_new_label(flabel, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -1072,6 +1096,56 @@ bool_t dform_OnCopy(DForm *form, DClipBoard *clipboard)
         clipboard->flayout = clayout;
         return TRUE;
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, Panel *propedit)
+{
+    cassert_no_null(form);
+    cassert_no_null(clipboard);
+    if (i_sel_empty_cell(&form->sel) == TRUE)
+    {
+        if (clipboard->fcell != NULL)
+        {
+            switch (clipboard->fcell->type)
+            {
+            case ekCELL_TYPE_EMPTY:
+                break;
+
+            case ekCELL_TYPE_LABEL:
+            {
+                FLabel *flabel = dbind_copy(clipboard->fcell->widget.label, FLabel);
+                i_new_label(flabel, &form->sel);
+                break;
+            }
+
+            case ekCELL_TYPE_BUTTON:
+            case ekCELL_TYPE_CHECK:
+            case ekCELL_TYPE_EDIT:
+            case ekCELL_TYPE_LAYOUT:
+            case ekCELL_TYPE_TEXT:
+            case ekCELL_TYPE_IMAGE:
+            case ekCELL_TYPE_SLIDER:
+            case ekCELL_TYPE_PROGRESS:
+            case ekCELL_TYPE_POPUP:
+            case ekCELL_TYPE_LISTBOX:
+            case ekCELL_TYPE_TABLEVIEW:
+            case ekCELL_TYPE_TOOL:
+            case ekCELL_TYPE_RADIO:
+            case ekCELL_TYPE_COMBO:
+            case ekCELL_TYPE_VSLIDER:
+            default:
+                cassert_default(clipboard->fcell->type);
+            }
+
+            i_copy_cell_props(clipboard->fcell, &form->sel);
+            i_after_new_widget(form, inspect, propedit, &form->sel);
+            return TRUE;            
+        }
+    }
+
+    return FALSE;
 }
 
 /*---------------------------------------------------------------------------*/

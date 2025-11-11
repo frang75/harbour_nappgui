@@ -635,8 +635,14 @@ static void i_OnCopyClick(Designer *app, Event *e)
 
 static void i_OnPasteClick(Designer *app, Event *e)
 {
-    unref(app);
+    cassert_no_null(app);
     unref(e);
+    if (app->config.sel_form != UINT32_MAX)
+    {
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
+        bool_t ok = dform_OnPaste(form, &app->clipboard, app->inspect, app->propedit);
+        cassert_unref(ok == TRUE, ok);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
