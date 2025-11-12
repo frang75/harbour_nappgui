@@ -617,6 +617,17 @@ static void i_new_image(FImage *fimage, const DSelect *sel, const char_t *folder
 
 /*---------------------------------------------------------------------------*/
 
+static void i_new_table(FTable *ftable, const DSelect *sel)
+{
+    TableView *view = tableview_create();
+    cassert_no_null(sel);
+    ftable_synchro(ftable, view);
+    flayout_add_table(sel->flayout, ftable, sel->col, sel->row);
+    layout_tableview(sel->glayout, view, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
 bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedit, const Font *font, const widget_t widget, const real32_t mouse_x, const real32_t mouse_y, const gui_mouse_t mbutton)
 {
     cassert_no_null(form);
@@ -865,11 +876,8 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FTable *ftable = dialog_new_table(window, font, &sel);
                 if (ftable != NULL)
                 {
-                    TableView *view = tableview_create();
-                    ftable_synchro(ftable, view);
                     i_sel_remove_cell(&sel);
-                    flayout_add_table(sel.flayout, ftable, sel.col, sel.row);
-                    layout_tableview(sel.glayout, view, sel.col, sel.row);
+                    i_new_table(ftable, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -1316,8 +1324,14 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
                 break;
             }
 
-            case ekCELL_TYPE_LAYOUT:
             case ekCELL_TYPE_TABLEVIEW:
+            {
+                FTable *ftable = dbind_copy(clipboard->fcell->widget.table, FTable);
+                i_new_table(ftable, &form->sel);
+                break;
+            }
+
+            case ekCELL_TYPE_LAYOUT:
             default:
                 cassert_default(clipboard->fcell->type);
             }
