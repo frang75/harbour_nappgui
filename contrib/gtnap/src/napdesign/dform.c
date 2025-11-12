@@ -583,6 +583,40 @@ static void i_new_vslider(FVSlider *fvslider, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_new_progress(FProgress *fprogress, const DSelect *sel)
+{
+    Progress *progress = progress_create();
+    cassert_no_null(sel);
+    fprogress_synchro(fprogress, progress);
+    flayout_add_progress(sel->flayout, fprogress, sel->col, sel->row);
+    layout_progress(sel->glayout, progress, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_text(FText *ftext, const DSelect *sel)
+{
+    TextView *text = textview_create();
+    cassert_no_null(sel);
+    ftext_synchro(ftext, text);
+    flayout_add_text(sel->flayout, ftext, sel->col, sel->row);
+    layout_textview(sel->glayout, text, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_image(FImage *fimage, const DSelect *sel, const char_t *folder_path, const DColors *colors)
+{
+    ImageView *view = imageview_create();
+    cassert_no_null(sel);
+    fimage_synchro(fimage, view, folder_path);
+    flayout_add_image(sel->flayout, fimage, sel->col, sel->row);
+    layout_imageview(sel->glayout, view, sel->col, sel->row);
+    dlayout_set_image(sel->dlayout, imageview_get_image(view), sel->col, sel->row, colors);
+}
+
+/*---------------------------------------------------------------------------*/
+
 bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedit, const Font *font, const widget_t widget, const real32_t mouse_x, const real32_t mouse_y, const gui_mouse_t mbutton)
 {
     cassert_no_null(form);
@@ -598,8 +632,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
             const DColors *colors = designer_colors(form->app);
             cassert_no_null(form->dlayout);
 
-            i_sel_remove_cell(&sel);
-
             switch(widget) {
             case ekWIDGET_SELECT:
                 break;
@@ -609,6 +641,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FLabel *flabel = dialog_new_label(window, font, &sel);
                 if (flabel != NULL)
                 {
+                    i_sel_remove_cell(&sel);
                     i_new_label(flabel, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -624,6 +657,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FButton *fbutton = dialog_new_button(window, font, &sel);
                 if (fbutton != NULL)
                 {
+                    i_sel_remove_cell(&sel);
                     i_new_button(fbutton, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -639,6 +673,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FCheck *fcheck = dialog_new_check(window, font, &sel);
                 if (fcheck != NULL)
                 {
+                    i_sel_remove_cell(&sel);
                     i_new_check(fcheck, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -654,6 +689,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FRadio *fradio = dialog_new_radio(window, font, &sel);
                 if (fradio != NULL)
                 {
+                    i_sel_remove_cell(&sel);
                     i_new_radio(fradio, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -669,6 +705,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FTool *ftool = dialog_new_tool(window, font, &sel, folder_path);
                 if (ftool != NULL)
                 {
+                    i_sel_remove_cell(&sel);
                     i_new_tool(ftool, &sel, folder_path, colors);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -684,6 +721,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FPopUp *fpopup = dialog_new_popup(window, font, &sel);
                 if (fpopup != NULL)
                 {
+                    i_sel_remove_cell(&sel);
                     i_new_popup(fpopup, &sel, folder_path, colors);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -699,6 +737,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FEdit *fedit = dialog_new_edit(window, font, &sel);
                 if (fedit != NULL)
                 {
+                    i_sel_remove_cell(&sel);
                     i_new_edit(fedit, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -714,6 +753,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FCombo *fcombo = dialog_new_combo(window, font, &sel);
                 if (fcombo != NULL)
                 {
+                    i_sel_remove_cell(&sel);
                     i_new_combo(fcombo, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -729,6 +769,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FListBox *flistbox = dialog_new_listbox(window, font, &sel);
                 if (flistbox != NULL)
                 {
+                    i_sel_remove_cell(&sel);
                     i_new_listbox(flistbox, &sel, folder_path, colors);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -744,6 +785,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FSlider *fslider = dialog_new_slider(window, font, &sel);
                 if (fslider != NULL)
                 {
+                    i_sel_remove_cell(&sel);
                     i_new_slider(fslider, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -759,6 +801,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FVSlider *fvslider = dialog_new_vslider(window, font, &sel);
                 if (fvslider != NULL)
                 {
+                    i_sel_remove_cell(&sel);
                     i_new_vslider(fvslider, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -774,11 +817,8 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FProgress *fprogress = dialog_new_progress(window, font, &sel);
                 if (fprogress != NULL)
                 {
-                    Progress *progress = progress_create();
-                    fprogress_synchro(fprogress, progress);
                     i_sel_remove_cell(&sel);
-                    flayout_add_progress(sel.flayout, fprogress, sel.col, sel.row);
-                    layout_progress(sel.glayout, progress, sel.col, sel.row);
+                    i_new_progress(fprogress, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -793,11 +833,8 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FText *ftext = dialog_new_text(window, font, &sel);
                 if (ftext != NULL)
                 {
-                    TextView *text = textview_create();
-                    ftext_synchro(ftext, text);
                     i_sel_remove_cell(&sel);
-                    flayout_add_text(sel.flayout, ftext, sel.col, sel.row);
-                    layout_textview(sel.glayout, text, sel.col, sel.row);
+                    i_new_text(ftext, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -812,12 +849,8 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 				FImage *fimage = dialog_new_image(window, font, &sel, folder_path);
                 if (fimage != NULL)
                 {
-                    ImageView *view = imageview_create();
-                    fimage_synchro(fimage, view, folder_path);
                     i_sel_remove_cell(&sel);
-                    flayout_add_image(sel.flayout, fimage, sel.col, sel.row);
-                    layout_imageview(sel.glayout, view, sel.col, sel.row);
-                    dlayout_set_image(sel.dlayout, imageview_get_image(view), sel.col, sel.row, colors);
+                    i_new_image(fimage, &sel, folder_path, colors);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -1262,10 +1295,28 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
                 break;
             }
 
-            case ekCELL_TYPE_LAYOUT:
-            case ekCELL_TYPE_TEXT:
-            case ekCELL_TYPE_IMAGE:
             case ekCELL_TYPE_PROGRESS:
+            {
+                FProgress *fprogress = dbind_copy(clipboard->fcell->widget.progress, FProgress);
+                i_new_progress(fprogress, &form->sel);
+                break;
+            }
+
+            case ekCELL_TYPE_TEXT:
+            {
+                FText *ftext = dbind_copy(clipboard->fcell->widget.text, FText);
+                i_new_text(ftext, &form->sel);
+                break;
+            }
+
+            case ekCELL_TYPE_IMAGE:
+            {
+                FImage *fimage = dbind_copy(clipboard->fcell->widget.image, FImage);
+                i_new_image(fimage, &form->sel, folder_path, colors);
+                break;
+            }
+
+            case ekCELL_TYPE_LAYOUT:
             case ekCELL_TYPE_TABLEVIEW:
             default:
                 cassert_default(clipboard->fcell->type);
