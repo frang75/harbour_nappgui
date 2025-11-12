@@ -549,6 +549,40 @@ static void i_new_combo(FCombo *fcombo, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_new_listbox(FListBox *flistbox, const DSelect *sel, const char_t *folder_path, const DColors *colors)
+{
+    ListBox *listbox = listbox_create();
+    cassert_no_null(sel);
+    flistbox_synchro(flistbox, listbox, folder_path);
+    dlayout_synchro_elems(sel->dlayout, sel->col, sel->row, flistbox->elems, folder_path, colors);
+    flayout_add_listbox(sel->flayout, flistbox, sel->col, sel->row);
+    layout_listbox(sel->glayout, listbox, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_slider(FSlider *fslider, const DSelect *sel)
+{
+    Slider *slider = slider_create();
+    cassert_no_null(sel);
+    fslider_synchro(fslider, slider);
+    flayout_add_slider(sel->flayout, fslider, sel->col, sel->row);
+    layout_slider(sel->glayout, slider, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_vslider(FVSlider *fvslider, const DSelect *sel)
+{
+    Slider *slider = slider_vertical();
+    cassert_no_null(sel);
+    fvslider_synchro(fvslider, slider);
+    flayout_add_vslider(sel->flayout, fvslider, sel->col, sel->row);
+    layout_slider(sel->glayout, slider, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
 bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedit, const Font *font, const widget_t widget, const real32_t mouse_x, const real32_t mouse_y, const gui_mouse_t mbutton)
 {
     cassert_no_null(form);
@@ -695,12 +729,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FListBox *flistbox = dialog_new_listbox(window, font, &sel);
                 if (flistbox != NULL)
                 {
-                    ListBox *listbox = listbox_create();
-                    flistbox_synchro(flistbox, listbox, folder_path);
-                    dlayout_synchro_elems(sel.dlayout, sel.col, sel.row, flistbox->elems, folder_path, colors);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_listbox(sel.flayout, flistbox, sel.col, sel.row);
-                    layout_listbox(sel.glayout, listbox, sel.col, sel.row);
+                    i_new_listbox(flistbox, &sel, folder_path, colors);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -715,11 +744,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FSlider *fslider = dialog_new_slider(window, font, &sel);
                 if (fslider != NULL)
                 {
-                    Slider *slider = slider_create();
-                    fslider_synchro(fslider, slider);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_slider(sel.flayout, fslider, sel.col, sel.row);
-                    layout_slider(sel.glayout, slider, sel.col, sel.row);
+                    i_new_slider(fslider, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -734,11 +759,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FVSlider *fvslider = dialog_new_vslider(window, font, &sel);
                 if (fvslider != NULL)
                 {
-                    Slider *slider = slider_vertical();
-                    fvslider_synchro(fvslider, slider);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_vslider(sel.flayout, fvslider, sel.col, sel.row);
-                    layout_slider(sel.glayout, slider, sel.col, sel.row);
+                    i_new_vslider(fvslider, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -1220,14 +1241,32 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
                 break;
             }
 
+            case ekCELL_TYPE_LISTBOX:
+            {
+                FListBox *flistbox = dbind_copy(clipboard->fcell->widget.listbox, FListBox);
+                i_new_listbox(flistbox, &form->sel, folder_path, colors);
+                break;
+            }
+
+            case ekCELL_TYPE_SLIDER:
+            {
+                FSlider *fslider = dbind_copy(clipboard->fcell->widget.slider, FSlider);
+                i_new_slider(fslider, &form->sel);
+                break;
+            }
+
+            case ekCELL_TYPE_VSLIDER:
+            {
+                FVSlider *fvslider = dbind_copy(clipboard->fcell->widget.vslider, FVSlider);
+                i_new_vslider(fvslider, &form->sel);
+                break;
+            }
+
             case ekCELL_TYPE_LAYOUT:
             case ekCELL_TYPE_TEXT:
             case ekCELL_TYPE_IMAGE:
-            case ekCELL_TYPE_SLIDER:
             case ekCELL_TYPE_PROGRESS:
-            case ekCELL_TYPE_LISTBOX:
             case ekCELL_TYPE_TABLEVIEW:
-            case ekCELL_TYPE_VSLIDER:
             default:
                 cassert_default(clipboard->fcell->type);
             }
