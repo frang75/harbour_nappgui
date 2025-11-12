@@ -664,7 +664,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FLabel *flabel = dialog_new_label(window, font, &sel);
                 if (flabel != NULL)
                 {
-                    i_sel_remove_cell(&sel);
                     i_new_label(flabel, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -680,7 +679,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FButton *fbutton = dialog_new_button(window, font, &sel);
                 if (fbutton != NULL)
                 {
-                    i_sel_remove_cell(&sel);
                     i_new_button(fbutton, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -696,7 +694,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FCheck *fcheck = dialog_new_check(window, font, &sel);
                 if (fcheck != NULL)
                 {
-                    i_sel_remove_cell(&sel);
                     i_new_check(fcheck, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -712,7 +709,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FRadio *fradio = dialog_new_radio(window, font, &sel);
                 if (fradio != NULL)
                 {
-                    i_sel_remove_cell(&sel);
                     i_new_radio(fradio, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -728,7 +724,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FTool *ftool = dialog_new_tool(window, font, &sel, folder_path);
                 if (ftool != NULL)
                 {
-                    i_sel_remove_cell(&sel);
                     i_new_tool(ftool, &sel, folder_path, colors);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -744,7 +739,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FPopUp *fpopup = dialog_new_popup(window, font, &sel);
                 if (fpopup != NULL)
                 {
-                    i_sel_remove_cell(&sel);
                     i_new_popup(fpopup, &sel, folder_path, colors);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -760,7 +754,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FEdit *fedit = dialog_new_edit(window, font, &sel);
                 if (fedit != NULL)
                 {
-                    i_sel_remove_cell(&sel);
                     i_new_edit(fedit, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -776,7 +769,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FCombo *fcombo = dialog_new_combo(window, font, &sel);
                 if (fcombo != NULL)
                 {
-                    i_sel_remove_cell(&sel);
                     i_new_combo(fcombo, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -792,7 +784,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FListBox *flistbox = dialog_new_listbox(window, font, &sel);
                 if (flistbox != NULL)
                 {
-                    i_sel_remove_cell(&sel);
                     i_new_listbox(flistbox, &sel, folder_path, colors);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -808,7 +799,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FSlider *fslider = dialog_new_slider(window, font, &sel);
                 if (fslider != NULL)
                 {
-                    i_sel_remove_cell(&sel);
                     i_new_slider(fslider, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -824,7 +814,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FVSlider *fvslider = dialog_new_vslider(window, font, &sel);
                 if (fvslider != NULL)
                 {
-                    i_sel_remove_cell(&sel);
                     i_new_vslider(fvslider, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -840,7 +829,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FProgress *fprogress = dialog_new_progress(window, font, &sel);
                 if (fprogress != NULL)
                 {
-                    i_sel_remove_cell(&sel);
                     i_new_progress(fprogress, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -856,7 +844,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FText *ftext = dialog_new_text(window, font, &sel);
                 if (ftext != NULL)
                 {
-                    i_sel_remove_cell(&sel);
                     i_new_text(ftext, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -872,7 +859,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 				FImage *fimage = dialog_new_image(window, font, &sel, folder_path);
                 if (fimage != NULL)
                 {
-                    i_sel_remove_cell(&sel);
                     i_new_image(fimage, &sel, folder_path, colors);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -888,7 +874,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FTable *ftable = dialog_new_table(window, font, &sel);
                 if (ftable != NULL)
                 {
-                    i_sel_remove_cell(&sel);
                     i_new_table(ftable, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
@@ -914,7 +899,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 if (fsublayout != NULL)
                 {
                     i_layout_obj_names(form, fsublayout);
-                    i_sel_remove_cell(&sel);
                     i_new_sublayout(fsublayout, &sel, folder_path, colors);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
