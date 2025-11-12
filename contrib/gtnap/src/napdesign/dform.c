@@ -628,6 +628,18 @@ static void i_new_table(FTable *ftable, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_new_sublayout(FLayout *fsublayout, const DSelect *sel, const char_t *folder_path, const DColors *colors)
+{
+    DLayout *dsublayout = dlayout_from_flayout(fsublayout, folder_path, colors);
+    Layout *gsublayout = flayout_to_gui(fsublayout, folder_path, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
+    cassert_no_null(sel);
+    dlayout_add_layout(sel->dlayout, dsublayout, sel->col, sel->row);
+    flayout_add_layout(sel->flayout, fsublayout, sel->col, sel->row);
+    layout_layout(sel->glayout, gsublayout, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
 bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedit, const Font *font, const widget_t widget, const real32_t mouse_x, const real32_t mouse_y, const gui_mouse_t mbutton)
 {
     cassert_no_null(form);
@@ -901,20 +913,10 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
                 if (fsublayout != NULL)
                 {
-                    const char_t *resource_path = designer_folder_path(form->app);
-                    DLayout *dsublayout = dlayout_from_flayout(fsublayout, resource_path, colors);
-                    Layout *gsublayout = flayout_to_gui(fsublayout, resource_path, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
                     i_layout_obj_names(form, fsublayout);
                     i_sel_remove_cell(&sel);
-                    dlayout_add_layout(sel.dlayout, dsublayout, sel.col, sel.row);
-                    flayout_add_layout(sel.flayout, fsublayout, sel.col, sel.row);
-                    layout_layout(sel.glayout, gsublayout, sel.col, sel.row);
-                    i_sel_synchro_cell(&sel);
-                    dform_compose(form);
-                    propedit_set(propedit, form, &sel);
-                    inspect_set(inspect, form);
-                    form->sel = sel;
-                    i_need_save(form);
+                    i_new_sublayout(fsublayout, &sel, folder_path, colors);
+                    i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
                 else
@@ -1332,6 +1334,12 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
             }
 
             case ekCELL_TYPE_LAYOUT:
+            {
+                FLayout *fsublayout = dbind_copy(clipboard->fcell->widget.layout, FLayout);
+                i_new_sublayout(fsublayout, &form->sel, folder_path, colors);
+                break;
+            }
+
             default:
                 cassert_default(clipboard->fcell->type);
             }
