@@ -842,7 +842,7 @@ static void i_OnLoadIcon(PropData *data, Event *e)
     cassert_no_null(data);
     unref(e);
     folder_path = designer_folder_path(data->app);
-    imgpath = comwin_open_file(window, NULL, 0, NULL, folder_path);
+    imgpath = comwin_open_file(window, NULL, NULL, 0, folder_path);
     window = designer_main_window(data->app);
     if (imgpath != NULL)
     {
@@ -1993,6 +1993,7 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
     if (sel->flayout == NULL)
     {
         panel_visible_layout(panel, 0);
+        designer_clipboard_controls(data->app, FALSE, FALSE);
     }
     /* i_layout_layout */
     else if (sel->elem != ekLAYELEM_CELL)
@@ -2015,6 +2016,7 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
         i_row_selector(data);
         layout_dbind_obj(data->layout_layout, sel->flayout, FLayout);
         panel_visible_layout(panel, 1);
+        designer_clipboard_controls(data->app, TRUE, FALSE);
     }
     /* i_cell_layout */
     else
@@ -2120,6 +2122,11 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
             cassert(FALSE);
             panel_visible_layout(data->cell_panel, 0);
         }
+
+        if (cell->type == ekCELL_TYPE_EMPTY)
+            designer_clipboard_controls(data->app, FALSE, TRUE);
+        else
+            designer_clipboard_controls(data->app, TRUE, FALSE);
 
         panel_update(data->cell_panel);
     }

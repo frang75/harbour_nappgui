@@ -10,6 +10,8 @@ void designer_inspect_update(Designer *app);
 
 void designer_inspect_select(Designer *app, const uint32_t row);
 
+void designer_clipboard_controls(Designer *app, const bool_t can_copy, const bool_t can_paste);
+
 const char_t *designer_folder_path(const Designer *app);
 
 const Font *designer_default_font(const Designer *app);

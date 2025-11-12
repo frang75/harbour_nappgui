@@ -243,7 +243,10 @@ static void i_draw_cell(const EvTbCell *cell, DCtx *ctx, const Column *col, cons
             if (twidth > i_COLUMN_MIN_DISPLAY)
             {
                 if (cell->align != ekJUSTIFY)
+                {
                     draw_text_width(ctx, (real32_t)twidth);
+                    draw_text_trim(ctx, ekELLIPEND);
+                }
 
                 draw_text_halign(ctx, cell->align);
                 draw_text_color(ctx, kCOLOR_DEFAULT);

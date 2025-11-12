@@ -54,7 +54,7 @@ struct _bwidget_t
     bool_t opened;
 };
 
-struct _desiger_t
+struct _designer_t
 {
     Window *window;
     Config config;
@@ -62,6 +62,7 @@ struct _desiger_t
     ArrPt(DForm) *forms;
     ArrSt(WDrawer) *wdrawers;
     ArrSt(BWidget) *bwidgets;
+    DClipBoard clipboard;
     cmode_t cmode;
     ListBox *form_list;
     Label *status_label;
@@ -77,18 +78,25 @@ struct _desiger_t
     Cell *skeleton_form_cell;
     Cell *remove_form_cell;
     Cell *rename_form_cell;
+    Cell *cut_cell;
+    Cell *copy_cell;
+    Cell *paste_cell;
     SplitView *split1;
     SplitView *split2;
     SplitView *split3;
     SplitView *split4;
-    MenuItem *show_forms;
-    MenuItem *show_widgets;
-    MenuItem *show_inspectr;
-    MenuItem *show_propedit;
-    MenuItem *layout_skeleton;
+    MenuItem *show_forms_item;
+    MenuItem *show_widgets_item;
+    MenuItem *show_inspectr_item;
+    MenuItem *show_propedit_item;
+    MenuItem *layout_skeleton_item;
+    MenuItem *cut_item;
+    MenuItem *copy_item;
+    MenuItem *paste_item;
     Font *default_font;
     Font *bold_font;
     bool_t dragging;
+    bool_t focus;
     V2Df drag_mouse;
     V2Df drag_form;
 };
@@ -367,7 +375,7 @@ static void i_OnOpenFormsClick(Designer *app, Event *e)
     if (can_open == TRUE)
     {
         const char_t *ftype = "..DIR..";
-        const char_t *folder = comwin_open_file(app->window, &ftype, 1, gui_text(TEXT_OPEN_CAPTION), tc(app->config.folder_path));
+        const char_t *folder = comwin_open_file(app->window, gui_text(TEXT_OPEN_CAPTION), &ftype, 1, tc(app->config.folder_path));
         if (folder != NULL)
             i_init_forms(app, folder);
     }
@@ -388,85 +396,6 @@ static void i_OnQuitClick(Designer *app, Event *e)
 {
     i_close_app(app);
     unref(e);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_OnSimulateClick(Designer *app, Event *e)
-{
-    cassert_no_null(app);
-    unref(e);
-    if (app->config.sel_form != UINT32_MAX)
-    {
-        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
-        dform_simulate(form, app->window);
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_OnSkeletonClick(Designer *app, Event *e)
-{
-    Button *button = NULL;
-    cassert_no_null(app);
-    unref(e);
-    button = cell_button(app->skeleton_form_cell);
-    if (app->cmode == ekCMODE_DETAIL)
-    {
-        app->cmode = ekCMODE_SKELETON;
-        button_state(button, ekGUI_ON);
-        menuitem_state(app->layout_skeleton, ekGUI_ON);
-    }
-    else
-    {
-        app->cmode = ekCMODE_DETAIL;
-        button_state(button, ekGUI_OFF);
-        menuitem_state(app->layout_skeleton, ekGUI_OFF);
-    }
-
-    view_update(app->canvas);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_OnRemoveClick(Designer *app, Event *e)
-{
-    const char_t *name = NULL;
-    cassert_no_null(app);
-    unref(e);
-    name = i_list_text(app->form_list, app->config.sel_form);
-    if (dialog_remove_form(app->window, app->default_font, name) == TRUE)
-    {
-        String *path = str_cpath("%s/%s.%s", tc(app->config.folder_path), name, i_FILE_EXT);
-        bool_t removed = TRUE;
-
-        if (hfile_exists(tc(path), NULL) == TRUE)
-            removed = bfile_delete(tc(path), NULL);
-
-        if (removed == TRUE)
-        {
-            uint32_t n = UINT32_MAX;
-            listbox_del_elem(app->form_list, app->config.sel_form);
-            arrpt_delete(app->forms, app->config.sel_form, i_destroy_form_opt, DForm);
-            n = arrpt_size(app->forms, DForm);
-
-            if (n > 0)
-            {
-                if (app->config.sel_form >= n)
-                    app->config.sel_form = n - 1;
-                listbox_select(app->form_list, app->config.sel_form, TRUE);
-            }
-            else
-            {
-                app->config.sel_form = UINT32_MAX;
-            }
-
-            i_open_form(app, app->config.sel_form);
-            i_update_form_controls(app, TRUE);
-        }
-
-        str_destroy(&path);
-    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -594,9 +523,133 @@ static void i_OnPropsFormClick(Designer *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnSimulateClick(Designer *app, Event *e)
+{
+    cassert_no_null(app);
+    unref(e);
+    if (app->config.sel_form != UINT32_MAX)
+    {
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
+        const char_t *name = i_list_text(app->form_list, app->config.sel_form);
+        dform_simulate(form, name, app->window);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnSkeletonClick(Designer *app, Event *e)
+{
+    Button *button = NULL;
+    cassert_no_null(app);
+    unref(e);
+    button = cell_button(app->skeleton_form_cell);
+    if (app->cmode == ekCMODE_DETAIL)
+    {
+        app->cmode = ekCMODE_SKELETON;
+        button_state(button, ekGUI_ON);
+        menuitem_state(app->layout_skeleton_item, ekGUI_ON);
+    }
+    else
+    {
+        app->cmode = ekCMODE_DETAIL;
+        button_state(button, ekGUI_OFF);
+        menuitem_state(app->layout_skeleton_item, ekGUI_OFF);
+    }
+
+    view_update(app->canvas);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnRemoveClick(Designer *app, Event *e)
+{
+    const char_t *name = NULL;
+    cassert_no_null(app);
+    unref(e);
+    name = i_list_text(app->form_list, app->config.sel_form);
+    if (dialog_remove_form(app->window, app->default_font, name) == TRUE)
+    {
+        String *path = str_cpath("%s/%s.%s", tc(app->config.folder_path), name, i_FILE_EXT);
+        bool_t removed = TRUE;
+
+        if (hfile_exists(tc(path), NULL) == TRUE)
+            removed = bfile_delete(tc(path), NULL);
+
+        if (removed == TRUE)
+        {
+            uint32_t n = UINT32_MAX;
+            listbox_del_elem(app->form_list, app->config.sel_form);
+            arrpt_delete(app->forms, app->config.sel_form, i_destroy_form_opt, DForm);
+            n = arrpt_size(app->forms, DForm);
+
+            if (n > 0)
+            {
+                if (app->config.sel_form >= n)
+                    app->config.sel_form = n - 1;
+                listbox_select(app->form_list, app->config.sel_form, TRUE);
+            }
+            else
+            {
+                app->config.sel_form = UINT32_MAX;
+            }
+
+            i_open_form(app, app->config.sel_form);
+            i_update_form_controls(app, TRUE);
+        }
+
+        str_destroy(&path);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnCutClick(Designer *app, Event *e)
+{
+    cassert_no_null(app);
+    unref(e);
+    if (app->config.sel_form != UINT32_MAX)
+    {
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
+        bool_t ok = dform_OnCopy(form, &app->clipboard);
+        cassert_unref(ok == TRUE, ok);
+        ok = dform_OnSupr(form, app->inspect, app->propedit);
+        cassert_unref(ok == TRUE, ok);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnCopyClick(Designer *app, Event *e)
+{
+    cassert_no_null(app);
+    unref(e);
+    if (app->config.sel_form != UINT32_MAX)
+    {
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
+        bool_t ok = dform_OnCopy(form, &app->clipboard);
+        cassert_unref(ok == TRUE, ok);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnPasteClick(Designer *app, Event *e)
+{
+    cassert_no_null(app);
+    unref(e);
+    if (app->config.sel_form != UINT32_MAX)
+    {
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
+        bool_t ok = dform_OnPaste(form, &app->clipboard, app->inspect, app->propedit);
+        cassert_unref(ok == TRUE, ok);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Layout *i_tools_layout(Designer *app)
 {
-    Layout *layout = layout_create(8, 1);
+    Layout *layout = layout_create(11, 1);
     Button *button1 = button_flat();
     Button *button2 = button_flat();
     Button *button3 = button_flat();
@@ -604,6 +657,9 @@ static Layout *i_tools_layout(Designer *app)
     Button *button5 = button_flat();
     Button *button6 = button_flatgle();
     Button *button7 = button_flat();
+    Button *button8 = button_flat();
+    Button *button9 = button_flat();
+    Button *button10 = button_flat();
     cassert_no_null(app);
     button_image(button1, cast_const(OPEN_PNG, Image));
     button_image(button2, cast_const(SAVE_PNG, Image));
@@ -612,6 +668,9 @@ static Layout *i_tools_layout(Designer *app)
     button_image(button5, cast_const(SHOW_PNG, Image));
     button_image(button6, cast_const(LSKEL24_PNG, Image));
     button_image(button7, cast_const(REMOVE_PNG, Image));
+    button_image(button8, cast_const(CUT_PNG, Image));
+    button_image(button9, cast_const(COPY_PNG, Image));
+    button_image(button10, cast_const(PASTE_PNG, Image));
     button_hpadding(button1, 6);
     button_hpadding(button2, 6);
     button_hpadding(button3, 6);
@@ -619,6 +678,9 @@ static Layout *i_tools_layout(Designer *app)
     button_hpadding(button5, 6);
     button_hpadding(button6, 6);
     button_hpadding(button7, 6);
+    button_hpadding(button8, 6);
+    button_hpadding(button9, 6);
+    button_hpadding(button10, 6);
     button_vpadding(button1, 6);
     button_vpadding(button2, 6);
     button_vpadding(button3, 6);
@@ -626,6 +688,9 @@ static Layout *i_tools_layout(Designer *app)
     button_vpadding(button5, 6);
     button_vpadding(button6, 6);
     button_vpadding(button7, 6);
+    button_vpadding(button8, 6);
+    button_vpadding(button9, 6);
+    button_vpadding(button10, 6);
     button_OnClick(button1, listener(app, i_OnOpenFormsClick, Designer));
     button_OnClick(button2, listener(app, i_OnSaveFormsClick, Designer));
     button_OnClick(button3, listener(app, i_OnAddFormClick, Designer));
@@ -633,6 +698,9 @@ static Layout *i_tools_layout(Designer *app)
     button_OnClick(button5, listener(app, i_OnSimulateClick, Designer));
     button_OnClick(button6, listener(app, i_OnSkeletonClick, Designer));
     button_OnClick(button7, listener(app, i_OnRemoveClick, Designer));
+    button_OnClick(button8, listener(app, i_OnCutClick, Designer));
+    button_OnClick(button9, listener(app, i_OnCopyClick, Designer));
+    button_OnClick(button10, listener(app, i_OnPasteClick, Designer));
     button_tooltip(button1, gui_text(TOOLBAR_OPEN));
     button_tooltip(button2, gui_text(TOOLBAR_SAVE));
     button_tooltip(button3, gui_text(TOOLBAR_NEW));
@@ -640,6 +708,9 @@ static Layout *i_tools_layout(Designer *app)
     button_tooltip(button5, gui_text(TOOLBAR_SIMULATE));
     button_tooltip(button6, gui_text(TOOLBAR_LSKEL));
     button_tooltip(button7, gui_text(TOOLBAR_REMOVE));
+    button_tooltip(button8, gui_text(TEXT_CUT));
+    button_tooltip(button9, gui_text(TEXT_COPY));
+    button_tooltip(button10, gui_text(TEXT_PASTE));
     layout_button(layout, button1, 0, 0);
     layout_button(layout, button2, 1, 0);
     layout_button(layout, button3, 2, 0);
@@ -647,10 +718,14 @@ static Layout *i_tools_layout(Designer *app)
     layout_button(layout, button5, 4, 0);
     layout_button(layout, button6, 5, 0);
     layout_button(layout, button7, 6, 0);
+    layout_button(layout, button8, 7, 0);
+    layout_button(layout, button9, 8, 0);
+    layout_button(layout, button10, 9, 0);
     layout_margin4(layout, 0, 0, 0, 10);
-    layout_hexpand(layout, 7);
-    layout_hmargin(layout, 4, 10);
-    layout_hmargin(layout, 5, 10);
+    layout_hexpand(layout, 10);
+    layout_hmargin(layout, 4, 15);
+    layout_hmargin(layout, 5, 15);
+    layout_hmargin(layout, 6, 15);
     app->open_form_cell = layout_cell(layout, 0, 0);
     app->save_form_cell = layout_cell(layout, 1, 0);
     app->add_form_cell = layout_cell(layout, 2, 0);
@@ -658,6 +733,9 @@ static Layout *i_tools_layout(Designer *app)
     app->run_form_cell = layout_cell(layout, 4, 0);
     app->skeleton_form_cell = layout_cell(layout, 5, 0);
     app->remove_form_cell = layout_cell(layout, 6, 0);
+    app->cut_cell = layout_cell(layout, 7, 0);
+    app->copy_cell = layout_cell(layout, 8, 0);
+    app->paste_cell = layout_cell(layout, 9, 0);
     return layout;
 }
 
@@ -975,7 +1053,20 @@ static void i_OnDraw(Designer *app, Event *e)
     {
         DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
         const char_t *name = i_list_text(app->form_list, app->config.sel_form);
-        dform_draw(form, app->config.swidget, app->default_font, app->bold_font, app->cmode, &i_COLORS, name, p->ctx);
+        dform_draw(form, app->config.swidget, app->default_font, app->bold_font, app->cmode, &i_COLORS, name, app->focus, p->ctx);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnOverlay(Designer *app, Event *e)
+{
+    const EvDraw *p = event_params(e, EvDraw);
+    cassert_no_null(app);
+    if (app->focus == TRUE)
+    {
+        draw_image_align(p->ctx, ekRIGHT, ekBOTTOM);
+        draw_image(p->ctx, gui_image(KEYBOARD_PNG), p->width - 5, p->height - 5);
     }
 }
 
@@ -1058,6 +1149,39 @@ static void i_OnClick(Designer *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnKey(Designer *app, Event *e)
+{
+    const EvKey *p = event_params(e, EvKey);
+    cassert_no_null(app);
+    if (app->config.sel_form != UINT32_MAX)
+    {
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
+        bool_t update = FALSE;
+        if (p->key == ekKEY_SUPR)
+            update = dform_OnSupr(form, app->inspect, app->propedit);
+        else if (p->key == ekKEY_UP || p->key == ekKEY_DOWN || p->key == ekKEY_LEFT || p->key == ekKEY_RIGHT)
+            update = dform_OnCursorNav(form, p->key, app->inspect, app->propedit);
+
+        if (update == TRUE)
+            view_update(app->canvas);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnFocus(Designer *app, Event *e)
+{
+    const bool_t *focus = event_params(e, bool_t);
+    cassert_no_null(app);
+    if (app->focus != *focus)
+    {
+        app->focus = *focus;
+        view_update(app->canvas);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnSize(Designer *app, Event *e)
 {
     unref(app);
@@ -1068,14 +1192,17 @@ static void i_OnSize(Designer *app, Event *e)
 
 static View *i_canvas_view(Designer *app)
 {
-    View *view = view_scroll();
+    View *view = view_custom(FALSE, TRUE);
     view_size(view, s2df(450, 200));
     view_OnDraw(view, listener(app, i_OnDraw, Designer));
+    view_OnOverlay(view, listener(app, i_OnOverlay, Designer));
     view_OnMove(view, listener(app, i_OnMove, Designer));
     view_OnDrag(view, listener(app, i_OnDrag, Designer));
     view_OnUp(view, listener(app, i_OnUp, Designer));
     view_OnExit(view, listener(app, i_OnExit, Designer));
     view_OnClick(view, listener(app, i_OnClick, Designer));
+    view_OnKeyDown(view, listener(app, i_OnKey, Designer));
+    view_OnFocus(view, listener(app, i_OnFocus, Designer));
     view_OnSize(view, listener(app, i_OnSize, Designer));
     app->canvas = view;
     return view;
@@ -1098,7 +1225,7 @@ static SplitView *i_middle_view(Designer *app)
     splitview_splitview(split1, split3);
     splitview_panel(split2, panel1);
     splitview_panel(split2, panel2);
-    splitview_view(split3, view, FALSE);
+    splitview_view(split3, view, TRUE);
     splitview_splitview(split3, split4);
     splitview_panel(split4, panel3);
     splitview_panel(split4, panel4);
@@ -1183,23 +1310,6 @@ static Panel *i_panel(Designer *app)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnHotKey(Designer *app, Event *e)
-{
-    const EvKey *p = event_params(e, EvKey);
-    cassert_no_null(app);
-    if (p->key == ekKEY_SUPR)
-    {
-        if (app->config.sel_form != UINT32_MAX)
-        {
-            DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
-            if (dform_OnSupr(form, app->inspect, app->propedit) == TRUE)
-                view_update(app->canvas);
-        }
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
 static gui_state_t i_bool_state(const bool_t state)
 {
     if (state == TRUE)
@@ -1279,7 +1389,7 @@ static void i_OnShowForms(Designer *app, Event *e)
 {
     cassert_no_null(app);
     unref(e);
-    i_swap_show_item(app, &app->config.show_forms, app->show_forms);
+    i_swap_show_item(app, &app->config.show_forms, app->show_forms_item);
     window_update(app->window);
 }
 
@@ -1289,7 +1399,7 @@ static void i_OnShowWidgets(Designer *app, Event *e)
 {
     cassert_no_null(app);
     unref(e);
-    i_swap_show_item(app, &app->config.show_widgets, app->show_widgets);
+    i_swap_show_item(app, &app->config.show_widgets, app->show_widgets_item);
     window_update(app->window);
 }
 
@@ -1299,7 +1409,7 @@ static void i_OnShowInspectr(Designer *app, Event *e)
 {
     cassert_no_null(app);
     unref(e);
-    i_swap_show_item(app, &app->config.show_inspectr, app->show_inspectr);
+    i_swap_show_item(app, &app->config.show_inspectr, app->show_inspectr_item);
     window_update(app->window);
 }
 
@@ -1309,7 +1419,7 @@ static void i_OnShowPropEdit(Designer *app, Event *e)
 {
     cassert_no_null(app);
     unref(e);
-    i_swap_show_item(app, &app->config.show_propedit, app->show_propedit);
+    i_swap_show_item(app, &app->config.show_propedit, app->show_propedit_item);
     window_update(app->window);
 }
 
@@ -1364,12 +1474,21 @@ static Menu *i_edit_menu(Designer *app)
     menuitem_image(item3, gui_image(CUT16_PNG));
     menuitem_image(item4, gui_image(COPY16_PNG));
     menuitem_image(item5, gui_image(PASTE16_PNG));
+    menuitem_key(item3, ekKEY_X, ekMKEY_CONTROL);
+    menuitem_key(item4, ekKEY_C, ekMKEY_CONTROL);
+    menuitem_key(item5, ekKEY_V, ekMKEY_CONTROL);
+    menuitem_OnClick(item3, listener(app, i_OnCutClick, Designer));
+    menuitem_OnClick(item4, listener(app, i_OnCopyClick, Designer));
+    menuitem_OnClick(item5, listener(app, i_OnPasteClick, Designer));
     menu_add_item(menu, item1);
     menu_add_item(menu, item2);
     menu_add_item(menu, menuitem_separator());
     menu_add_item(menu, item3);
     menu_add_item(menu, item4);
     menu_add_item(menu, item5);
+    app->cut_item = item3;
+    app->copy_item = item4;
+    app->paste_item = item5;
     return menu;
 }
 
@@ -1402,7 +1521,7 @@ static Menu *i_form_menu(Designer *app)
     menu_add_item(menu, item3);
     menu_add_item(menu, menuitem_separator());
     menu_add_item(menu, item4);
-    app->layout_skeleton = item3;
+    app->layout_skeleton_item = item3;
     return menu;
 }
 
@@ -1428,10 +1547,10 @@ static Menu *i_view_menu(Designer *app)
     menu_add_item(menu, item2);
     menu_add_item(menu, item3);
     menu_add_item(menu, item4);
-    app->show_forms = item1;
-    app->show_widgets = item2;
-    app->show_inspectr = item3;
-    app->show_propedit = item4;
+    app->show_forms_item = item1;
+    app->show_widgets_item = item2;
+    app->show_inspectr_item = item3;
+    app->show_propedit_item = item4;
     return menu;
 }
 
@@ -1606,10 +1725,10 @@ static void i_apply_config(Designer *app)
     window_size(app->window, s2df(app->config.wwidth, app->config.wheight));
     i_restore_splits(app);
     i_set_bwidget(app->config.swidget, app->bwidgets, app->default_font, app->bold_font);
-    menuitem_state(app->show_forms, i_bool_state(app->config.show_forms));
-    menuitem_state(app->show_widgets, i_bool_state(app->config.show_widgets));
-    menuitem_state(app->show_inspectr, i_bool_state(app->config.show_inspectr));
-    menuitem_state(app->show_propedit, i_bool_state(app->config.show_propedit));
+    menuitem_state(app->show_forms_item, i_bool_state(app->config.show_forms));
+    menuitem_state(app->show_widgets_item, i_bool_state(app->config.show_widgets));
+    menuitem_state(app->show_inspectr_item, i_bool_state(app->config.show_inspectr));
+    menuitem_state(app->show_propedit_item, i_bool_state(app->config.show_propedit));
     window_update(app->window);
 }
 
@@ -1766,8 +1885,8 @@ static Designer *i_create(void)
     window_panel(app->window, panel);
     window_title(app->window, gui_text(TEXT_APP_TITLE));
     window_OnClose(app->window, listener(app, i_OnWindowClose, Designer));
-    window_hotkey(app->window, ekKEY_SUPR, 0, listener(app, i_OnHotKey, Designer));
     i_apply_config(app);
+    designer_clipboard_controls(app, FALSE, FALSE);
     window_show(app->window);
     osapp_menubar(app->menu, app->window);
     i_init_forms(app, tc(app->config.folder_path));
@@ -1786,6 +1905,8 @@ static void i_destroy(Designer **app)
     arrst_destroy(&(*app)->wdrawers, NULL, WDrawer);
     arrst_destroy(&(*app)->bwidgets, NULL, BWidget);
     arrpt_destroy(&(*app)->forms, i_destroy_form_opt, DForm);
+    dbind_destopt(&(*app)->clipboard.fcell, FCell);
+    dbind_destopt(&(*app)->clipboard.flayout, FLayout);
     menu_destroy(&(*app)->menu);
     window_destroy(&(*app)->window);
     nflib_finish();
@@ -1835,6 +1956,38 @@ void designer_inspect_select(Designer *app, const uint32_t row)
         DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
         dform_inspect_select(form, app->propedit, row);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_has_clipboard(Designer *app)
+{
+    cassert_no_null(app);
+    if (app->clipboard.fcell != NULL)
+    {
+        cassert(app->clipboard.flayout == NULL);
+        return TRUE;
+    }
+    else if (app->clipboard.flayout != NULL)
+    {
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void designer_clipboard_controls(Designer *app, const bool_t can_copy, const bool_t can_paste)
+{
+    bool_t paste = can_paste && i_has_clipboard(app);
+    cassert_no_null(app);
+    menuitem_enabled(app->cut_item, can_copy);
+    menuitem_enabled(app->copy_item, can_copy);
+    menuitem_enabled(app->paste_item, paste);
+    cell_enabled(app->cut_cell, can_copy);
+    cell_enabled(app->copy_cell, can_copy);
+    cell_enabled(app->paste_cell, paste);
 }
 
 /*---------------------------------------------------------------------------*/

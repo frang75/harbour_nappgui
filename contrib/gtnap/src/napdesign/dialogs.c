@@ -633,7 +633,7 @@ static void i_OnLoadImage(DialogData *data, Event *e)
     const char_t *imgpath = NULL;
     cassert_no_null(data);
     cassert_no_null(data->path);
-    imgpath = comwin_open_file(data->window, NULL, 0, NULL, data->path);
+    imgpath = comwin_open_file(data->window, NULL, NULL, 0, data->path);
     if (imgpath != NULL)
     {
         Image *image = image_from_file(imgpath, NULL);

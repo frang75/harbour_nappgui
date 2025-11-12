@@ -143,6 +143,25 @@ DLayout *dlayout_from_flayout(const FLayout *flayout, const char_t *resource_pat
 
 /*---------------------------------------------------------------------------*/
 
+static ___INLINE DCell *i_cell(DLayout *layout, const uint32_t col, const uint32_t row)
+{
+    uint32_t ncols = UINT32_MAX;
+    uint32_t pos = UINT32_MAX;
+    cassert_no_null(layout);
+    ncols = arrst_size(layout->cols, DColumn);
+    pos = row * ncols + col;
+    return arrst_get(layout->cells, pos, DCell);
+}
+
+/*---------------------------------------------------------------------------*/
+
+DCell *dlayout_cell(DLayout *layout, const uint32_t col, const uint32_t row)
+{
+    return i_cell(layout, col, row);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dlayout_destroy(DLayout **layout)
 {
     cassert_no_null(layout);
@@ -248,18 +267,6 @@ void dlayout_remove_row(DLayout *layout, const uint32_t row)
 
     /* Destroy the row */
     arrst_delete(layout->rows, row, NULL, DRow);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static ___INLINE DCell *i_cell(DLayout *layout, const uint32_t col, const uint32_t row)
-{
-    uint32_t ncols = UINT32_MAX;
-    uint32_t pos = UINT32_MAX;
-    cassert_no_null(layout);
-    ncols = arrst_size(layout->cols, DColumn);
-    pos = row * ncols + col;
-    return arrst_get(layout->cells, pos, DCell);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -872,6 +879,7 @@ static void i_draw_frame(DCtx *ctx, const Font *font, const DColors *colors, con
         draw_image(ctx, colors->nap_icon, xpos, ypos);
         draw_text_width(ctx, rect->size.width - (real32_t)iwidth - 5);
         draw_font(ctx, font);
+        draw_text_trim(ctx, ekELLIPEND);
         drawctrl_text(ctx, tc(name), (int32_t)(xpos + iwidth + 5), (int32_t)ypos, ekCTRL_STATE_NORMAL);
         str_destroy(&name);
     }
@@ -912,7 +920,6 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
             {
                 const Label *glabel = cell_label(gcell);
                 const Font *gfont = label_get_font(glabel);
-                real32_t origin_x = 0;
                 draw_font(ctx, gfont);
                 draw_fill_color(ctx, colors->back);
                 draw_text_color(ctx, wcolor);
@@ -929,7 +936,6 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                     draw_text_halign(ctx, ekCENTER);
                     break;
                 case ekHALIGN_RIGHT:
-                    origin_x = -dcell->content_rect.size.width;
                     draw_text_halign(ctx, ekRIGHT);
                     break;
                 default:
@@ -937,15 +943,11 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                 }
 
                 if (fcell->widget.label->multiline == TRUE)
-                {
-                    draw_text(ctx, tc(fcell->widget.label->text), origin_x + dcell->content_rect.pos.x, dcell->content_rect.pos.y);
-                }
+                    draw_text_trim(ctx, ekELLIPMLINE);
                 else
-                {
-                    /* TODO: Clipping */
-                    drawctrl_text(ctx, tc(fcell->widget.label->text), (int32_t)dcell->content_rect.pos.x, (int32_t)dcell->content_rect.pos.y, ekCTRL_STATE_NORMAL);
-                }
+                    draw_text_trim(ctx, ekELLIPEND);
 
+                drawctrl_text(ctx, tc(fcell->widget.label->text), (int32_t)dcell->content_rect.pos.x, (int32_t)dcell->content_rect.pos.y, ekCTRL_STATE_NORMAL);
                 draw_text_width(ctx, -1);
                 draw_text_halign(ctx, ekLEFT);
                 break;
@@ -966,8 +968,10 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                 draw_line_width(ctx, 1);
                 draw_line_color(ctx, colors->main);
                 font_extents(gfont, tc(fcell->widget.button->text), -1.f, &twidth, &theight);
-                tx = dcell->content_rect.pos.x + ((dcell->content_rect.size.width - twidth) / 2);
+                tx = dcell->content_rect.pos.x;
                 ty = dcell->content_rect.pos.y + ((dcell->content_rect.size.height - theight) / 2);
+                draw_text_width(ctx, dcell->content_rect.size.width);
+                draw_text_halign(ctx, ekCENTER);
                 drawctrl_text(ctx, tc(fcell->widget.button->text), (int32_t)tx, (int32_t)ty, ekCTRL_STATE_NORMAL);
                 break;
             }
@@ -976,8 +980,8 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
             {
                 const Button *gcheck = cell_button(gcell);
                 const Font *gfont = button_get_font(gcheck);
-                real32_t cwidth = (real32_t)drawctrl_check_width(ctx) - 2;
-                real32_t cheight = (real32_t)drawctrl_check_height(ctx) - 2;
+                real32_t cwidth = (real32_t)drawctrl_check_width(ctx);
+                real32_t cheight = (real32_t)drawctrl_check_height(ctx);
                 real32_t twidth, theight;
                 real32_t tx;
                 draw_font(ctx, gfont);
@@ -985,10 +989,12 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                 draw_text_color(ctx, wcolor);
                 draw_fill_color(ctx, colors->back);
                 font_extents(gfont, tc(fcell->widget.check->text), -1.f, &twidth, &theight);
-                tx = dcell->content_rect.pos.x + (dcell->content_rect.size.width - twidth);
+                tx = dcell->content_rect.pos.x + cwidth + 2;
+                draw_text_width(ctx, dcell->content_rect.size.width - cwidth - 2);
+                draw_text_halign(ctx, ekLEFT);
                 draw_rect(ctx, ekFILL, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
                 drawctrl_text(ctx, tc(fcell->widget.check->text), (int32_t)tx, (int32_t)dcell->content_rect.pos.y, ekCTRL_STATE_NORMAL);
-                draw_rect(ctx, ekSTROKE, dcell->content_rect.pos.x, dcell->content_rect.pos.y, cwidth, cheight);
+                draw_rect(ctx, ekSTROKE, dcell->content_rect.pos.x, dcell->content_rect.pos.y + 1, cwidth - 2, cheight - 2);
                 draw_line_color(ctx, colors->main);
                 break;
             }
@@ -997,7 +1003,8 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
             {
                 const Button *gradio = cell_button(gcell);
                 const Font *gfont = button_get_font(gradio);
-                real32_t cradio = (real32_t)drawctrl_check_width(ctx) * .5f;
+                real32_t cwidth = (real32_t)drawctrl_check_width(ctx);
+                real32_t cradio = cwidth / 2;
                 real32_t twidth, theight;
                 real32_t tx;
                 draw_font(ctx, gfont);
@@ -1005,7 +1012,9 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                 draw_text_color(ctx, wcolor);
                 draw_fill_color(ctx, colors->back);
                 font_extents(gfont, tc(fcell->widget.radio->text), -1.f, &twidth, &theight);
-                tx = dcell->content_rect.pos.x + (dcell->content_rect.size.width - twidth);
+                tx = dcell->content_rect.pos.x + cwidth + 2;
+                draw_text_width(ctx, dcell->content_rect.size.width - cwidth - 2);
+                draw_text_halign(ctx, ekLEFT);
                 draw_rect(ctx, ekFILL, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
                 drawctrl_text(ctx, tc(fcell->widget.radio->text), (int32_t)tx, (int32_t)dcell->content_rect.pos.y, ekCTRL_STATE_NORMAL);
                 draw_circle(ctx, ekSTROKE, dcell->content_rect.pos.x + cradio, dcell->content_rect.pos.y + cradio, cradio - 2);
@@ -1582,7 +1591,7 @@ static void i_draw_cell_ids(const DSelect *sel, const Font *font, const DColors 
 
 /*---------------------------------------------------------------------------*/
 
-void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Font *default_font, const Font *bold_font, const cmode_t cmode, const DColors *colors, const char_t *form_name, DCtx *ctx)
+void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Font *default_font, const Font *bold_font, const cmode_t cmode, const DColors *colors, const char_t *form_name, const bool_t focus, DCtx *ctx)
 {
     cassert_no_null(colors);
     cassert_no_null(dlayout);
@@ -1595,7 +1604,7 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
         i_draw_grid(ctx, colors, &dlayout->rect);
         i_draw_frame(ctx, default_font, colors, form_name, &dlayout->rect);
         i_draw_layout(dlayout, flayout, glayout, hover, sel, swidget, default_font, colors, ctx);
-        draw_fill_color(ctx, colors->main);
+        draw_fill_color(ctx, (focus == TRUE) ? colors->select : colors->main);
         i_draw_bounds(sel, colors, ctx);
         break;
 
@@ -1615,6 +1624,7 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
             draw_line_width(ctx, 1);
         }
 
+        draw_fill_color(ctx, (focus == TRUE) ? colors->select : colors->main);
         i_draw_bounds(sel, colors, ctx);
         break;
 

@@ -46,7 +46,6 @@
 /*---------------------------------------------------------------------------*/
 
 static uint16_t i_VERSION = 4;
-static uint16_t i_STM_VERSION = 0;
 
 /*---------------------------------------------------------------------------*/
 
@@ -225,11 +224,11 @@ static void i_read_row(Stream *stm, FRow *row)
 
 /*---------------------------------------------------------------------------*/
 
-static FLabel *i_read_label(Stream *stm)
+static FLabel *i_read_label(Stream *stm, const uint16_t vers)
 {
     FLabel *label = heap_new0(FLabel);
     label->text = str_read(stm);
-    if (i_STM_VERSION >= 3)
+    if (vers >= 3)
     {
         label->multiline = stm_read_bool(stm);
         label->min_width = stm_read_r32(stm);
@@ -246,16 +245,16 @@ static FLabel *i_read_label(Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
-static FButton *i_read_button(Stream *stm)
+static FButton *i_read_button(Stream *stm, const uint16_t vers)
 {
     FButton *button = heap_new0(FButton);
     button->text = str_read(stm);
-    if (i_STM_VERSION >= 1)
+    if (vers >= 1)
         button->min_width = stm_read_r32(stm);
     else
         button->min_width = 0;
 
-    if (i_STM_VERSION >= 4)
+    if (vers >= 4)
     {
         button->hpadding = stm_read_r32(stm);
         button->vpadding = stm_read_r32(stm);
@@ -317,14 +316,14 @@ static FPopUp *i_read_popup(Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
-static FEdit *i_read_edit(Stream *stm)
+static FEdit *i_read_edit(Stream *stm, const uint16_t vers)
 {
     FEdit *edit = heap_new0(FEdit);
     edit->passmode = stm_read_bool(stm);
     edit->autosel = stm_read_bool(stm);
     edit->text_align = stm_read_enum(stm, halign_t);
 
-    if (i_STM_VERSION >= 2)
+    if (vers >= 2)
         edit->min_width = stm_read_r32(stm);
     else
         edit->min_width = 100;
@@ -431,9 +430,10 @@ static FTable *i_read_table(Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_read_cell(Stream *stm, FCell *cell)
+static void i_read_cell(Stream *stm, FCell *cell, const uint16_t *vers)
 {
     cassert_no_null(cell);
+    cassert_no_null(vers);
     bmem_zero(cell, FCell);
     cell->name = str_read(stm);
     cell->type = stm_read_enum(stm, celltype_t);
@@ -444,10 +444,10 @@ static void i_read_cell(Stream *stm, FCell *cell)
     case ekCELL_TYPE_EMPTY:
         break;
     case ekCELL_TYPE_LABEL:
-        cell->widget.label = i_read_label(stm);
+        cell->widget.label = i_read_label(stm, *vers);
         break;
     case ekCELL_TYPE_BUTTON:
-        cell->widget.button = i_read_button(stm);
+        cell->widget.button = i_read_button(stm, *vers);
         break;
     case ekCELL_TYPE_CHECK:
         cell->widget.check = i_read_check(stm);
@@ -462,7 +462,7 @@ static void i_read_cell(Stream *stm, FCell *cell)
         cell->widget.popup = i_read_popup(stm);
         break;
     case ekCELL_TYPE_EDIT:
-        cell->widget.edit = i_read_edit(stm);
+        cell->widget.edit = i_read_edit(stm, *vers);
         break;
     case ekCELL_TYPE_COMBO:
         cell->widget.combo = i_read_combo(stm);
@@ -508,8 +508,7 @@ FLayout *flayout_read(Stream *stm)
 
 FLayout *flayout_read_with_vers(Stream *stm, const uint16_t vers)
 {
-    i_STM_VERSION = vers;
-    if (i_STM_VERSION <= i_VERSION)
+    if (vers <= i_VERSION)
     {
         FLayout *layout = heap_new0(FLayout);
         layout->name = str_read(stm);
@@ -519,7 +518,7 @@ FLayout *flayout_read_with_vers(Stream *stm, const uint16_t vers)
         layout->margin_bottom = stm_read_r32(stm);
         layout->cols = arrst_read(stm, i_read_col, FColumn);
         layout->rows = arrst_read(stm, i_read_row, FRow);
-        layout->cells = arrst_read(stm, i_read_cell, FCell);
+        layout->cells = arrst_read_ex(stm, i_read_cell, &vers, FCell, uint16_t);
         return layout;
     }
     else

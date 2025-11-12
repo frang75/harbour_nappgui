@@ -388,6 +388,20 @@ static void i_sel_remove_cell(const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_copy_cell_props(const FCell *fcell, const DSelect *sel)
+{
+    FCell *sfcell = NULL;
+    cassert_no_null(fcell);
+    cassert_no_null(sel);
+    sfcell = flayout_cell(sel->flayout, sel->col, sel->row);
+    cassert(sfcell->type == fcell->type);
+    str_upd(&sfcell->name, tc(fcell->name));
+    sfcell->halign = fcell->halign;
+    sfcell->valign = fcell->valign;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_sel_synchro_cell(const DSelect *sel)
 {
     const FCell *fcell = NULL;
@@ -440,7 +454,190 @@ static void i_after_new_widget(DForm *form, Panel *inspect, Panel *propedit, DSe
     form->sel = *sel;
     i_need_save(form);
 }
-    
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_label(FLabel *flabel, const DSelect *sel)
+{
+    Label *label = label_create();
+    cassert_no_null(sel);
+    flabel_synchro(flabel, label);
+    flayout_add_label(sel->flayout, flabel, sel->col, sel->row);
+    layout_label(sel->glayout, label, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_button(FButton *fbutton, const DSelect *sel)
+{
+    Button *button = button_push();
+    cassert_no_null(sel);
+    fbutton_synchro(fbutton, button);
+    flayout_add_button(sel->flayout, fbutton, sel->col, sel->row);
+    layout_button(sel->glayout, button, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_check(FCheck *fcheck, const DSelect *sel)
+{
+    Button *button = button_check();
+    cassert_no_null(sel);
+    fcheck_synchro(fcheck, button);
+    flayout_add_check(sel->flayout, fcheck, sel->col, sel->row);
+    layout_button(sel->glayout, button, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_radio(FRadio *fradio, const DSelect *sel)
+{
+    Button *button = button_radio();
+    cassert_no_null(sel);
+    fradio_synchro(fradio, button);
+    flayout_add_radio(sel->flayout, fradio, sel->col, sel->row);
+    layout_button(sel->glayout, button, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_tool(FTool *ftool, const DSelect *sel, const char_t *folder_path, const DColors *colors)
+{
+    Button *button = button_flat();
+    const Image *image = NULL;
+    cassert_no_null(sel);
+    ftool_synchro(ftool, button, folder_path);
+    flayout_add_tool(sel->flayout, ftool, sel->col, sel->row);
+    layout_button(sel->glayout, button, sel->col, sel->row);
+    image = button_get_image(button);
+    dlayout_set_image(sel->dlayout, image, sel->col, sel->row, colors);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_popup(FPopUp *fpopup, const DSelect *sel, const char_t *folder_path, const DColors *colors)
+{
+    PopUp *popup = popup_create();
+    cassert_no_null(sel);
+    fpopup_synchro(fpopup, popup, folder_path);
+    dlayout_synchro_elems(sel->dlayout, sel->col, sel->row, fpopup->elems, folder_path, colors);
+    flayout_add_popup(sel->flayout, fpopup, sel->col, sel->row);
+    layout_popup(sel->glayout, popup, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_edit(FEdit *fedit, const DSelect *sel)
+{
+    Edit *edit = edit_create();
+    cassert_no_null(sel);
+    fedit_synchro(fedit, edit);
+    flayout_add_edit(sel->flayout, fedit, sel->col, sel->row);
+    layout_edit(sel->glayout, edit, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_combo(FCombo *fcombo, const DSelect *sel)
+{
+    Combo *combo = combo_create();
+    cassert_no_null(sel);
+    fcombo_synchro(fcombo, combo);
+    flayout_add_combo(sel->flayout, fcombo, sel->col, sel->row);
+    layout_combo(sel->glayout, combo, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_listbox(FListBox *flistbox, const DSelect *sel, const char_t *folder_path, const DColors *colors)
+{
+    ListBox *listbox = listbox_create();
+    cassert_no_null(sel);
+    flistbox_synchro(flistbox, listbox, folder_path);
+    dlayout_synchro_elems(sel->dlayout, sel->col, sel->row, flistbox->elems, folder_path, colors);
+    flayout_add_listbox(sel->flayout, flistbox, sel->col, sel->row);
+    layout_listbox(sel->glayout, listbox, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_slider(FSlider *fslider, const DSelect *sel)
+{
+    Slider *slider = slider_create();
+    cassert_no_null(sel);
+    fslider_synchro(fslider, slider);
+    flayout_add_slider(sel->flayout, fslider, sel->col, sel->row);
+    layout_slider(sel->glayout, slider, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_vslider(FVSlider *fvslider, const DSelect *sel)
+{
+    Slider *slider = slider_vertical();
+    cassert_no_null(sel);
+    fvslider_synchro(fvslider, slider);
+    flayout_add_vslider(sel->flayout, fvslider, sel->col, sel->row);
+    layout_slider(sel->glayout, slider, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_progress(FProgress *fprogress, const DSelect *sel)
+{
+    Progress *progress = progress_create();
+    cassert_no_null(sel);
+    fprogress_synchro(fprogress, progress);
+    flayout_add_progress(sel->flayout, fprogress, sel->col, sel->row);
+    layout_progress(sel->glayout, progress, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_text(FText *ftext, const DSelect *sel)
+{
+    TextView *text = textview_create();
+    cassert_no_null(sel);
+    ftext_synchro(ftext, text);
+    flayout_add_text(sel->flayout, ftext, sel->col, sel->row);
+    layout_textview(sel->glayout, text, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_image(FImage *fimage, const DSelect *sel, const char_t *folder_path, const DColors *colors)
+{
+    ImageView *view = imageview_create();
+    cassert_no_null(sel);
+    fimage_synchro(fimage, view, folder_path);
+    flayout_add_image(sel->flayout, fimage, sel->col, sel->row);
+    layout_imageview(sel->glayout, view, sel->col, sel->row);
+    dlayout_set_image(sel->dlayout, imageview_get_image(view), sel->col, sel->row, colors);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_table(FTable *ftable, const DSelect *sel)
+{
+    TableView *view = tableview_create();
+    cassert_no_null(sel);
+    ftable_synchro(ftable, view);
+    flayout_add_table(sel->flayout, ftable, sel->col, sel->row);
+    layout_tableview(sel->glayout, view, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_sublayout(FLayout *fsublayout, const DSelect *sel, const char_t *folder_path, const DColors *colors)
+{
+    DLayout *dsublayout = dlayout_from_flayout(fsublayout, folder_path, colors);
+    Layout *gsublayout = flayout_to_gui(fsublayout, folder_path, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
+    cassert_no_null(sel);
+    dlayout_add_layout(sel->dlayout, dsublayout, sel->col, sel->row);
+    flayout_add_layout(sel->flayout, fsublayout, sel->col, sel->row);
+    layout_layout(sel->glayout, gsublayout, sel->col, sel->row);
+}
+
 /*---------------------------------------------------------------------------*/
 
 bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedit, const Font *font, const widget_t widget, const real32_t mouse_x, const real32_t mouse_y, const gui_mouse_t mbutton)
@@ -467,11 +664,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FLabel *flabel = dialog_new_label(window, font, &sel);
                 if (flabel != NULL)
                 {
-                    Label *label = label_create();
-                    flabel_synchro(flabel, label);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_label(sel.flayout, flabel, sel.col, sel.row);
-                    layout_label(sel.glayout, label, sel.col, sel.row);
+                    i_new_label(flabel, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -486,11 +679,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FButton *fbutton = dialog_new_button(window, font, &sel);
                 if (fbutton != NULL)
                 {
-                    Button *button = button_push();
-                    fbutton_synchro(fbutton, button);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_button(sel.flayout, fbutton, sel.col, sel.row);
-                    layout_button(sel.glayout, button, sel.col, sel.row);
+                    i_new_button(fbutton, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -505,11 +694,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FCheck *fcheck = dialog_new_check(window, font, &sel);
                 if (fcheck != NULL)
                 {
-                    Button *button = button_check();
-                    fcheck_synchro(fcheck, button);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_check(sel.flayout, fcheck, sel.col, sel.row);
-                    layout_button(sel.glayout, button, sel.col, sel.row);
+                    i_new_check(fcheck, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -524,11 +709,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FRadio *fradio = dialog_new_radio(window, font, &sel);
                 if (fradio != NULL)
                 {
-                    Button *button = button_radio();
-                    fradio_synchro(fradio, button);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_radio(sel.flayout, fradio, sel.col, sel.row);
-                    layout_button(sel.glayout, button, sel.col, sel.row);
+                    i_new_radio(fradio, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -543,14 +724,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FTool *ftool = dialog_new_tool(window, font, &sel, folder_path);
                 if (ftool != NULL)
                 {
-                    Button *button = button_flat();
-                    const Image *image = NULL;
-                    ftool_synchro(ftool, button, folder_path);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_tool(sel.flayout, ftool, sel.col, sel.row);
-                    layout_button(sel.glayout, button, sel.col, sel.row);
-                    image = button_get_image(button);
-                    dlayout_set_image(sel.dlayout, image, sel.col, sel.row, colors);
+                    i_new_tool(ftool, &sel, folder_path, colors);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -565,12 +739,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FPopUp *fpopup = dialog_new_popup(window, font, &sel);
                 if (fpopup != NULL)
                 {
-                    PopUp *popup = popup_create();
-                    fpopup_synchro(fpopup, popup, folder_path);
-                    dlayout_synchro_elems(sel.dlayout, sel.col, sel.row, fpopup->elems, folder_path, colors);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_popup(sel.flayout, fpopup, sel.col, sel.row);
-                    layout_popup(sel.glayout, popup, sel.col, sel.row);
+                    i_new_popup(fpopup, &sel, folder_path, colors);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -585,11 +754,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FEdit *fedit = dialog_new_edit(window, font, &sel);
                 if (fedit != NULL)
                 {
-                    Edit *edit = edit_create();
-                    fedit_synchro(fedit, edit);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_edit(sel.flayout, fedit, sel.col, sel.row);
-                    layout_edit(sel.glayout, edit, sel.col, sel.row);
+                    i_new_edit(fedit, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -604,11 +769,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FCombo *fcombo = dialog_new_combo(window, font, &sel);
                 if (fcombo != NULL)
                 {
-                    Combo *combo = combo_create();
-                    fcombo_synchro(fcombo, combo);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_combo(sel.flayout, fcombo, sel.col, sel.row);
-                    layout_combo(sel.glayout, combo, sel.col, sel.row);
+                    i_new_combo(fcombo, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -623,12 +784,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FListBox *flistbox = dialog_new_listbox(window, font, &sel);
                 if (flistbox != NULL)
                 {
-                    ListBox *listbox = listbox_create();
-                    flistbox_synchro(flistbox, listbox, folder_path);
-                    dlayout_synchro_elems(sel.dlayout, sel.col, sel.row, flistbox->elems, folder_path, colors);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_listbox(sel.flayout, flistbox, sel.col, sel.row);
-                    layout_listbox(sel.glayout, listbox, sel.col, sel.row);
+                    i_new_listbox(flistbox, &sel, folder_path, colors);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -643,11 +799,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FSlider *fslider = dialog_new_slider(window, font, &sel);
                 if (fslider != NULL)
                 {
-                    Slider *slider = slider_create();
-                    fslider_synchro(fslider, slider);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_slider(sel.flayout, fslider, sel.col, sel.row);
-                    layout_slider(sel.glayout, slider, sel.col, sel.row);
+                    i_new_slider(fslider, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -662,11 +814,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FVSlider *fvslider = dialog_new_vslider(window, font, &sel);
                 if (fvslider != NULL)
                 {
-                    Slider *slider = slider_vertical();
-                    fvslider_synchro(fvslider, slider);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_vslider(sel.flayout, fvslider, sel.col, sel.row);
-                    layout_slider(sel.glayout, slider, sel.col, sel.row);
+                    i_new_vslider(fvslider, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -681,11 +829,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FProgress *fprogress = dialog_new_progress(window, font, &sel);
                 if (fprogress != NULL)
                 {
-                    Progress *progress = progress_create();
-                    fprogress_synchro(fprogress, progress);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_progress(sel.flayout, fprogress, sel.col, sel.row);
-                    layout_progress(sel.glayout, progress, sel.col, sel.row);
+                    i_new_progress(fprogress, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -700,11 +844,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FText *ftext = dialog_new_text(window, font, &sel);
                 if (ftext != NULL)
                 {
-                    TextView *text = textview_create();
-                    ftext_synchro(ftext, text);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_text(sel.flayout, ftext, sel.col, sel.row);
-                    layout_textview(sel.glayout, text, sel.col, sel.row);
+                    i_new_text(ftext, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -719,12 +859,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 				FImage *fimage = dialog_new_image(window, font, &sel, folder_path);
                 if (fimage != NULL)
                 {
-                    ImageView *view = imageview_create();
-                    fimage_synchro(fimage, view, folder_path);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_image(sel.flayout, fimage, sel.col, sel.row);
-                    layout_imageview(sel.glayout, view, sel.col, sel.row);
-                    dlayout_set_image(sel.dlayout, imageview_get_image(view), sel.col, sel.row, colors);
+                    i_new_image(fimage, &sel, folder_path, colors);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -739,11 +874,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FTable *ftable = dialog_new_table(window, font, &sel);
                 if (ftable != NULL)
                 {
-                    TableView *view = tableview_create();
-                    ftable_synchro(ftable, view);
-                    i_sel_remove_cell(&sel);
-                    flayout_add_table(sel.flayout, ftable, sel.col, sel.row);
-                    layout_tableview(sel.glayout, view, sel.col, sel.row);
+                    i_new_table(ftable, &sel);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -767,20 +898,9 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
                 if (fsublayout != NULL)
                 {
-                    const char_t *resource_path = designer_folder_path(form->app);
-                    DLayout *dsublayout = dlayout_from_flayout(fsublayout, resource_path, colors);
-                    Layout *gsublayout = flayout_to_gui(fsublayout, resource_path, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
                     i_layout_obj_names(form, fsublayout);
-                    i_sel_remove_cell(&sel);
-                    dlayout_add_layout(sel.dlayout, dsublayout, sel.col, sel.row);
-                    flayout_add_layout(sel.flayout, fsublayout, sel.col, sel.row);
-                    layout_layout(sel.glayout, gsublayout, sel.col, sel.row);
-                    i_sel_synchro_cell(&sel);
-                    dform_compose(form);
-                    propedit_set(propedit, form, &sel);
-                    inspect_set(inspect, form);
-                    form->sel = sel;
-                    i_need_save(form);
+                    i_new_sublayout(fsublayout, &sel, folder_path, colors);
+                    i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
                 else
@@ -827,14 +947,192 @@ bool_t dform_OnExit(DForm *form)
 
 /*---------------------------------------------------------------------------*/
 
+static const DSelect *i_parent_sel(const ArrSt(DSelect) *path, const DSelect *sel)
+{
+    cassert_no_null(sel);
+    arrst_foreach_const(nsel, path, DSelect)
+        if (nsel->dlayout == sel->dlayout)
+        {
+            if (nsel_i > 0)
+                return nsel - 1;
+        }
+    arrst_end()
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static DCell *i_up_cell(const ArrSt(DSelect) *path, const DSelect *sel)
+{
+    cassert_no_null(sel);
+    cassert(sel->elem == ekLAYELEM_CELL);
+    while (sel != NULL)
+    {
+        if (sel->row > 0)
+        {
+            DCell *cell = dlayout_cell(sel->dlayout, sel->col, sel->row - 1);
+            while (cell->sublayout != NULL)
+            {
+                uint32_t n = dlayout_nrows(cell->sublayout);
+                cell = dlayout_cell(cell->sublayout, 0, n - 1);
+            }
+
+            return cell;
+        }
+
+        sel = i_parent_sel(path, sel);
+    }
+
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static DCell *i_down_cell(const ArrSt(DSelect) *path, const DSelect *sel)
+{
+    cassert_no_null(sel);
+    cassert(sel->elem == ekLAYELEM_CELL);
+    while (sel != NULL)
+    {
+        uint32_t n = dlayout_nrows(sel->dlayout);
+        if (sel->row < n - 1)
+        {
+            DCell *cell = dlayout_cell(sel->dlayout, sel->col, sel->row + 1);
+            while (cell->sublayout != NULL)
+                cell = dlayout_cell(cell->sublayout, 0, 0);
+            return cell;
+        }
+
+        sel = i_parent_sel(path, sel);
+    }
+
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static DCell *i_left_cell(const ArrSt(DSelect) *path, const DSelect *sel)
+{
+    cassert_no_null(sel);
+    cassert(sel->elem == ekLAYELEM_CELL);
+    while (sel != NULL)
+    {
+        if (sel->col > 0)
+        {
+            DCell *cell = dlayout_cell(sel->dlayout, sel->col - 1, sel->row);
+            while (cell->sublayout != NULL)
+            {
+                uint32_t n = dlayout_ncols(cell->sublayout);
+                cell = dlayout_cell(cell->sublayout, n - 1, 0);
+            }
+
+            return cell;
+        }
+
+        sel = i_parent_sel(path, sel);
+    }
+
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static DCell *i_right_cell(const ArrSt(DSelect) *path, const DSelect *sel)
+{
+    cassert_no_null(sel);
+    cassert(sel->elem == ekLAYELEM_CELL);
+    while (sel != NULL)
+    {
+        uint32_t n = dlayout_ncols(sel->dlayout);
+        if (sel->col < n - 1)
+        {
+            DCell *cell = dlayout_cell(sel->dlayout, sel->col + 1, sel->row);
+            while (cell->sublayout != NULL)
+                cell = dlayout_cell(cell->sublayout, 0, 0);
+            return cell;
+        }
+
+        sel = i_parent_sel(path, sel);
+    }
+
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static DCell *i_first_cell(DLayout *dlayout)
+{
+    DCell *cell = dlayout_cell(dlayout, 0, 0);
+    while (cell->sublayout != NULL)
+        cell = dlayout_cell(cell->sublayout, 0, 0);
+    return cell;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t dform_OnCursorNav(DForm *form, const vkey_t key, Panel *inspect, Panel *propedit)
+{
+    const DCell *dcell = NULL;
+    cassert_no_null(form);
+
+    if (form->sel.elem == ekLAYELEM_CELL)
+    {
+        if (key == ekKEY_UP)
+            dcell = i_up_cell(form->sel_path, &form->sel);
+        else if (key == ekKEY_DOWN)
+            dcell = i_down_cell(form->sel_path, &form->sel);
+        else if (key == ekKEY_LEFT)
+            dcell = i_left_cell(form->sel_path, &form->sel);
+        else if (key == ekKEY_RIGHT)
+            dcell = i_right_cell(form->sel_path, &form->sel);
+    }
+    else
+    {
+        dcell = i_first_cell(form->dlayout);
+    }
+
+    if (dcell != NULL)
+    {
+        DCell *ccell = NULL;
+        
+        if (form->sel.elem == ekLAYELEM_CELL)
+            ccell = dlayout_cell(form->sel.dlayout, form->sel.col, form->sel.row);
+
+        if (dcell != ccell)
+        {
+            /* We reuse the click process to create the selection path and update property editor / inspector */
+            DSelect sel;
+            i_elem_at_mouse(form->dlayout, form->fform->layout, form->glayout, dcell->rect.pos.x + 1, dcell->rect.pos.y + 1, form->sel_path, &sel);
+            inspect_set(inspect, form);
+            propedit_set(propedit, form, &sel);
+            form->sel = sel;
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 bool_t dform_OnSupr(DForm *form, Panel *inspect, Panel *propedit)
 {
+    const DSelect *sel = NULL;
     cassert_no_null(form);
-    if (form->sel.dlayout != NULL && form->sel.elem == ekLAYELEM_CELL)
+    if (form->sel.dlayout != NULL)
     {
-        cassert_no_null(form->sel.flayout);
-        cassert_no_null(form->sel.glayout);
-        if (i_sel_empty_cell(&form->sel) == FALSE)
+        if (form->sel.elem == ekLAYELEM_CELL)
+            sel = &form->sel;
+        else
+            sel = i_parent_sel(form->sel_path, &form->sel);
+    }
+
+    if (sel != NULL)
+    {
+        cassert(sel->elem == ekLAYELEM_CELL);
+        cassert_no_null(sel->flayout);
+        cassert_no_null(sel->glayout);
+        if (i_sel_empty_cell(sel) == FALSE)
         {
             /* Remove all inspector path steps after deleted cell */
             {
@@ -842,7 +1140,7 @@ bool_t dform_OnSupr(DForm *form, Panel *inspect, Panel *propedit)
                 while (n > 0)
                 {
                     const DSelect *last = arrst_last_const(form->sel_path, DSelect);
-                    if (i_sel_equ(&form->sel, last) == TRUE)
+                    if (i_sel_equ(sel, last) == TRUE)
                         break;
 
                     arrst_delete(form->sel_path, n - 1, NULL, DSelect);
@@ -852,17 +1150,194 @@ bool_t dform_OnSupr(DForm *form, Panel *inspect, Panel *propedit)
 
             /* Remove the cell itself */
             {
-                Cell *cell = layout_cell(form->sel.glayout, form->sel.col, form->sel.row);
-                i_sel_remove_cell(&form->sel);
+                Cell *cell = layout_cell(sel->glayout, sel->col, sel->row);
+                i_sel_remove_cell(sel);
                 cell_force_size(cell, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
-                i_sel_synchro_cell(&form->sel);
+                i_sel_synchro_cell(sel);
                 dform_compose(form);
-                propedit_set(propedit, form, &form->sel);
+                dform_need_save(form);
+                propedit_set(propedit, form, sel);
                 inspect_set(inspect, form);
             }
 
             i_need_save(form);
             return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t dform_OnCopy(DForm *form, DClipBoard *clipboard)
+{
+    cassert_no_null(form);
+    cassert_no_null(clipboard);
+    if (form->sel.elem == ekLAYELEM_CELL)
+    {
+        const FCell *cell = flayout_ccell(form->sel.flayout, form->sel.col, form->sel.row);
+        FCell *ccell = dbind_copy(cell, FCell);
+        cassert_no_null(ccell);
+        dbind_destopt(&clipboard->fcell, FCell);
+        dbind_destopt(&clipboard->flayout, FLayout);
+        clipboard->fcell = ccell;
+        return TRUE;
+    }
+    else
+    {
+        FLayout *clayout = dbind_copy(form->sel.flayout, FLayout);
+        dbind_destopt(&clipboard->fcell, FCell);
+        dbind_destopt(&clipboard->flayout, FLayout);
+        clipboard->flayout = clayout;
+        return TRUE;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, Panel *propedit)
+{
+    cassert_no_null(form);
+    cassert_no_null(clipboard);
+    if (i_sel_empty_cell(&form->sel) == TRUE)
+    {
+        const char_t *folder_path = designer_folder_path(form->app);
+        const DColors *colors = designer_colors(form->app);
+
+        if (clipboard->fcell != NULL)
+        {
+            switch (clipboard->fcell->type)
+            {
+            case ekCELL_TYPE_EMPTY:
+                break;
+
+            case ekCELL_TYPE_LABEL:
+            {
+                FLabel *flabel = dbind_copy(clipboard->fcell->widget.label, FLabel);
+                i_new_label(flabel, &form->sel);
+                break;
+            }
+
+            case ekCELL_TYPE_BUTTON:
+            {
+                FButton *fbutton = dbind_copy(clipboard->fcell->widget.button, FButton);
+                i_new_button(fbutton, &form->sel);
+                break;
+            }
+
+            case ekCELL_TYPE_CHECK:
+            {
+                FCheck *fcheck = dbind_copy(clipboard->fcell->widget.check, FCheck);
+                i_new_check(fcheck, &form->sel);
+                break;
+            }
+
+            case ekCELL_TYPE_RADIO:
+            {
+                FRadio *fradio = dbind_copy(clipboard->fcell->widget.radio, FRadio);
+                i_new_radio(fradio, &form->sel);
+                break;
+            }
+
+            case ekCELL_TYPE_TOOL:
+            {
+                FTool *ftool = dbind_copy(clipboard->fcell->widget.tool, FTool);
+                i_new_tool(ftool, &form->sel, folder_path, colors);
+                break;
+            }
+
+            case ekCELL_TYPE_POPUP:
+            {
+                FPopUp *fpopup = dbind_copy(clipboard->fcell->widget.popup, FPopUp);
+                i_new_popup(fpopup, &form->sel, folder_path, colors);
+                break;
+            }
+
+            case ekCELL_TYPE_EDIT:
+            {
+                FEdit *fedit = dbind_copy(clipboard->fcell->widget.edit, FEdit);
+                i_new_edit(fedit, &form->sel);
+                break;
+            }
+
+            case ekCELL_TYPE_COMBO:
+            {
+                FCombo *fcombo = dbind_copy(clipboard->fcell->widget.combo, FCombo);
+                i_new_combo(fcombo, &form->sel);
+                break;
+            }
+
+            case ekCELL_TYPE_LISTBOX:
+            {
+                FListBox *flistbox = dbind_copy(clipboard->fcell->widget.listbox, FListBox);
+                i_new_listbox(flistbox, &form->sel, folder_path, colors);
+                break;
+            }
+
+            case ekCELL_TYPE_SLIDER:
+            {
+                FSlider *fslider = dbind_copy(clipboard->fcell->widget.slider, FSlider);
+                i_new_slider(fslider, &form->sel);
+                break;
+            }
+
+            case ekCELL_TYPE_VSLIDER:
+            {
+                FVSlider *fvslider = dbind_copy(clipboard->fcell->widget.vslider, FVSlider);
+                i_new_vslider(fvslider, &form->sel);
+                break;
+            }
+
+            case ekCELL_TYPE_PROGRESS:
+            {
+                FProgress *fprogress = dbind_copy(clipboard->fcell->widget.progress, FProgress);
+                i_new_progress(fprogress, &form->sel);
+                break;
+            }
+
+            case ekCELL_TYPE_TEXT:
+            {
+                FText *ftext = dbind_copy(clipboard->fcell->widget.text, FText);
+                i_new_text(ftext, &form->sel);
+                break;
+            }
+
+            case ekCELL_TYPE_IMAGE:
+            {
+                FImage *fimage = dbind_copy(clipboard->fcell->widget.image, FImage);
+                i_new_image(fimage, &form->sel, folder_path, colors);
+                break;
+            }
+
+            case ekCELL_TYPE_TABLEVIEW:
+            {
+                FTable *ftable = dbind_copy(clipboard->fcell->widget.table, FTable);
+                i_new_table(ftable, &form->sel);
+                break;
+            }
+
+            case ekCELL_TYPE_LAYOUT:
+            {
+                FLayout *fsublayout = dbind_copy(clipboard->fcell->widget.layout, FLayout);
+                i_new_sublayout(fsublayout, &form->sel, folder_path, colors);
+                break;
+            }
+
+            default:
+                cassert_default(clipboard->fcell->type);
+            }
+
+            i_copy_cell_props(clipboard->fcell, &form->sel);
+            i_after_new_widget(form, inspect, propedit, &form->sel);
+            return TRUE;            
+        }
+        else if (clipboard->flayout != NULL)
+        {
+            FLayout *fsublayout = dbind_copy(clipboard->flayout, FLayout);
+            i_new_sublayout(fsublayout, &form->sel, folder_path, colors);
+            i_after_new_widget(form, inspect, propedit, &form->sel);
+            return TRUE;            
         }
     }
 
@@ -1361,11 +1836,11 @@ FCell *dform_sel_fcell(const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-void dform_draw(const DForm *form, const widget_t swidget, const Font *default_font, const Font *bold_font, const cmode_t cmode, const DColors *colors, const char_t *form_name, DCtx *ctx)
+void dform_draw(const DForm *form, const widget_t swidget, const Font *default_font, const Font *bold_font, const cmode_t cmode, const DColors *colors, const char_t *form_name, const bool_t focus, DCtx *ctx)
 {
     cassert_no_null(form);
     cassert_no_null(form->fform);
-    dlayout_draw(form->dlayout, form->fform->layout, form->glayout, &form->hover, &form->sel, swidget, default_font, bold_font, cmode, colors, form_name, ctx);
+    dlayout_draw(form->dlayout, form->fform->layout, form->glayout, &form->hover, &form->sel, swidget, default_font, bold_font, cmode, colors, form_name, focus, ctx);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1648,12 +2123,15 @@ void dform_update_sel(DForm *form, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-void dform_simulate(DForm *form, Window *window)
+void dform_simulate(DForm *form, const char_t *form_name, Window *window)
 {
     cassert_no_null(form);
     if (form->window != NULL)
     {
+        String *name = str_printf("%s - %s", gui_text(TEXT_FORM), form_name);
         i_center_window(window, form->window);
+        window_title(form->window, tc(name));
         window_modal(form->window, window);
+        str_destroy(&name);
     }
 }

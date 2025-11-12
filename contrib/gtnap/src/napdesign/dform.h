@@ -26,7 +26,13 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
 bool_t dform_OnExit(DForm *form);
 
+bool_t dform_OnCursorNav(DForm *form, const vkey_t key, Panel *inspect, Panel *propedit);
+
 bool_t dform_OnSupr(DForm *form, Panel *inspect, Panel *propedit);
+
+bool_t dform_OnCopy(DForm *form, DClipBoard *clipboard);
+
+bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, Panel *propedit);
 
 V2Df dform_get_origin(const DForm *form);
 
@@ -90,7 +96,7 @@ void dform_synchro_cell_valign(DForm *form, const DSelect *sel, const FCell *fce
 
 FCell *dform_sel_fcell(const DSelect *sel);
 
-void dform_draw(const DForm *form, const widget_t swidget, const Font *default_font, const Font *bold_font, const cmode_t cmode, const DColors *colors, const char_t *form_name, DCtx *ctx);
+void dform_draw(const DForm *form, const widget_t swidget, const Font *default_font, const Font *bold_font, const cmode_t cmode, const DColors *colors, const char_t *form_name, const bool_t focus, DCtx *ctx);
 
 uint32_t dform_selpath_size(const DForm *form);
 
@@ -108,4 +114,4 @@ void dform_set_need_save(DForm *form);
 
 void dform_update_sel(DForm *form, const DSelect *sel);
 
-void dform_simulate(DForm *form, Window *window);
+void dform_simulate(DForm *form, const char_t *form_name, Window *window);
