@@ -1202,11 +1202,11 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
     cassert_no_null(clipboard);
     if (i_sel_empty_cell(&form->sel) == TRUE)
     {
+        const char_t *folder_path = designer_folder_path(form->app);
+        const DColors *colors = designer_colors(form->app);
+
         if (clipboard->fcell != NULL)
         {
-            const char_t *folder_path = designer_folder_path(form->app);
-            const DColors *colors = designer_colors(form->app);
-
             switch (clipboard->fcell->type)
             {
             case ekCELL_TYPE_EMPTY:
@@ -1329,6 +1329,13 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
             }
 
             i_copy_cell_props(clipboard->fcell, &form->sel);
+            i_after_new_widget(form, inspect, propedit, &form->sel);
+            return TRUE;            
+        }
+        else if (clipboard->flayout != NULL)
+        {
+            FLayout *fsublayout = dbind_copy(clipboard->flayout, FLayout);
+            i_new_sublayout(fsublayout, &form->sel, folder_path, colors);
             i_after_new_widget(form, inspect, propedit, &form->sel);
             return TRUE;            
         }
