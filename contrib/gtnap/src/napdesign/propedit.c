@@ -842,7 +842,7 @@ static void i_OnLoadIcon(PropData *data, Event *e)
     cassert_no_null(data);
     unref(e);
     folder_path = designer_folder_path(data->app);
-    imgpath = comwin_open_file(window, NULL, NULL, 0, folder_path);
+    imgpath = comwin_open_file(window, NULL, NULL, 0, folder_path, NULL);
     window = designer_main_window(data->app);
     if (imgpath != NULL)
     {
