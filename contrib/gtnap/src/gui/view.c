@@ -566,9 +566,15 @@ void view_keybuf(View *view, KeyBuf *buffer)
 const char_t *_view_subtype(const View *view)
 {
     cassert_no_null(view);
-    cassert_no_null(view->vtbl);
-    cassert(str_empty_c(view->vtbl->type) == FALSE);
-    return view->vtbl->type;
+    if (view->vtbl != NULL)
+    {
+        cassert(str_empty_c(view->vtbl->type) == FALSE);
+        return view->vtbl->type;
+    }
+    else
+    {
+        return "View";
+    }
 }
 
 /*---------------------------------------------------------------------------*/
