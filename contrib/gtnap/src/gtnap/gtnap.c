@@ -3641,7 +3641,7 @@ uint32_t hb_gtnap_image(const uint32_t wid, const int32_t top, const int32_t lef
         cassert_no_null(gtwin);
         view = imageview_create();
         listener = i_gtnap_listener(click_block, INT32_MAX, autoclose_id, gtwin, i_OnImageClick);
-        view_OnClick((View *)view, listener);
+        imageview_OnClick(view, listener);
         imageview_scale(view, ekGUI_SCALE_AUTO);
         size.width = (real32_t)(right - left + 1) * GTNAP_GLOBAL->cell_x_sizef;
         size.height = (real32_t)(bottom - top + 1) * GTNAP_GLOBAL->cell_y_sizef;
