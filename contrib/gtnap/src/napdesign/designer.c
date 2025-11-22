@@ -81,6 +81,8 @@ struct _designer_t
     Cell *cut_cell;
     Cell *copy_cell;
     Cell *paste_cell;
+    Cell *undo_cell;
+    Cell *redo_cell;
     SplitView *split1;
     SplitView *split2;
     SplitView *split3;
@@ -93,6 +95,8 @@ struct _designer_t
     MenuItem *cut_item;
     MenuItem *copy_item;
     MenuItem *paste_item;
+    MenuItem *undo_item;
+    MenuItem *redo_item;
     Font *default_font;
     Font *bold_font;
     bool_t dragging;
@@ -256,9 +260,12 @@ static void i_open_form(Designer *app, const uint32_t index)
 
         if (form != NULL)
         {
+            bool_t can_undo = dform_can_undo(form);
+            bool_t can_redo = dform_can_redo(form);
             dform_compose(form);
             dform_set(form, app->inspect, app->propedit);
             dform_origin(form, v2df(50, 50));
+            designer_undo_controls(app, can_undo, can_redo);
         }
     }
 
@@ -646,9 +653,31 @@ static void i_OnPasteClick(Designer *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnUndoClick(Designer *app, Event *e)
+{
+    cassert_no_null(app);
+    unref(e);
+    if (app->config.sel_form != UINT32_MAX)
+    {
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnRedoClick(Designer *app, Event *e)
+{
+    cassert_no_null(app);
+    unref(e);
+    if (app->config.sel_form != UINT32_MAX)
+    {
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Layout *i_tools_layout(Designer *app)
 {
-    Layout *layout = layout_create(11, 1);
+    Layout *layout = layout_create(13, 1);
     Button *button1 = button_flat();
     Button *button2 = button_flat();
     Button *button3 = button_flat();
@@ -659,6 +688,8 @@ static Layout *i_tools_layout(Designer *app)
     Button *button8 = button_flat();
     Button *button9 = button_flat();
     Button *button10 = button_flat();
+    Button *button11 = button_flat();
+    Button *button12 = button_flat();
     cassert_no_null(app);
     button_image(button1, cast_const(OPEN_PNG, Image));
     button_image(button2, cast_const(SAVE_PNG, Image));
@@ -670,6 +701,8 @@ static Layout *i_tools_layout(Designer *app)
     button_image(button8, cast_const(CUT_PNG, Image));
     button_image(button9, cast_const(COPY_PNG, Image));
     button_image(button10, cast_const(PASTE_PNG, Image));
+    button_image(button11, cast_const(UNDO_PNG, Image));
+    button_image(button12, cast_const(REDO_PNG, Image));
     button_hpadding(button1, 6);
     button_hpadding(button2, 6);
     button_hpadding(button3, 6);
@@ -680,6 +713,8 @@ static Layout *i_tools_layout(Designer *app)
     button_hpadding(button8, 6);
     button_hpadding(button9, 6);
     button_hpadding(button10, 6);
+    button_hpadding(button11, 6);
+    button_hpadding(button12, 6);
     button_vpadding(button1, 6);
     button_vpadding(button2, 6);
     button_vpadding(button3, 6);
@@ -690,6 +725,8 @@ static Layout *i_tools_layout(Designer *app)
     button_vpadding(button8, 6);
     button_vpadding(button9, 6);
     button_vpadding(button10, 6);
+    button_vpadding(button11, 6);
+    button_vpadding(button12, 6);
     button_OnClick(button1, listener(app, i_OnOpenFormsClick, Designer));
     button_OnClick(button2, listener(app, i_OnSaveFormsClick, Designer));
     button_OnClick(button3, listener(app, i_OnAddFormClick, Designer));
@@ -700,6 +737,8 @@ static Layout *i_tools_layout(Designer *app)
     button_OnClick(button8, listener(app, i_OnCutClick, Designer));
     button_OnClick(button9, listener(app, i_OnCopyClick, Designer));
     button_OnClick(button10, listener(app, i_OnPasteClick, Designer));
+    button_OnClick(button11, listener(app, i_OnUndoClick, Designer));
+    button_OnClick(button12, listener(app, i_OnRedoClick, Designer));
     button_tooltip(button1, gui_text(TOOLBAR_OPEN));
     button_tooltip(button2, gui_text(TOOLBAR_SAVE));
     button_tooltip(button3, gui_text(TOOLBAR_NEW));
@@ -710,6 +749,8 @@ static Layout *i_tools_layout(Designer *app)
     button_tooltip(button8, gui_text(TEXT_CUT));
     button_tooltip(button9, gui_text(TEXT_COPY));
     button_tooltip(button10, gui_text(TEXT_PASTE));
+    button_tooltip(button11, gui_text(TEXT_UNDO));
+    button_tooltip(button12, gui_text(TEXT_REDO));
     layout_button(layout, button1, 0, 0);
     layout_button(layout, button2, 1, 0);
     layout_button(layout, button3, 2, 0);
@@ -720,11 +761,14 @@ static Layout *i_tools_layout(Designer *app)
     layout_button(layout, button8, 7, 0);
     layout_button(layout, button9, 8, 0);
     layout_button(layout, button10, 9, 0);
+    layout_button(layout, button11, 10, 0);
+    layout_button(layout, button12, 11, 0);
     layout_margin4(layout, 0, 0, 0, 10);
-    layout_hexpand(layout, 10);
+    layout_hexpand(layout, 12);
     layout_hmargin(layout, 4, 15);
     layout_hmargin(layout, 5, 15);
     layout_hmargin(layout, 6, 15);
+    layout_hmargin(layout, 9, 15);
     app->open_form_cell = layout_cell(layout, 0, 0);
     app->save_form_cell = layout_cell(layout, 1, 0);
     app->add_form_cell = layout_cell(layout, 2, 0);
@@ -735,6 +779,8 @@ static Layout *i_tools_layout(Designer *app)
     app->cut_cell = layout_cell(layout, 7, 0);
     app->copy_cell = layout_cell(layout, 8, 0);
     app->paste_cell = layout_cell(layout, 9, 0);
+    app->undo_cell = layout_cell(layout, 10, 0);
+    app->redo_cell = layout_cell(layout, 11, 0);
     return layout;
 }
 
@@ -1473,6 +1519,8 @@ static Menu *i_edit_menu(Designer *app)
     menuitem_image(item3, gui_image(CUT16_PNG));
     menuitem_image(item4, gui_image(COPY16_PNG));
     menuitem_image(item5, gui_image(PASTE16_PNG));
+    menuitem_key(item1, ekKEY_Z, ekMKEY_CONTROL);
+    menuitem_key(item2, ekKEY_Y, ekMKEY_CONTROL);
     menuitem_key(item3, ekKEY_X, ekMKEY_CONTROL);
     menuitem_key(item4, ekKEY_C, ekMKEY_CONTROL);
     menuitem_key(item5, ekKEY_V, ekMKEY_CONTROL);
@@ -1485,6 +1533,8 @@ static Menu *i_edit_menu(Designer *app)
     menu_add_item(menu, item3);
     menu_add_item(menu, item4);
     menu_add_item(menu, item5);
+    app->undo_item = item1;
+    app->redo_item = item2;
     app->cut_item = item3;
     app->copy_item = item4;
     app->paste_item = item5;
@@ -1987,6 +2037,17 @@ void designer_clipboard_controls(Designer *app, const bool_t can_copy, const boo
     cell_enabled(app->cut_cell, can_copy);
     cell_enabled(app->copy_cell, can_copy);
     cell_enabled(app->paste_cell, paste);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void designer_undo_controls(Designer *app, const bool_t can_undo, const bool_t can_redo)
+{
+    cassert_no_null(app);
+    menuitem_enabled(app->undo_item, can_undo);
+    menuitem_enabled(app->redo_item, can_redo);
+    cell_enabled(app->undo_cell, can_undo);
+    cell_enabled(app->redo_cell, can_redo);
 }
 
 /*---------------------------------------------------------------------------*/
