@@ -145,7 +145,10 @@ static void i_undo_add_frame(DForm *form)
         cassert(form->undo_pos < n);
         rn = n - form->undo_pos - 1;
         for (i = 0; i < rn; ++i)
+        {
             arrst_delete(form->undo_stack, form->undo_pos, i_remove_undo_frame, UndoFrame);
+            n -= 1;
+        }
     }
 
     form->undo_pos = n;
