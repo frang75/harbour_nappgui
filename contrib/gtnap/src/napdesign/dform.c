@@ -135,7 +135,6 @@ static void i_undo_add_frame(DForm *form)
 {
     uint32_t n = 0;
     UndoFrame *frame = NULL;
-    R2Df rect;
     cassert_no_null(form);
     n = arrst_size(form->undo_stack, UndoFrame);
 
@@ -152,10 +151,18 @@ static void i_undo_add_frame(DForm *form)
     form->undo_pos = n;
     frame = arrst_new0(form->undo_stack, UndoFrame);
     frame->fform = dbind_copy(form->fform, FForm);
-    rect = dlayout_sel_rect(&form->sel);
-    frame->cellpos = rect.pos;
-    frame->cellpos.x -= form->origin.x;
-    frame->cellpos.y -= form->origin.y;
+    if (form->sel.dlayout != NULL)
+    {
+        R2Df rect = dlayout_sel_rect(&form->sel);
+        frame->cellpos = rect.pos;
+        frame->cellpos.x -= form->origin.x;
+        frame->cellpos.y -= form->origin.y;
+    }
+    else
+    {
+        frame->cellpos.x = -1;
+        frame->cellpos.y = -1;
+    }
 }
     
 /*---------------------------------------------------------------------------*/
@@ -194,7 +201,7 @@ DForm *dform_empty(Designer *app)
     DForm *form = i_dform(app, &fform);
     cassert_no_null(form->fform);
     i_layout_obj_names(form, form->fform->layout);
-    i_need_save(form, FALSE);
+    i_need_save(form, TRUE);
     return form;
 }
 
@@ -237,6 +244,7 @@ DForm *dform_read(Stream *stm, Designer *app)
         cassert_no_null(form->fform->layout);
         form->cell_id = i_num_cells(form->fform->layout);
         form->layout_id = i_num_layouts(form->fform->layout);
+        i_undo_add_frame(form);
         return form;
     }
     else
@@ -389,10 +397,8 @@ bool_t dform_need_save(const DForm *form)
 
 bool_t dform_can_undo(const DForm *form)
 {
-    uint32_t n = 0;
     cassert_no_null(form);
-    n = arrst_size(form->undo_stack, UndoFrame);
-    return (n > 0);
+    return (form->undo_pos > 0);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1433,7 +1439,6 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
 static void i_apply_undo_frame(DForm *form, const uint32_t pos, Panel *inspect, Panel *propedit)
 {
     const UndoFrame *frame = NULL;
-    DSelect sel;
 
     cassert_no_null(form);
     frame = arrst_get_const(form->undo_stack, pos, UndoFrame);
@@ -1455,10 +1460,20 @@ static void i_apply_undo_frame(DForm *form, const uint32_t pos, Panel *inspect, 
     form->undo_pos = pos;
     dform_compose(form);
 
-    i_elem_at_mouse(form->dlayout, form->fform->layout, form->glayout, frame->cellpos.x + form->origin.x + 1, frame->cellpos.y  + form->origin.y + 1, form->sel_path, &sel);
-    inspect_set(inspect, form);
-    propedit_set(propedit, form, &sel);
-    form->sel = sel;
+    {
+        DSelect sel;
+        V2Df cpos = frame->cellpos;
+        if (cpos.x >= 0)
+        {
+            cpos.x += form->origin.x + 1;
+            cpos.y += form->origin.y + 1;
+        }
+
+        i_elem_at_mouse(form->dlayout, form->fform->layout, form->glayout, cpos.x, cpos.y, form->sel_path, &sel);
+        inspect_set(inspect, form);
+        propedit_set(propedit, form, &sel);
+        form->sel = sel;
+    }
 }
 
 /*---------------------------------------------------------------------------*/

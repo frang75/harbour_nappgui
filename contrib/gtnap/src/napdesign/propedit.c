@@ -1989,6 +1989,26 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
     cassert_no_null(sel);
     data->form = form;
     data->sel = *sel;
+
+    /* Unbind all objects in edition */
+    layout_dbind_obj(data->layout_layout, NULL, FLayout);
+    layout_dbind_obj(data->cell_layout, NULL, FCell);
+    layout_dbind_obj(data->label_layout, NULL, FLabel);
+    layout_dbind_obj(data->button_layout, NULL, FButton);
+    layout_dbind_obj(data->check_layout, NULL, FCheck);
+    layout_dbind_obj(data->radio_layout, NULL, FRadio);
+    layout_dbind_obj(data->tool_layout, NULL, FTool);
+    layout_dbind_obj(data->popup_layout, NULL, FPopUp);
+    layout_dbind_obj(data->edit_layout, NULL, FEdit);
+    layout_dbind_obj(data->combo_layout, NULL, FCombo);
+    layout_dbind_obj(data->listbox_layout, NULL, FListBox);
+    layout_dbind_obj(data->slider_layout, NULL, FSlider);
+    layout_dbind_obj(data->vslider_layout, NULL, FVSlider);
+    layout_dbind_obj(data->progress_layout, NULL, FProgress);
+    layout_dbind_obj(data->text_layout, NULL, FText);
+    layout_dbind_obj(data->image_layout, NULL, FImage);
+    layout_dbind_obj(data->table_layout, NULL, FTable);
+
     /* i_no_sel_layout */
     if (sel->flayout == NULL)
     {

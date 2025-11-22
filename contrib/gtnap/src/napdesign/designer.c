@@ -661,7 +661,12 @@ static void i_OnUndoClick(Designer *app, Event *e)
     {
         DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
         bool_t ok = dform_OnUndo(form, app->inspect, app->propedit);
-        cassert_unref(ok == TRUE, ok);
+        if (ok == TRUE)
+        {
+            bool_t can_undo = dform_can_undo(form);
+            bool_t can_redo = dform_can_redo(form);
+            designer_undo_controls(app, can_undo, can_redo);
+        }
     }
 }
 
@@ -675,7 +680,12 @@ static void i_OnRedoClick(Designer *app, Event *e)
     {
         DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
         bool_t ok = dform_OnRedo(form, app->inspect, app->propedit);
-        cassert_unref(ok == TRUE, ok);
+        if (ok == TRUE)
+        {
+            bool_t can_undo = dform_can_undo(form);
+            bool_t can_redo = dform_can_redo(form);
+            designer_undo_controls(app, can_undo, can_redo);
+        }
     }
 }
 
@@ -1529,6 +1539,8 @@ static Menu *i_edit_menu(Designer *app)
     menuitem_key(item3, ekKEY_X, ekMKEY_CONTROL);
     menuitem_key(item4, ekKEY_C, ekMKEY_CONTROL);
     menuitem_key(item5, ekKEY_V, ekMKEY_CONTROL);
+    menuitem_OnClick(item1, listener(app, i_OnUndoClick, Designer));
+    menuitem_OnClick(item2, listener(app, i_OnRedoClick, Designer));
     menuitem_OnClick(item3, listener(app, i_OnCutClick, Designer));
     menuitem_OnClick(item4, listener(app, i_OnCopyClick, Designer));
     menuitem_OnClick(item5, listener(app, i_OnPasteClick, Designer));
