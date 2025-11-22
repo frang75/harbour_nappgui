@@ -55,6 +55,14 @@
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
+typedef struct _undoframe_t UndoFrame;
+
+struct _undoframe_t
+{
+    FForm *fform;
+    V2Df cellpos;
+};
+
 struct _dform_t
 {
     Designer *app;
@@ -65,8 +73,10 @@ struct _dform_t
     V2Df origin;
     DSelect hover;
     DSelect sel;
+    ArrSt(UndoFrame) *undo_stack;
     ArrSt(DSelect) *temp_path;
     ArrSt(DSelect) *sel_path;
+    uint32_t undo_pos;
     uint32_t layout_id;
     uint32_t cell_id;
     bool_t need_save;
@@ -74,9 +84,17 @@ struct _dform_t
 
 /*---------------------------------------------------------------------------*/
 
+DeclSt(UndoFrame);
 static real32_t i_EMPTY_CELL_WIDTH = 40;
 static real32_t i_EMPTY_CELL_HEIGHT = 20;
 
+/*---------------------------------------------------------------------------*/
+
+static void i_remove_undo_frame(UndoFrame *frame)
+{
+    dbind_destroy(&frame->fform, FForm);
+}
+    
 /*---------------------------------------------------------------------------*/
 
 static void i_cell_obj_name(DForm *form, FLayout *flayout, const uint32_t col, const uint32_t row)
@@ -113,22 +131,50 @@ static void i_layout_obj_names(DForm *form, FLayout *flayout)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_undo_stack(DForm *form)
+{
+    UndoFrame *frame = NULL;
+    R2Df rect;
+    cassert_no_null(form);
+    form->undo_pos = arrst_size(form->undo_stack, UndoFrame);
+    frame = arrst_new0(form->undo_stack, UndoFrame);
+    frame->fform = dbind_copy(form->fform, FForm);
+    rect = dlayout_sel_rect(&form->sel);
+    frame->cellpos = rect.pos;
+    frame->cellpos.x -= form->origin.x - 1;
+    frame->cellpos.y -= form->origin.y - 1;
+}
+    
+/*---------------------------------------------------------------------------*/
+
 static void i_need_save(DForm *form)
 {
     cassert_no_null(form);
     form->need_save = TRUE;
+    i_undo_stack(form);
     designer_need_save(form->app);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static DForm *i_dform(Designer *app, FForm **fform)
+{
+    DForm *form = heap_new0(DForm);
+    form->app = app;
+    form->fform = ptr_dget(fform, FForm);
+    form->undo_stack = arrst_create(UndoFrame);
+    form->temp_path = arrst_create(DSelect);
+    form->sel_path = arrst_create(DSelect);
+    form->undo_pos = UINT32_MAX;
+    return form;
 }
 
 /*---------------------------------------------------------------------------*/
 
 DForm *dform_empty(Designer *app)
 {
-    DForm *form = heap_new0(DForm);
-    form->app = app;
-    form->fform = fform_create();
-    form->temp_path = arrst_create(DSelect);
-    form->sel_path = arrst_create(DSelect);
+    FForm *fform = fform_create();
+    DForm *form = i_dform(app, &fform);
     cassert_no_null(form->fform);
     i_layout_obj_names(form, form->fform->layout);
     i_need_save(form);
@@ -169,12 +215,9 @@ DForm *dform_read(Stream *stm, Designer *app)
     FForm *fform = fform_read(stm);
     if (stm_state(stm) == ekSTOK)
     {
-        DForm *form = heap_new0(DForm);
-        cassert_no_null(fform->layout);
-        form->app = app;
-        form->fform = fform;
-        form->temp_path = arrst_create(DSelect);
-        form->sel_path = arrst_create(DSelect);
+        DForm *form = i_dform(app, &fform);
+        cassert_no_null(form);
+        cassert_no_null(form->fform->layout);
         form->cell_id = i_num_cells(form->fform->layout);
         form->layout_id = i_num_layouts(form->fform->layout);
         return form;
@@ -193,6 +236,7 @@ void dform_destroy(DForm **form)
     cassert_no_null(form);
     cassert_no_null(*form);
     fform_destroy(&(*form)->fform);
+    arrst_destroy(&(*form)->undo_stack, i_remove_undo_frame, UndoFrame);
     arrst_destroy(&(*form)->temp_path, NULL, DSelect);
     arrst_destroy(&(*form)->sel_path, NULL, DSelect);
     if ((*form)->window != NULL)

@@ -1632,3 +1632,11 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
         cassert_default(cmode);
     }
 }
+
+/*---------------------------------------------------------------------------*/
+
+R2Df dlayout_sel_rect(const DSelect *sel)
+{
+    cassert_no_null(sel);
+    return i_get_rect(sel->dlayout, sel);
+}
