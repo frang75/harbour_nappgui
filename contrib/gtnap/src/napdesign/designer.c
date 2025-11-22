@@ -659,6 +659,9 @@ static void i_OnUndoClick(Designer *app, Event *e)
     unref(e);
     if (app->config.sel_form != UINT32_MAX)
     {
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
+        bool_t ok = dform_OnUndo(form, app->inspect, app->propedit);
+        cassert_unref(ok == TRUE, ok);
     }
 }
 
@@ -670,6 +673,9 @@ static void i_OnRedoClick(Designer *app, Event *e)
     unref(e);
     if (app->config.sel_form != UINT32_MAX)
     {
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
+        bool_t ok = dform_OnRedo(form, app->inspect, app->propedit);
+        cassert_unref(ok == TRUE, ok);
     }
 }
 
@@ -1508,7 +1514,6 @@ static Menu *i_edit_menu(Designer *app)
     MenuItem *item3 = menuitem_create();
     MenuItem *item4 = menuitem_create();
     MenuItem *item5 = menuitem_create();
-    unref(app);
     menuitem_text(item1, gui_text(TEXT_UNDO));
     menuitem_text(item2, gui_text(TEXT_REDO));
     menuitem_text(item3, gui_text(TEXT_CUT));

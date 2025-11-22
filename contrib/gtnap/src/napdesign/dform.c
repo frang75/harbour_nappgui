@@ -131,18 +131,31 @@ static void i_layout_obj_names(DForm *form, FLayout *flayout)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_undo_stack(DForm *form)
+static void i_undo_add_frame(DForm *form)
 {
+    uint32_t n = 0;
     UndoFrame *frame = NULL;
     R2Df rect;
     cassert_no_null(form);
-    form->undo_pos = arrst_size(form->undo_stack, UndoFrame);
+    n = arrst_size(form->undo_stack, UndoFrame);
+
+    /* Remove all redo operations before current stack position */
+    if (form->undo_pos != UINT32_MAX)
+    {
+        uint32_t i, rn = 0;
+        cassert(form->undo_pos < n);
+        rn = n - form->undo_pos - 1;
+        for (i = 0; i < rn; ++i)
+            arrst_delete(form->undo_stack, form->undo_pos, i_remove_undo_frame, UndoFrame);
+    }
+
+    form->undo_pos = n;
     frame = arrst_new0(form->undo_stack, UndoFrame);
     frame->fform = dbind_copy(form->fform, FForm);
     rect = dlayout_sel_rect(&form->sel);
     frame->cellpos = rect.pos;
-    frame->cellpos.x -= form->origin.x - 1;
-    frame->cellpos.y -= form->origin.y - 1;
+    frame->cellpos.x -= form->origin.x;
+    frame->cellpos.y -= form->origin.y;
 }
     
 /*---------------------------------------------------------------------------*/
@@ -154,7 +167,7 @@ static void i_need_save(DForm *form, const bool_t undo)
     designer_need_save(form->app);
     if (undo == TRUE)
     {
-        i_undo_stack(form);
+        i_undo_add_frame(form);
         designer_undo_controls(form->app, TRUE, FALSE);
     }
 }
@@ -1410,6 +1423,69 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
             i_after_new_widget(form, inspect, propedit, &form->sel);
             return TRUE;            
         }
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_apply_undo_frame(DForm *form, const uint32_t pos, Panel *inspect, Panel *propedit)
+{
+    const UndoFrame *frame = NULL;
+    DSelect sel;
+
+    cassert_no_null(form);
+    frame = arrst_get_const(form->undo_stack, pos, UndoFrame);
+    dbind_destroy(&form->fform, FForm);
+
+    if (form->window != NULL)
+    {
+        window_destroy(&form->window);
+        dlayout_destroy(&form->dlayout);
+        form->glayout = NULL;
+    }
+    else
+    {
+        cassert(form->glayout == NULL);
+        cassert(form->dlayout == NULL);
+    }
+
+    form->fform = dbind_copy(frame->fform, FForm);
+    form->undo_pos = pos;
+    dform_compose(form);
+
+    i_elem_at_mouse(form->dlayout, form->fform->layout, form->glayout, frame->cellpos.x + form->origin.x + 1, frame->cellpos.y  + form->origin.y + 1, form->sel_path, &sel);
+    inspect_set(inspect, form);
+    propedit_set(propedit, form, &sel);
+    form->sel = sel;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t dform_OnUndo(DForm *form, Panel *inspect, Panel *propedit)
+{
+    cassert_no_null(form);
+    if (form->undo_pos > 0)
+    {
+        i_apply_undo_frame(form, form->undo_pos - 1, inspect, propedit);
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t dform_OnRedo(DForm *form, Panel *inspect, Panel *propedit)
+{
+    uint32_t n = 0;
+    cassert_no_null(form);
+    n = arrst_size(form->undo_stack, UndoFrame);
+    if (n > 0 && form->undo_pos < n - 1)
+    {
+        i_apply_undo_frame(form, form->undo_pos + 1, inspect, propedit);
+        return TRUE;
     }
 
     return FALSE;
