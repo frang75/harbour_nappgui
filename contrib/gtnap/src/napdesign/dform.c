@@ -60,6 +60,7 @@ typedef struct _undoframe_t UndoFrame;
 struct _undoframe_t
 {
     FForm *fform;
+    uint32_t mem;
     V2Df cellpos;
 };
 
@@ -131,6 +132,18 @@ static void i_layout_obj_names(DForm *form, FLayout *flayout)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_update_undo_stack(DForm *form)
+{
+    uint32_t size = 0;
+    cassert_no_null(form);
+    arrst_foreach_const(frame, form->undo_stack, UndoFrame)
+        size += frame->mem;
+    arrst_end()
+    designer_undo_stack(form->app, size);
+}
+    
+/*---------------------------------------------------------------------------*/
+
 static void i_undo_add_frame(DForm *form)
 {
     uint32_t n = 0;
@@ -154,6 +167,7 @@ static void i_undo_add_frame(DForm *form)
     form->undo_pos = n;
     frame = arrst_new0(form->undo_stack, UndoFrame);
     frame->fform = dbind_copy(form->fform, FForm);
+    frame->mem = dbind_sizeof(frame->fform, FForm);
     if (form->sel.dlayout != NULL)
     {
         R2Df rect = dlayout_sel_rect(&form->sel);
@@ -166,6 +180,8 @@ static void i_undo_add_frame(DForm *form)
         frame->cellpos.x = -1;
         frame->cellpos.y = -1;
     }
+
+    i_update_undo_stack(form);
 }
     
 /*---------------------------------------------------------------------------*/

@@ -65,7 +65,7 @@ struct _designer_t
     DClipBoard clipboard;
     cmode_t cmode;
     ListBox *form_list;
-    Label *status_label;
+    Label *undo_label;
     Label *cells_label;
     Progress *progress;
     View *canvas;
@@ -1321,12 +1321,12 @@ static Layout *i_statusbar_layout(Designer *app)
 
     /* All the horizontal expansion will be done in empty column-cell(2) */
     layout_hexpand(layout, 2);
-    label_text(label1, "status-1");
+    label_size_text(label1, "Undo Stack: 999999MMM");
     label_text(label2, "status-2");
 
     layout_margin4(layout, 0, 5, 5, 5);
     /* Keep the controls for futher updates */
-    app->status_label = label1;
+    app->undo_label = label1;
     app->cells_label = label2;
     app->progress = progress;
     return layout;
@@ -2065,6 +2065,32 @@ void designer_undo_controls(Designer *app, const bool_t can_undo, const bool_t c
     menuitem_enabled(app->redo_item, can_redo);
     cell_enabled(app->undo_cell, can_undo);
     cell_enabled(app->redo_cell, can_redo);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void designer_undo_stack(Designer *app, const uint32_t size)
+{
+    String *str = NULL;
+    cassert_no_null(app);
+    if (size < 1024 * 1024)
+    {
+        real32_t kb = (real32_t)size / (real32_t)1024;
+        str = str_printf("%s: %.1fK", gui_text(TEXT_UNDO_STACK), kb);
+    }
+    else if (size < 1024 * 1024 * 1024)
+    {
+        real32_t mb = (real32_t)size / (real32_t)(1024 * 1024);
+        str = str_printf("%s: %.1fM", gui_text(TEXT_UNDO_STACK), mb);
+    }
+    else
+    {
+        real32_t gb = (real32_t)size / (real32_t)(1024 * 1024 * 1024);
+        str = str_printf("%s: %.1fG", gui_text(TEXT_UNDO_STACK), gb);
+    }
+
+    label_text(app->undo_label, tc(str));
+    str_destroy(&str);
 }
 
 /*---------------------------------------------------------------------------*/

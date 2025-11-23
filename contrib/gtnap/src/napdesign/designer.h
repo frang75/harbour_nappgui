@@ -14,6 +14,8 @@ void designer_clipboard_controls(Designer *app, const bool_t can_copy, const boo
 
 void designer_undo_controls(Designer *app, const bool_t can_undo, const bool_t can_redo);
 
+void designer_undo_stack(Designer *app, const uint32_t size);
+
 const char_t *designer_folder_path(const Designer *app);
 
 const Font *designer_default_font(const Designer *app);

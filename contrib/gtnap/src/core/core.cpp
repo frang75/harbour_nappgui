@@ -194,7 +194,7 @@ void core_start(void)
         dbind_int(uint64_t, FALSE);
         dbind_real(real32_t);
         dbind_real(real64_t);
-        dbind_string(String, str_c, str_destroy, tc, str_len, str_read, str_write, "");
+        dbind_string(String, str_c, str_destroy, tc, str_mem, str_read, str_write, "");
         dbind_container("ArrPt", TRUE, i_arrpt_create, i_arrpt_size, i_arrpt_mem, i_arrpt_get, i_arrpt_insert, i_arrpt_delete, i_arrpt_destroy);
         dbind_container("ArrSt", FALSE, i_arrst_create, i_arrst_size, i_arrst_mem, i_arrst_get, i_arrst_insert, i_arrst_delete, i_arrst_destroy);
         i_NUM_USERS = 1;
