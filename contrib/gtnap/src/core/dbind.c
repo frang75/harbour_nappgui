@@ -222,6 +222,7 @@ static void i_destroy_struct_data(byte_t **data, const StructProps *props, const
 static void i_copy_struct_data(byte_t *dest, const byte_t *src, const StructProps *props);
 static void i_remove_struct_data(byte_t *data, const StructProps *props);
 static int i_cmp_struct_data(const byte_t *data1, const byte_t *data2, const StructProps *props);
+static uint32_t i_struct_mem(const byte_t *data, const DBind *bind);
 static void i_read_struct_data(Stream *stm, byte_t *data, const StructProps *props);
 static byte_t *i_read_container(Stream *stm, const DBind *bind, const DBind *ebind);
 static void i_write_struct_data(Stream *stm, const byte_t *data, const StructProps *props);
@@ -2401,60 +2402,203 @@ bool_t dbind_equ_imp(const byte_t *obj1, const byte_t *obj2, const char_t *type)
 
 /*---------------------------------------------------------------------------*/
 
-//uint32_t dbind_sizeof_imp(const byte_t *obj, const char_t *type)
-//{
-//    bool_t is_pointer = FALSE;
-//    DBind *bind = i_dbind_from_typename(type, &is_pointer, NULL);
-//    cassert_unref(is_pointer == FALSE, is_pointer);
-//    cassert_no_null(obj);
-//    if (bind != NULL)
-//    {
-//        byte_t *ndata = NULL;
-//        switch (bind->type)
-//        {
-//        case ekDTYPE_BOOL:
-//        case ekDTYPE_INT:
-//        case ekDTYPE_REAL:
-//        case ekDTYPE_ENUM:
-//            ndata = i_dbind_calloc(bind);
-//            bmem_copy(ndata, data, bind->size);
-//            break;
-//
-//        case ekDTYPE_STRING:
-//        {
-//            const char_t *str = bind->props.stringp.func_get(cast_const(data, void));
-//            ndata = cast(bind->props.stringp.func_create(str), byte_t);
-//            break;
-//        }
-//
-//        case ekDTYPE_STRUCT:
-//            ndata = i_dbind_calloc(bind);
-//            i_copy_struct_data(ndata, data, &bind->props.structp);
-//            break;
-//
-//        case ekDTYPE_BINARY:
-//            ndata = bind->props.binaryp.func_copy(cast_const(data, void));
-//            break;
-//
-//        case ekDTYPE_CONTAINER:
-//        {
-//            DBind *ebind = i_inner_elem_bind(bind, type);
-//            ndata = i_copy_container(data, bind, ebind);
-//            break;
-//        }
-//
-//        case ekDTYPE_UNKNOWN:
-//        default:
-//            cassert_default(bind->type);
-//        }
-//
-//        return ndata;
-//    }
-//    else
-//    {
-//        return NULL;
-//    }
-//}
+static uint32_t i_container_mem(const byte_t *data, const DBind *bind, const DBind *ebind)
+{
+    uint32_t mem = 0;
+    uint32_t i, n = 0;
+    cassert_no_null(bind);
+    cassert_no_null(ebind);
+    cassert(bind->type == ekDTYPE_CONTAINER);
+    mem = bind->props.contp.func_mem(data);
+    n = bind->props.contp.func_size(data);
+    if (n > 0)
+    {
+        if (bind->props.contp.store_pointers == TRUE)
+        {
+            switch (ebind->type)
+            {
+            case ekDTYPE_BOOL:
+            case ekDTYPE_INT:
+            case ekDTYPE_REAL:
+            case ekDTYPE_ENUM:
+                mem += n * ebind->size;
+                break;
+
+            case ekDTYPE_STRUCT:
+                for (i = 0; i < n; ++i)
+                {
+                    const byte_t *elem = bind->props.contp.func_get(cast(data, byte_t), i, tc(ebind->name), ebind->size);
+                    if (elem != NULL)
+                        mem += i_struct_mem(elem, ebind);
+                }
+                break;
+
+            case ekDTYPE_STRING:
+                for (i = 0; i < n; ++i)
+                {
+                    const byte_t *elem = bind->props.contp.func_get(cast(data, byte_t), i, tc(ebind->name), ebind->size);
+                    if (elem != NULL)
+                        mem += ebind->props.stringp.func_mem(elem);
+                }
+                break;
+
+            case ekDTYPE_BINARY:
+                for (i = 0; i < n; ++i)
+                {
+                    const byte_t *elem = bind->props.contp.func_get(cast(data, byte_t), i, tc(ebind->name), ebind->size);
+                    if (elem != NULL)
+                        mem += ebind->props.binaryp.func_mem(elem);
+                }
+                break;
+
+            /* Nested containers are not allowed */
+            case ekDTYPE_CONTAINER:
+            case ekDTYPE_UNKNOWN:
+            default:
+                cassert_default(ebind->type);
+            }
+        }
+        else
+        {
+            switch (ebind->type)
+            {
+            case ekDTYPE_BOOL:
+            case ekDTYPE_INT:
+            case ekDTYPE_REAL:
+            case ekDTYPE_ENUM:
+                break;
+
+            case ekDTYPE_STRUCT:
+                for (i = 0; i < n; ++i)
+                {
+                    const byte_t *elem = bind->props.contp.func_get(cast(data, byte_t), i, tc(ebind->name), ebind->size);
+                    mem += i_struct_mem(elem, ebind);
+                }
+                break;
+
+            /* Not allowed for non-pointer cointainers */
+            case ekDTYPE_STRING:
+            case ekDTYPE_BINARY:
+            case ekDTYPE_CONTAINER:
+            case ekDTYPE_UNKNOWN:
+            default:
+                cassert_default(ebind->type);
+            }
+        }
+    }
+
+    return mem;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static uint32_t i_struct_mem(const byte_t *data, const DBind *bind)
+{
+    uint32_t mem = 0;
+    cassert_no_null(data);
+    cassert_no_null(bind);
+    cassert(bind->type == ekDTYPE_STRUCT);
+    mem += bind->size;
+
+    arrst_foreach_const(member, bind->props.structp.members, StructMember)
+        const DBind *mbind = member->bind;
+
+        switch (mbind->type)
+        {
+        case ekDTYPE_BOOL:
+        case ekDTYPE_INT:
+        case ekDTYPE_REAL:
+        case ekDTYPE_ENUM:
+            /* Basic types, its mem is computed as part of struct size */
+            break;
+
+        case ekDTYPE_STRING:
+        {
+            void **str = dcast(data + member->offset, void);
+            if (*str != NULL)
+                mem += mbind->props.stringp.func_mem(*str);
+            break;
+        }
+
+        case ekDTYPE_BINARY:
+        {
+            void **obj = dcast(data + member->offset, void);
+            if (*obj != NULL)
+                mem += mbind->props.binaryp.func_mem(*obj);
+            break;
+        }
+
+        case ekDTYPE_STRUCT:
+            if (member->attr.structt.is_pointer == TRUE)
+            {
+                byte_t **obj = dcast(data + member->offset, byte_t);
+                if (*obj != NULL)
+                    mem += i_struct_mem(*obj, mbind);
+            }
+            else
+            {
+                mem += i_struct_mem(data + member->offset, mbind);
+            }
+            break;
+
+        case ekDTYPE_CONTAINER:
+        {
+            byte_t **obj = dcast(data + member->offset, byte_t);
+            if (*obj != NULL)
+                mem += i_container_mem(*obj, mbind, member->attr.containert.bind);
+            break;
+        }
+
+        case ekDTYPE_UNKNOWN:
+        default:
+            cassert_default(bind->type);
+        }
+    arrst_end()
+
+    return mem;
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t dbind_sizeof_imp(const byte_t *obj, const char_t *type)
+{
+    bool_t is_pointer = FALSE;
+    DBind *bind = i_dbind_from_typename(type, &is_pointer, NULL);
+    cassert_unref(is_pointer == FALSE, is_pointer);
+    cassert_no_null(obj);
+    if (bind != NULL)
+    {
+        switch (bind->type)
+        {
+        case ekDTYPE_BOOL:
+        case ekDTYPE_INT:
+        case ekDTYPE_REAL:
+        case ekDTYPE_ENUM:
+            return bind->size;
+
+        case ekDTYPE_STRING:
+            return bind->props.stringp.func_mem(cast_const(obj, void));
+
+        case ekDTYPE_STRUCT:
+            return i_struct_mem(obj, bind);
+
+        case ekDTYPE_BINARY:
+            return bind->props.binaryp.func_mem(cast_const(obj, void));
+
+        case ekDTYPE_CONTAINER:
+        {
+            DBind *ebind = i_inner_elem_bind(bind, type);
+            return i_container_mem(obj, bind, ebind);
+        }
+
+        case ekDTYPE_UNKNOWN:
+        default:
+            cassert_default(bind->type);
+        }
+    }
+
+    return 0;
+}
 
 /*---------------------------------------------------------------------------*/
 

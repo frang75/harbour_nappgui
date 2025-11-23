@@ -140,6 +140,10 @@ __END_C
      (void)(cast_const(obj2, type) == obj2), \
      dbind_equ_imp(cast_const(obj1, byte_t), cast_const(obj2, byte_t), cast_const(#type, char_t)))
 
+#define dbind_sizeof(obj, type) \
+    ((void)(cast_const(obj, type) == obj), \
+    dbind_sizeof_imp(cast_const(obj, byte_t), cast_const(#type, char_t)))
+
 #define dbind_read(stm, type) \
     cast(dbind_read_imp(stm, cast_const(#type, char_t)), type)
 

@@ -511,11 +511,11 @@ uint32_t image_mem(const Image *image)
     switch (format)
     {
     case ekINDEX1:
-        return (w * h) / 8;
+        return w * h;
     case ekINDEX2:
-        return (w * h) / 4;
+        return w * h * 3;
     case ekINDEX4:
-        return (w * h) / 2;
+        return w * h * 3;
     case ekINDEX8:
     case ekGRAY8:
         return w * h;
