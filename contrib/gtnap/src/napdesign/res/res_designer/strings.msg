@@ -177,6 +177,7 @@ TEXT_UNSAVE_CHANGES There are unsaved changes
 TEXT_UNSAVED1       There are unsaved changes in your current forms.\nChanges will be lost if you open another project folder.\nDo you want to save your changes?
 TEXT_UNSAVED2       There are unsaved changes in your current forms.\nChanges will be lost if you close the application.\nDo you want to save your changes?
 TEXT_UNDO_STACK     Undo stack
+TEXT_PROMOTE        Promote
 
 TIP_LAYOUT_NAME     Layout name. It will be useful to locate the layout at runtime.
 TIP_CELL_NAME       Cell name. It will be useful to locate the cell at runtime.
@@ -241,3 +242,7 @@ TIP_COLUMN_DELETE   Delete current column
 TIP_ROW_TOP         Insert a new row at top of current row
 TIP_ROW_BOTTOM      Insert a new row at bottom of current row
 TIP_ROW_DELETE      Delete current row
+TIP_PROMOTE_LEFT    Promote this layout to a left cell
+TIP_PROMOTE_RIGHT   Promote this layout to a right cell
+TIP_PROMOTE_TOP     Promote this layout to a top cell
+TIP_PROMOTE_BOTTOM  Promote this layout to a bottom cell

@@ -124,9 +124,71 @@ static Layout *i_value_updown_layout(const char_t *tooltip)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnPromoteLeft(PropData *data, Event *e)
+{
+    cassert_no_null(data);
+    unref(e);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnPromoteRight(PropData *data, Event *e)
+{
+    cassert_no_null(data);
+    unref(e);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnPromoteTop(PropData *data, Event *e)
+{
+    cassert_no_null(data);
+    unref(e);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnPromoteBottom(PropData *data, Event *e)
+{
+    cassert_no_null(data);
+    unref(e);
+}
+
+
+/*---------------------------------------------------------------------------*/
+
+static Layout *i_promote_buttons(PropData *data)
+{
+    Layout *layout = layout_create(4, 1);
+    Button *button1 = button_flat();
+    Button *button2 = button_flat();
+    Button *button3 = button_flat();
+    Button *button4 = button_flat();
+    button_image(button1, gui_image(PROMOTE_LEFT16_PNG));
+    button_image(button2, gui_image(PROMOTE_RIGHT16_PNG));
+    button_image(button3, gui_image(PROMOTE_TOP16_PNG));
+    button_image(button4, gui_image(PROMOTE_BOTTOM16_PNG));
+    button_tooltip(button1, gui_text(TIP_PROMOTE_LEFT));
+    button_tooltip(button2, gui_text(TIP_PROMOTE_RIGHT));
+    button_tooltip(button3, gui_text(TIP_PROMOTE_TOP));
+    button_tooltip(button4, gui_text(TIP_PROMOTE_BOTTOM));
+    button_OnClick(button1, listener(data, i_OnPromoteLeft, PropData));
+    button_OnClick(button2, listener(data, i_OnPromoteRight, PropData));
+    button_OnClick(button3, listener(data, i_OnPromoteTop, PropData));
+    button_OnClick(button4, listener(data, i_OnPromoteBottom, PropData));
+    layout_button(layout, button1, 0, 0);
+    layout_button(layout, button2, 1, 0);
+    layout_button(layout, button3, 2, 0);
+    layout_button(layout, button4, 3, 0);
+    return layout;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Layout *i_margin_layout(PropData *data)
 {
-    Layout *layout = layout_create(2, 6);
+    Layout *layout1 = layout_create(2, 7);
+    Layout *layout2 = i_promote_buttons(data);
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
@@ -134,6 +196,7 @@ static Layout *i_margin_layout(PropData *data)
     Label *label5 = label_create();
     Label *label6 = label_create();
     Label *label7 = label_create();
+    Label *label8 = label_create();
     Edit *edit = edit_create();
     Layout *val1 = i_value_updown_layout(gui_text(TIP_TOP_MARGIN));
     Layout *val2 = i_value_updown_layout(gui_text(TIP_LEFT_MARGIN));
@@ -147,30 +210,34 @@ static Layout *i_margin_layout(PropData *data)
     label_text(label4, gui_text(TEXT_LEFT));
     label_text(label5, gui_text(TEXT_BOTTOM));
     label_text(label6, gui_text(TEXT_RIGHT));
-    layout_label(layout, label1, 0, 0);
-    layout_label(layout, label2, 0, 1);
-    layout_label(layout, label3, 0, 2);
-    layout_label(layout, label4, 0, 3);
-    layout_label(layout, label5, 0, 4);
-    layout_label(layout, label6, 0, 5);
-    layout_label(layout, label7, 1, 0);
-    layout_edit(layout, edit, 1, 1);
-    layout_layout(layout, val1, 1, 2);
-    layout_layout(layout, val2, 1, 3);
-    layout_layout(layout, val3, 1, 4);
-    layout_layout(layout, val4, 1, 5);
-    layout_margin4(layout, 1, 0, 0, 0);
-    layout_vmargin(layout, 0, 1);
-    layout_halign(layout, 1, 0, ekJUSTIFY);
-    layout_hexpand(layout, 1);
-    layout_hmargin(layout, 0, i_LABEL_COLUMN_MARGIN);
-    data->layout_type_label = label7;
-    cell_dbind(layout_cell(layout, 1, 1), FLayout, String *, name);
-    cell_dbind(layout_cell(layout, 1, 2), FLayout, real32_t, margin_top);
-    cell_dbind(layout_cell(layout, 1, 3), FLayout, real32_t, margin_left);
-    cell_dbind(layout_cell(layout, 1, 4), FLayout, real32_t, margin_bottom);
-    cell_dbind(layout_cell(layout, 1, 5), FLayout, real32_t, margin_right);
-    return layout;
+    label_text(label7, gui_text(TEXT_PROMOTE));
+    layout_label(layout1, label1, 0, 0);
+    layout_label(layout1, label2, 0, 1);
+    layout_label(layout1, label3, 0, 2);
+    layout_label(layout1, label4, 0, 3);
+    layout_label(layout1, label5, 0, 4);
+    layout_label(layout1, label6, 0, 5);
+    layout_label(layout1, label7, 0, 6);
+    layout_label(layout1, label8, 1, 0);
+    layout_edit(layout1, edit, 1, 1);
+    layout_layout(layout1, val1, 1, 2);
+    layout_layout(layout1, val2, 1, 3);
+    layout_layout(layout1, val3, 1, 4);
+    layout_layout(layout1, val4, 1, 5);
+    layout_layout(layout1, layout2, 1, 6);
+    layout_margin4(layout1, 1, 0, 0, 0);
+    layout_vmargin(layout1, 0, 1);
+    layout_halign(layout1, 1, 0, ekJUSTIFY);
+    layout_halign(layout1, 1, 6, ekLEFT);
+    layout_hexpand(layout1, 1);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
+    data->layout_type_label = label8;
+    cell_dbind(layout_cell(layout1, 1, 1), FLayout, String *, name);
+    cell_dbind(layout_cell(layout1, 1, 2), FLayout, real32_t, margin_top);
+    cell_dbind(layout_cell(layout1, 1, 3), FLayout, real32_t, margin_left);
+    cell_dbind(layout_cell(layout1, 1, 4), FLayout, real32_t, margin_bottom);
+    cell_dbind(layout_cell(layout1, 1, 5), FLayout, real32_t, margin_right);
+    return layout1;
 }
 
 /*---------------------------------------------------------------------------*/

@@ -78,8 +78,8 @@ static void i_draw_flat_button(OSButton *button, const Image *image)
     memHdc = CreateCompatibleDC(hdc);    
     rect.left = 0;
     rect.top = 0;
-    rect.left = button->width;
-    rect.right = button->height;
+    rect.right = button->width;
+    rect.bottom = button->height;
     border = rect;    
 
     if (button->dbuffer == NULL)
