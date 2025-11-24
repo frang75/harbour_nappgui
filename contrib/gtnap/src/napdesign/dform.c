@@ -159,7 +159,7 @@ static void i_undo_add_frame(DForm *form)
         rn = n - form->undo_pos - 1;
         for (i = 0; i < rn; ++i)
         {
-            arrst_delete(form->undo_stack, form->undo_pos, i_remove_undo_frame, UndoFrame);
+            arrst_delete(form->undo_stack, form->undo_pos + 1, i_remove_undo_frame, UndoFrame);
             n -= 1;
         }
     }
