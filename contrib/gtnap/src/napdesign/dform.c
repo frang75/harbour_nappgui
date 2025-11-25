@@ -1527,6 +1527,60 @@ bool_t dform_OnRedo(DForm *form, Panel *inspect, Panel *propedit)
 
 /*---------------------------------------------------------------------------*/
 
+static bool_t i_promote(DForm *form, FLayout *top_layout, const uint32_t col, const uint32_t row, const DSelect *sel, Panel *inspect, Panel *propedit)
+{
+    const DSelect *psel = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    psel = i_parent_sel(form->sel_path, sel);
+    i_layout_obj_names(form, top_layout);
+
+    /* We are promoting the top-level layout */
+    if (psel == NULL)
+    {
+        cassert(sel->flayout == form->fform->layout);
+        flayout_add_layout(top_layout, sel->flayout, col, row);
+        form->fform->layout = top_layout;
+    }
+
+    /* Update and synchro dlayout and glayout */
+    if (form->window != NULL)
+    {
+        window_destroy(&form->window);
+        dlayout_destroy(&form->dlayout);
+        form->glayout = NULL;
+    }
+    else
+    {
+        cassert(form->glayout == NULL);
+        cassert(form->dlayout == NULL);
+    }
+
+    dform_compose(form);
+
+    /* Update selectors */
+    {
+        R2Df rect = dlayout_flayout_rect(form->dlayout, form->fform->layout, sel->flayout);
+        DSelect nsel;
+        i_elem_at_mouse(form->dlayout, form->fform->layout, form->glayout, rect.pos.x, rect.pos.y, form->sel_path, &nsel);
+        inspect_set(inspect, form);
+        propedit_set(propedit, form, &nsel);
+        i_need_save(form, TRUE);
+        form->sel = nsel;
+        return TRUE;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t dform_OnPromoteLeft(DForm *form, const DSelect *sel, Panel *inspect, Panel *propedit)
+{
+    FLayout *top_layout = flayout_create(2, 1);
+    return i_promote(form, top_layout, 0, 0, sel, inspect, propedit);
+}
+
+/*---------------------------------------------------------------------------*/
+
 V2Df dform_get_origin(const DForm *form)
 {
     cassert_no_null(form);

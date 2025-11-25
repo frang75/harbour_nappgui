@@ -2095,6 +2095,19 @@ void designer_undo_stack(Designer *app, const uint32_t size)
 
 /*---------------------------------------------------------------------------*/
 
+void designer_promote_left(Designer *app, const DSelect *sel)
+{
+    cassert_no_null(app);
+    if (app->config.sel_form != UINT32_MAX)
+    {
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
+        if (dform_OnPromoteLeft(form, sel, app->inspect, app->propedit) == TRUE)
+            view_update(app->canvas);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 const char_t *designer_folder_path(const Designer *app)
 {
     cassert_no_null(app);

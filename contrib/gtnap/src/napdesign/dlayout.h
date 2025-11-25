@@ -8,6 +8,8 @@ DLayout *dlayout_from_flayout(const FLayout *flayout, const char_t *resource_pat
 
 DCell *dlayout_cell(DLayout *layout, const uint32_t col, const uint32_t row);
 
+const DCell *dlayout_ccell(const DLayout *layout, const uint32_t col, const uint32_t row);
+
 void dlayout_destroy(DLayout **layout);
 
 uint32_t dlayout_ncols(const DLayout *layout);
@@ -43,3 +45,5 @@ void dlayout_elem_at_pos(const DLayout *dlayout, const FLayout *flayout, const L
 void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Font *default_font, const Font *bold_font, const cmode_t cmode, const DColors *colors, const char_t *form_name, const bool_t focus, DCtx *ctx);
 
 R2Df dlayout_sel_rect(const DSelect *sel);
+
+R2Df dlayout_flayout_rect(const DLayout *dlayout, const FLayout *flayout, const FLayout *ref_flayout);

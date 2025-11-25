@@ -162,6 +162,13 @@ DCell *dlayout_cell(DLayout *layout, const uint32_t col, const uint32_t row)
 
 /*---------------------------------------------------------------------------*/
 
+const DCell *dlayout_ccell(const DLayout *layout, const uint32_t col, const uint32_t row)
+{
+    return i_cell(cast(layout, DLayout), col, row);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dlayout_destroy(DLayout **layout)
 {
     cassert_no_null(layout);
@@ -1639,4 +1646,40 @@ R2Df dlayout_sel_rect(const DSelect *sel)
 {
     cassert_no_null(sel);
     return i_get_rect(sel->dlayout, sel);
+}
+
+/*---------------------------------------------------------------------------*/
+
+R2Df dlayout_flayout_rect(const DLayout *dlayout, const FLayout *flayout, const FLayout *ref_flayout)
+{
+    cassert_no_null(dlayout);
+    if (flayout != ref_flayout)
+    {
+        uint32_t i, ncols = flayout_ncols(flayout);
+        uint32_t j, nrows = flayout_nrows(flayout);
+        for (j = 0; j < nrows; ++j)
+        {
+            for (i = 0; i < ncols; ++i)
+            {
+                const FCell *fcell = flayout_ccell(flayout, i, j);
+                cassert_no_null(fcell);
+                if (fcell->type == ekCELL_TYPE_LAYOUT)
+                {
+                    const DCell *dcell = dlayout_ccell(dlayout, i, j);
+                    R2Df srect;
+                    cassert_no_null(dcell);
+                    cassert_no_null(dcell->sublayout);
+                    srect = dlayout_flayout_rect(dcell->sublayout, fcell->widget.layout, ref_flayout);
+                    if (srect.size.width > 0 && srect.size.height > 0)
+                        return srect;
+                }
+            }
+        }
+
+        return r2df(0, 0, -1, -1);
+    }
+    else
+    {
+        return dlayout->rect;
+    }
 }

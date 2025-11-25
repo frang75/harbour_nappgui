@@ -42,6 +42,8 @@ bool_t dform_OnUndo(DForm *form, Panel *inspect, Panel *propedit);
 
 bool_t dform_OnRedo(DForm *form, Panel *inspect, Panel *propedit);
 
+bool_t dform_OnPromoteLeft(DForm *form, const DSelect *sel, Panel *inspect, Panel *propedit);
+
 V2Df dform_get_origin(const DForm *form);
 
 DSelect dform_get_sel(const DForm *form);
