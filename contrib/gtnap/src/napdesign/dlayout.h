@@ -40,7 +40,7 @@ void dlayout_synchro_elems(DLayout *layout, const uint32_t col, const uint32_t r
 
 void dlayout_synchro_visual(DLayout *dlayout, const Layout *glayout, const V2Df origin);
 
-void dlayout_elem_at_pos(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const real32_t x, const real32_t y, ArrSt(DSelect) *selpath);
+void dlayout_path_at_pos(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const real32_t x, const real32_t y, ArrSt(DSelect) *path);
 
 void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Font *default_font, const Font *bold_font, const cmode_t cmode, const DColors *colors, const char_t *form_name, const bool_t focus, DCtx *ctx);
 

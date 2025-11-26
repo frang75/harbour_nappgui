@@ -384,11 +384,11 @@ static bool_t i_sel_equ(const DSelect *sel1, const DSelect *sel2)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_elem_at_mouse(DLayout *dlayout, FLayout *flayout, Layout *glayout, const real32_t mouse_x, const real32_t mouse_y, ArrSt(DSelect) *selpath, DSelect *sel)
+static void i_path_at_mouse(DLayout *dlayout, FLayout *flayout, Layout *glayout, const real32_t mouse_x, const real32_t mouse_y, ArrSt(DSelect) *selpath, DSelect *sel)
 {
     cassert_no_null(sel);
     arrst_clear(selpath, NULL, DSelect);
-    dlayout_elem_at_pos(dlayout, flayout, glayout, mouse_x, mouse_y, selpath);
+    dlayout_path_at_pos(dlayout, flayout, glayout, mouse_x, mouse_y, selpath);
     if (arrst_size(selpath, DSelect) > 0)
     {
         *sel = *arrst_last(selpath, DSelect);
@@ -441,7 +441,7 @@ bool_t dform_OnMove(DForm *form, const real32_t mouse_x, const real32_t mouse_y)
     bool_t equ = TRUE;
     cassert_no_null(form);
     cassert_no_null(form->fform);
-    i_elem_at_mouse(form->dlayout, form->fform->layout, form->glayout, mouse_x, mouse_y, form->temp_path, &hover);
+    i_path_at_mouse(form->dlayout, form->fform->layout, form->glayout, mouse_x, mouse_y, form->temp_path, &hover);
     equ = i_sel_equ(&form->hover, &hover);
     form->hover = hover;
     return !equ;
@@ -756,7 +756,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
     if (mbutton == ekGUI_MOUSE_LEFT)
     {
         DSelect sel;
-        i_elem_at_mouse(form->dlayout, form->fform->layout, form->glayout, mouse_x, mouse_y, form->sel_path, &sel);
+        i_path_at_mouse(form->dlayout, form->fform->layout, form->glayout, mouse_x, mouse_y, form->sel_path, &sel);
         inspect_set(inspect, form);
         if (i_sel_empty_cell(&sel) == TRUE)
         {
@@ -1211,7 +1211,7 @@ bool_t dform_OnCursorNav(DForm *form, const vkey_t key, Panel *inspect, Panel *p
         {
             /* We reuse the click process to create the selection path and update property editor / inspector */
             DSelect sel;
-            i_elem_at_mouse(form->dlayout, form->fform->layout, form->glayout, dcell->rect.pos.x + 1, dcell->rect.pos.y + 1, form->sel_path, &sel);
+            i_path_at_mouse(form->dlayout, form->fform->layout, form->glayout, dcell->rect.pos.x + 1, dcell->rect.pos.y + 1, form->sel_path, &sel);
             inspect_set(inspect, form);
             propedit_set(propedit, form, &sel);
             form->sel = sel;
@@ -1488,7 +1488,7 @@ static void i_apply_undo_frame(DForm *form, const uint32_t pos, Panel *inspect, 
             cpos.y += form->origin.y + 1;
         }
 
-        i_elem_at_mouse(form->dlayout, form->fform->layout, form->glayout, cpos.x, cpos.y, form->sel_path, &sel);
+        i_path_at_mouse(form->dlayout, form->fform->layout, form->glayout, cpos.x, cpos.y, form->sel_path, &sel);
         inspect_set(inspect, form);
         propedit_set(propedit, form, &sel);
         form->sel = sel;
@@ -1572,7 +1572,7 @@ static bool_t i_promote(DForm *form, FLayout *top_layout, const uint32_t col, co
     {
         R2Df rect = dlayout_flayout_rect(form->dlayout, form->fform->layout, sel->flayout);
         DSelect nsel;
-        i_elem_at_mouse(form->dlayout, form->fform->layout, form->glayout, rect.pos.x + 1, rect.pos.y + 1, form->sel_path, &nsel);
+        i_path_at_mouse(form->dlayout, form->fform->layout, form->glayout, rect.pos.x + 1, rect.pos.y + 1, form->sel_path, &nsel);
         inspect_set(inspect, form);
         propedit_set(propedit, form, &nsel);
         i_need_save(form, TRUE);
@@ -1587,6 +1587,30 @@ bool_t dform_OnPromoteLeft(DForm *form, const DSelect *sel, Panel *inspect, Pane
 {
     FLayout *top_layout = flayout_create(2, 1);
     return i_promote(form, top_layout, 0, 0, sel, inspect, propedit);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t dform_OnPromoteRight(DForm *form, const DSelect *sel, Panel *inspect, Panel *propedit)
+{
+    FLayout *top_layout = flayout_create(2, 1);
+    return i_promote(form, top_layout, 1, 0, sel, inspect, propedit);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t dform_OnPromoteTop(DForm *form, const DSelect *sel, Panel *inspect, Panel *propedit)
+{
+    FLayout *top_layout = flayout_create(1, 2);
+    return i_promote(form, top_layout, 0, 0, sel, inspect, propedit);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t dform_OnPromoteBottom(DForm *form, const DSelect *sel, Panel *inspect, Panel *propedit)
+{
+    FLayout *top_layout = flayout_create(1, 2);
+    return i_promote(form, top_layout, 0, 1, sel, inspect, propedit);
 }
 
 /*---------------------------------------------------------------------------*/

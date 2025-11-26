@@ -18,6 +18,12 @@ void designer_undo_stack(Designer *app, const uint32_t size);
 
 void designer_promote_left(Designer *app, const DSelect *sel);
 
+void designer_promote_right(Designer *app, const DSelect *sel);
+
+void designer_promote_top(Designer *app, const DSelect *sel);
+
+void designer_promote_bottom(Designer *app, const DSelect *sel);
+
 const char_t *designer_folder_path(const Designer *app);
 
 const Font *designer_default_font(const Designer *app);

@@ -598,12 +598,12 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
 
 /*---------------------------------------------------------------------------*/
 
-void dlayout_elem_at_pos(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const real32_t x, const real32_t y, ArrSt(DSelect) *selpath)
+void dlayout_path_at_pos(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const real32_t x, const real32_t y, ArrSt(DSelect) *path)
 {
     cassert_no_null(dlayout);
     if (r2d_containsf(&dlayout->rect, x, y) == TRUE)
     {
-        DSelect *sel = arrst_new(selpath, DSelect);
+        DSelect *sel = arrst_new(path, DSelect);
         sel->dlayout = cast(dlayout, DLayout);
         sel->flayout = cast(flayout, FLayout);
         sel->glayout = cast(glayout, Layout);
@@ -677,7 +677,7 @@ void dlayout_elem_at_pos(const DLayout *dlayout, const FLayout *flayout, const L
                 {
                     const FCell *fcell = flayout_ccell(flayout, sel->col, sel->row);
                     Layout *gsublayout = layout_get_layout(cast(glayout, Layout), sel->col, sel->row);
-                    dlayout_elem_at_pos(cell->sublayout, fcell->widget.layout, gsublayout, x, y, selpath);
+                    dlayout_path_at_pos(cell->sublayout, fcell->widget.layout, gsublayout, x, y, path);
                 }
 
                 return;

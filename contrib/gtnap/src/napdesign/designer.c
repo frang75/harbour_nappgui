@@ -2108,6 +2108,45 @@ void designer_promote_left(Designer *app, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+void designer_promote_right(Designer *app, const DSelect *sel)
+{
+    cassert_no_null(app);
+    if (app->config.sel_form != UINT32_MAX)
+    {
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
+        if (dform_OnPromoteRight(form, sel, app->inspect, app->propedit) == TRUE)
+            view_update(app->canvas);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void designer_promote_top(Designer *app, const DSelect *sel)
+{
+    cassert_no_null(app);
+    if (app->config.sel_form != UINT32_MAX)
+    {
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
+        if (dform_OnPromoteTop(form, sel, app->inspect, app->propedit) == TRUE)
+            view_update(app->canvas);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void designer_promote_bottom(Designer *app, const DSelect *sel)
+{
+    cassert_no_null(app);
+    if (app->config.sel_form != UINT32_MAX)
+    {
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
+        if (dform_OnPromoteBottom(form, sel, app->inspect, app->propedit) == TRUE)
+            view_update(app->canvas);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 const char_t *designer_folder_path(const Designer *app)
 {
     cassert_no_null(app);

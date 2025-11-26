@@ -137,7 +137,9 @@ static void i_OnPromoteLeft(PropData *data, Event *e)
 static void i_OnPromoteRight(PropData *data, Event *e)
 {
     cassert_no_null(data);
+    cassert(data->sel.elem != ekLAYELEM_CELL);
     unref(e);
+    designer_promote_right(data->app, &data->sel);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -145,7 +147,9 @@ static void i_OnPromoteRight(PropData *data, Event *e)
 static void i_OnPromoteTop(PropData *data, Event *e)
 {
     cassert_no_null(data);
+    cassert(data->sel.elem != ekLAYELEM_CELL);
     unref(e);
+    designer_promote_top(data->app, &data->sel);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -153,9 +157,10 @@ static void i_OnPromoteTop(PropData *data, Event *e)
 static void i_OnPromoteBottom(PropData *data, Event *e)
 {
     cassert_no_null(data);
+    cassert(data->sel.elem != ekLAYELEM_CELL);
     unref(e);
+    designer_promote_bottom(data->app, &data->sel);
 }
-
 
 /*---------------------------------------------------------------------------*/
 
