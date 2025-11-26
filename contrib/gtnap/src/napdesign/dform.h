@@ -20,6 +20,10 @@ void dform_set(DForm *form, Panel *inspect, Panel *propedit);
 
 bool_t dform_need_save(const DForm *form);
 
+bool_t dform_can_undo(const DForm *form);
+
+bool_t dform_can_redo(const DForm *form);
+
 bool_t dform_OnMove(DForm *form, const real32_t mouse_x, const real32_t mouse_y);
 
 bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedit, const Font *font, const widget_t widget, const real32_t mouse_x, const real32_t mouse_y, const gui_mouse_t button);
@@ -33,6 +37,18 @@ bool_t dform_OnSupr(DForm *form, Panel *inspect, Panel *propedit);
 bool_t dform_OnCopy(DForm *form, DClipBoard *clipboard);
 
 bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, Panel *propedit);
+
+bool_t dform_OnUndo(DForm *form, Panel *inspect, Panel *propedit);
+
+bool_t dform_OnRedo(DForm *form, Panel *inspect, Panel *propedit);
+
+bool_t dform_OnPromoteLeft(DForm *form, const DSelect *sel, Panel *inspect, Panel *propedit);
+
+bool_t dform_OnPromoteRight(DForm *form, const DSelect *sel, Panel *inspect, Panel *propedit);
+
+bool_t dform_OnPromoteTop(DForm *form, const DSelect *sel, Panel *inspect, Panel *propedit);
+
+bool_t dform_OnPromoteBottom(DForm *form, const DSelect *sel, Panel *inspect, Panel *propedit);
 
 V2Df dform_get_origin(const DForm *form);
 

@@ -55,6 +55,15 @@
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
+typedef struct _undoframe_t UndoFrame;
+
+struct _undoframe_t
+{
+    FForm *fform;
+    uint32_t mem;
+    V2Df cellpos;
+};
+
 struct _dform_t
 {
     Designer *app;
@@ -65,8 +74,10 @@ struct _dform_t
     V2Df origin;
     DSelect hover;
     DSelect sel;
+    ArrSt(UndoFrame) *undo_stack;
     ArrSt(DSelect) *temp_path;
     ArrSt(DSelect) *sel_path;
+    uint32_t undo_pos;
     uint32_t layout_id;
     uint32_t cell_id;
     bool_t need_save;
@@ -74,9 +85,17 @@ struct _dform_t
 
 /*---------------------------------------------------------------------------*/
 
+DeclSt(UndoFrame);
 static real32_t i_EMPTY_CELL_WIDTH = 40;
 static real32_t i_EMPTY_CELL_HEIGHT = 20;
 
+/*---------------------------------------------------------------------------*/
+
+static void i_remove_undo_frame(UndoFrame *frame)
+{
+    dbind_destroy(&frame->fform, FForm);
+}
+    
 /*---------------------------------------------------------------------------*/
 
 static void i_cell_obj_name(DForm *form, FLayout *flayout, const uint32_t col, const uint32_t row)
@@ -113,25 +132,95 @@ static void i_layout_obj_names(DForm *form, FLayout *flayout)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_need_save(DForm *form)
+static void i_update_undo_stack(DForm *form)
+{
+    uint32_t size = 0;
+    cassert_no_null(form);
+    arrst_foreach_const(frame, form->undo_stack, UndoFrame)
+        size += frame->mem;
+    arrst_end()
+    designer_undo_stack(form->app, size);
+}
+    
+/*---------------------------------------------------------------------------*/
+
+static void i_undo_add_frame(DForm *form)
+{
+    uint32_t n = 0;
+    UndoFrame *frame = NULL;
+    cassert_no_null(form);
+    n = arrst_size(form->undo_stack, UndoFrame);
+
+    /* Remove all redo operations before current stack position */
+    if (form->undo_pos != UINT32_MAX)
+    {
+        uint32_t i, rn = 0;
+        cassert(form->undo_pos < n);
+        rn = n - form->undo_pos - 1;
+        for (i = 0; i < rn; ++i)
+        {
+            arrst_delete(form->undo_stack, form->undo_pos + 1, i_remove_undo_frame, UndoFrame);
+            n -= 1;
+        }
+    }
+
+    form->undo_pos = n;
+    frame = arrst_new0(form->undo_stack, UndoFrame);
+    frame->fform = dbind_copy(form->fform, FForm);
+    frame->mem = dbind_sizeof(frame->fform, FForm);
+    if (form->sel.dlayout != NULL)
+    {
+        R2Df rect = dlayout_sel_rect(&form->sel);
+        frame->cellpos = rect.pos;
+        frame->cellpos.x -= form->origin.x;
+        frame->cellpos.y -= form->origin.y;
+    }
+    else
+    {
+        frame->cellpos.x = -1;
+        frame->cellpos.y = -1;
+    }
+
+    i_update_undo_stack(form);
+}
+    
+/*---------------------------------------------------------------------------*/
+
+static void i_need_save(DForm *form, const bool_t undo)
 {
     cassert_no_null(form);
     form->need_save = TRUE;
     designer_need_save(form->app);
+    if (undo == TRUE)
+    {
+        i_undo_add_frame(form);
+        designer_undo_controls(form->app, TRUE, FALSE);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static DForm *i_dform(Designer *app, FForm **fform)
+{
+    DForm *form = heap_new0(DForm);
+    form->app = app;
+    form->fform = ptr_dget(fform, FForm);
+    form->undo_stack = arrst_create(UndoFrame);
+    form->temp_path = arrst_create(DSelect);
+    form->sel_path = arrst_create(DSelect);
+    form->undo_pos = UINT32_MAX;
+    return form;
 }
 
 /*---------------------------------------------------------------------------*/
 
 DForm *dform_empty(Designer *app)
 {
-    DForm *form = heap_new0(DForm);
-    form->app = app;
-    form->fform = fform_create();
-    form->temp_path = arrst_create(DSelect);
-    form->sel_path = arrst_create(DSelect);
+    FForm *fform = fform_create();
+    DForm *form = i_dform(app, &fform);
     cassert_no_null(form->fform);
     i_layout_obj_names(form, form->fform->layout);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     return form;
 }
 
@@ -169,14 +258,12 @@ DForm *dform_read(Stream *stm, Designer *app)
     FForm *fform = fform_read(stm);
     if (stm_state(stm) == ekSTOK)
     {
-        DForm *form = heap_new0(DForm);
-        cassert_no_null(fform->layout);
-        form->app = app;
-        form->fform = fform;
-        form->temp_path = arrst_create(DSelect);
-        form->sel_path = arrst_create(DSelect);
+        DForm *form = i_dform(app, &fform);
+        cassert_no_null(form);
+        cassert_no_null(form->fform->layout);
         form->cell_id = i_num_cells(form->fform->layout);
         form->layout_id = i_num_layouts(form->fform->layout);
+        i_undo_add_frame(form);
         return form;
     }
     else
@@ -193,6 +280,7 @@ void dform_destroy(DForm **form)
     cassert_no_null(form);
     cassert_no_null(*form);
     fform_destroy(&(*form)->fform);
+    arrst_destroy(&(*form)->undo_stack, i_remove_undo_frame, UndoFrame);
     arrst_destroy(&(*form)->temp_path, NULL, DSelect);
     arrst_destroy(&(*form)->sel_path, NULL, DSelect);
     if ((*form)->window != NULL)
@@ -296,11 +384,11 @@ static bool_t i_sel_equ(const DSelect *sel1, const DSelect *sel2)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_elem_at_mouse(DLayout *dlayout, FLayout *flayout, Layout *glayout, const real32_t mouse_x, const real32_t mouse_y, ArrSt(DSelect) *selpath, DSelect *sel)
+static void i_path_at_mouse(DLayout *dlayout, FLayout *flayout, Layout *glayout, const real32_t mouse_x, const real32_t mouse_y, ArrSt(DSelect) *selpath, DSelect *sel)
 {
     cassert_no_null(sel);
     arrst_clear(selpath, NULL, DSelect);
-    dlayout_elem_at_pos(dlayout, flayout, glayout, mouse_x, mouse_y, selpath);
+    dlayout_path_at_pos(dlayout, flayout, glayout, mouse_x, mouse_y, selpath);
     if (arrst_size(selpath, DSelect) > 0)
     {
         *sel = *arrst_last(selpath, DSelect);
@@ -326,13 +414,34 @@ bool_t dform_need_save(const DForm *form)
 
 /*---------------------------------------------------------------------------*/
 
+bool_t dform_can_undo(const DForm *form)
+{
+    cassert_no_null(form);
+    return (form->undo_pos > 0);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t dform_can_redo(const DForm *form)
+{
+    uint32_t n = 0;
+    cassert_no_null(form);
+    n = arrst_size(form->undo_stack, UndoFrame);
+    if (n > 0 && form->undo_pos < n - 1)
+        return TRUE;
+    else
+        return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 bool_t dform_OnMove(DForm *form, const real32_t mouse_x, const real32_t mouse_y)
 {
     DSelect hover;
     bool_t equ = TRUE;
     cassert_no_null(form);
     cassert_no_null(form->fform);
-    i_elem_at_mouse(form->dlayout, form->fform->layout, form->glayout, mouse_x, mouse_y, form->temp_path, &hover);
+    i_path_at_mouse(form->dlayout, form->fform->layout, form->glayout, mouse_x, mouse_y, form->temp_path, &hover);
     equ = i_sel_equ(&form->hover, &hover);
     form->hover = hover;
     return !equ;
@@ -452,7 +561,7 @@ static void i_after_new_widget(DForm *form, Panel *inspect, Panel *propedit, DSe
     propedit_set(propedit, form, sel);
     inspect_set(inspect, form);
     form->sel = *sel;
-    i_need_save(form);
+    i_need_save(form, TRUE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -647,7 +756,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
     if (mbutton == ekGUI_MOUSE_LEFT)
     {
         DSelect sel;
-        i_elem_at_mouse(form->dlayout, form->fform->layout, form->glayout, mouse_x, mouse_y, form->sel_path, &sel);
+        i_path_at_mouse(form->dlayout, form->fform->layout, form->glayout, mouse_x, mouse_y, form->sel_path, &sel);
         inspect_set(inspect, form);
         if (i_sel_empty_cell(&sel) == TRUE)
         {
@@ -1102,7 +1211,7 @@ bool_t dform_OnCursorNav(DForm *form, const vkey_t key, Panel *inspect, Panel *p
         {
             /* We reuse the click process to create the selection path and update property editor / inspector */
             DSelect sel;
-            i_elem_at_mouse(form->dlayout, form->fform->layout, form->glayout, dcell->rect.pos.x + 1, dcell->rect.pos.y + 1, form->sel_path, &sel);
+            i_path_at_mouse(form->dlayout, form->fform->layout, form->glayout, dcell->rect.pos.x + 1, dcell->rect.pos.y + 1, form->sel_path, &sel);
             inspect_set(inspect, form);
             propedit_set(propedit, form, &sel);
             form->sel = sel;
@@ -1160,7 +1269,7 @@ bool_t dform_OnSupr(DForm *form, Panel *inspect, Panel *propedit)
                 inspect_set(inspect, form);
             }
 
-            i_need_save(form);
+            i_need_save(form, TRUE);
             return TRUE;
         }
     }
@@ -1346,6 +1455,166 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
 
 /*---------------------------------------------------------------------------*/
 
+static void i_apply_undo_frame(DForm *form, const uint32_t pos, Panel *inspect, Panel *propedit)
+{
+    const UndoFrame *frame = NULL;
+
+    cassert_no_null(form);
+    frame = arrst_get_const(form->undo_stack, pos, UndoFrame);
+    dbind_destroy(&form->fform, FForm);
+
+    if (form->window != NULL)
+    {
+        window_destroy(&form->window);
+        dlayout_destroy(&form->dlayout);
+        form->glayout = NULL;
+    }
+    else
+    {
+        cassert(form->glayout == NULL);
+        cassert(form->dlayout == NULL);
+    }
+
+    form->fform = dbind_copy(frame->fform, FForm);
+    form->undo_pos = pos;
+    dform_compose(form);
+
+    {
+        DSelect sel;
+        V2Df cpos = frame->cellpos;
+        if (cpos.x >= 0)
+        {
+            cpos.x += form->origin.x + 1;
+            cpos.y += form->origin.y + 1;
+        }
+
+        i_path_at_mouse(form->dlayout, form->fform->layout, form->glayout, cpos.x, cpos.y, form->sel_path, &sel);
+        inspect_set(inspect, form);
+        propedit_set(propedit, form, &sel);
+        form->sel = sel;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t dform_OnUndo(DForm *form, Panel *inspect, Panel *propedit)
+{
+    cassert_no_null(form);
+    if (form->undo_pos > 0)
+    {
+        i_apply_undo_frame(form, form->undo_pos - 1, inspect, propedit);
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t dform_OnRedo(DForm *form, Panel *inspect, Panel *propedit)
+{
+    uint32_t n = 0;
+    cassert_no_null(form);
+    n = arrst_size(form->undo_stack, UndoFrame);
+    if (n > 0 && form->undo_pos < n - 1)
+    {
+        i_apply_undo_frame(form, form->undo_pos + 1, inspect, propedit);
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_promote(DForm *form, FLayout *top_layout, const uint32_t col, const uint32_t row, const DSelect *sel, Panel *inspect, Panel *propedit)
+{
+    const DSelect *psel = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    psel = i_parent_sel(form->sel_path, sel);
+    i_layout_obj_names(form, top_layout);
+
+    /* We are promoting the top-level layout */
+    if (psel == NULL)
+    {
+        cassert(sel->flayout == form->fform->layout);
+        flayout_add_layout(top_layout, sel->flayout, col, row);
+        form->fform->layout = top_layout;
+    }
+    /* We are promoting an inner layout (layoutCell) */
+    else
+    {
+        FCell *pcell = flayout_cell(psel->flayout, psel->col, psel->row);
+        cassert_no_null(pcell);
+        cassert(pcell->type == ekCELL_TYPE_LAYOUT);
+        cassert(pcell->widget.layout == sel->flayout);
+        flayout_add_layout(top_layout, sel->flayout, col, row);
+        pcell->widget.layout = top_layout;        
+    }
+
+    /* Update and synchro dlayout and glayout */
+    if (form->window != NULL)
+    {
+        window_destroy(&form->window);
+        dlayout_destroy(&form->dlayout);
+        form->glayout = NULL;
+    }
+    else
+    {
+        cassert(form->glayout == NULL);
+        cassert(form->dlayout == NULL);
+    }
+
+    dform_compose(form);
+
+    /* Update selectors */
+    {
+        R2Df rect = dlayout_flayout_rect(form->dlayout, form->fform->layout, sel->flayout);
+        DSelect nsel;
+        i_path_at_mouse(form->dlayout, form->fform->layout, form->glayout, rect.pos.x + 1, rect.pos.y + 1, form->sel_path, &nsel);
+        inspect_set(inspect, form);
+        propedit_set(propedit, form, &nsel);
+        i_need_save(form, TRUE);
+        form->sel = nsel;
+        return TRUE;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t dform_OnPromoteLeft(DForm *form, const DSelect *sel, Panel *inspect, Panel *propedit)
+{
+    FLayout *top_layout = flayout_create(2, 1);
+    return i_promote(form, top_layout, 0, 0, sel, inspect, propedit);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t dform_OnPromoteRight(DForm *form, const DSelect *sel, Panel *inspect, Panel *propedit)
+{
+    FLayout *top_layout = flayout_create(2, 1);
+    return i_promote(form, top_layout, 1, 0, sel, inspect, propedit);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t dform_OnPromoteTop(DForm *form, const DSelect *sel, Panel *inspect, Panel *propedit)
+{
+    FLayout *top_layout = flayout_create(1, 2);
+    return i_promote(form, top_layout, 0, 0, sel, inspect, propedit);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t dform_OnPromoteBottom(DForm *form, const DSelect *sel, Panel *inspect, Panel *propedit)
+{
+    FLayout *top_layout = flayout_create(1, 2);
+    return i_promote(form, top_layout, 0, 1, sel, inspect, propedit);
+}
+
+/*---------------------------------------------------------------------------*/
+
 V2Df dform_get_origin(const DForm *form)
 {
     cassert_no_null(form);
@@ -1391,7 +1660,7 @@ void dform_insert_col(DForm *form, const DSelect *sel, const uint32_t col_id)
     }
 
     dform_compose(form);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     form->sel = *sel;
     form->sel.col = col_id;
 }
@@ -1418,7 +1687,7 @@ void dform_insert_row(DForm *form, const DSelect *sel, const uint32_t row_id)
     }
 
     dform_compose(form);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     form->sel = *sel;
     form->sel.row = row_id;
 }
@@ -1442,7 +1711,7 @@ void dform_remove_col(DForm *form, const DSelect *sel, const uint32_t col_id)
         col = col_id - 1;
 
     dform_compose(form);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     form->sel = *sel;
     form->sel.col = col;
 }
@@ -1466,7 +1735,7 @@ void dform_remove_row(DForm *form, const DSelect *sel, const uint32_t row_id)
         row = row_id - 1;
 
     dform_compose(form);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     form->sel = *sel;
     form->sel.row = row;
 }
@@ -1502,7 +1771,7 @@ void dform_synchro_cell_image(DForm *form, const DSelect *sel, const Image *imag
     cassert_no_null(form);
     cassert_no_null(sel);
     cassert_no_null(cell);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     if (cell->type == ekCELL_TYPE_IMAGE)
     {
         ImageView *imgview = layout_get_imageview(sel->glayout, sel->col, sel->row);
@@ -1525,7 +1794,7 @@ void dform_synchro_label(DForm *form, const DSelect *sel)
     cassert_no_null(sel);
     cassert_no_null(cell);
     cassert(cell->type == ekCELL_TYPE_LABEL);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     label = layout_get_label(sel->glayout, sel->col, sel->row);
     flabel_synchro(cell->widget.label, label);
 }
@@ -1540,7 +1809,7 @@ void dform_synchro_button(DForm *form, const DSelect *sel)
     cassert_no_null(sel);
     cassert_no_null(cell);
     cassert(cell->type == ekCELL_TYPE_BUTTON);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     button = layout_get_button(sel->glayout, sel->col, sel->row);
     fbutton_synchro(cell->widget.button, button);
 }
@@ -1555,7 +1824,7 @@ void dform_synchro_check(DForm *form, const DSelect *sel)
     cassert_no_null(sel);
     cassert_no_null(cell);
     cassert(cell->type == ekCELL_TYPE_CHECK);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     button = layout_get_button(sel->glayout, sel->col, sel->row);
     fcheck_synchro(cell->widget.check, button);
 }
@@ -1570,7 +1839,7 @@ void dform_synchro_radio(DForm *form, const DSelect *sel)
     cassert_no_null(sel);
     cassert_no_null(cell);
     cassert(cell->type == ekCELL_TYPE_RADIO);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     button = layout_get_button(sel->glayout, sel->col, sel->row);
     fradio_synchro(cell->widget.radio, button);
 }
@@ -1585,7 +1854,7 @@ void dform_synchro_tool(DForm *form, const DSelect *sel)
     cassert_no_null(sel);
     cassert_no_null(cell);
     cassert(cell->type == ekCELL_TYPE_TOOL);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     button = layout_get_button(sel->glayout, sel->col, sel->row);
     ftool_synchro(cell->widget.tool, button, NULL);
 }
@@ -1600,7 +1869,7 @@ void dform_synchro_popup(DForm *form, const DSelect *sel, const char_t *resource
     cassert_no_null(sel);
     cassert_no_null(cell);
     cassert(cell->type == ekCELL_TYPE_POPUP);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     popup = layout_get_popup(sel->glayout, sel->col, sel->row);
     fpopup_synchro(cell->widget.popup, popup, resource_path);
 }
@@ -1615,7 +1884,7 @@ void dform_synchro_edit(DForm *form, const DSelect *sel)
     cassert_no_null(sel);
     cassert_no_null(cell);
     cassert(cell->type == ekCELL_TYPE_EDIT);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     edit = layout_get_edit(sel->glayout, sel->col, sel->row);
     fedit_synchro(cell->widget.edit, edit);
 }
@@ -1630,7 +1899,7 @@ void dform_synchro_combo(DForm *form, const DSelect *sel)
     cassert_no_null(sel);
     cassert_no_null(cell);
     cassert(cell->type == ekCELL_TYPE_COMBO);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     combo = layout_get_combo(sel->glayout, sel->col, sel->row);
     fcombo_synchro(cell->widget.combo, combo);
 }
@@ -1645,7 +1914,7 @@ void dform_synchro_listbox(DForm *form, const DSelect *sel, const char_t *resour
     cassert_no_null(sel);
     cassert_no_null(cell);
     cassert(cell->type == ekCELL_TYPE_LISTBOX);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     listbox = layout_get_listbox(sel->glayout, sel->col, sel->row);
     flistbox_synchro(cell->widget.listbox, listbox, resource_path);
 }
@@ -1660,7 +1929,7 @@ void dform_synchro_slider(DForm *form, const DSelect *sel)
     cassert_no_null(sel);
     cassert_no_null(cell);
     cassert(cell->type == ekCELL_TYPE_SLIDER);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     slider = layout_get_slider(sel->glayout, sel->col, sel->row);
     fslider_synchro(cell->widget.slider, slider);
 }
@@ -1675,7 +1944,7 @@ void dform_synchro_vslider(DForm *form, const DSelect *sel)
     cassert_no_null(sel);
     cassert_no_null(cell);
     cassert(cell->type == ekCELL_TYPE_VSLIDER);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     slider = layout_get_slider(sel->glayout, sel->col, sel->row);
     fvslider_synchro(cell->widget.vslider, slider);
 }
@@ -1690,7 +1959,7 @@ void dform_synchro_progress(DForm *form, const DSelect *sel)
     cassert_no_null(sel);
     cassert_no_null(cell);
     cassert(cell->type == ekCELL_TYPE_PROGRESS);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     progress = layout_get_progress(sel->glayout, sel->col, sel->row);
     fprogress_synchro(cell->widget.progress, progress);
 }
@@ -1705,7 +1974,7 @@ void dform_synchro_textview(DForm *form, const DSelect *sel)
     cassert_no_null(sel);
     cassert_no_null(cell);
     cassert(cell->type == ekCELL_TYPE_TEXT);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     view = layout_get_textview(sel->glayout, sel->col, sel->row);
     ftext_synchro(cell->widget.text, view);
 }
@@ -1720,7 +1989,7 @@ void dform_synchro_imageview(DForm *form, const DSelect *sel)
     cassert_no_null(sel);
     cassert_no_null(cell);
     cassert(cell->type == ekCELL_TYPE_IMAGE);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     view = layout_get_imageview(sel->glayout, sel->col, sel->row);
     fimage_synchro(cell->widget.image, view, NULL);
 }
@@ -1735,7 +2004,7 @@ void dform_synchro_table(DForm *form, const DSelect *sel)
     cassert_no_null(sel);
     cassert_no_null(cell);
     cassert(cell->type == ekCELL_TYPE_TABLEVIEW);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     view = layout_get_tableview(sel->glayout, sel->col, sel->row);
     ftable_synchro(cell->widget.table, view);
 }
@@ -1747,7 +2016,7 @@ void dform_synchro_layout_margin(DForm *form, const DSelect *sel)
     cassert_no_null(form);
     cassert_no_null(sel);
     cassert_no_null(sel->flayout);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     layout_margin4(sel->glayout, sel->flayout->margin_top, sel->flayout->margin_right, sel->flayout->margin_bottom, sel->flayout->margin_left);
 }
 
@@ -1759,7 +2028,7 @@ void dform_synchro_column_margin(DForm *form, const DSelect *sel, const FColumn 
     cassert_no_null(sel);
     cassert_no_null(fcol);
     cassert(flayout_column(cast(sel->flayout, FLayout), col) == fcol);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     layout_hmargin(sel->glayout, col, fcol->margin_right);
 }
 
@@ -1771,7 +2040,7 @@ void dform_synchro_column_width(DForm *form, const DSelect *sel, const FColumn *
     cassert_no_null(sel);
     cassert_no_null(fcol);
     cassert(flayout_column(cast(sel->flayout, FLayout), col) == fcol);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     layout_hsize(sel->glayout, col, fcol->forced_width);
 }
 
@@ -1783,7 +2052,7 @@ void dform_synchro_row_margin(DForm *form, const DSelect *sel, const FRow *frow,
     cassert_no_null(sel);
     cassert_no_null(frow);
     cassert(flayout_row(cast(sel->flayout, FLayout), row) == frow);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     layout_vmargin(sel->glayout, row, frow->margin_bottom);
 }
 
@@ -1795,7 +2064,7 @@ void dform_synchro_row_height(DForm *form, const DSelect *sel, const FRow *frow,
     cassert_no_null(sel);
     cassert_no_null(frow);
     cassert(flayout_row(cast(sel->flayout, FLayout), row) == frow);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     layout_vsize(sel->glayout, row, frow->forced_height);
 }
 
@@ -1808,7 +2077,7 @@ void dform_synchro_cell_halign(DForm *form, const DSelect *sel, const FCell *fce
     cassert_no_null(sel);
     cassert_no_null(fcell);
     cassert(flayout_cell(cast(sel->flayout, FLayout), col, row) == fcell);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     align = i_halign(fcell->halign);
     layout_halign(sel->glayout, col, row, align);
 }
@@ -1822,7 +2091,7 @@ void dform_synchro_cell_valign(DForm *form, const DSelect *sel, const FCell *fce
     cassert_no_null(sel);
     cassert_no_null(fcell);
     cassert(flayout_cell(cast(sel->flayout, FLayout), col, row) == fcell);
-    i_need_save(form);
+    i_need_save(form, TRUE);
     align = i_valign(fcell->valign);
     layout_valign(sel->glayout, col, row, align);
 }
@@ -2109,7 +2378,7 @@ static void i_center_window(const Window *parent, Window *window)
 
 void dform_set_need_save(DForm *form)
 {
-    i_need_save(form);
+    i_need_save(form, TRUE);
 }
 
 /*---------------------------------------------------------------------------*/

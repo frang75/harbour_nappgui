@@ -122,8 +122,7 @@ void dctx_set_gcontext(DCtx *ctx, void *gcontext, const uint32_t width, const ui
     ctx->offset_x = (Gdiplus::REAL)offset_x;
     ctx->offset_y = (Gdiplus::REAL)offset_y;
     ctx->gdi_mode = FALSE;
-    if (reset == TRUE)
-        _dctx_init(ctx);
+    _dctx_init(ctx, reset);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -170,14 +169,6 @@ void dctx_line_dash(const DCtx *ctx, real32_t *pattern, uint32_t *size)
     unref(pattern);
     unref(size);
     cassert(FALSE);
-}
-
-/*---------------------------------------------------------------------------*/
-
-const Font *dctx_font(const DCtx *ctx)
-{
-    cassert_no_null(ctx);
-    return ctx->font;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -298,7 +289,7 @@ DCtx *dctx_bitmap(const uint32_t width, const uint32_t height, const pixformat_t
     ctx->gradient_matrix = new Gdiplus::Matrix;
     ctx->bitmap = new Gdiplus::Bitmap((INT)width, (INT)height, pf);
     ctx->graphics = new Gdiplus::Graphics(ctx->bitmap);
-    _dctx_init(ctx);
+    _dctx_init(ctx, TRUE);
     return ctx;
 }
 

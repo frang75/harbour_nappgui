@@ -162,6 +162,13 @@ DCell *dlayout_cell(DLayout *layout, const uint32_t col, const uint32_t row)
 
 /*---------------------------------------------------------------------------*/
 
+const DCell *dlayout_ccell(const DLayout *layout, const uint32_t col, const uint32_t row)
+{
+    return i_cell(cast(layout, DLayout), col, row);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dlayout_destroy(DLayout **layout)
 {
     cassert_no_null(layout);
@@ -591,12 +598,12 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
 
 /*---------------------------------------------------------------------------*/
 
-void dlayout_elem_at_pos(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const real32_t x, const real32_t y, ArrSt(DSelect) *selpath)
+void dlayout_path_at_pos(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const real32_t x, const real32_t y, ArrSt(DSelect) *path)
 {
     cassert_no_null(dlayout);
     if (r2d_containsf(&dlayout->rect, x, y) == TRUE)
     {
-        DSelect *sel = arrst_new(selpath, DSelect);
+        DSelect *sel = arrst_new(path, DSelect);
         sel->dlayout = cast(dlayout, DLayout);
         sel->flayout = cast(flayout, FLayout);
         sel->glayout = cast(glayout, Layout);
@@ -670,7 +677,7 @@ void dlayout_elem_at_pos(const DLayout *dlayout, const FLayout *flayout, const L
                 {
                     const FCell *fcell = flayout_ccell(flayout, sel->col, sel->row);
                     Layout *gsublayout = layout_get_layout(cast(glayout, Layout), sel->col, sel->row);
-                    dlayout_elem_at_pos(cell->sublayout, fcell->widget.layout, gsublayout, x, y, selpath);
+                    dlayout_path_at_pos(cell->sublayout, fcell->widget.layout, gsublayout, x, y, path);
                 }
 
                 return;
@@ -1630,5 +1637,49 @@ void dlayout_draw(const DLayout *dlayout, const FLayout *flayout, const Layout *
 
     default:
         cassert_default(cmode);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+R2Df dlayout_sel_rect(const DSelect *sel)
+{
+    cassert_no_null(sel);
+    return i_get_rect(sel->dlayout, sel);
+}
+
+/*---------------------------------------------------------------------------*/
+
+R2Df dlayout_flayout_rect(const DLayout *dlayout, const FLayout *flayout, const FLayout *ref_flayout)
+{
+    cassert_no_null(dlayout);
+    if (flayout != ref_flayout)
+    {
+        uint32_t i, ncols = flayout_ncols(flayout);
+        uint32_t j, nrows = flayout_nrows(flayout);
+        for (j = 0; j < nrows; ++j)
+        {
+            for (i = 0; i < ncols; ++i)
+            {
+                const FCell *fcell = flayout_ccell(flayout, i, j);
+                cassert_no_null(fcell);
+                if (fcell->type == ekCELL_TYPE_LAYOUT)
+                {
+                    const DCell *dcell = dlayout_ccell(dlayout, i, j);
+                    R2Df srect;
+                    cassert_no_null(dcell);
+                    cassert_no_null(dcell->sublayout);
+                    srect = dlayout_flayout_rect(dcell->sublayout, fcell->widget.layout, ref_flayout);
+                    if (srect.size.width > 0 && srect.size.height > 0)
+                        return srect;
+                }
+            }
+        }
+
+        return r2df(0, 0, -1, -1);
+    }
+    else
+    {
+        return dlayout->rect;
     }
 }

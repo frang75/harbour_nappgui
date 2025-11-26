@@ -257,7 +257,7 @@ typedef void (*FPtr_remove)(void *obj);
 #define FUNC_CHECK_REMOVE(func, type) \
     (void)((void (*)(type *))func == func)
 
-typedef void (*FPtr_event_handler)(void *obj, Event *event);
+typedef void (*FPtr_event_handler)(void *obj, Event *e);
 #define FUNC_CHECK_EVENT_HANDLER(func, type) \
     (void)((void (*)(type *, Event *))func == func)
 
@@ -284,6 +284,10 @@ typedef void (*FPtr_write)(Stream *stream, const void *obj);
 typedef void (*FPtr_write_ex)(Stream *stream, const void *obj, const void *data);
 #define FUNC_CHECK_WRITE_EX(func, type, dtype) \
     (void)((void (*)(Stream *, const type *, const dtype *))func == func)
+
+typedef uint32_t(*FPtr_size)(const void *);
+#define FUNC_CHECK_SIZE(func, type) \
+    (void)((uint32_t(*)(const type *))func == func)
 
 /* Do not use! only for debugger inspection */
 struct _buffer_t
