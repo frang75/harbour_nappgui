@@ -127,7 +127,7 @@ static Layout *i_value_updown_layout(const char_t *tooltip)
 static void i_OnPromoteLeft(PropData *data, Event *e)
 {
     cassert_no_null(data);
-    cassert(data->sel.elem == ekLAYELEM_LAYOUT);
+    cassert(data->sel.elem != ekLAYELEM_CELL);
     unref(e);
     designer_promote_left(data->app, &data->sel);
 }

@@ -1542,6 +1542,16 @@ static bool_t i_promote(DForm *form, FLayout *top_layout, const uint32_t col, co
         flayout_add_layout(top_layout, sel->flayout, col, row);
         form->fform->layout = top_layout;
     }
+    /* We are promoting an inner layout (layoutCell) */
+    else
+    {
+        FCell *pcell = flayout_cell(psel->flayout, psel->col, psel->row);
+        cassert_no_null(pcell);
+        cassert(pcell->type == ekCELL_TYPE_LAYOUT);
+        cassert(pcell->widget.layout == sel->flayout);
+        flayout_add_layout(top_layout, sel->flayout, col, row);
+        pcell->widget.layout = top_layout;        
+    }
 
     /* Update and synchro dlayout and glayout */
     if (form->window != NULL)
@@ -1562,7 +1572,7 @@ static bool_t i_promote(DForm *form, FLayout *top_layout, const uint32_t col, co
     {
         R2Df rect = dlayout_flayout_rect(form->dlayout, form->fform->layout, sel->flayout);
         DSelect nsel;
-        i_elem_at_mouse(form->dlayout, form->fform->layout, form->glayout, rect.pos.x, rect.pos.y, form->sel_path, &nsel);
+        i_elem_at_mouse(form->dlayout, form->fform->layout, form->glayout, rect.pos.x + 1, rect.pos.y + 1, form->sel_path, &nsel);
         inspect_set(inspect, form);
         propedit_set(propedit, form, &nsel);
         i_need_save(form, TRUE);
