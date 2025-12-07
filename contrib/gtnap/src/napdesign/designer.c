@@ -1788,7 +1788,7 @@ static void i_apply_config(Designer *app)
 {
     cassert_no_null(app);
     window_origin(app->window, v2df(app->config.wx, app->config.wy));
-    window_size(app->window, s2df(app->config.wwidth, app->config.wheight));
+    window_client_size(app->window, s2df(app->config.wwidth, app->config.wheight));
     i_restore_splits(app);
     i_set_bwidget(app->config.swidget, app->bwidgets, app->default_font, app->bold_font);
     menuitem_state(app->show_forms_item, i_bool_state(app->config.show_forms));

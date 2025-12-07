@@ -75,15 +75,15 @@ static void i_draw_flat_button(OSButton *button, const Image *image)
 
     hwnd = button->control.hwnd;
     hdc = BeginPaint(hwnd, &ps);
-    memHdc = CreateCompatibleDC(hdc);    
+    memHdc = CreateCompatibleDC(hdc);
     rect.left = 0;
     rect.top = 0;
     rect.right = button->width;
     rect.bottom = button->height;
-    border = rect;    
+    border = rect;
 
     if (button->dbuffer == NULL)
-        button->dbuffer = CreateCompatibleBitmap(hdc, button->width, button->height);    
+        button->dbuffer = CreateCompatibleBitmap(hdc, button->width, button->height);
 
     SelectObject(memHdc, button->dbuffer);
     withXP_style = _osstyleXP_OpenThemeData(hwnd, L"TOOLBAR");
@@ -310,6 +310,7 @@ OSButton *osbutton_create(const uint32_t flags)
     button->id = _osgui_unique_child_id();
 
     _oscontrol_init(cast(button, OSControl), PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), i_style(flags, ekCENTER), L"button", 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
+    button->control.tooltip_hwnd1 = button->control.hwnd;
 
     if (_osbutton_text_allowed(flags) == TRUE)
     {
@@ -381,7 +382,7 @@ void osbutton_text(OSButton *button, const char_t *text)
 
 void osbutton_tooltip(OSButton *button, const char_t *text)
 {
-    _oscontrol_set_tooltip(cast(button, OSControl), text);
+    _oscontrol_tooltip(cast(button, OSControl), text);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -655,6 +656,7 @@ void osbutton_attach(OSButton *button, OSPanel *panel)
 
 void osbutton_detach(OSButton *button, OSPanel *panel)
 {
+    cassert_no_null(button);
     _ospanel_detach_control(panel, cast(button, OSControl));
 }
 

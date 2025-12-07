@@ -142,7 +142,7 @@ __END_C
 
 #define dbind_sizeof(obj, type) \
     ((void)(cast_const(obj, type) == obj), \
-    dbind_sizeof_imp(cast_const(obj, byte_t), cast_const(#type, char_t)))
+     dbind_sizeof_imp(cast_const(obj, byte_t), cast_const(#type, char_t)))
 
 #define dbind_read(stm, type) \
     cast(dbind_read_imp(stm, cast_const(#type, char_t)), type)
