@@ -2404,3 +2404,26 @@ void dform_simulate(DForm *form, const char_t *form_name, Window *window)
         str_destroy(&name);
     }
 }
+
+/*---------------------------------------------------------------------------*/
+
+void dform_simulate_resizable(DForm *form, const char_t *form_name, Window *window)
+{
+    Window *rwindow = window_create(ekWINDOW_TITLE | ekWINDOW_RESIZE | ekWINDOW_CLOSE | ekWINDOW_MAX);
+    Panel *panel = panel_create();
+    Layout *layout = NULL;
+    const char_t *resource_path = NULL;
+    String *name = str_printf("%s - %s", gui_text(TEXT_FORM), form_name);
+    cassert_no_null(form);
+    cassert_no_null(form->fform);
+    resource_path = designer_folder_path(form->app);
+    layout = flayout_to_gui(form->fform->layout, resource_path, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
+    panel_layout(panel, layout);
+    window_panel(rwindow, panel);
+    i_center_window(window, rwindow);
+    window_title(rwindow, tc(name));
+    window_modal(rwindow, window);
+    window_destroy(&rwindow);
+    str_destroy(&name);
+}
+

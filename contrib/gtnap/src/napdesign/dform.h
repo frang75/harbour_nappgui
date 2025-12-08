@@ -131,3 +131,5 @@ void dform_set_need_save(DForm *form);
 void dform_update_sel(DForm *form, const DSelect *sel);
 
 void dform_simulate(DForm *form, const char_t *form_name, Window *window);
+
+void dform_simulate_resizable(DForm *form, const char_t *form_name, Window *window);

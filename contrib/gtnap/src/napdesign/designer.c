@@ -554,9 +554,7 @@ static void i_OnResizableClick(Designer *app, Event *e)
     {
         DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
         const char_t *name = i_list_text(app->form_list, app->config.sel_form);
-        unref(form);
-        unref(name);
-        /*dform_simulate(form, name, app->window);*/
+        dform_simulate_resizable(form, name, app->window);
     }
 }
 
