@@ -44,6 +44,16 @@ FUNCTION DIRET_FORMS(C_DIRET_NEW)
 
 /*---------------------------------------------------------------------------*/
 
+FUNCTION DIRET_NFORMS(C_DIRET_NEW)
+    STATIC C_DIRET_NFORMS := ""
+    LOCAL C_DIRET_ANT := C_DIRET_NFORMS
+    IF C_DIRET_NEW # NIL
+        C_DIRET_NFORMS := C_DIRET_NEW
+    ENDIF
+    RETURN C_DIRET_ANT
+
+/*---------------------------------------------------------------------------*/
+
 ***********************
 STAT FUNCTION Perguntar (C_Cabec_x, C_SubCabec, VC_Menu, VC_TxtBotoes, N_Default)
 ***********************
