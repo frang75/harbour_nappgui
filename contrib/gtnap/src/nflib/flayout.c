@@ -1269,26 +1269,18 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
     arrst_foreach_const(col, layout->cols, FColumn)
         layout_hsize(glayout, col_i, col->forced_width);
         if (col_i < col_total - 1)
-        {
             layout_hmargin(glayout, col_i, col->margin_right);
-        }
         else
-        {
-            cassert(col->margin_right == 0);
-        }
+            cast(col, FColumn)->margin_right = 0;
     arrst_end()
 
     /* Row properties */
     arrst_foreach_const(row, layout->rows, FRow)
         layout_vsize(glayout, row_i, row->forced_height);
         if (row_i < row_total - 1)
-        {
             layout_vmargin(glayout, row_i, row->margin_bottom);
-        }
         else
-        {
-            cassert(row->margin_bottom == 0);
-        }
+            cast(row, FRow)->margin_bottom = 0;
     arrst_end()
 
     /* Cells */
