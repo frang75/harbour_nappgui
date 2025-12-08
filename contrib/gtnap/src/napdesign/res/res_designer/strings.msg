@@ -154,7 +154,8 @@ TOOLBAR_SAVE        Save all forms
 TOOLBAR_NEW         Add new form
 TOOLBAR_NEW_FORM    New form
 TOOLBAR_PROPS       Form properties
-TOOLBAR_SIMULATE    Simulate current form
+TOOLBAR_SIMULATE    Simulate form
+TOOLBAR_RESIZABLE   Simulate resizable form
 TOOLBAR_LSKEL       Layout design view
 TOOLBAR_REMOVE      Remove current form
 TEXT_QUIT           Quit

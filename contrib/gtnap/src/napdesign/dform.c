@@ -323,7 +323,7 @@ void dform_compose(DForm *form)
         form->dlayout = dlayout_from_flayout(form->fform->layout, resource_path, colors);
         form->glayout = flayout_to_gui(form->fform->layout, resource_path, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
         panel_layout(panel, form->glayout);
-        form->window = window_create(ekWINDOW_STD);
+        form->window = window_create(ekWINDOW_TITLE | ekWINDOW_CLOSE);
         window_panel(form->window, panel);
     }
 
