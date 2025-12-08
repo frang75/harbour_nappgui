@@ -29,6 +29,7 @@ struct _config_t
     real32_t split2_pos;
     real32_t split3_pos;
     real32_t split4_pos;
+    bool_t is_maximized;
     bool_t show_forms;
     bool_t show_widgets;
     bool_t show_inspectr;
@@ -1650,17 +1651,35 @@ static Menu *i_menu(Designer *app)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_default_win_frame(Config *config)
+{
+    cassert_no_null(config);
+    config->wx = 100;
+    config->wy = 100;
+    config->wwidth = 850;
+    config->wheight = 500;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_update_config(Designer *app)
 {
-    V2Df pos;
-    S2Df size;
     cassert_no_null(app);
-    pos = window_get_origin(app->window);
-    size = window_get_client_size(app->window);
-    app->config.wx = pos.x;
-    app->config.wy = pos.y;
-    app->config.wwidth = size.width;
-    app->config.wheight = size.height;
+    if (window_get_maximize(app->window) == TRUE || window_get_minimize(app->window) == TRUE)
+    {
+        i_default_win_frame(&app->config);
+    }
+    else
+    {
+        V2Df pos = window_get_origin(app->window);
+        S2Df size = window_get_client_size(app->window);
+        app->config.wx = pos.x;
+        app->config.wy = pos.y;
+        app->config.wwidth = size.width;
+        app->config.wheight = size.height;
+    }
+
+    app->config.is_maximized = window_get_maximize(app->window);
     app->config.split1_pos = splitview_get_pos(app->split1, i_SPLIT1_MODE);
     app->config.split2_pos = splitview_get_pos(app->split2, i_SPLIT2_MODE);
     app->config.split3_pos = splitview_get_pos(app->split3, i_SPLIT3_MODE);
@@ -1689,6 +1708,7 @@ static void i_save_config(const Designer *app)
         stm_write_r32(stm, app->config.split2_pos);
         stm_write_r32(stm, app->config.split3_pos);
         stm_write_r32(stm, app->config.split4_pos);
+        stm_write_bool(stm, app->config.is_maximized);
         stm_write_bool(stm, app->config.show_forms);
         stm_write_bool(stm, app->config.show_widgets);
         stm_write_bool(stm, app->config.show_inspectr);
@@ -1716,23 +1736,20 @@ static void i_default_config(Designer *app)
 {
     cassert_no_null(app);
     i_remove_config(&app->config);
+    i_default_win_frame(&app->config);
     app->config.vers = i_CONFIG_VERS;
     app->config.folder_path = str_c("");
     app->config.sel_form = UINT32_MAX;
     app->config.swidget = ekWIDGET_SELECT;
-    app->config.wx = 100;
-    app->config.wy = 100;
-    app->config.wwidth = 850;
-    app->config.wheight = 500;
     app->config.split1_pos = 200;
     app->config.split2_pos = 200;
     app->config.split3_pos = 200;
     app->config.split4_pos = 200;
+    app->config.is_maximized = FALSE;
     app->config.show_forms = TRUE;
     app->config.show_widgets = TRUE;
     app->config.show_inspectr = TRUE;
     app->config.show_propedit = TRUE;
-
     arrst_foreach(wdrawer, app->wdrawers, WDrawer)
         wdrawer->opened = FALSE;
     arrst_end()
@@ -1763,6 +1780,7 @@ static void i_load_config(Designer *app)
             app->config.split2_pos = stm_read_r32(stm);
             app->config.split3_pos = stm_read_r32(stm);
             app->config.split4_pos = stm_read_r32(stm);
+            app->config.is_maximized = stm_read_bool(stm);
             app->config.show_forms = stm_read_bool(stm);
             app->config.show_widgets = stm_read_bool(stm);
             app->config.show_inspectr = stm_read_bool(stm);
@@ -1787,8 +1805,12 @@ static void i_load_config(Designer *app)
 static void i_apply_config(Designer *app)
 {
     cassert_no_null(app);
-    window_origin(app->window, v2df(app->config.wx, app->config.wy));
     window_client_size(app->window, s2df(app->config.wwidth, app->config.wheight));
+    window_origin(app->window, v2df(app->config.wx, app->config.wy));
+    
+    if (app->config.is_maximized == TRUE)
+        window_maximize(app->window);
+
     i_restore_splits(app);
     i_set_bwidget(app->config.swidget, app->bwidgets, app->default_font, app->bold_font);
     menuitem_state(app->show_forms_item, i_bool_state(app->config.show_forms));
