@@ -91,6 +91,7 @@ struct _flabel_t
 struct _fbutton_t
 {
     String *text;
+    String *tooltip;
     real32_t min_width;
     real32_t hpadding;
     real32_t vpadding;
@@ -109,6 +110,7 @@ struct _fradio_t
 struct _ftool_t
 {
     String *path;
+    String *tooltip;
     real32_t hpadding;
     real32_t vpadding;
 };

@@ -61,12 +61,14 @@ static void i_dbind(void)
     dbind(FLabel, real32_t, min_width);
     dbind(FLabel, halign_t, align);
     dbind(FButton, String *, text);
+    dbind(FButton, String *, tooltip);
     dbind(FButton, real32_t, min_width);
     dbind(FButton, real32_t, hpadding);
     dbind(FButton, real32_t, vpadding);
     dbind(FCheck, String *, text);
     dbind(FRadio, String *, text);
     dbind(FTool, String *, path);
+    dbind(FTool, String *, tooltip);
     dbind(FTool, real32_t, hpadding);
     dbind(FTool, real32_t, vpadding);
     dbind(FElem, String *, text);

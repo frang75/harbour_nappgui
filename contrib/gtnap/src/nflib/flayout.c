@@ -45,7 +45,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-static uint16_t i_VERSION = 5;
+static uint16_t i_VERSION = 6;
 
 /*---------------------------------------------------------------------------*/
 
@@ -261,6 +261,11 @@ static FButton *i_read_button(Stream *stm, const uint16_t vers)
 {
     FButton *button = heap_new0(FButton);
     button->text = str_read(stm);
+    if (vers >= 6)
+        button->tooltip = str_read(stm);
+    else
+        button->tooltip = str_c("");
+
     if (vers >= 1)
         button->min_width = stm_read_r32(stm);
     else
@@ -300,10 +305,15 @@ static FRadio *i_read_radio(Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
-static FTool *i_read_tool(Stream *stm)
+static FTool *i_read_tool(Stream *stm, const uint16_t vers)
 {
     FTool *tool = heap_new0(FTool);
-    tool->path = str_read(stm);
+    tool->path = str_read(stm);    
+    if (vers >= 6)
+        tool->tooltip = str_read(stm);
+    else
+        tool->tooltip = str_c("");
+
     tool->hpadding = stm_read_r32(stm);
     tool->vpadding = stm_read_r32(stm);
     return tool;
@@ -468,7 +478,7 @@ static void i_read_cell(Stream *stm, FCell *cell, const uint16_t *vers)
         cell->widget.radio = i_read_radio(stm);
         break;
     case ekCELL_TYPE_TOOL:
-        cell->widget.tool = i_read_tool(stm);
+        cell->widget.tool = i_read_tool(stm, *vers);
         break;
     case ekCELL_TYPE_POPUP:
         cell->widget.popup = i_read_popup(stm);
@@ -591,6 +601,7 @@ static void i_write_buttom(Stream *stm, const FButton *button)
 {
     cassert_no_null(button);
     str_write(stm, button->text);
+    str_write(stm, button->tooltip);
     stm_write_r32(stm, button->min_width);
     stm_write_r32(stm, button->hpadding);
     stm_write_r32(stm, button->vpadding);
@@ -618,6 +629,7 @@ static void i_write_tool(Stream *stm, const FTool *tool)
 {
     cassert_no_null(tool);
     str_write(stm, tool->path);
+    str_write(stm, tool->tooltip);
     stm_write_r32(stm, tool->hpadding);
     stm_write_r32(stm, tool->vpadding);
 }
