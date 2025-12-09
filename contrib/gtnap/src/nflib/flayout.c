@@ -1267,74 +1267,77 @@ const FCell *flayout_ccell(const FLayout *layout, const uint32_t col, const uint
 
 /*---------------------------------------------------------------------------*/
 
-void flayout_cell_expand(const FLayout *layout, Layout *glayout)
+void flayout_col_expand(const FLayout *layout, Layout *glayout)
 {
-    uint32_t ncols = 0, nrows = 0;
+    uint32_t ncols = 0, i, tr = 0;
     uint32_t index[256];
     real32_t exp[256];
     cassert_no_null(layout);
     ncols = arrst_size(layout->cols, FColumn);
-    nrows = arrst_size(layout->rows, FRow);
     cassert(ncols == layout_ncols(glayout));
-    cassert(nrows == layout_nrows(glayout));
     cassert(ncols < 256);
-    cassert(nrows < 256);
 
     /* Column expansion */
-    {
-        uint32_t i, tr = 0;
-        arrst_foreach_const(col, layout->cols, FColumn)
-            index[col_i] = col_i;
-            if (col->expand == TRUE)
-            {
-                exp[col_i] = 1;
-                tr += 1;
-            }
-            else
-            {
-                exp[col_i] = 0;
-            }
-        arrst_end()
-
-        for (i = 0; i < ncols; ++i)
+    arrst_foreach_const(col, layout->cols, FColumn)
+        index[col_i] = col_i;
+        if (col->expand == TRUE)
         {
-            if (tr == 0)
-                exp[i] = 1 / (real32_t)ncols;
-            else if (exp[i] > 0)
-                exp[i] = 1 / (real32_t)tr;
+            exp[col_i] = 1;
+            tr += 1;
         }
+        else
+        {
+            exp[col_i] = 0;
+        }
+    arrst_end()
 
-        layout_hexpandn(glayout, ncols, index, exp);
+    for (i = 0; i < ncols; ++i)
+    {
+        if (tr == 0)
+            exp[i] = 1 / (real32_t)ncols;
+        else if (exp[i] > 0)
+            exp[i] = 1 / (real32_t)tr;
     }
 
-    /* Row expansion */
-    {
-        uint32_t i, tr = 0;
-        arrst_foreach_const(row, layout->rows, FRow)
-            index[row_i] = row_i;
-            if (row->expand == TRUE)
-            {
-                exp[row_i] = 1;
-                tr += 1;
-            }
-            else
-            {
-                exp[row_i] = 0;
-            }
-        arrst_end()
-
-        for (i = 0; i < nrows; ++i)
-        {
-            if (tr == 0)
-                exp[i] = 1 / (real32_t)nrows;
-            else if (exp[i] > 0)
-                exp[i] = 1 / (real32_t)tr;
-        }
-
-        layout_vexpandn(glayout, nrows, index, exp);
-    }
+    layout_hexpandn(glayout, ncols, index, exp);
 }
-   
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_row_expand(const FLayout *layout, Layout *glayout)
+{
+    uint32_t nrows = 0, i, tr = 0;
+    uint32_t index[256];
+    real32_t exp[256];
+    cassert_no_null(layout);
+    nrows = arrst_size(layout->rows, FRow);
+    cassert(nrows == layout_nrows(glayout));
+    cassert(nrows < 256);
+
+    arrst_foreach_const(row, layout->rows, FRow)
+        index[row_i] = row_i;
+        if (row->expand == TRUE)
+        {
+            exp[row_i] = 1;
+            tr += 1;
+        }
+        else
+        {
+            exp[row_i] = 0;
+        }
+    arrst_end()
+
+    for (i = 0; i < nrows; ++i)
+    {
+        if (tr == 0)
+            exp[i] = 1 / (real32_t)nrows;
+        else if (exp[i] > 0)
+            exp[i] = 1 / (real32_t)tr;
+    }
+
+    layout_vexpandn(glayout, nrows, index, exp);
+}
+
 /*---------------------------------------------------------------------------*/
 
 Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const real32_t empty_width, const real32_t empty_height)
@@ -1367,8 +1370,8 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
             cast(row, FRow)->margin_bottom = 0;
     arrst_end()
 
-    /* Column/Row expansion */
-    flayout_cell_expand(layout, glayout);
+    flayout_col_expand(layout, glayout);
+    flayout_row_expand(layout, glayout);
 
     /* Cells */
     {

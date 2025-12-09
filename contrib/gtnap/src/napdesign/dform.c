@@ -2098,6 +2098,27 @@ void dform_synchro_cell_valign(DForm *form, const DSelect *sel, const FCell *fce
 
 /*---------------------------------------------------------------------------*/
 
+void dform_synchro_col_expansion(DForm *form, const DSelect *sel)
+{
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    i_need_save(form, TRUE);
+    flayout_col_expand(sel->flayout, sel->glayout);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dform_synchro_row_expansion(DForm *form, const DSelect *sel)
+{
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    i_need_save(form, TRUE);
+    flayout_row_expand(sel->flayout, sel->glayout);
+}
+
+
+/*---------------------------------------------------------------------------*/
+
 FCell *dform_sel_fcell(const DSelect *sel)
 {
     return i_sel_fcell(sel);

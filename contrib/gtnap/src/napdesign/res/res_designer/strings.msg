@@ -240,9 +240,11 @@ TIP_COLUMN_RESIZE   Column is resizable.
 TIP_COLUMN_LEFT     Insert a new column at left of current column
 TIP_COLUMN_RIGHT    Insert a new column at right of current column
 TIP_COLUMN_DELETE   Delete current column
+TIP_COLUMN_EXPAND   Mark/unmark this column as expansible
 TIP_ROW_TOP         Insert a new row at top of current row
 TIP_ROW_BOTTOM      Insert a new row at bottom of current row
 TIP_ROW_DELETE      Delete current row
+TIP_ROW_EXPAND      Mark/unmark this row as expansible
 TIP_PROMOTE_LEFT    Promote this layout to a left cell
 TIP_PROMOTE_RIGHT   Promote this layout to a right cell
 TIP_PROMOTE_TOP     Promote this layout to a top cell

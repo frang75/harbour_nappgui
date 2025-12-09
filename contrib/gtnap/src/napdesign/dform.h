@@ -110,6 +110,10 @@ void dform_synchro_cell_halign(DForm *form, const DSelect *sel, const FCell *fce
 
 void dform_synchro_cell_valign(DForm *form, const DSelect *sel, const FCell *fcell, const uint32_t col, const uint32_t row);
 
+void dform_synchro_col_expansion(DForm *form, const DSelect *sel);
+
+void dform_synchro_row_expansion(DForm *form, const DSelect *sel);
+
 FCell *dform_sel_fcell(const DSelect *sel);
 
 void dform_draw(const DForm *form, const widget_t swidget, const Font *default_font, const Font *bold_font, const cmode_t cmode, const DColors *colors, const char_t *form_name, const bool_t focus, DCtx *ctx);
