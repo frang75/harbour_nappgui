@@ -45,7 +45,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-static uint16_t i_VERSION = 4;
+static uint16_t i_VERSION = 5;
 
 /*---------------------------------------------------------------------------*/
 
@@ -206,18 +206,30 @@ FLayout *flayout_create(const uint32_t ncols, const uint32_t nrows)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_read_col(Stream *stm, FColumn *col)
+static void i_read_col(Stream *stm, FColumn *col, const uint16_t *vers)
 {
     cassert_no_null(col);
+    cassert_no_null(vers);
+    if (*vers >= 5)
+        col->expand = stm_read_bool(stm);
+    else
+        col->expand = FALSE;
+
     col->forced_width = stm_read_r32(stm);
     col->margin_right = stm_read_r32(stm);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_read_row(Stream *stm, FRow *row)
+static void i_read_row(Stream *stm, FRow *row, const uint16_t *vers)
 {
     cassert_no_null(row);
+    cassert_no_null(vers);
+    if (*vers >= 5)
+        row->expand = stm_read_bool(stm);
+    else
+        row->expand = FALSE;
+
     row->forced_height = stm_read_r32(stm);
     row->margin_bottom = stm_read_r32(stm);
 }
@@ -516,8 +528,8 @@ FLayout *flayout_read_with_vers(Stream *stm, const uint16_t vers)
         layout->margin_top = stm_read_r32(stm);
         layout->margin_right = stm_read_r32(stm);
         layout->margin_bottom = stm_read_r32(stm);
-        layout->cols = arrst_read(stm, i_read_col, FColumn);
-        layout->rows = arrst_read(stm, i_read_row, FRow);
+        layout->cols = arrst_read_ex(stm, i_read_col, &vers, FColumn, uint16_t);
+        layout->rows = arrst_read_ex(stm, i_read_row, &vers, FRow, uint16_t);
         layout->cells = arrst_read_ex(stm, i_read_cell, &vers, FCell, uint16_t);
         return layout;
     }
@@ -547,6 +559,7 @@ void flayout_destroy(FLayout **layout)
 static void i_write_col(Stream *stm, const FColumn *col)
 {
     cassert_no_null(col);
+    stm_write_bool(stm, col->expand);
     stm_write_r32(stm, col->forced_width);
     stm_write_r32(stm, col->margin_right);
 }
@@ -556,6 +569,7 @@ static void i_write_col(Stream *stm, const FColumn *col)
 static void i_write_row(Stream *stm, const FRow *row)
 {
     cassert_no_null(row);
+    stm_write_bool(stm, row->expand);
     stm_write_r32(stm, row->forced_height);
     stm_write_r32(stm, row->margin_bottom);
 }
@@ -1253,6 +1267,76 @@ const FCell *flayout_ccell(const FLayout *layout, const uint32_t col, const uint
 
 /*---------------------------------------------------------------------------*/
 
+void flayout_cell_expand(const FLayout *layout, Layout *glayout)
+{
+    uint32_t ncols = 0, nrows = 0;
+    uint32_t index[256];
+    real32_t exp[256];
+    cassert_no_null(layout);
+    ncols = arrst_size(layout->cols, FColumn);
+    nrows = arrst_size(layout->rows, FRow);
+    cassert(ncols == layout_ncols(glayout));
+    cassert(nrows == layout_nrows(glayout));
+    cassert(ncols < 256);
+    cassert(nrows < 256);
+
+    /* Column expansion */
+    {
+        uint32_t i, tr = 0;
+        arrst_foreach_const(col, layout->cols, FColumn)
+            index[col_i] = col_i;
+            if (col->expand == TRUE)
+            {
+                exp[col_i] = 1;
+                tr += 1;
+            }
+            else
+            {
+                exp[col_i] = 0;
+            }
+        arrst_end()
+
+        for (i = 0; i < ncols; ++i)
+        {
+            if (tr == 0)
+                exp[i] = 1 / (real32_t)ncols;
+            else if (exp[i] > 0)
+                exp[i] = 1 / (real32_t)tr;
+        }
+
+        layout_hexpandn(glayout, ncols, index, exp);
+    }
+
+    /* Row expansion */
+    {
+        uint32_t i, tr = 0;
+        arrst_foreach_const(row, layout->rows, FRow)
+            index[row_i] = row_i;
+            if (row->expand == TRUE)
+            {
+                exp[row_i] = 1;
+                tr += 1;
+            }
+            else
+            {
+                exp[row_i] = 0;
+            }
+        arrst_end()
+
+        for (i = 0; i < nrows; ++i)
+        {
+            if (tr == 0)
+                exp[i] = 1 / (real32_t)nrows;
+            else if (exp[i] > 0)
+                exp[i] = 1 / (real32_t)tr;
+        }
+
+        layout_vexpandn(glayout, nrows, index, exp);
+    }
+}
+   
+/*---------------------------------------------------------------------------*/
+
 Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const real32_t empty_width, const real32_t empty_height)
 {
     uint32_t ncols = 0, nrows = 0;
@@ -1282,6 +1366,9 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
         else
             cast(row, FRow)->margin_bottom = 0;
     arrst_end()
+
+    /* Column/Row expansion */
+    flayout_cell_expand(layout, glayout);
 
     /* Cells */
     {

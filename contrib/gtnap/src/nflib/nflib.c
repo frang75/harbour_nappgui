@@ -103,8 +103,10 @@ static void i_dbind(void)
     dbind(FTable, real32_t, min_width);
     dbind(FTable, real32_t, min_height);
     dbind(FTable, ArrSt(FHeader) *, headers);
+    dbind(FColumn, bool_t, expand);
     dbind(FColumn, real32_t, margin_right);
     dbind(FColumn, real32_t, forced_width);
+    dbind(FRow, bool_t, expand);
     dbind(FRow, real32_t, margin_bottom);
     dbind(FRow, real32_t, forced_height);
     dbind(FCell, String *, name);
@@ -215,6 +217,7 @@ static void i_dbind(void)
     dbind_increment(FTable, real32_t, min_height, 1);
     dbind_precision(FTable, real32_t, min_height, 1);
     dbind_range(FTable, real32_t, min_height, 10, 1000);
+    dbind_default(FColumn, bool_t, expand, FALSE);
     dbind_default(FColumn, real32_t, margin_right, 0);
     dbind_default(FColumn, real32_t, forced_width, 0);
     dbind_increment(FColumn, real32_t, margin_right, 1);
@@ -223,6 +226,7 @@ static void i_dbind(void)
     dbind_range(FColumn, real32_t, forced_width, 0, 1000);
     dbind_precision(FColumn, real32_t, margin_right, 1);
     dbind_precision(FColumn, real32_t, forced_width, 1);
+    dbind_default(FRow, bool_t, expand, FALSE);
     dbind_default(FRow, real32_t, margin_bottom, 0);
     dbind_default(FRow, real32_t, forced_height, 0);
     dbind_increment(FRow, real32_t, margin_bottom, 1);

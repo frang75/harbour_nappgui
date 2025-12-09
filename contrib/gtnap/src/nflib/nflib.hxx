@@ -197,12 +197,14 @@ struct _ftable_t
 
 struct _fcolumn_t
 {
+    bool_t expand;
     real32_t margin_right;
     real32_t forced_width;
 };
 
 struct _frow_t
 {
+    bool_t expand;
     real32_t margin_bottom;
     real32_t forced_height;
 };
