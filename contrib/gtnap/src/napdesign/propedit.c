@@ -806,7 +806,7 @@ static void i_OnButtonNotify(PropData *data, Event *e)
 
 static Layout *i_button_layout(PropData *data)
 {
-    Layout *layout1 = layout_create(2, 4);
+    Layout *layout1 = layout_create(2, 5);
     Layout *layout2 = i_value_updown_layout(gui_text(TIP_BUTTON_WIDTH));
     Layout *layout3 = i_value_updown_layout(gui_text(TIP_BUTTON_HPAD));
     Layout *layout4 = i_value_updown_layout(gui_text(TIP_BUTTON_VPAD));
@@ -814,27 +814,34 @@ static Layout *i_button_layout(PropData *data)
     Label *label2 = label_create();
     Label *label3 = label_create();
     Label *label4 = label_create();
-    Edit *edit = edit_create();
+    Label *label5 = label_create();
+    Edit *edit1 = edit_create();
+    Edit *edit2 = edit_create();
     cassert_no_null(data);
     label_text(label1, gui_text(TEXT_TEXT));
-    label_text(label2, gui_text(TEXT_WIDTH));
-    label_text(label3, gui_text(TEXT_HPADDING));
-    label_text(label4, gui_text(TEXT_VPADDING));
-    edit_tooltip(edit, gui_text(TIP_BUTTON_TEXT));
+    label_text(label2, gui_text(TEXT_TOOLTIP));
+    label_text(label3, gui_text(TEXT_WIDTH));
+    label_text(label4, gui_text(TEXT_HPADDING));
+    label_text(label5, gui_text(TEXT_VPADDING));
+    edit_tooltip(edit1, gui_text(TIP_BUTTON_TEXT));
+    edit_tooltip(edit2, gui_text(TIP_BUTTON_TOOLTIP));
     layout_label(layout1, label1, 0, 0);
     layout_label(layout1, label2, 0, 1);
     layout_label(layout1, label3, 0, 2);
     layout_label(layout1, label4, 0, 3);
-    layout_edit(layout1, edit, 1, 0);
-    layout_layout(layout1, layout2, 1, 1);
-    layout_layout(layout1, layout3, 1, 2);
-    layout_layout(layout1, layout4, 1, 3);
+    layout_label(layout1, label5, 0, 4);
+    layout_edit(layout1, edit1, 1, 0);
+    layout_edit(layout1, edit2, 1, 1);
+    layout_layout(layout1, layout2, 1, 2);
+    layout_layout(layout1, layout3, 1, 3);
+    layout_layout(layout1, layout4, 1, 4);
     layout_hexpand(layout1, 1);
     layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
     cell_dbind(layout_cell(layout1, 1, 0), FButton, String *, text);
-    cell_dbind(layout_cell(layout1, 1, 1), FButton, real32_t, min_width);
-    cell_dbind(layout_cell(layout1, 1, 2), FButton, real32_t, hpadding);
-    cell_dbind(layout_cell(layout1, 1, 3), FButton, real32_t, vpadding);
+    cell_dbind(layout_cell(layout1, 1, 1), FButton, String *, tooltip);
+    cell_dbind(layout_cell(layout1, 1, 2), FButton, real32_t, min_width);
+    cell_dbind(layout_cell(layout1, 1, 3), FButton, real32_t, hpadding);
+    cell_dbind(layout_cell(layout1, 1, 4), FButton, real32_t, vpadding);
     layout_dbind(layout1, listener(data, i_OnButtonNotify, PropData), FButton);
     data->button_layout = layout1;
     return i_drawer_layout(data->app, layout1, ekDRAWER_BUTTON_PROPS);

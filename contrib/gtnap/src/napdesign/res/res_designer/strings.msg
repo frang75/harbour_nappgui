@@ -99,6 +99,7 @@ TEXT_VALIGN         VAlign
 TEXT_DALIGN         DAlign
 TEXT_SCALE          Scale
 TEXT_TEXT           Text
+TEXT_TOOLTIP        Tooltip
 TEXT_TITLE          Title
 TEXT_MULTILINE      Multiline
 TEXT_AUTOSELECT     Autoselect
@@ -199,6 +200,7 @@ TIP_LABEL_MLINE     If set, the text will expand over multiple lines.
 TIP_LABEL_MWIDTH    Text width. If 0 will be set automatically.
 TIP_LABEL_ALIGN     Text alignment, if label widget if wider than the text.
 TIP_BUTTON_TEXT     The text that will be displayed on the push button.
+TIP_BUTTON_TOOLTIP  The tooltip text that will be displayed when the mouse is over the button.
 TIP_BUTTON_WIDTH    Minimum width of the push button, as long as the text is visible.
 TIP_BUTTON_HPAD     Horizontal padding of the push button, -1 as default.
 TIP_BUTTON_VPAD     Vertical padding of the push button, -1 as default.
