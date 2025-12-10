@@ -112,6 +112,7 @@ static void i_dbind(void)
     dbind(FRow, real32_t, margin_bottom);
     dbind(FRow, real32_t, forced_height);
     dbind(FCell, String *, name);
+    dbind(FCell, bool_t, tabstop);
     dbind(FCell, celltype_t, type);
     dbind(FCell, halign_t, halign);
     dbind(FCell, valign_t, valign);
@@ -237,6 +238,7 @@ static void i_dbind(void)
     dbind_range(FRow, real32_t, forced_height, 0, 1000);
     dbind_precision(FRow, real32_t, margin_bottom, 1);
     dbind_precision(FRow, real32_t, forced_height, 1);
+    dbind_default(FCell, bool_t, tabstop, TRUE);
     dbind_default(FCell, celltype_t, type, ekCELL_TYPE_EMPTY);
     dbind_default(FCell, halign_t, halign, ekHALIGN_LEFT);
     dbind_default(FCell, valign_t, valign, ekVALIGN_TOP);

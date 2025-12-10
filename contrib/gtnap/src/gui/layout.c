@@ -999,7 +999,7 @@ void layout_remove_row(Layout *layout, const uint32_t row)
 void layout_taborder(Layout *layout, const gui_orient_t order)
 {
     cassert_no_null(layout);
-    layout->is_row_major_tab = (order == ekGUI_HORIZONTAL) ? FALSE : TRUE;
+    layout->is_row_major_tab = (order == ekGUI_HORIZONTAL) ? TRUE : FALSE;
 }
 
 /*---------------------------------------------------------------------------*/

@@ -234,6 +234,7 @@ struct _fwidget_t
 struct _fcell_t
 {
     String *name;
+    bool_t tabstop;
     celltype_t type;
     halign_t halign;
     valign_t valign;
@@ -243,6 +244,7 @@ struct _fcell_t
 struct _flayout_t
 {
     String *name;
+    bool_t row_tabstop;
     real32_t margin_left;
     real32_t margin_top;
     real32_t margin_right;

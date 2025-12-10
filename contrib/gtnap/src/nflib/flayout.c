@@ -45,7 +45,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-static uint16_t i_VERSION = 6;
+static uint16_t i_VERSION = 7;
 
 /*---------------------------------------------------------------------------*/
 
@@ -458,6 +458,12 @@ static void i_read_cell(Stream *stm, FCell *cell, const uint16_t *vers)
     cassert_no_null(vers);
     bmem_zero(cell, FCell);
     cell->name = str_read(stm);
+
+    if (*vers >= 7)
+        cell->tabstop = stm_read_bool(stm);
+    else
+        cell->tabstop = TRUE;
+
     cell->type = stm_read_enum(stm, celltype_t);
     cell->halign = stm_read_enum(stm, halign_t);
     cell->valign = stm_read_enum(stm, valign_t);
@@ -534,6 +540,12 @@ FLayout *flayout_read_with_vers(Stream *stm, const uint16_t vers)
     {
         FLayout *layout = heap_new0(FLayout);
         layout->name = str_read(stm);
+
+        if (vers >= 7)
+            layout->row_tabstop = stm_read_bool(stm);
+        else
+            layout->row_tabstop = TRUE;
+
         layout->margin_left = stm_read_r32(stm);
         layout->margin_top = stm_read_r32(stm);
         layout->margin_right = stm_read_r32(stm);
@@ -757,6 +769,7 @@ static void i_write_cell(Stream *stm, const FCell *cell)
 {
     cassert_no_null(cell);
     str_write(stm, cell->name);
+    stm_write_bool(stm, cell->tabstop);
     stm_write_enum(stm, cell->type, celltype_t);
     stm_write_enum(stm, cell->halign, halign_t);
     stm_write_enum(stm, cell->valign, valign_t);
@@ -824,6 +837,7 @@ void flayout_write(Stream *stm, const FLayout *layout)
     cassert_no_null(layout);
     stm_write_u16(stm, i_VERSION);
     str_write(stm, layout->name);
+    stm_write_bool(stm, layout->row_tabstop);
     stm_write_r32(stm, layout->margin_left);
     stm_write_r32(stm, layout->margin_top);
     stm_write_r32(stm, layout->margin_right);
