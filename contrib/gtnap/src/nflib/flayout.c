@@ -45,7 +45,8 @@
 
 /*---------------------------------------------------------------------------*/
 
-static uint16_t i_VERSION = 7;
+static uint16_t i_VERSION = 8;
+static void i_write_layout(Stream *stm, const FLayout *layout);
 
 /*---------------------------------------------------------------------------*/
 
@@ -517,7 +518,10 @@ static void i_read_cell(Stream *stm, FCell *cell, const uint16_t *vers)
         cell->widget.table = i_read_table(stm);
         break;
     case ekCELL_TYPE_LAYOUT:
-        cell->widget.layout = flayout_read(stm);
+        if (*vers >= 8)
+            cell->widget.layout = flayout_read_with_vers(stm, *vers);
+        else
+            cell->widget.layout = flayout_read(stm);
         break;
     default:
         cassert_default(cell->type);
@@ -823,7 +827,7 @@ static void i_write_cell(Stream *stm, const FCell *cell)
         i_write_table(stm, cell->widget.table);
         break;
     case ekCELL_TYPE_LAYOUT:
-        flayout_write(stm, cell->widget.layout);
+        i_write_layout(stm, cell->widget.layout);
         break;
     default:
         cassert_default(cell->type);
@@ -832,10 +836,9 @@ static void i_write_cell(Stream *stm, const FCell *cell)
 
 /*---------------------------------------------------------------------------*/
 
-void flayout_write(Stream *stm, const FLayout *layout)
+static void i_write_layout(Stream *stm, const FLayout *layout)
 {
     cassert_no_null(layout);
-    stm_write_u16(stm, i_VERSION);
     str_write(stm, layout->name);
     stm_write_bool(stm, layout->row_tabstop);
     stm_write_r32(stm, layout->margin_left);
@@ -845,6 +848,14 @@ void flayout_write(Stream *stm, const FLayout *layout)
     arrst_write(stm, layout->cols, i_write_col, FColumn);
     arrst_write(stm, layout->rows, i_write_row, FRow);
     arrst_write(stm, layout->cells, i_write_cell, FCell);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_write(Stream *stm, const FLayout *layout)
+{
+    stm_write_u16(stm, i_VERSION);
+    i_write_layout(stm, layout);
 }
 
 /*---------------------------------------------------------------------------*/
