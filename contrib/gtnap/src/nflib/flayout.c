@@ -1377,6 +1377,21 @@ void flayout_row_expand(const FLayout *layout, Layout *glayout)
 
 /*---------------------------------------------------------------------------*/
 
+void flayout_cell_synchro(const FLayout *layout, Layout *glayout, const uint32_t col, const uint32_t row)
+{
+    const FCell *fcell = NULL;
+    align_t halign, valign;
+    cassert_no_null(layout);
+    fcell = flayout_ccell(layout, col, row);
+    halign = _nflib_halign(fcell->halign);
+    valign = _nflib_valign(fcell->valign);
+    layout_halign(glayout, col, row, halign);
+    layout_valign(glayout, col, row, valign);
+    layout_tabstop(glayout, col, row, fcell->tabstop);
+}
+
+/*---------------------------------------------------------------------------*/
+
 Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const real32_t empty_width, const real32_t empty_height)
 {
     uint32_t ncols = 0, nrows = 0;
@@ -1418,16 +1433,16 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
         {
             for (i = 0; i < ncols; ++i)
             {
-                Cell *gcell = layout_cell(glayout, i, j);
-                align_t halign = _nflib_halign(cells->halign);
-                align_t valign = _nflib_valign(cells->valign);
-                layout_halign(glayout, i, j, halign);
-                layout_valign(glayout, i, j, valign);
+                flayout_cell_synchro(layout, glayout, i, j);
+
                 switch (cells->type)
                 {
                 case ekCELL_TYPE_EMPTY:
+                {
+                    Cell *gcell = layout_cell(glayout, i, j);
                     cell_force_size(gcell, empty_width, empty_height);
                     break;
+                }
 
                 case ekCELL_TYPE_LABEL:
                 {

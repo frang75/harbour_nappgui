@@ -105,6 +105,7 @@ TEXT_MULTILINE      Multiline
 TEXT_AUTOSELECT     Autoselect
 TEXT_PASSMODE       Passmode
 TEXT_RESIZABLE      Resizable
+TEXT_TABSTOP        Tabstop
 
 TEXT_TEXT_ALIGN     Text align
 TEXT_MIN_WIDTH      Min width
@@ -183,6 +184,7 @@ TEXT_PROMOTE        Promote
 
 TIP_LAYOUT_NAME     Layout name. It will be useful to locate the layout at runtime.
 TIP_CELL_NAME       Cell name. It will be useful to locate the cell at runtime.
+TIP_CELL_TABSTOP    If uncheck, this cell cannot be selected using the [TAB] key.
 TIP_TOP_MARGIN      Margin at top of layout (in px).
 TIP_LEFT_MARGIN     Margin at left of layout (in px).
 TIP_BOTTOM_MARGIN   Margin at bottom of layout (in px).

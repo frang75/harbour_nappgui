@@ -106,9 +106,7 @@ void dform_synchro_row_margin(DForm *form, const DSelect *sel, const FRow *frow,
 
 void dform_synchro_row_height(DForm *form, const DSelect *sel, const FRow *frow, const uint32_t row);
 
-void dform_synchro_cell_halign(DForm *form, const DSelect *sel, const FCell *fcell, const uint32_t col, const uint32_t row);
-
-void dform_synchro_cell_valign(DForm *form, const DSelect *sel, const FCell *fcell, const uint32_t col, const uint32_t row);
+void dform_synchro_cell(DForm *form, const DSelect *sel, const FCell *fcell, const uint32_t col, const uint32_t row);
 
 void dform_synchro_col_expansion(DForm *form, const DSelect *sel);
 

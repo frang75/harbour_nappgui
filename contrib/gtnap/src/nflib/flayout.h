@@ -84,6 +84,8 @@ _nflib_api void flayout_col_expand(const FLayout *layout, Layout *glayout);
 
 _nflib_api void flayout_row_expand(const FLayout *layout, Layout *glayout);
 
+_nflib_api void flayout_cell_synchro(const FLayout *layout, Layout *glayout, const uint32_t col, const uint32_t row);
+
 _nflib_api Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const real32_t empty_width, const real32_t empty_height);
 
 _nflib_api GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout, const char_t *cell_name);

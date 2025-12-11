@@ -2070,30 +2070,13 @@ void dform_synchro_row_height(DForm *form, const DSelect *sel, const FRow *frow,
 
 /*---------------------------------------------------------------------------*/
 
-void dform_synchro_cell_halign(DForm *form, const DSelect *sel, const FCell *fcell, const uint32_t col, const uint32_t row)
+void dform_synchro_cell(DForm *form, const DSelect *sel, const FCell *fcell, const uint32_t col, const uint32_t row)
 {
-    align_t align = ENUM_MAX(align_t);
     cassert_no_null(form);
     cassert_no_null(sel);
-    cassert_no_null(fcell);
-    cassert(flayout_cell(cast(sel->flayout, FLayout), col, row) == fcell);
+    cassert_unref(flayout_cell(cast(sel->flayout, FLayout), col, row) == fcell, fcell);
     i_need_save(form, TRUE);
-    align = i_halign(fcell->halign);
-    layout_halign(sel->glayout, col, row, align);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dform_synchro_cell_valign(DForm *form, const DSelect *sel, const FCell *fcell, const uint32_t col, const uint32_t row)
-{
-    align_t align = ENUM_MAX(align_t);
-    cassert_no_null(form);
-    cassert_no_null(sel);
-    cassert_no_null(fcell);
-    cassert(flayout_cell(cast(sel->flayout, FLayout), col, row) == fcell);
-    i_need_save(form, TRUE);
-    align = i_valign(fcell->valign);
-    layout_valign(sel->glayout, col, row, align);
+    flayout_cell_synchro(sel->flayout, sel->glayout, col, row);
 }
 
 /*---------------------------------------------------------------------------*/
