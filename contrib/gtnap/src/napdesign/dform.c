@@ -2011,61 +2011,56 @@ void dform_synchro_table(DForm *form, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-void dform_synchro_layout_margin(DForm *form, const DSelect *sel)
+void dform_synchro_layout(DForm *form, const DSelect *sel)
 {
     cassert_no_null(form);
     cassert_no_null(sel);
     cassert_no_null(sel->flayout);
     i_need_save(form, TRUE);
-    layout_margin4(sel->glayout, sel->flayout->margin_top, sel->flayout->margin_right, sel->flayout->margin_bottom, sel->flayout->margin_left);
+    flayout_synchro(sel->flayout, sel->glayout);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void dform_synchro_column_margin(DForm *form, const DSelect *sel, const FColumn *fcol, const uint32_t col)
+void dform_synchro_col(DForm *form, const DSelect *sel, const FColumn *fcol, const uint32_t col)
 {
     cassert_no_null(form);
     cassert_no_null(sel);
-    cassert_no_null(fcol);
-    cassert(flayout_column(cast(sel->flayout, FLayout), col) == fcol);
+    cassert_unref(flayout_column(cast(sel->flayout, FLayout), col) == fcol, fcol);
     i_need_save(form, TRUE);
-    layout_hmargin(sel->glayout, col, fcol->margin_right);
+    flayout_col_synchro(sel->flayout, sel->glayout, col);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void dform_synchro_column_width(DForm *form, const DSelect *sel, const FColumn *fcol, const uint32_t col)
-{
-    cassert_no_null(form);
-    cassert_no_null(sel);
-    cassert_no_null(fcol);
-    cassert(flayout_column(cast(sel->flayout, FLayout), col) == fcol);
-    i_need_save(form, TRUE);
-    layout_hsize(sel->glayout, col, fcol->forced_width);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dform_synchro_row_margin(DForm *form, const DSelect *sel, const FRow *frow, const uint32_t row)
+void dform_synchro_row(DForm *form, const DSelect *sel, const FRow *frow, const uint32_t row)
 {
     cassert_no_null(form);
     cassert_no_null(sel);
     cassert_no_null(frow);
-    cassert(flayout_row(cast(sel->flayout, FLayout), row) == frow);
+    cassert_unref(flayout_row(cast(sel->flayout, FLayout), row) == frow, frow);
     i_need_save(form, TRUE);
-    layout_vmargin(sel->glayout, row, frow->margin_bottom);
+    flayout_row_synchro(sel->flayout, sel->glayout, row);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void dform_synchro_row_height(DForm *form, const DSelect *sel, const FRow *frow, const uint32_t row)
+void dform_synchro_cols_expand(DForm *form, const DSelect *sel)
 {
     cassert_no_null(form);
     cassert_no_null(sel);
-    cassert_no_null(frow);
-    cassert(flayout_row(cast(sel->flayout, FLayout), row) == frow);
     i_need_save(form, TRUE);
-    layout_vsize(sel->glayout, row, frow->forced_height);
+    flayout_cols_expand(sel->flayout, sel->glayout);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dform_synchro_rows_expand(DForm *form, const DSelect *sel)
+{
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    i_need_save(form, TRUE);
+    flayout_rows_expand(sel->flayout, sel->glayout);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2078,27 +2073,6 @@ void dform_synchro_cell(DForm *form, const DSelect *sel, const FCell *fcell, con
     i_need_save(form, TRUE);
     flayout_cell_synchro(sel->flayout, sel->glayout, col, row);
 }
-
-/*---------------------------------------------------------------------------*/
-
-void dform_synchro_col_expansion(DForm *form, const DSelect *sel)
-{
-    cassert_no_null(form);
-    cassert_no_null(sel);
-    i_need_save(form, TRUE);
-    flayout_col_expand(sel->flayout, sel->glayout);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dform_synchro_row_expansion(DForm *form, const DSelect *sel)
-{
-    cassert_no_null(form);
-    cassert_no_null(sel);
-    i_need_save(form, TRUE);
-    flayout_row_expand(sel->flayout, sel->glayout);
-}
-
 
 /*---------------------------------------------------------------------------*/
 

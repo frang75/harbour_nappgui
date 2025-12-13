@@ -117,6 +117,7 @@ static void i_dbind(void)
     dbind(FCell, halign_t, halign);
     dbind(FCell, valign_t, valign);
     dbind(FLayout, String *, name);
+    dbind(FLayout, bool_t, row_tabstop);
     dbind(FLayout, real32_t, margin_left);
     dbind(FLayout, real32_t, margin_top);
     dbind(FLayout, real32_t, margin_right);
@@ -241,7 +242,8 @@ static void i_dbind(void)
     dbind_default(FCell, bool_t, tabstop, TRUE);
     dbind_default(FCell, celltype_t, type, ekCELL_TYPE_EMPTY);
     dbind_default(FCell, halign_t, halign, ekHALIGN_LEFT);
-    dbind_default(FCell, valign_t, valign, ekVALIGN_TOP);
+    dbind_default(FCell, valign_t, valign, ekVALIGN_TOP);    
+    dbind_default(FLayout, bool_t, row_tabstop, TRUE);
     dbind_default(FLayout, real32_t, margin_left, 0);
     dbind_default(FLayout, real32_t, margin_top, 0);
     dbind_default(FLayout, real32_t, margin_right, 0);

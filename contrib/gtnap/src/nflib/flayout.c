@@ -860,60 +860,6 @@ void flayout_write(Stream *stm, const FLayout *layout)
 
 /*---------------------------------------------------------------------------*/
 
-void flayout_margin_left(FLayout *layout, const real32_t margin)
-{
-    cassert_no_null(layout);
-    layout->margin_left = margin;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void flayout_margin_top(FLayout *layout, const real32_t margin)
-{
-    cassert_no_null(layout);
-    layout->margin_top = margin;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void flayout_margin_right(FLayout *layout, const real32_t margin)
-{
-    cassert_no_null(layout);
-    layout->margin_right = margin;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void flayout_margin_bottom(FLayout *layout, const real32_t margin)
-{
-    cassert_no_null(layout);
-    layout->margin_bottom = margin;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void flayout_margin_col(FLayout *layout, const uint32_t col, const real32_t margin)
-{
-    FColumn *fcol = NULL;
-    cassert_no_null(layout);
-    cassert(col < arrst_size(layout->cols, FColumn) - 1);
-    fcol = arrst_get(layout->cols, col, FColumn);
-    fcol->margin_right = margin;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void flayout_margin_row(FLayout *layout, const uint32_t row, const real32_t margin)
-{
-    FRow *frow = NULL;
-    cassert_no_null(layout);
-    cassert(row < arrst_size(layout->rows, FRow) - 1);
-    frow = arrst_get(layout->rows, row, FRow);
-    frow->margin_bottom = margin;
-}
-
-/*---------------------------------------------------------------------------*/
-
 void flayout_insert_col(FLayout *layout, const uint32_t col)
 {
     uint32_t ncols = 0, nrows = 0, i = 0;
@@ -1282,10 +1228,26 @@ FColumn *flayout_column(FLayout *layout, const uint32_t col)
 
 /*---------------------------------------------------------------------------*/
 
+const FColumn *flayout_ccolumn(const FLayout *layout, const uint32_t col)
+{
+    cassert_no_null(layout);
+    return arrst_get_const(layout->cols, col, FColumn);
+}
+
+/*---------------------------------------------------------------------------*/
+
 FRow *flayout_row(FLayout *layout, const uint32_t row)
 {
     cassert_no_null(layout);
     return arrst_get(layout->rows, row, FRow);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const FRow *flayout_crow(const FLayout *layout, const uint32_t row)
+{
+    cassert_no_null(layout);
+    return arrst_get_const(layout->rows, row, FRow);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1304,7 +1266,42 @@ const FCell *flayout_ccell(const FLayout *layout, const uint32_t col, const uint
 
 /*---------------------------------------------------------------------------*/
 
-void flayout_col_expand(const FLayout *layout, Layout *glayout)
+void flayout_synchro(const FLayout *layout, Layout *glayout)
+{
+    cassert_no_null(layout);
+    layout_margin4(glayout, layout->margin_top, layout->margin_right, layout->margin_bottom, layout->margin_left);
+    layout_taborder(glayout, layout->row_tabstop ? ekGUI_HORIZONTAL : ekGUI_VERTICAL);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_col_synchro(const FLayout *layout, Layout *glayout, const uint32_t col)
+{
+    const FColumn *fcol = flayout_ccolumn(layout, col);
+    uint32_t ncols = layout_ncols(glayout);
+    cassert_no_null(fcol);
+    cassert(ncols == flayout_ncols(layout));
+    if (col < ncols - 1)
+        layout_hmargin(glayout, col, fcol->margin_right);
+    layout_hsize(glayout, col, fcol->forced_width);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_row_synchro(const FLayout *layout, Layout *glayout, const uint32_t row)
+{
+    const FRow *frow = flayout_crow(layout, row);
+    uint32_t nrows = layout_nrows(glayout);
+    cassert_no_null(frow);
+    cassert(nrows == flayout_nrows(layout));
+    if (row < nrows - 1)
+        layout_vmargin(glayout, row, frow->margin_bottom);
+    layout_vsize(glayout, row, frow->forced_height);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_cols_expand(const FLayout *layout, Layout *glayout)
 {
     uint32_t ncols = 0, i, tr = 0;
     uint32_t index[256];
@@ -1341,7 +1338,7 @@ void flayout_col_expand(const FLayout *layout, Layout *glayout)
 
 /*---------------------------------------------------------------------------*/
 
-void flayout_row_expand(const FLayout *layout, Layout *glayout)
+void flayout_rows_expand(const FLayout *layout, Layout *glayout)
 {
     uint32_t nrows = 0, i, tr = 0;
     uint32_t index[256];
@@ -1401,29 +1398,25 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
     nrows = arrst_size(layout->rows, FRow);
     glayout = layout_create(ncols, nrows);
 
-    /* Layout border margins */
-    layout_margin4(glayout, layout->margin_top, layout->margin_right, layout->margin_bottom, layout->margin_left);
+    flayout_synchro(layout, glayout);
 
     /* Column properties */
     arrst_foreach_const(col, layout->cols, FColumn)
-        layout_hsize(glayout, col_i, col->forced_width);
-        if (col_i < col_total - 1)
-            layout_hmargin(glayout, col_i, col->margin_right);
-        else
+        flayout_col_synchro(layout, glayout, col_i);
+        if (col_i == col_total - 1)
             cast(col, FColumn)->margin_right = 0;
     arrst_end()
 
     /* Row properties */
     arrst_foreach_const(row, layout->rows, FRow)
-        layout_vsize(glayout, row_i, row->forced_height);
-        if (row_i < row_total - 1)
-            layout_vmargin(glayout, row_i, row->margin_bottom);
-        else
+        flayout_row_synchro(layout, glayout, row_i);
+        if (row_i == row_total - 1)
             cast(row, FRow)->margin_bottom = 0;
     arrst_end()
 
-    flayout_col_expand(layout, glayout);
-    flayout_row_expand(layout, glayout);
+    /* Cell expansion */
+    flayout_cols_expand(layout, glayout);
+    flayout_rows_expand(layout, glayout);
 
     /* Cells */
     {

@@ -106,6 +106,7 @@ TEXT_AUTOSELECT     Autoselect
 TEXT_PASSMODE       Passmode
 TEXT_RESIZABLE      Resizable
 TEXT_TABSTOP        Tabstop
+TEXT_TABORDER       Taborder
 
 TEXT_TEXT_ALIGN     Text align
 TEXT_MIN_WIDTH      Min width
@@ -253,3 +254,5 @@ TIP_PROMOTE_LEFT    Promote this layout to a left cell
 TIP_PROMOTE_RIGHT   Promote this layout to a right cell
 TIP_PROMOTE_TOP     Promote this layout to a top cell
 TIP_PROMOTE_BOTTOM  Promote this layout to a bottom cell
+TIP_TABORDER_COLS   The tabstops will be moved column by column
+TIP_TABORDER_ROWS   The tabstops will be moved row by row

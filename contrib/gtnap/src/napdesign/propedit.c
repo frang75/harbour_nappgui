@@ -192,9 +192,26 @@ static Layout *i_promote_buttons(PropData *data)
 
 /*---------------------------------------------------------------------------*/
 
+static Layout *i_taborder_layout(void)
+{
+    Layout *layout = layout_create(2, 1);
+    Button *radio1 = button_radio();
+    Button *radio2 = button_radio();
+    button_text(radio1, gui_text(TEXT_COLUMNS));
+    button_text(radio2, gui_text(TEXT_ROWS));
+    button_tooltip(radio1, gui_text(TIP_TABORDER_COLS));
+    button_tooltip(radio2, gui_text(TIP_TABORDER_ROWS));
+    layout_button(layout, radio1, 0, 0);
+    layout_button(layout, radio2, 1, 0);
+    layout_hmargin(layout, 0, 5);
+    return layout;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Layout *i_margin_layout(PropData *data)
 {
-    Layout *layout1 = layout_create(2, 7);
+    Layout *layout1 = layout_create(2, 8);
     Layout *layout2 = i_promote_buttons(data);
     Label *label1 = label_create();
     Label *label2 = label_create();
@@ -204,11 +221,13 @@ static Layout *i_margin_layout(PropData *data)
     Label *label6 = label_create();
     Label *label7 = label_create();
     Label *label8 = label_create();
+    Label *label9 = label_create();
     Edit *edit = edit_create();
     Layout *val1 = i_value_updown_layout(gui_text(TIP_TOP_MARGIN));
     Layout *val2 = i_value_updown_layout(gui_text(TIP_LEFT_MARGIN));
     Layout *val3 = i_value_updown_layout(gui_text(TIP_BOTTOM_MARGIN));
     Layout *val4 = i_value_updown_layout(gui_text(TIP_RIGHT_MARGIN));
+    Layout *val5 = i_taborder_layout();
     cassert_no_null(data);
     edit_tooltip(edit, gui_text(TIP_LAYOUT_NAME));
     label_text(label1, gui_text(TEXT_TYPE));
@@ -217,7 +236,8 @@ static Layout *i_margin_layout(PropData *data)
     label_text(label4, gui_text(TEXT_LEFT));
     label_text(label5, gui_text(TEXT_BOTTOM));
     label_text(label6, gui_text(TEXT_RIGHT));
-    label_text(label7, gui_text(TEXT_PROMOTE));
+    label_text(label7, gui_text(TEXT_TABORDER));
+    label_text(label8, gui_text(TEXT_PROMOTE));
     layout_label(layout1, label1, 0, 0);
     layout_label(layout1, label2, 0, 1);
     layout_label(layout1, label3, 0, 2);
@@ -225,25 +245,31 @@ static Layout *i_margin_layout(PropData *data)
     layout_label(layout1, label5, 0, 4);
     layout_label(layout1, label6, 0, 5);
     layout_label(layout1, label7, 0, 6);
-    layout_label(layout1, label8, 1, 0);
+    layout_label(layout1, label8, 0, 7);
+    layout_label(layout1, label9, 1, 0);
     layout_edit(layout1, edit, 1, 1);
     layout_layout(layout1, val1, 1, 2);
     layout_layout(layout1, val2, 1, 3);
     layout_layout(layout1, val3, 1, 4);
     layout_layout(layout1, val4, 1, 5);
-    layout_layout(layout1, layout2, 1, 6);
+    layout_layout(layout1, val5, 1, 6);
+    layout_layout(layout1, layout2, 1, 7);
     layout_margin4(layout1, 1, 0, 0, 0);
     layout_vmargin(layout1, 0, 1);
+    layout_vmargin(layout1, 5, 2);
+    layout_vmargin(layout1, 6, 2);
     layout_halign(layout1, 1, 0, ekJUSTIFY);
     layout_halign(layout1, 1, 6, ekLEFT);
+    layout_halign(layout1, 1, 7, ekLEFT);
     layout_hexpand(layout1, 1);
     layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
-    data->layout_type_label = label8;
+    data->layout_type_label = label9;
     cell_dbind(layout_cell(layout1, 1, 1), FLayout, String *, name);
     cell_dbind(layout_cell(layout1, 1, 2), FLayout, real32_t, margin_top);
     cell_dbind(layout_cell(layout1, 1, 3), FLayout, real32_t, margin_left);
     cell_dbind(layout_cell(layout1, 1, 4), FLayout, real32_t, margin_bottom);
     cell_dbind(layout_cell(layout1, 1, 5), FLayout, real32_t, margin_right);
+    cell_dbind(layout_cell(layout1, 1, 6), FLayout, bool_t, row_tabstop);
     return layout1;
 }
 
@@ -608,10 +634,14 @@ static void i_OnLayoutNotify(PropData *data, Event *e)
     {
         designer_inspect_update(data->app);
     }
-    else if (evbind_modify(e, FLayout, real32_t, margin_left) == TRUE || evbind_modify(e, FLayout, real32_t, margin_top) == TRUE || evbind_modify(e, FLayout, real32_t, margin_right) == TRUE || evbind_modify(e, FLayout, real32_t, margin_bottom) == TRUE)
+    else if (evbind_modify(e, FLayout, real32_t, margin_left) == TRUE 
+        || evbind_modify(e, FLayout, real32_t, margin_top) == TRUE 
+        || evbind_modify(e, FLayout, real32_t, margin_right) == TRUE 
+        || evbind_modify(e, FLayout, real32_t, margin_bottom) == TRUE
+        || evbind_modify(e, FLayout, bool_t, row_tabstop) == TRUE)
     {
         cassert(evbind_object(e, FLayout) == data->sel.flayout);
-        dform_synchro_layout_margin(data->form, &data->sel);
+        dform_synchro_layout(data->form, &data->sel);
         dform_compose(data->form);
         designer_canvas_update(data->app);
     }
@@ -623,25 +653,18 @@ static void i_OnColumnNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
     cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
-    if (evbind_modify(e, FColumn, real32_t, margin_right) == TRUE)
+    if (evbind_modify(e, FColumn, real32_t, margin_right) == TRUE
+        || evbind_modify(e, FColumn, real32_t, forced_width) == TRUE)
     {
         FColumn *fcol = evbind_object(e, FColumn);
         uint32_t col = popup_get_selected(data->column_popup);
-        dform_synchro_column_margin(data->form, &data->sel, fcol, col);
-        dform_compose(data->form);
-        designer_canvas_update(data->app);
-    }
-    else if (evbind_modify(e, FColumn, real32_t, forced_width) == TRUE)
-    {
-        FColumn *fcol = evbind_object(e, FColumn);
-        uint32_t col = popup_get_selected(data->column_popup);
-        dform_synchro_column_width(data->form, &data->sel, fcol, col);
+        dform_synchro_col(data->form, &data->sel, fcol, col);
         dform_compose(data->form);
         designer_canvas_update(data->app);
     }
     else if (evbind_modify(e, FColumn, bool_t, expand) == TRUE)
     {
-        dform_synchro_col_expansion(data->form, &data->sel);
+        dform_synchro_cols_expand(data->form, &data->sel);
         dform_compose(data->form);
         designer_canvas_update(data->app);
     }
@@ -653,25 +676,19 @@ static void i_OnRowNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
     cassert(event_type(e) == ekGUI_EVENT_OBJCHANGE);
-    if (evbind_modify(e, FRow, real32_t, margin_bottom) == TRUE)
+    if (evbind_modify(e, FRow, real32_t, margin_bottom) == TRUE
+        || evbind_modify(e, FRow, real32_t, forced_height) == TRUE)
+
     {
         FRow *frow = evbind_object(e, FRow);
         uint32_t row = popup_get_selected(data->row_popup);
-        dform_synchro_row_margin(data->form, &data->sel, frow, row);
-        dform_compose(data->form);
-        designer_canvas_update(data->app);
-    }
-    else if (evbind_modify(e, FRow, real32_t, forced_height) == TRUE)
-    {
-        FRow *frow = evbind_object(e, FRow);
-        uint32_t row = popup_get_selected(data->row_popup);
-        dform_synchro_row_height(data->form, &data->sel, frow, row);
+        dform_synchro_row(data->form, &data->sel, frow, row);
         dform_compose(data->form);
         designer_canvas_update(data->app);
     }
     else if (evbind_modify(e, FRow, bool_t, expand) == TRUE)
     {
-        dform_synchro_row_expansion(data->form, &data->sel);
+        dform_synchro_rows_expand(data->form, &data->sel);
         dform_compose(data->form);
         designer_canvas_update(data->app);
     }
