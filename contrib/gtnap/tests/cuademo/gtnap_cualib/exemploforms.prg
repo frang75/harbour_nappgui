@@ -82,7 +82,7 @@ NAP_FORM_ONCLICK(V_FORM, "button_ok", {|| NAP_FORM_STOP_MODAL(V_FORM, 1000) })
 NAP_FORM_ONCLICK(V_FORM, "button_cancel", {|| NAP_FORM_STOP_MODAL(V_FORM, 1001) })
 
 // Launch the form
-N_RES := NAP_FORM_MODAL(V_FORM, DIRET_FORMS())
+N_RES := NAP_FORM_MODAL(V_FORM, DIRET_FORMS(), .F.)
 
 IF N_RES == NAP_MODAL_ENTER
     MOSTRAR("M?????","Pressionado [Enter], dados aceitos.")
@@ -147,7 +147,7 @@ NAP_FORM_ONCLICK(V_FORM, "button_ok", {|| NAP_FORM_STOP_MODAL(V_FORM, 1000) })
 NAP_FORM_ONCLICK(V_FORM, "button_cancel", {|| NAP_FORM_STOP_MODAL(V_FORM, 1001) })
 
 // Launch the form
-N_RES := NAP_FORM_MODAL(V_FORM, DIRET_FORMS())
+N_RES := NAP_FORM_MODAL(V_FORM, DIRET_FORMS(), .F.)
 
 IF N_RES == NAP_MODAL_ENTER
     MOSTRAR("M?????","Pressionado [Enter], dados aceitos.")
@@ -202,7 +202,7 @@ NAP_FORM_TITLE(V_FORM, "Formulário de login")
 NAP_FORM_DBIND(V_FORM, V_BIND)
 
 // Launch the form
-N_RES := NAP_FORM_MODAL(V_FORM, DIRET_FORMS())
+N_RES := NAP_FORM_MODAL(V_FORM, DIRET_FORMS(), .F.)
 
 IF N_RES == NAP_MODAL_ENTER
     MOSTRAR("M?????","Pressionado [Enter], dados aceitos.")
@@ -256,7 +256,7 @@ NAP_FORM_TITLE(V_FORM, "Exemplo de PopUp e ListBox")
 NAP_FORM_DBIND(V_FORM, V_BIND)
 
 // Launch the form
-N_RES := NAP_FORM_MODAL(V_FORM, DIRET_FORMS())
+N_RES := NAP_FORM_MODAL(V_FORM, DIRET_FORMS(), .F.)
 
 IF N_RES == NAP_MODAL_ENTER
     MOSTRAR("M?????","Pressionado [Enter], dados aceitos.")
@@ -405,7 +405,7 @@ NAP_FORM_ONCLICK(V_FORM, "button_ok", {|| NAP_FORM_STOP_MODAL(V_FORM, 1000) })
 NAP_FORM_ONCLICK(V_FORM, "button_cancel", {|| NAP_FORM_STOP_MODAL(V_FORM, 1001) })
 
 // Launch the form
-N_RES := NAP_FORM_MODAL(V_FORM, DIRET_FORMS())
+N_RES := NAP_FORM_MODAL(V_FORM, DIRET_FORMS(), .F.)
 
 IF N_RES == NAP_MODAL_ENTER
     MOSTRAR("M?????","Pressionado [Enter], dados aceitos.")
@@ -505,7 +505,7 @@ NAP_FORM_ONCLICK(V_FORM, "button_insert0", {|| INSERT_NEW_MENUITEM(O_MENU, V_FOR
 NAP_FORM_ONCLICK(V_FORM, "button_remove0", {|| REMOVE_MENUITEM(O_MENU, V_FORM) })
 
 // Launch the form
-N_RES := NAP_FORM_MODAL(V_FORM, DIRET_FORMS())
+N_RES := NAP_FORM_MODAL(V_FORM, DIRET_FORMS(), .F.)
 
 IF N_RES == NAP_MODAL_ENTER
     MOSTRAR("M?????","Pressionado [Enter], dados aceitos.")
@@ -554,7 +554,7 @@ NAP_FORM_TITLE(V_FORM, "Visualizador de dados com formulários GTNAP")
 NAP_FORM_DBIND_AREA(V_FORM, V_DBBIND)
 
 // Launch the form
-N_RES := NAP_FORM_MODAL(V_FORM, DIRET_FORMS())
+N_RES := NAP_FORM_MODAL(V_FORM, DIRET_FORMS(), .F.)
 
 IF N_RES == NAP_MODAL_ENTER
     MOSTRAR("M?????","Pressionado [Enter], dados aceitos.")

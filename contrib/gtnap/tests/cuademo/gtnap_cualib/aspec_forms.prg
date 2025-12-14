@@ -26,13 +26,29 @@ LOCAL V_FORM := NAP_FORM_LOAD(DIRET_NFORMS() + "Company_list.nfm")
 LOCAL N_RES := 0
 LOCAL C_MESSAGE := ""
 
+LOCAL V_DBBIND := { ;
+    "table", ;
+     { {|| empresas->uf} }, ;
+     { {|| empresas->codcid} }, ;
+     { {|| empresas->cidade} }, ;
+     { {|| empresas->codent} }, ;
+     { {|| empresas->gestora} } ;
+}
+
+USE ../dados/empresas NEW SHARED
+GOTO TOP
+
 NAP_FORM_TITLE(V_FORM, "Primeiro exemplo de formulário GTNAP")
 
+NAP_FORM_DBIND_AREA(V_FORM, V_DBBIND)
+
 // Launch the form
-N_RES := NAP_FORM_MODAL(V_FORM, DIRET_NFORMS())
+N_RES := NAP_FORM_MODAL(V_FORM, DIRET_NFORMS(), .T.)
 
 IF N_RES == NAP_MODAL_ENTER .OR. N_RES == 1000
 
 ENDIF
 
 NAP_FORM_DESTROY(V_FORM)
+
+CLOSE EMPRESAS

@@ -75,7 +75,8 @@ HB_FUNC(NAP_FORM_MODAL)
 {
     GtNapForm *form = cast(hb_parptr(1), GtNapForm);
     const char_t *resource_path = hb_parcx(2);
-    uint32_t ret = hb_gtnap_form_modal(form, resource_path);
+    bool_t resizable = (bool_t)hb_parl(3);
+    uint32_t ret = hb_gtnap_form_modal(form, resource_path, resizable);
     hb_retni(ret);
 }
 
