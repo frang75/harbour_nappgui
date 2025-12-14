@@ -5460,6 +5460,36 @@ R2Df hb_gtnap_form_control_frame(GtNapForm *form, const char_t *cell_name)
 
 /*---------------------------------------------------------------------------*/
 
+uint32_t hb_gtnap_form_sel_recno(GtNapForm *form)
+{
+    const ArrSt(uint32_t) *sel = 0;
+    cassert_no_null(form);
+    cassert_no_null(form->area);
+    sel = tableview_selected(form->area->table);
+    if (arrst_size(sel, uint32_t) == 1)
+    {
+        uint32_t index = *arrst_first_const(sel, uint32_t);
+        return *arrst_get(form->area->records, index, uint32_t);
+    }
+    else
+    {
+        return UINT32_MAX;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hb_gtnap_form_refresh_area(GtNapForm *form)
+{
+    cassert_no_null(form);
+    cassert_no_null(form->area);
+    i_farea_refresh(form->area);
+    tableview_update(form->area->table);
+    i_farea_select_row(form->area);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void hb_gtnap_form_update(GtNapForm *form)
 {
     cassert_no_null(form);

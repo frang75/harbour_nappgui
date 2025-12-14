@@ -207,6 +207,10 @@ extern void hb_gtnap_form_stop_modal(GtNapForm *form, const uint32_t value);
 
 extern R2Df hb_gtnap_form_control_frame(GtNapForm *form, const char_t *cell_name);
 
+extern uint32_t hb_gtnap_form_sel_recno(GtNapForm *form);
+
+extern void hb_gtnap_form_refresh_area(GtNapForm *form);
+
 extern void hb_gtnap_form_update(GtNapForm *form);
 
 extern void hb_gtnap_form_destroy(GtNapForm **form);

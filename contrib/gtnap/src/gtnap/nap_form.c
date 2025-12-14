@@ -105,6 +105,26 @@ HB_FUNC(NAP_FORM_CONTROL_FRAME)
 
 /*---------------------------------------------------------------------------*/
 
+HB_FUNC(NAP_FORM_SEL_RECNO)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    uint32_t sel = hb_gtnap_form_sel_recno(form);
+    if (sel != UINT32_MAX)
+        hb_retni(sel);
+    else
+        hb_retni(-1);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(NAP_FORM_REFRESH_AREA)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    hb_gtnap_form_refresh_area(form);
+}
+
+/*---------------------------------------------------------------------------*/
+
 HB_FUNC(NAP_FORM_UPDATE)
 {
     GtNapForm *form = cast(hb_parptr(1), GtNapForm);
