@@ -4236,6 +4236,23 @@ static GtNapArea *i_create_area(void)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_rtrim(char_t *buffer)
+{
+    uint32_t n = str_len_c(buffer);
+    cassert_no_null(buffer);
+    while (n > 0)
+    {
+        if (buffer[n - 1] == ' ')
+            buffer[n - 1] = '\0';
+        else
+            return;
+
+        n -= 1;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_hbitem_to_char(HB_ITEM *item, char_t *buffer, const uint32_t size)
 {
     HB_TYPE type = HB_ITEM_TYPE(item);
@@ -4245,6 +4262,7 @@ static void i_hbitem_to_char(HB_ITEM *item, char_t *buffer, const uint32_t size)
     {
     case HB_IT_STRING:
         hb_itemCopyStrUTF8(item, buffer, size);
+        i_rtrim(buffer);
         break;
 
     case HB_IT_DATE:

@@ -31,8 +31,8 @@ LOCAL V_DBBIND := { ;
      { {|| empresas->uf} }, ;
      { {|| empresas->codcid} }, ;
      { {|| empresas->cidade} }, ;
-     { {|| empresas->codent} }, ;
-     { {|| empresas->gestora} } ;
+     { {|| empresas->gestora} }, ;
+     { {|| "Principal"} } ;
 }
 
 USE ../dados/empresas NEW SHARED
