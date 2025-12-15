@@ -25,6 +25,7 @@
 #include <core/arrst.h>
 #include <core/event.h>
 #include <core/heap.h>
+#include <core/strings.h>
 #include <osbs/osbs.h>
 #include <osbs/bthread.h>
 #include <sewer/bmath.h>
@@ -43,6 +44,7 @@ typedef enum _wstate_t
 struct _oswindow_t
 {
     OSControl control;
+    HWND tooltip_hwnd;
     DWORD dwStyle;
     DWORD dwExStyle;
     HMENU current_popup_menu;
@@ -170,15 +172,24 @@ static void i_resizing(OSWindow *window, WPARAM edge, RECT *wrect)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_resize(OSWindow *window, LONG client_width, LONG client_height)
+static void i_resize(OSWindow *window, LONG client_width, LONG client_height, WPARAM state)
 {
     cassert_no_null(window);
     if (window->launch_resize_event == TRUE && window->OnResize != NULL)
     {
-        EvSize params;
-        params.width = (real32_t)client_width;
-        params.height = (real32_t)client_height;
-        listener_event(window->OnResize, ekGUI_EVENT_WND_SIZE, window, &params, NULL, OSWindow, EvSize, void);
+        EvSize p;
+        if (state == SIZE_MINIMIZED)
+        {
+            p.width = 0;
+            p.height = 0;
+        }
+        else
+        {
+            p.width = (real32_t)client_width;
+            p.height = (real32_t)client_height;
+        }
+
+        listener_event(window->OnResize, ekGUI_EVENT_WND_SIZE, window, &p, NULL, OSWindow, EvSize, void);
     }
 }
 
@@ -189,12 +200,21 @@ static void i_moved(OSWindow *window)
     cassert_no_null(window);
     if (window->OnMoved != NULL)
     {
-        RECT rect;
-        EvPos params;
-        _osgui_frame_without_shadows(window->control.hwnd, &rect);
-        params.x = (real32_t)(rect.left);
-        params.y = (real32_t)(rect.top);
-        listener_event(window->OnMoved, ekGUI_EVENT_WND_MOVED, window, &params, NULL, OSWindow, EvPos, void);
+        EvPos p;
+        if (IsIconic(window->control.hwnd) == TRUE)
+        {
+            p.x = 0;
+            p.y = 0;
+        }
+        else
+        {
+            RECT rect;
+            _osgui_frame_without_shadows(window->control.hwnd, &rect);
+            p.x = (real32_t)(rect.left);
+            p.y = (real32_t)(rect.top);
+        }
+
+        listener_event(window->OnMoved, ekGUI_EVENT_WND_MOVED, window, &p, NULL, OSWindow, EvPos, void);
     }
 }
 
@@ -430,20 +450,24 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
          * https://support.microsoft.com/en-us/windows/snap-your-windows-885a9b1e-a983-a3b1-16cd-c531795e6241
          * It these cases, i_resizing() step must be done, to correcly resize the window.
          */
-        if (IsWindowVisible(window->control.hwnd) == TRUE && wParam != SIZE_MINIMIZED)
+        if (IsWindowVisible(window->control.hwnd) == TRUE)
         {
             if (window->wm_sizing == FALSE)
             {
-                LONG client_width = LOWORD(lParam);
-                LONG client_height = HIWORD(lParam);
-                RECT rect;
-                rect.left = 0;
-                rect.top = 0;
-                i_adjust_window_size(window->control.hwnd, client_width, client_height, window->dwStyle, window->dwExStyle, &rect.right, &rect.bottom);
-                /* i_resizing() uses full window size and not client area size */
-                i_resizing(window, 1, &rect);
+                if (wParam != SIZE_MINIMIZED)
+                {
+                    LONG client_width = LOWORD(lParam);
+                    LONG client_height = HIWORD(lParam);
+                    RECT rect;
+                    rect.left = 0;
+                    rect.top = 0;
+                    i_adjust_window_size(window->control.hwnd, client_width, client_height, window->dwStyle, window->dwExStyle, &rect.right, &rect.bottom);
+                    /* i_resizing() uses full window size and not client area size */
+                    i_resizing(window, 1, &rect);
+                }
             }
-            i_resize(window, LOWORD(lParam), HIWORD(lParam));
+
+            i_resize(window, LOWORD(lParam), HIWORD(lParam), wParam);
         }
         window->wm_sizing = FALSE;
         return 0;
@@ -562,6 +586,15 @@ void oswindow_destroy(OSWindow **window)
         OSPanel *panel = (*window)->main_panel;
         oswindow_detach_panel(*window, panel);
         _ospanel_destroy(&panel);
+    }
+
+    if ((*window)->tooltip_hwnd != NULL)
+    {
+        BOOL ret = 0;
+        cassert(SendMessage((*window)->tooltip_hwnd, TTM_GETTOOLCOUNT, 0, 0) == 0);
+        ret = DestroyWindow((*window)->tooltip_hwnd);
+        cassert_unref(ret != 0, ret);
+        (*window)->tooltip_hwnd = NULL;
     }
 
     cassert((*window)->main_panel == NULL);
@@ -688,6 +721,8 @@ void oswindow_taborder(OSWindow *window, OSControl *control)
         /* Force to show the focus rectangle in all controls */
         /* https://stackoverflow.com/questions/46489537/focus-rectangle-not-showing-even-if-control-has-focus */
         SendMessage(window->control.hwnd, WM_UPDATEUISTATE, MAKEWPARAM(UIS_CLEAR, UISF_HIDEFOCUS | UISF_HIDEACCEL), (LPARAM)NULL);
+
+        /* Apply tooltips */
     }
 }
 
@@ -883,6 +918,39 @@ void oswindow_stop_modal(OSWindow *window, const uint32_t return_value)
 
 /*---------------------------------------------------------------------------*/
 
+bool_t oswindow_get_maximize(const OSWindow *window)
+{
+    cassert_no_null(window);
+    return (bool_t)IsZoomed(window->control.hwnd);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oswindow_maximize(OSWindow *window)
+{
+    cassert_no_null(window);
+    if (window->flags & ekWINDOW_RESIZE)
+        ShowWindow(window->control.hwnd, SW_SHOWMAXIMIZED);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t oswindow_get_minimize(const OSWindow *window)
+{
+    cassert_no_null(window);
+    return (bool_t)IsIconic(window->control.hwnd);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oswindow_minimize(OSWindow *window)
+{
+    cassert_no_null(window);
+    ShowWindow(window->control.hwnd, SW_SHOWMINIMIZED);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void oswindow_get_origin(const OSWindow *window, real32_t *x, real32_t *y)
 {
     cassert_no_null(window);
@@ -891,10 +959,18 @@ void oswindow_get_origin(const OSWindow *window, real32_t *x, real32_t *y)
     /* The window top-left corner */
     if (*x == REAL32_MAX && *y == REAL32_MAX)
     {
-        RECT rect;
-        _osgui_frame_without_shadows(window->control.hwnd, &rect);
-        *x = (real32_t)rect.left;
-        *y = (real32_t)rect.top;
+        if (IsIconic(window->control.hwnd) == TRUE)
+        {
+            *x = 0;
+            *y = 0;
+        }
+        else
+        {
+            RECT rect;
+            _osgui_frame_without_shadows(window->control.hwnd, &rect);
+            *x = (real32_t)rect.left;
+            *y = (real32_t)rect.top;
+        }
     }
     /* A window inner point (in client area coordinates) */
     else
@@ -933,18 +1009,26 @@ void oswindow_origin(OSWindow *window, const real32_t x, const real32_t y)
 
 void oswindow_get_size(const OSWindow *window, real32_t *width, real32_t *height)
 {
-    RECT rect;
     cassert_no_null(window);
     cassert_no_null(width);
     cassert_no_null(height);
-    _osgui_frame_without_shadows(window->control.hwnd, &rect);
-    *width = (real32_t)(rect.right - rect.left);
-    *height = (real32_t)(rect.bottom - rect.top);
+    if (IsIconic(window->control.hwnd) == TRUE)
+    {
+        *width = 0;
+        *height = 0;
+    }
+    else
+    {
+        RECT rect;
+        _osgui_frame_without_shadows(window->control.hwnd, &rect);
+        *width = (real32_t)(rect.right - rect.left);
+        *height = (real32_t)(rect.bottom - rect.top);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
-void oswindow_size(OSWindow *window, const real32_t content_width, const real32_t content_height)
+void oswindow_client_size(OSWindow *window, const real32_t content_width, const real32_t content_height)
 {
     BOOL ok = FALSE;
     LONG nwidth, nheight;
@@ -996,14 +1080,14 @@ void _oswindow_widget_set_focus(OSWindow *window, OSWidget *widget)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_get_controls(OSControl *control, ArrPt(OSControl) *controls)
+static void i_get_controls(OSWindow *window, OSControl *control, ArrPt(OSControl) *controls)
 {
     cassert_no_null(control);
     if (control->type == ekGUI_TYPE_PANEL)
     {
         ArrPt(OSControl) *children = _ospanel_children(cast(control, OSPanel));
         arrpt_foreach(child, children, OSControl)
-            i_get_controls(child, controls);
+            i_get_controls(window, child, controls);
         arrpt_end()
     }
     else if (control->type == ekGUI_TYPE_SPLITVIEW)
@@ -1011,14 +1095,18 @@ static void i_get_controls(OSControl *control, ArrPt(OSControl) *controls)
         OSControl *child1 = NULL, *child2 = NULL;
         _ossplit_children(cast(control, OSSplit), &child1, &child2);
         if (child1 != NULL)
-            i_get_controls(child1, controls);
+            i_get_controls(window, child1, controls);
         if (child2 != NULL)
-            i_get_controls(child2, controls);
+            i_get_controls(window, child2, controls);
     }
     else
     {
+        cassert_no_null(window);
+        cassert(control->window == NULL || control->window == window);
         cassert(arrpt_find(controls, control, OSControl) == UINT32_MAX);
+        control->window = window;
         arrpt_append(controls, control, OSControl);
+        _oscontrol_apply_tooltip(control);
     }
 }
 
@@ -1028,7 +1116,7 @@ void _oswindow_find_all_controls(OSWindow *window, ArrPt(OSControl) *controls)
 {
     cassert_no_null(window);
     cassert(arrpt_size(controls, OSControl) == 0);
-    i_get_controls(cast(window->main_panel, OSControl), controls);
+    i_get_controls(window, cast(window->main_panel, OSControl), controls);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1338,33 +1426,92 @@ uint32_t _oswindow_message_loop(OSWindow *window)
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE OSWindow *i_root(HWND hwnd)
-{
-    HWND root_hwnd = NULL;
-    cassert_no_null(hwnd);
-    root_hwnd = GetAncestor(hwnd, GA_ROOT);
-    cassert_no_null(root_hwnd);
-    return cast(GetWindowLongPtr(root_hwnd, GWLP_USERDATA), OSWindow);
-}
-
-/*---------------------------------------------------------------------------*/
-
 bool_t _oswindow_mouse_down(OSControl *control)
 {
-    OSWindow *window = NULL;
     cassert_no_null(control);
-    window = i_root(control->hwnd);
-    cassert_no_null(window);
-    return _ostabstop_mouse_down(&window->tabstop, control);
+    cassert_no_null(control->window);
+    return _ostabstop_mouse_down(&control->window->tabstop, control);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void _oswindow_release_transient_focus(OSControl *control)
 {
-    OSWindow *window = NULL;
     cassert_no_null(control);
-    window = i_root(control->hwnd);
+    cassert_no_null(control->window);
+    _ostabstop_release_transient(&control->window->tabstop, control);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _oswindow_set_tooltip(OSWindow *window, HWND control_hwnd, const char_t *text)
+{
+    if (str_empty_c(text) == FALSE)
+    {
+        TOOLINFO ti;
+        WString str;
+        const WCHAR *wstr = _osgui_wstr_init(text, &str);
+        cassert_no_null(window);
+        ZeroMemory(&ti, sizeof(TOOLINFO));
+
+        if (window->tooltip_hwnd == NULL)
+        {
+            HINSTANCE instance = _osgui_instance();
+            window->tooltip_hwnd = CreateWindowEx(
+                0, TOOLTIPS_CLASS, NULL,
+                WS_POPUP | TTS_ALWAYSTIP /*| TTS_BALLOON*/,
+                CW_USEDEFAULT, CW_USEDEFAULT,
+                CW_USEDEFAULT, CW_USEDEFAULT,
+                window->control.hwnd,
+                (HMENU)NULL,
+                instance, NULL);
+        }
+
+        cassert_no_null(window->tooltip_hwnd);
+
+        ti.cbSize = sizeof(ti);
+        ti.hwnd = window->control.hwnd;
+        ti.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+        ti.uId = (UINT_PTR)control_hwnd;
+        ti.lpszText = NULL;
+
+        /* Tooltip already exists --> Update the text */
+        if (SendMessage(window->tooltip_hwnd, TTM_GETTOOLINFO, 0, (LPARAM)&ti) == TRUE)
+        {
+            /* TTM_GETTOOLINFO overwrites ti.lpszText */
+            ti.lpszText = (LPWSTR)wstr;
+            SendMessage(window->tooltip_hwnd, TTM_UPDATETIPTEXT, 0, (LPARAM)&ti);
+        }
+        else
+        {
+            LRESULT res;
+            ti.lpszText = (LPWSTR)wstr;
+            res = SendMessage(window->tooltip_hwnd, TTM_ADDTOOL, 0, (LPARAM)&ti);
+            cassert_unref(res == TRUE, res);
+        }
+
+        _osgui_wstr_remove(&str);
+    }
+    else
+    {
+        _oswindow_delete_tooltip(window, control_hwnd);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _oswindow_delete_tooltip(OSWindow *window, HWND control_hwnd)
+{
     cassert_no_null(window);
-    _ostabstop_release_transient(&window->tabstop, control);
+    cassert_no_null(control_hwnd);
+    if (window->tooltip_hwnd != NULL)
+    {
+        TOOLINFO ti;
+        ZeroMemory(&ti, sizeof(TOOLINFO));
+        ti.cbSize = sizeof(ti);
+        ti.uFlags = TTF_IDISHWND;
+        ti.hwnd = window->control.hwnd;
+        ti.uId = (UINT_PTR)control_hwnd;
+        SendMessage(window->tooltip_hwnd, TTM_DELTOOL, 0, (LPARAM)&ti);
+    }
 }

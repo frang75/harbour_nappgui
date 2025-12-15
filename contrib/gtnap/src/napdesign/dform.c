@@ -323,7 +323,7 @@ void dform_compose(DForm *form)
         form->dlayout = dlayout_from_flayout(form->fform->layout, resource_path, colors);
         form->glayout = flayout_to_gui(form->fform->layout, resource_path, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
         panel_layout(panel, form->glayout);
-        form->window = window_create(ekWINDOW_STD);
+        form->window = window_create(ekWINDOW_TITLE | ekWINDOW_CLOSE);
         window_panel(form->window, panel);
     }
 
@@ -2011,89 +2011,67 @@ void dform_synchro_table(DForm *form, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-void dform_synchro_layout_margin(DForm *form, const DSelect *sel)
+void dform_synchro_layout(DForm *form, const DSelect *sel)
 {
     cassert_no_null(form);
     cassert_no_null(sel);
     cassert_no_null(sel->flayout);
     i_need_save(form, TRUE);
-    layout_margin4(sel->glayout, sel->flayout->margin_top, sel->flayout->margin_right, sel->flayout->margin_bottom, sel->flayout->margin_left);
+    flayout_synchro(sel->flayout, sel->glayout);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void dform_synchro_column_margin(DForm *form, const DSelect *sel, const FColumn *fcol, const uint32_t col)
+void dform_synchro_col(DForm *form, const DSelect *sel, const FColumn *fcol, const uint32_t col)
 {
     cassert_no_null(form);
     cassert_no_null(sel);
-    cassert_no_null(fcol);
-    cassert(flayout_column(cast(sel->flayout, FLayout), col) == fcol);
+    cassert_unref(flayout_column(cast(sel->flayout, FLayout), col) == fcol, fcol);
     i_need_save(form, TRUE);
-    layout_hmargin(sel->glayout, col, fcol->margin_right);
+    flayout_col_synchro(sel->flayout, sel->glayout, col);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void dform_synchro_column_width(DForm *form, const DSelect *sel, const FColumn *fcol, const uint32_t col)
-{
-    cassert_no_null(form);
-    cassert_no_null(sel);
-    cassert_no_null(fcol);
-    cassert(flayout_column(cast(sel->flayout, FLayout), col) == fcol);
-    i_need_save(form, TRUE);
-    layout_hsize(sel->glayout, col, fcol->forced_width);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dform_synchro_row_margin(DForm *form, const DSelect *sel, const FRow *frow, const uint32_t row)
+void dform_synchro_row(DForm *form, const DSelect *sel, const FRow *frow, const uint32_t row)
 {
     cassert_no_null(form);
     cassert_no_null(sel);
     cassert_no_null(frow);
-    cassert(flayout_row(cast(sel->flayout, FLayout), row) == frow);
+    cassert_unref(flayout_row(cast(sel->flayout, FLayout), row) == frow, frow);
     i_need_save(form, TRUE);
-    layout_vmargin(sel->glayout, row, frow->margin_bottom);
+    flayout_row_synchro(sel->flayout, sel->glayout, row);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void dform_synchro_row_height(DForm *form, const DSelect *sel, const FRow *frow, const uint32_t row)
+void dform_synchro_cols_expand(DForm *form, const DSelect *sel)
 {
     cassert_no_null(form);
     cassert_no_null(sel);
-    cassert_no_null(frow);
-    cassert(flayout_row(cast(sel->flayout, FLayout), row) == frow);
     i_need_save(form, TRUE);
-    layout_vsize(sel->glayout, row, frow->forced_height);
+    flayout_cols_expand(sel->flayout, sel->glayout);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void dform_synchro_cell_halign(DForm *form, const DSelect *sel, const FCell *fcell, const uint32_t col, const uint32_t row)
+void dform_synchro_rows_expand(DForm *form, const DSelect *sel)
 {
-    align_t align = ENUM_MAX(align_t);
     cassert_no_null(form);
     cassert_no_null(sel);
-    cassert_no_null(fcell);
-    cassert(flayout_cell(cast(sel->flayout, FLayout), col, row) == fcell);
     i_need_save(form, TRUE);
-    align = i_halign(fcell->halign);
-    layout_halign(sel->glayout, col, row, align);
+    flayout_rows_expand(sel->flayout, sel->glayout);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void dform_synchro_cell_valign(DForm *form, const DSelect *sel, const FCell *fcell, const uint32_t col, const uint32_t row)
+void dform_synchro_cell(DForm *form, const DSelect *sel, const FCell *fcell, const uint32_t col, const uint32_t row)
 {
-    align_t align = ENUM_MAX(align_t);
     cassert_no_null(form);
     cassert_no_null(sel);
-    cassert_no_null(fcell);
-    cassert(flayout_cell(cast(sel->flayout, FLayout), col, row) == fcell);
+    cassert_unref(flayout_cell(cast(sel->flayout, FLayout), col, row) == fcell, fcell);
     i_need_save(form, TRUE);
-    align = i_valign(fcell->valign);
-    layout_valign(sel->glayout, col, row, align);
+    flayout_cell_synchro(sel->flayout, sel->glayout, col, row);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2404,3 +2382,26 @@ void dform_simulate(DForm *form, const char_t *form_name, Window *window)
         str_destroy(&name);
     }
 }
+
+/*---------------------------------------------------------------------------*/
+
+void dform_simulate_resizable(DForm *form, const char_t *form_name, Window *window)
+{
+    Window *rwindow = window_create(ekWINDOW_TITLE | ekWINDOW_RESIZE | ekWINDOW_CLOSE | ekWINDOW_MAX);
+    Panel *panel = panel_create();
+    Layout *layout = NULL;
+    const char_t *resource_path = NULL;
+    String *name = str_printf("%s - %s", gui_text(TEXT_FORM), form_name);
+    cassert_no_null(form);
+    cassert_no_null(form->fform);
+    resource_path = designer_folder_path(form->app);
+    layout = flayout_to_gui(form->fform->layout, resource_path, i_EMPTY_CELL_WIDTH, i_EMPTY_CELL_HEIGHT);
+    panel_layout(panel, layout);
+    window_panel(rwindow, panel);
+    i_center_window(window, rwindow);
+    window_title(rwindow, tc(name));
+    window_modal(rwindow, window);
+    window_destroy(&rwindow);
+    str_destroy(&name);
+}
+

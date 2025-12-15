@@ -96,19 +96,17 @@ void dform_synchro_imageview(DForm *form, const DSelect *sel);
 
 void dform_synchro_table(DForm *form, const DSelect *sel);
 
-void dform_synchro_layout_margin(DForm *form, const DSelect *sel);
+void dform_synchro_layout(DForm *form, const DSelect *sel);
 
-void dform_synchro_column_margin(DForm *form, const DSelect *sel, const FColumn *fcol, const uint32_t col);
+void dform_synchro_col(DForm *form, const DSelect *sel, const FColumn *fcol, const uint32_t col);
 
-void dform_synchro_column_width(DForm *form, const DSelect *sel, const FColumn *fcol, const uint32_t col);
+void dform_synchro_row(DForm *form, const DSelect *sel, const FRow *frow, const uint32_t row);
 
-void dform_synchro_row_margin(DForm *form, const DSelect *sel, const FRow *frow, const uint32_t row);
+void dform_synchro_cols_expand(DForm *form, const DSelect *sel);
 
-void dform_synchro_row_height(DForm *form, const DSelect *sel, const FRow *frow, const uint32_t row);
+void dform_synchro_rows_expand(DForm *form, const DSelect *sel);
 
-void dform_synchro_cell_halign(DForm *form, const DSelect *sel, const FCell *fcell, const uint32_t col, const uint32_t row);
-
-void dform_synchro_cell_valign(DForm *form, const DSelect *sel, const FCell *fcell, const uint32_t col, const uint32_t row);
+void dform_synchro_cell(DForm *form, const DSelect *sel, const FCell *fcell, const uint32_t col, const uint32_t row);
 
 FCell *dform_sel_fcell(const DSelect *sel);
 
@@ -131,3 +129,5 @@ void dform_set_need_save(DForm *form);
 void dform_update_sel(DForm *form, const DSelect *sel);
 
 void dform_simulate(DForm *form, const char_t *form_name, Window *window);
+
+void dform_simulate_resizable(DForm *form, const char_t *form_name, Window *window);

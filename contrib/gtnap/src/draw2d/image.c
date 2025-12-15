@@ -227,7 +227,6 @@ static codec_t i_codec(const byte_t first)
     }
     else
     {
-        cassert_msg(FALSE, "Unknown image encoding");
         return ENUM_MAX(codec_t);
     }
 }

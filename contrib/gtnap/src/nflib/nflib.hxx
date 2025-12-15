@@ -91,6 +91,7 @@ struct _flabel_t
 struct _fbutton_t
 {
     String *text;
+    String *tooltip;
     real32_t min_width;
     real32_t hpadding;
     real32_t vpadding;
@@ -109,6 +110,7 @@ struct _fradio_t
 struct _ftool_t
 {
     String *path;
+    String *tooltip;
     real32_t hpadding;
     real32_t vpadding;
 };
@@ -197,12 +199,14 @@ struct _ftable_t
 
 struct _fcolumn_t
 {
+    bool_t expand;
     real32_t margin_right;
     real32_t forced_width;
 };
 
 struct _frow_t
 {
+    bool_t expand;
     real32_t margin_bottom;
     real32_t forced_height;
 };
@@ -230,6 +234,7 @@ struct _fwidget_t
 struct _fcell_t
 {
     String *name;
+    bool_t tabstop;
     celltype_t type;
     halign_t halign;
     valign_t valign;
@@ -239,6 +244,7 @@ struct _fcell_t
 struct _flayout_t
 {
     String *name;
+    bool_t row_tabstop;
     real32_t margin_left;
     real32_t margin_top;
     real32_t margin_right;

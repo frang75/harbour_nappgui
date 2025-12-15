@@ -14,18 +14,6 @@ _nflib_api void flayout_destroy(FLayout **layout);
 
 _nflib_api void flayout_write(Stream *stm, const FLayout *layout);
 
-_nflib_api void flayout_margin_left(FLayout *layout, const real32_t margin);
-
-_nflib_api void flayout_margin_top(FLayout *layout, const real32_t margin);
-
-_nflib_api void flayout_margin_right(FLayout *layout, const real32_t margin);
-
-_nflib_api void flayout_margin_bottom(FLayout *layout, const real32_t margin);
-
-_nflib_api void flayout_margin_col(FLayout *layout, const uint32_t col, const real32_t margin);
-
-_nflib_api void flayout_margin_row(FLayout *layout, const uint32_t row, const real32_t margin);
-
 _nflib_api void flayout_insert_col(FLayout *layout, const uint32_t col);
 
 _nflib_api void flayout_remove_col(FLayout *layout, const uint32_t col);
@@ -74,11 +62,27 @@ _nflib_api uint32_t flayout_nrows(const FLayout *layout);
 
 _nflib_api FColumn *flayout_column(FLayout *layout, const uint32_t col);
 
+_nflib_api const FColumn *flayout_ccolumn(const FLayout *layout, const uint32_t col);
+
 _nflib_api FRow *flayout_row(FLayout *layout, const uint32_t row);
+
+_nflib_api const FRow *flayout_crow(const FLayout *layout, const uint32_t row);
 
 _nflib_api FCell *flayout_cell(FLayout *layout, const uint32_t col, const uint32_t row);
 
 _nflib_api const FCell *flayout_ccell(const FLayout *layout, const uint32_t col, const uint32_t row);
+
+_nflib_api void flayout_synchro(const FLayout *layout, Layout *glayout);
+
+_nflib_api void flayout_col_synchro(const FLayout *layout, Layout *glayout, const uint32_t col);
+
+_nflib_api void flayout_row_synchro(const FLayout *layout, Layout *glayout, const uint32_t row);
+
+_nflib_api void flayout_cols_expand(const FLayout *layout, Layout *glayout);
+
+_nflib_api void flayout_rows_expand(const FLayout *layout, Layout *glayout);
+
+_nflib_api void flayout_cell_synchro(const FLayout *layout, Layout *glayout, const uint32_t col, const uint32_t row);
 
 _nflib_api Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const real32_t empty_width, const real32_t empty_height);
 

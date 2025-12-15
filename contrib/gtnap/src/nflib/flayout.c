@@ -45,7 +45,8 @@
 
 /*---------------------------------------------------------------------------*/
 
-static uint16_t i_VERSION = 4;
+static uint16_t i_VERSION = 8;
+static void i_write_layout(Stream *stm, const FLayout *layout);
 
 /*---------------------------------------------------------------------------*/
 
@@ -206,18 +207,30 @@ FLayout *flayout_create(const uint32_t ncols, const uint32_t nrows)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_read_col(Stream *stm, FColumn *col)
+static void i_read_col(Stream *stm, FColumn *col, const uint16_t *vers)
 {
     cassert_no_null(col);
+    cassert_no_null(vers);
+    if (*vers >= 5)
+        col->expand = stm_read_bool(stm);
+    else
+        col->expand = FALSE;
+
     col->forced_width = stm_read_r32(stm);
     col->margin_right = stm_read_r32(stm);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_read_row(Stream *stm, FRow *row)
+static void i_read_row(Stream *stm, FRow *row, const uint16_t *vers)
 {
     cassert_no_null(row);
+    cassert_no_null(vers);
+    if (*vers >= 5)
+        row->expand = stm_read_bool(stm);
+    else
+        row->expand = FALSE;
+
     row->forced_height = stm_read_r32(stm);
     row->margin_bottom = stm_read_r32(stm);
 }
@@ -249,6 +262,11 @@ static FButton *i_read_button(Stream *stm, const uint16_t vers)
 {
     FButton *button = heap_new0(FButton);
     button->text = str_read(stm);
+    if (vers >= 6)
+        button->tooltip = str_read(stm);
+    else
+        button->tooltip = str_c("");
+
     if (vers >= 1)
         button->min_width = stm_read_r32(stm);
     else
@@ -288,10 +306,15 @@ static FRadio *i_read_radio(Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
-static FTool *i_read_tool(Stream *stm)
+static FTool *i_read_tool(Stream *stm, const uint16_t vers)
 {
     FTool *tool = heap_new0(FTool);
-    tool->path = str_read(stm);
+    tool->path = str_read(stm);    
+    if (vers >= 6)
+        tool->tooltip = str_read(stm);
+    else
+        tool->tooltip = str_c("");
+
     tool->hpadding = stm_read_r32(stm);
     tool->vpadding = stm_read_r32(stm);
     return tool;
@@ -436,6 +459,12 @@ static void i_read_cell(Stream *stm, FCell *cell, const uint16_t *vers)
     cassert_no_null(vers);
     bmem_zero(cell, FCell);
     cell->name = str_read(stm);
+
+    if (*vers >= 7)
+        cell->tabstop = stm_read_bool(stm);
+    else
+        cell->tabstop = TRUE;
+
     cell->type = stm_read_enum(stm, celltype_t);
     cell->halign = stm_read_enum(stm, halign_t);
     cell->valign = stm_read_enum(stm, valign_t);
@@ -456,7 +485,7 @@ static void i_read_cell(Stream *stm, FCell *cell, const uint16_t *vers)
         cell->widget.radio = i_read_radio(stm);
         break;
     case ekCELL_TYPE_TOOL:
-        cell->widget.tool = i_read_tool(stm);
+        cell->widget.tool = i_read_tool(stm, *vers);
         break;
     case ekCELL_TYPE_POPUP:
         cell->widget.popup = i_read_popup(stm);
@@ -489,7 +518,10 @@ static void i_read_cell(Stream *stm, FCell *cell, const uint16_t *vers)
         cell->widget.table = i_read_table(stm);
         break;
     case ekCELL_TYPE_LAYOUT:
-        cell->widget.layout = flayout_read(stm);
+        if (*vers >= 8)
+            cell->widget.layout = flayout_read_with_vers(stm, *vers);
+        else
+            cell->widget.layout = flayout_read(stm);
         break;
     default:
         cassert_default(cell->type);
@@ -512,12 +544,18 @@ FLayout *flayout_read_with_vers(Stream *stm, const uint16_t vers)
     {
         FLayout *layout = heap_new0(FLayout);
         layout->name = str_read(stm);
+
+        if (vers >= 7)
+            layout->row_tabstop = stm_read_bool(stm);
+        else
+            layout->row_tabstop = TRUE;
+
         layout->margin_left = stm_read_r32(stm);
         layout->margin_top = stm_read_r32(stm);
         layout->margin_right = stm_read_r32(stm);
         layout->margin_bottom = stm_read_r32(stm);
-        layout->cols = arrst_read(stm, i_read_col, FColumn);
-        layout->rows = arrst_read(stm, i_read_row, FRow);
+        layout->cols = arrst_read_ex(stm, i_read_col, &vers, FColumn, uint16_t);
+        layout->rows = arrst_read_ex(stm, i_read_row, &vers, FRow, uint16_t);
         layout->cells = arrst_read_ex(stm, i_read_cell, &vers, FCell, uint16_t);
         return layout;
     }
@@ -547,6 +585,7 @@ void flayout_destroy(FLayout **layout)
 static void i_write_col(Stream *stm, const FColumn *col)
 {
     cassert_no_null(col);
+    stm_write_bool(stm, col->expand);
     stm_write_r32(stm, col->forced_width);
     stm_write_r32(stm, col->margin_right);
 }
@@ -556,6 +595,7 @@ static void i_write_col(Stream *stm, const FColumn *col)
 static void i_write_row(Stream *stm, const FRow *row)
 {
     cassert_no_null(row);
+    stm_write_bool(stm, row->expand);
     stm_write_r32(stm, row->forced_height);
     stm_write_r32(stm, row->margin_bottom);
 }
@@ -577,6 +617,7 @@ static void i_write_buttom(Stream *stm, const FButton *button)
 {
     cassert_no_null(button);
     str_write(stm, button->text);
+    str_write(stm, button->tooltip);
     stm_write_r32(stm, button->min_width);
     stm_write_r32(stm, button->hpadding);
     stm_write_r32(stm, button->vpadding);
@@ -604,6 +645,7 @@ static void i_write_tool(Stream *stm, const FTool *tool)
 {
     cassert_no_null(tool);
     str_write(stm, tool->path);
+    str_write(stm, tool->tooltip);
     stm_write_r32(stm, tool->hpadding);
     stm_write_r32(stm, tool->vpadding);
 }
@@ -731,6 +773,7 @@ static void i_write_cell(Stream *stm, const FCell *cell)
 {
     cassert_no_null(cell);
     str_write(stm, cell->name);
+    stm_write_bool(stm, cell->tabstop);
     stm_write_enum(stm, cell->type, celltype_t);
     stm_write_enum(stm, cell->halign, halign_t);
     stm_write_enum(stm, cell->valign, valign_t);
@@ -784,7 +827,7 @@ static void i_write_cell(Stream *stm, const FCell *cell)
         i_write_table(stm, cell->widget.table);
         break;
     case ekCELL_TYPE_LAYOUT:
-        flayout_write(stm, cell->widget.layout);
+        i_write_layout(stm, cell->widget.layout);
         break;
     default:
         cassert_default(cell->type);
@@ -793,11 +836,11 @@ static void i_write_cell(Stream *stm, const FCell *cell)
 
 /*---------------------------------------------------------------------------*/
 
-void flayout_write(Stream *stm, const FLayout *layout)
+static void i_write_layout(Stream *stm, const FLayout *layout)
 {
     cassert_no_null(layout);
-    stm_write_u16(stm, i_VERSION);
     str_write(stm, layout->name);
+    stm_write_bool(stm, layout->row_tabstop);
     stm_write_r32(stm, layout->margin_left);
     stm_write_r32(stm, layout->margin_top);
     stm_write_r32(stm, layout->margin_right);
@@ -809,56 +852,10 @@ void flayout_write(Stream *stm, const FLayout *layout)
 
 /*---------------------------------------------------------------------------*/
 
-void flayout_margin_left(FLayout *layout, const real32_t margin)
+void flayout_write(Stream *stm, const FLayout *layout)
 {
-    cassert_no_null(layout);
-    layout->margin_left = margin;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void flayout_margin_top(FLayout *layout, const real32_t margin)
-{
-    cassert_no_null(layout);
-    layout->margin_top = margin;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void flayout_margin_right(FLayout *layout, const real32_t margin)
-{
-    cassert_no_null(layout);
-    layout->margin_right = margin;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void flayout_margin_bottom(FLayout *layout, const real32_t margin)
-{
-    cassert_no_null(layout);
-    layout->margin_bottom = margin;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void flayout_margin_col(FLayout *layout, const uint32_t col, const real32_t margin)
-{
-    FColumn *fcol = NULL;
-    cassert_no_null(layout);
-    cassert(col < arrst_size(layout->cols, FColumn) - 1);
-    fcol = arrst_get(layout->cols, col, FColumn);
-    fcol->margin_right = margin;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void flayout_margin_row(FLayout *layout, const uint32_t row, const real32_t margin)
-{
-    FRow *frow = NULL;
-    cassert_no_null(layout);
-    cassert(row < arrst_size(layout->rows, FRow) - 1);
-    frow = arrst_get(layout->rows, row, FRow);
-    frow->margin_bottom = margin;
+    stm_write_u16(stm, i_VERSION);
+    i_write_layout(stm, layout);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1231,10 +1228,26 @@ FColumn *flayout_column(FLayout *layout, const uint32_t col)
 
 /*---------------------------------------------------------------------------*/
 
+const FColumn *flayout_ccolumn(const FLayout *layout, const uint32_t col)
+{
+    cassert_no_null(layout);
+    return arrst_get_const(layout->cols, col, FColumn);
+}
+
+/*---------------------------------------------------------------------------*/
+
 FRow *flayout_row(FLayout *layout, const uint32_t row)
 {
     cassert_no_null(layout);
     return arrst_get(layout->rows, row, FRow);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const FRow *flayout_crow(const FLayout *layout, const uint32_t row)
+{
+    cassert_no_null(layout);
+    return arrst_get_const(layout->rows, row, FRow);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1253,6 +1266,129 @@ const FCell *flayout_ccell(const FLayout *layout, const uint32_t col, const uint
 
 /*---------------------------------------------------------------------------*/
 
+void flayout_synchro(const FLayout *layout, Layout *glayout)
+{
+    cassert_no_null(layout);
+    layout_margin4(glayout, layout->margin_top, layout->margin_right, layout->margin_bottom, layout->margin_left);
+    layout_taborder(glayout, layout->row_tabstop ? ekGUI_HORIZONTAL : ekGUI_VERTICAL);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_col_synchro(const FLayout *layout, Layout *glayout, const uint32_t col)
+{
+    const FColumn *fcol = flayout_ccolumn(layout, col);
+    uint32_t ncols = layout_ncols(glayout);
+    cassert_no_null(fcol);
+    cassert(ncols == flayout_ncols(layout));
+    if (col < ncols - 1)
+        layout_hmargin(glayout, col, fcol->margin_right);
+    layout_hsize(glayout, col, fcol->forced_width);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_row_synchro(const FLayout *layout, Layout *glayout, const uint32_t row)
+{
+    const FRow *frow = flayout_crow(layout, row);
+    uint32_t nrows = layout_nrows(glayout);
+    cassert_no_null(frow);
+    cassert(nrows == flayout_nrows(layout));
+    if (row < nrows - 1)
+        layout_vmargin(glayout, row, frow->margin_bottom);
+    layout_vsize(glayout, row, frow->forced_height);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_cols_expand(const FLayout *layout, Layout *glayout)
+{
+    uint32_t ncols = 0, i, tr = 0;
+    uint32_t index[256];
+    real32_t exp[256];
+    cassert_no_null(layout);
+    ncols = arrst_size(layout->cols, FColumn);
+    cassert(ncols == layout_ncols(glayout));
+    cassert(ncols < 256);
+
+    /* Column expansion */
+    arrst_foreach_const(col, layout->cols, FColumn)
+        index[col_i] = col_i;
+        if (col->expand == TRUE)
+        {
+            exp[col_i] = 1;
+            tr += 1;
+        }
+        else
+        {
+            exp[col_i] = 0;
+        }
+    arrst_end()
+
+    for (i = 0; i < ncols; ++i)
+    {
+        if (tr == 0)
+            exp[i] = 1 / (real32_t)ncols;
+        else if (exp[i] > 0)
+            exp[i] = 1 / (real32_t)tr;
+    }
+
+    layout_hexpandn(glayout, ncols, index, exp);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_rows_expand(const FLayout *layout, Layout *glayout)
+{
+    uint32_t nrows = 0, i, tr = 0;
+    uint32_t index[256];
+    real32_t exp[256];
+    cassert_no_null(layout);
+    nrows = arrst_size(layout->rows, FRow);
+    cassert(nrows == layout_nrows(glayout));
+    cassert(nrows < 256);
+
+    arrst_foreach_const(row, layout->rows, FRow)
+        index[row_i] = row_i;
+        if (row->expand == TRUE)
+        {
+            exp[row_i] = 1;
+            tr += 1;
+        }
+        else
+        {
+            exp[row_i] = 0;
+        }
+    arrst_end()
+
+    for (i = 0; i < nrows; ++i)
+    {
+        if (tr == 0)
+            exp[i] = 1 / (real32_t)nrows;
+        else if (exp[i] > 0)
+            exp[i] = 1 / (real32_t)tr;
+    }
+
+    layout_vexpandn(glayout, nrows, index, exp);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_cell_synchro(const FLayout *layout, Layout *glayout, const uint32_t col, const uint32_t row)
+{
+    const FCell *fcell = NULL;
+    align_t halign, valign;
+    cassert_no_null(layout);
+    fcell = flayout_ccell(layout, col, row);
+    halign = _nflib_halign(fcell->halign);
+    valign = _nflib_valign(fcell->valign);
+    layout_halign(glayout, col, row, halign);
+    layout_valign(glayout, col, row, valign);
+    layout_tabstop(glayout, col, row, fcell->tabstop);
+}
+
+/*---------------------------------------------------------------------------*/
+
 Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const real32_t empty_width, const real32_t empty_height)
 {
     uint32_t ncols = 0, nrows = 0;
@@ -1262,34 +1398,25 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
     nrows = arrst_size(layout->rows, FRow);
     glayout = layout_create(ncols, nrows);
 
-    /* Layout border margins */
-    layout_margin4(glayout, layout->margin_top, layout->margin_right, layout->margin_bottom, layout->margin_left);
+    flayout_synchro(layout, glayout);
 
     /* Column properties */
     arrst_foreach_const(col, layout->cols, FColumn)
-        layout_hsize(glayout, col_i, col->forced_width);
-        if (col_i < col_total - 1)
-        {
-            layout_hmargin(glayout, col_i, col->margin_right);
-        }
-        else
-        {
-            cassert(col->margin_right == 0);
-        }
+        flayout_col_synchro(layout, glayout, col_i);
+        if (col_i == col_total - 1)
+            cast(col, FColumn)->margin_right = 0;
     arrst_end()
 
     /* Row properties */
     arrst_foreach_const(row, layout->rows, FRow)
-        layout_vsize(glayout, row_i, row->forced_height);
-        if (row_i < row_total - 1)
-        {
-            layout_vmargin(glayout, row_i, row->margin_bottom);
-        }
-        else
-        {
-            cassert(row->margin_bottom == 0);
-        }
+        flayout_row_synchro(layout, glayout, row_i);
+        if (row_i == row_total - 1)
+            cast(row, FRow)->margin_bottom = 0;
     arrst_end()
+
+    /* Cell expansion */
+    flayout_cols_expand(layout, glayout);
+    flayout_rows_expand(layout, glayout);
 
     /* Cells */
     {
@@ -1299,16 +1426,16 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
         {
             for (i = 0; i < ncols; ++i)
             {
-                Cell *gcell = layout_cell(glayout, i, j);
-                align_t halign = _nflib_halign(cells->halign);
-                align_t valign = _nflib_valign(cells->valign);
-                layout_halign(glayout, i, j, halign);
-                layout_valign(glayout, i, j, valign);
+                flayout_cell_synchro(layout, glayout, i, j);
+
                 switch (cells->type)
                 {
                 case ekCELL_TYPE_EMPTY:
+                {
+                    Cell *gcell = layout_cell(glayout, i, j);
                     cell_force_size(gcell, empty_width, empty_height);
                     break;
+                }
 
                 case ekCELL_TYPE_LABEL:
                 {

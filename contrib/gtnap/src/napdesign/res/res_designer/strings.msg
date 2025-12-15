@@ -99,11 +99,14 @@ TEXT_VALIGN         VAlign
 TEXT_DALIGN         DAlign
 TEXT_SCALE          Scale
 TEXT_TEXT           Text
+TEXT_TOOLTIP        Tooltip
 TEXT_TITLE          Title
 TEXT_MULTILINE      Multiline
 TEXT_AUTOSELECT     Autoselect
 TEXT_PASSMODE       Passmode
 TEXT_RESIZABLE      Resizable
+TEXT_TABSTOP        Tabstop
+TEXT_TABORDER       Taborder
 
 TEXT_TEXT_ALIGN     Text align
 TEXT_MIN_WIDTH      Min width
@@ -154,7 +157,8 @@ TOOLBAR_SAVE        Save all forms
 TOOLBAR_NEW         Add new form
 TOOLBAR_NEW_FORM    New form
 TOOLBAR_PROPS       Form properties
-TOOLBAR_SIMULATE    Simulate current form
+TOOLBAR_SIMULATE    Simulate form
+TOOLBAR_RESIZABLE   Simulate resizable form
 TOOLBAR_LSKEL       Layout design view
 TOOLBAR_REMOVE      Remove current form
 TEXT_QUIT           Quit
@@ -181,6 +185,7 @@ TEXT_PROMOTE        Promote
 
 TIP_LAYOUT_NAME     Layout name. It will be useful to locate the layout at runtime.
 TIP_CELL_NAME       Cell name. It will be useful to locate the cell at runtime.
+TIP_CELL_TABSTOP    If uncheck, this cell cannot be selected using the [TAB] key.
 TIP_TOP_MARGIN      Margin at top of layout (in px).
 TIP_LEFT_MARGIN     Margin at left of layout (in px).
 TIP_BOTTOM_MARGIN   Margin at bottom of layout (in px).
@@ -198,6 +203,7 @@ TIP_LABEL_MLINE     If set, the text will expand over multiple lines.
 TIP_LABEL_MWIDTH    Text width. If 0 will be set automatically.
 TIP_LABEL_ALIGN     Text alignment, if label widget if wider than the text.
 TIP_BUTTON_TEXT     The text that will be displayed on the push button.
+TIP_BUTTON_TOOLTIP  The tooltip text that will be displayed when the mouse is over the button.
 TIP_BUTTON_WIDTH    Minimum width of the push button, as long as the text is visible.
 TIP_BUTTON_HPAD     Horizontal padding of the push button, -1 as default.
 TIP_BUTTON_VPAD     Vertical padding of the push button, -1 as default.
@@ -239,10 +245,14 @@ TIP_COLUMN_RESIZE   Column is resizable.
 TIP_COLUMN_LEFT     Insert a new column at left of current column
 TIP_COLUMN_RIGHT    Insert a new column at right of current column
 TIP_COLUMN_DELETE   Delete current column
+TIP_COLUMN_EXPAND   Mark/unmark this column as expansible
 TIP_ROW_TOP         Insert a new row at top of current row
 TIP_ROW_BOTTOM      Insert a new row at bottom of current row
 TIP_ROW_DELETE      Delete current row
+TIP_ROW_EXPAND      Mark/unmark this row as expansible
 TIP_PROMOTE_LEFT    Promote this layout to a left cell
 TIP_PROMOTE_RIGHT   Promote this layout to a right cell
 TIP_PROMOTE_TOP     Promote this layout to a top cell
 TIP_PROMOTE_BOTTOM  Promote this layout to a bottom cell
+TIP_TABORDER_COLS   The tabstops will be moved column by column
+TIP_TABORDER_ROWS   The tabstops will be moved row by row

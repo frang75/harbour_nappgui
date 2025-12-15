@@ -53,6 +53,7 @@ HBOFFICE_INIT()
 IF HB_GTVERSION()=="NAP"
     DIRET_BMPS("../bmps/")
     DIRET_FORMS("../forms/")
+    DIRET_NFORMS("../nforms/")
     Setup_nap("Exemplo das rotinas de janelamento", 35, 110, {|| RUN_MAIN() })
 
  ELSE
@@ -102,6 +103,8 @@ ADDOPCAO V_Janela TEXTO "#LibreOffice textdocument" ;
     ACAO EXEMPLO_TEXT_DOCUMENT() AJUDA "P06683"
 ADDOPCAO V_Janela TEXTO "GTNAP #Forms" ;
     ACAO EXEMPLO_FORMS() AJUDA "P06683"
+ADDOPCAO V_Janela TEXTO "GTNAP ASPEC #Forms" ;
+    ACAO EXEMPLO_ASPEC_FORMS() AJUDA "P06683"
 
 L_FechouComAutoclose := ATIVE(V_Janela)
 

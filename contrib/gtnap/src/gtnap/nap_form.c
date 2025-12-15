@@ -75,7 +75,8 @@ HB_FUNC(NAP_FORM_MODAL)
 {
     GtNapForm *form = cast(hb_parptr(1), GtNapForm);
     const char_t *resource_path = hb_parcx(2);
-    uint32_t ret = hb_gtnap_form_modal(form, resource_path);
+    bool_t resizable = (bool_t)hb_parl(3);
+    uint32_t ret = hb_gtnap_form_modal(form, resource_path, resizable);
     hb_retni(ret);
 }
 
@@ -100,6 +101,26 @@ HB_FUNC(NAP_FORM_CONTROL_FRAME)
     hb_storvnl((int32_t)frame.pos.y, -1, 2);
     hb_storvnl((int32_t)frame.size.width, -1, 3);
     hb_storvnl((int32_t)frame.size.height, -1, 4);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(NAP_FORM_SEL_RECNO)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    uint32_t sel = hb_gtnap_form_sel_recno(form);
+    if (sel != UINT32_MAX)
+        hb_retni(sel);
+    else
+        hb_retni(-1);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(NAP_FORM_REFRESH_AREA)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    hb_gtnap_form_refresh_area(form);
 }
 
 /*---------------------------------------------------------------------------*/

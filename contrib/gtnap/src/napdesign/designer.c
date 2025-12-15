@@ -29,6 +29,7 @@ struct _config_t
     real32_t split2_pos;
     real32_t split3_pos;
     real32_t split4_pos;
+    bool_t is_maximized;
     bool_t show_forms;
     bool_t show_widgets;
     bool_t show_inspectr;
@@ -74,6 +75,7 @@ struct _designer_t
     Cell *open_form_cell;
     Cell *save_form_cell;
     Cell *run_form_cell;
+    Cell *resize_form_cell;
     Cell *add_form_cell;
     Cell *skeleton_form_cell;
     Cell *remove_form_cell;
@@ -226,6 +228,7 @@ static void i_update_form_controls(Designer *app, const bool_t enable)
     /*cell_enabled(app->open_form_cell, enable);*/
     cell_enabled(app->save_form_cell, enable_save);
     cell_enabled(app->run_form_cell, enable_run);
+    cell_enabled(app->resize_form_cell, enable_run);
     cell_enabled(app->add_form_cell, enable);
     cell_enabled(app->skeleton_form_cell, enable_run);
     cell_enabled(app->remove_form_cell, enable_remove);
@@ -543,6 +546,20 @@ static void i_OnSimulateClick(Designer *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnResizableClick(Designer *app, Event *e)
+{
+    cassert_no_null(app);
+    unref(e);
+    if (app->config.sel_form != UINT32_MAX)
+    {
+        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
+        const char_t *name = i_list_text(app->form_list, app->config.sel_form);
+        dform_simulate_resizable(form, name, app->window);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnSkeletonClick(Designer *app, Event *e)
 {
     Button *button = NULL;
@@ -693,32 +710,34 @@ static void i_OnRedoClick(Designer *app, Event *e)
 
 static Layout *i_tools_layout(Designer *app)
 {
-    Layout *layout = layout_create(13, 1);
+    Layout *layout = layout_create(14, 1);
     Button *button1 = button_flat();
     Button *button2 = button_flat();
     Button *button3 = button_flat();
     Button *button4 = button_flat();
     Button *button5 = button_flat();
-    Button *button6 = button_flatgle();
-    Button *button7 = button_flat();
+    Button *button6 = button_flat();
+    Button *button7 = button_flatgle();
     Button *button8 = button_flat();
     Button *button9 = button_flat();
     Button *button10 = button_flat();
     Button *button11 = button_flat();
     Button *button12 = button_flat();
+    Button *button13 = button_flat();
     cassert_no_null(app);
     button_image(button1, cast_const(OPEN_PNG, Image));
     button_image(button2, cast_const(SAVE_PNG, Image));
     button_image(button3, cast_const(NEW_PNG, Image));
     button_image(button4, cast_const(PROPS_PNG, Image));
     button_image(button5, cast_const(SHOW_PNG, Image));
-    button_image(button6, cast_const(LSKEL24_PNG, Image));
-    button_image(button7, cast_const(REMOVE_PNG, Image));
-    button_image(button8, cast_const(CUT_PNG, Image));
-    button_image(button9, cast_const(COPY_PNG, Image));
-    button_image(button10, cast_const(PASTE_PNG, Image));
-    button_image(button11, cast_const(UNDO_PNG, Image));
-    button_image(button12, cast_const(REDO_PNG, Image));
+    button_image(button6, cast_const(RESIZE24_PNG, Image));
+    button_image(button7, cast_const(LSKEL24_PNG, Image));
+    button_image(button8, cast_const(REMOVE_PNG, Image));
+    button_image(button9, cast_const(CUT_PNG, Image));
+    button_image(button10, cast_const(COPY_PNG, Image));
+    button_image(button11, cast_const(PASTE_PNG, Image));
+    button_image(button12, cast_const(UNDO_PNG, Image));
+    button_image(button13, cast_const(REDO_PNG, Image));
     button_hpadding(button1, 6);
     button_hpadding(button2, 6);
     button_hpadding(button3, 6);
@@ -731,6 +750,7 @@ static Layout *i_tools_layout(Designer *app)
     button_hpadding(button10, 6);
     button_hpadding(button11, 6);
     button_hpadding(button12, 6);
+    button_hpadding(button13, 6);
     button_vpadding(button1, 6);
     button_vpadding(button2, 6);
     button_vpadding(button3, 6);
@@ -743,30 +763,33 @@ static Layout *i_tools_layout(Designer *app)
     button_vpadding(button10, 6);
     button_vpadding(button11, 6);
     button_vpadding(button12, 6);
+    button_vpadding(button13, 6);
     button_OnClick(button1, listener(app, i_OnOpenFormsClick, Designer));
     button_OnClick(button2, listener(app, i_OnSaveFormsClick, Designer));
     button_OnClick(button3, listener(app, i_OnAddFormClick, Designer));
     button_OnClick(button4, listener(app, i_OnPropsFormClick, Designer));
     button_OnClick(button5, listener(app, i_OnSimulateClick, Designer));
-    button_OnClick(button6, listener(app, i_OnSkeletonClick, Designer));
-    button_OnClick(button7, listener(app, i_OnRemoveClick, Designer));
-    button_OnClick(button8, listener(app, i_OnCutClick, Designer));
-    button_OnClick(button9, listener(app, i_OnCopyClick, Designer));
-    button_OnClick(button10, listener(app, i_OnPasteClick, Designer));
-    button_OnClick(button11, listener(app, i_OnUndoClick, Designer));
-    button_OnClick(button12, listener(app, i_OnRedoClick, Designer));
+    button_OnClick(button6, listener(app, i_OnResizableClick, Designer));
+    button_OnClick(button7, listener(app, i_OnSkeletonClick, Designer));
+    button_OnClick(button8, listener(app, i_OnRemoveClick, Designer));
+    button_OnClick(button9, listener(app, i_OnCutClick, Designer));
+    button_OnClick(button10, listener(app, i_OnCopyClick, Designer));
+    button_OnClick(button11, listener(app, i_OnPasteClick, Designer));
+    button_OnClick(button12, listener(app, i_OnUndoClick, Designer));
+    button_OnClick(button13, listener(app, i_OnRedoClick, Designer));
     button_tooltip(button1, gui_text(TOOLBAR_OPEN));
     button_tooltip(button2, gui_text(TOOLBAR_SAVE));
     button_tooltip(button3, gui_text(TOOLBAR_NEW));
     button_tooltip(button4, gui_text(TOOLBAR_PROPS));
     button_tooltip(button5, gui_text(TOOLBAR_SIMULATE));
-    button_tooltip(button6, gui_text(TOOLBAR_LSKEL));
-    button_tooltip(button7, gui_text(TOOLBAR_REMOVE));
-    button_tooltip(button8, gui_text(TEXT_CUT));
-    button_tooltip(button9, gui_text(TEXT_COPY));
-    button_tooltip(button10, gui_text(TEXT_PASTE));
-    button_tooltip(button11, gui_text(TEXT_UNDO));
-    button_tooltip(button12, gui_text(TEXT_REDO));
+    button_tooltip(button6, gui_text(TOOLBAR_RESIZABLE));
+    button_tooltip(button7, gui_text(TOOLBAR_LSKEL));
+    button_tooltip(button8, gui_text(TOOLBAR_REMOVE));
+    button_tooltip(button9, gui_text(TEXT_CUT));
+    button_tooltip(button10, gui_text(TEXT_COPY));
+    button_tooltip(button11, gui_text(TEXT_PASTE));
+    button_tooltip(button12, gui_text(TEXT_UNDO));
+    button_tooltip(button13, gui_text(TEXT_REDO));
     layout_button(layout, button1, 0, 0);
     layout_button(layout, button2, 1, 0);
     layout_button(layout, button3, 2, 0);
@@ -779,24 +802,26 @@ static Layout *i_tools_layout(Designer *app)
     layout_button(layout, button10, 9, 0);
     layout_button(layout, button11, 10, 0);
     layout_button(layout, button12, 11, 0);
+    layout_button(layout, button13, 12, 0);
     layout_margin4(layout, 0, 0, 0, 10);
-    layout_hexpand(layout, 12);
-    layout_hmargin(layout, 4, 15);
+    layout_hexpand(layout, 13);
     layout_hmargin(layout, 5, 15);
     layout_hmargin(layout, 6, 15);
-    layout_hmargin(layout, 9, 15);
+    layout_hmargin(layout, 7, 15);
+    layout_hmargin(layout, 10, 15);
     app->open_form_cell = layout_cell(layout, 0, 0);
     app->save_form_cell = layout_cell(layout, 1, 0);
     app->add_form_cell = layout_cell(layout, 2, 0);
     app->rename_form_cell = layout_cell(layout, 3, 0);
     app->run_form_cell = layout_cell(layout, 4, 0);
-    app->skeleton_form_cell = layout_cell(layout, 5, 0);
-    app->remove_form_cell = layout_cell(layout, 6, 0);
-    app->cut_cell = layout_cell(layout, 7, 0);
-    app->copy_cell = layout_cell(layout, 8, 0);
-    app->paste_cell = layout_cell(layout, 9, 0);
-    app->undo_cell = layout_cell(layout, 10, 0);
-    app->redo_cell = layout_cell(layout, 11, 0);
+    app->resize_form_cell = layout_cell(layout, 5, 0);
+    app->skeleton_form_cell = layout_cell(layout, 6, 0);
+    app->remove_form_cell = layout_cell(layout, 7, 0);
+    app->cut_cell = layout_cell(layout, 8, 0);
+    app->copy_cell = layout_cell(layout, 9, 0);
+    app->paste_cell = layout_cell(layout, 10, 0);
+    app->undo_cell = layout_cell(layout, 11, 0);
+    app->redo_cell = layout_cell(layout, 12, 0);
     return layout;
 }
 
@@ -1567,27 +1592,32 @@ static Menu *i_form_menu(Designer *app)
     MenuItem *item2 = menuitem_create();
     MenuItem *item3 = menuitem_create();
     MenuItem *item4 = menuitem_create();
+    MenuItem *item5 = menuitem_create();
     cassert_no_null(app);
     menuitem_text(item1, gui_text(TEXT_FORM_PROPS));
     menuitem_text(item2, gui_text(TOOLBAR_SIMULATE));
-    menuitem_text(item3, gui_text(TOOLBAR_LSKEL));
-    menuitem_text(item4, gui_text(TOOLBAR_REMOVE));
+    menuitem_text(item3, gui_text(TOOLBAR_RESIZABLE));
+    menuitem_text(item4, gui_text(TOOLBAR_LSKEL));
+    menuitem_text(item5, gui_text(TOOLBAR_REMOVE));
     menuitem_image(item1, gui_image(PROPS16_PNG));
     menuitem_image(item2, gui_image(SHOW16_PNG));
-    menuitem_image(item3, gui_image(LSKEL16_PNG));
-    menuitem_image(item4, gui_image(REMOVE16_PNG));
-    menuitem_key(item3, ekKEY_F5, 0);
+    menuitem_image(item3, gui_image(RESIZE16_PNG));
+    menuitem_image(item4, gui_image(LSKEL16_PNG));
+    menuitem_image(item5, gui_image(REMOVE16_PNG));
+    menuitem_key(item4, ekKEY_F5, 0);
     menuitem_OnClick(item1, listener(app, i_OnPropsFormClick, Designer));
     menuitem_OnClick(item2, listener(app, i_OnSimulateClick, Designer));
-    menuitem_OnClick(item3, listener(app, i_OnSkeletonClick, Designer));
-    menuitem_OnClick(item4, listener(app, i_OnRemoveClick, Designer));
+    menuitem_OnClick(item3, listener(app, i_OnResizableClick, Designer));
+    menuitem_OnClick(item4, listener(app, i_OnSkeletonClick, Designer));
+    menuitem_OnClick(item5, listener(app, i_OnRemoveClick, Designer));
     menu_add_item(menu, item1);
     menu_add_item(menu, item2);
-    menu_add_item(menu, menuitem_separator());
     menu_add_item(menu, item3);
     menu_add_item(menu, menuitem_separator());
     menu_add_item(menu, item4);
-    app->layout_skeleton_item = item3;
+    menu_add_item(menu, menuitem_separator());
+    menu_add_item(menu, item5);
+    app->layout_skeleton_item = item4;
     return menu;
 }
 
@@ -1650,17 +1680,35 @@ static Menu *i_menu(Designer *app)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_default_win_frame(Config *config)
+{
+    cassert_no_null(config);
+    config->wx = 100;
+    config->wy = 100;
+    config->wwidth = 850;
+    config->wheight = 500;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_update_config(Designer *app)
 {
-    V2Df pos;
-    S2Df size;
     cassert_no_null(app);
-    pos = window_get_origin(app->window);
-    size = window_get_client_size(app->window);
-    app->config.wx = pos.x;
-    app->config.wy = pos.y;
-    app->config.wwidth = size.width;
-    app->config.wheight = size.height;
+    if (window_get_maximize(app->window) == TRUE || window_get_minimize(app->window) == TRUE)
+    {
+        i_default_win_frame(&app->config);
+    }
+    else
+    {
+        V2Df pos = window_get_origin(app->window);
+        S2Df size = window_get_client_size(app->window);
+        app->config.wx = pos.x;
+        app->config.wy = pos.y;
+        app->config.wwidth = size.width;
+        app->config.wheight = size.height;
+    }
+
+    app->config.is_maximized = window_get_maximize(app->window);
     app->config.split1_pos = splitview_get_pos(app->split1, i_SPLIT1_MODE);
     app->config.split2_pos = splitview_get_pos(app->split2, i_SPLIT2_MODE);
     app->config.split3_pos = splitview_get_pos(app->split3, i_SPLIT3_MODE);
@@ -1689,6 +1737,7 @@ static void i_save_config(const Designer *app)
         stm_write_r32(stm, app->config.split2_pos);
         stm_write_r32(stm, app->config.split3_pos);
         stm_write_r32(stm, app->config.split4_pos);
+        stm_write_bool(stm, app->config.is_maximized);
         stm_write_bool(stm, app->config.show_forms);
         stm_write_bool(stm, app->config.show_widgets);
         stm_write_bool(stm, app->config.show_inspectr);
@@ -1716,23 +1765,20 @@ static void i_default_config(Designer *app)
 {
     cassert_no_null(app);
     i_remove_config(&app->config);
+    i_default_win_frame(&app->config);
     app->config.vers = i_CONFIG_VERS;
     app->config.folder_path = str_c("");
     app->config.sel_form = UINT32_MAX;
     app->config.swidget = ekWIDGET_SELECT;
-    app->config.wx = 100;
-    app->config.wy = 100;
-    app->config.wwidth = 850;
-    app->config.wheight = 500;
     app->config.split1_pos = 200;
     app->config.split2_pos = 200;
     app->config.split3_pos = 200;
     app->config.split4_pos = 200;
+    app->config.is_maximized = FALSE;
     app->config.show_forms = TRUE;
     app->config.show_widgets = TRUE;
     app->config.show_inspectr = TRUE;
     app->config.show_propedit = TRUE;
-
     arrst_foreach(wdrawer, app->wdrawers, WDrawer)
         wdrawer->opened = FALSE;
     arrst_end()
@@ -1763,6 +1809,7 @@ static void i_load_config(Designer *app)
             app->config.split2_pos = stm_read_r32(stm);
             app->config.split3_pos = stm_read_r32(stm);
             app->config.split4_pos = stm_read_r32(stm);
+            app->config.is_maximized = stm_read_bool(stm);
             app->config.show_forms = stm_read_bool(stm);
             app->config.show_widgets = stm_read_bool(stm);
             app->config.show_inspectr = stm_read_bool(stm);
@@ -1787,8 +1834,12 @@ static void i_load_config(Designer *app)
 static void i_apply_config(Designer *app)
 {
     cassert_no_null(app);
+    window_client_size(app->window, s2df(app->config.wwidth, app->config.wheight));
     window_origin(app->window, v2df(app->config.wx, app->config.wy));
-    window_size(app->window, s2df(app->config.wwidth, app->config.wheight));
+
+    if (app->config.is_maximized == TRUE)
+        window_maximize(app->window);
+
     i_restore_splits(app);
     i_set_bwidget(app->config.swidget, app->bwidgets, app->default_font, app->bold_font);
     menuitem_state(app->show_forms_item, i_bool_state(app->config.show_forms));

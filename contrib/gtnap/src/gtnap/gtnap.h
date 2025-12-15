@@ -201,11 +201,15 @@ extern void hb_gtnap_form_OnClick(GtNapForm *form, const char_t *button_cell_nam
 
 extern void hb_gtnap_form_insert_text(GtNapForm *form, const char_t *cell_name, HB_ITEM *text_block);
 
-extern uint32_t hb_gtnap_form_modal(GtNapForm *form, const char_t *resource_path);
+extern uint32_t hb_gtnap_form_modal(GtNapForm *form, const char_t *resource_path, const bool_t resizable);
 
 extern void hb_gtnap_form_stop_modal(GtNapForm *form, const uint32_t value);
 
 extern R2Df hb_gtnap_form_control_frame(GtNapForm *form, const char_t *cell_name);
+
+extern uint32_t hb_gtnap_form_sel_recno(GtNapForm *form);
+
+extern void hb_gtnap_form_refresh_area(GtNapForm *form);
 
 extern void hb_gtnap_form_update(GtNapForm *form);
 

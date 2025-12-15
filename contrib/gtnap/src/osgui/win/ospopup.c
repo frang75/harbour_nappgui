@@ -17,7 +17,6 @@
 #include "ospanel_win.inl"
 #include "oswindow_win.inl"
 #include "osimglist.inl"
-#include "ostooltip.inl"
 #include "../ospopup.h"
 #include "../ospopup.inl"
 #include "../osgui.inl"
@@ -75,6 +74,11 @@ static LRESULT CALLBACK i_ComboWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 
     switch (uMsg)
     {
+    case WM_MOUSEWHEEL:
+        /* Avoid change popup selection with wheel */
+        SendMessage(GetParent(popup->control.hwnd), WM_MOUSEWHEEL, wParam, lParam);
+        return 1;
+
     case WM_LBUTTONDOWN:
     case WM_LBUTTONDBLCLK:
         if (_oswindow_mouse_down(cast(popup, OSControl)) == TRUE)
@@ -101,6 +105,7 @@ OSPopUp *ospopup_create(const uint32_t flags)
     popup->font = _osgui_create_default_font();
     popup->combo_hwnd = (HWND)SendMessage(popup->control.hwnd, CBEM_GETCOMBOCONTROL, (WPARAM)0, (LPARAM)0);
     popup->def_combo_proc = (WNDPROC)SetWindowLongPtr(popup->combo_hwnd, GWLP_WNDPROC, (LONG_PTR)i_ComboWndProc);
+    popup->control.tooltip_hwnd1 = popup->combo_hwnd;
     popup->list_num_elems = 5;
     SetWindowLongPtr(popup->combo_hwnd, GWLP_USERDATA, (LONG_PTR)popup);
     popup->image_list = _osimglist_create(16);
@@ -133,8 +138,7 @@ void ospopup_OnSelect(OSPopUp *popup, Listener *listener)
 
 void ospopup_tooltip(OSPopUp *popup, const char_t *text)
 {
-    cassert_no_null(popup);
-    _ostooltip_set_text(&popup->control.tooltip_hwnd, popup->combo_hwnd, text);
+    _oscontrol_tooltip(cast(popup, OSControl), text);
 }
 
 /*---------------------------------------------------------------------------*/

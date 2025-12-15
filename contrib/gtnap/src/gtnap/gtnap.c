@@ -4236,6 +4236,23 @@ static GtNapArea *i_create_area(void)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_rtrim(char_t *buffer)
+{
+    uint32_t n = str_len_c(buffer);
+    cassert_no_null(buffer);
+    while (n > 0)
+    {
+        if (buffer[n - 1] == ' ')
+            buffer[n - 1] = '\0';
+        else
+            return;
+
+        n -= 1;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_hbitem_to_char(HB_ITEM *item, char_t *buffer, const uint32_t size)
 {
     HB_TYPE type = HB_ITEM_TYPE(item);
@@ -4245,6 +4262,7 @@ static void i_hbitem_to_char(HB_ITEM *item, char_t *buffer, const uint32_t size)
     {
     case HB_IT_STRING:
         hb_itemCopyStrUTF8(item, buffer, size);
+        i_rtrim(buffer);
         break;
 
     case HB_IT_DATE:
@@ -5401,7 +5419,7 @@ static void i_center_window(const Window *parent, Window *window)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_form_modal(GtNapForm *form, const char_t *resource_path)
+uint32_t hb_gtnap_form_modal(GtNapForm *form, const char_t *resource_path, const bool_t resizable)
 {
     GtNapWindow *gtwin = i_current_gtwin(GTNAP_GLOBAL);
     GtNapWindow *mwin = i_current_main_gtwin(GTNAP_GLOBAL);
@@ -5410,7 +5428,9 @@ uint32_t hb_gtnap_form_modal(GtNapForm *form, const char_t *resource_path)
     cassert_no_null(mwin);
     if (form->window == NULL)
     {
-        form->window = nform_window(form->form, ekWINDOW_STD | ekWINDOW_RETURN | ekWINDOW_ESC, resource_path);
+        uint32_t flags = (resizable == TRUE) ? ekWINDOW_STDRES : ekWINDOW_STD;
+        flags |= ekWINDOW_RETURN | ekWINDOW_ESC;
+        form->window = nform_window(form->form, flags, resource_path);
         window_title(form->window, tc(form->title));
         i_map_bind_to_form(form->form, form->binds);
         if (form->area != NULL)
@@ -5436,6 +5456,36 @@ R2Df hb_gtnap_form_control_frame(GtNapForm *form, const char_t *cell_name)
 {
     cassert_no_null(form);
     return nform_get_control_frame(form->form, cell_name, form->window);
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t hb_gtnap_form_sel_recno(GtNapForm *form)
+{
+    const ArrSt(uint32_t) *sel = 0;
+    cassert_no_null(form);
+    cassert_no_null(form->area);
+    sel = tableview_selected(form->area->table);
+    if (arrst_size(sel, uint32_t) == 1)
+    {
+        uint32_t index = *arrst_first_const(sel, uint32_t);
+        return *arrst_get(form->area->records, index, uint32_t);
+    }
+    else
+    {
+        return UINT32_MAX;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hb_gtnap_form_refresh_area(GtNapForm *form)
+{
+    cassert_no_null(form);
+    cassert_no_null(form->area);
+    i_farea_refresh(form->area);
+    tableview_update(form->area->table);
+    i_farea_select_row(form->area);
 }
 
 /*---------------------------------------------------------------------------*/

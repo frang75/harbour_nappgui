@@ -27,6 +27,7 @@ void ftool_destroy(FTool **ftool)
 void ftool_synchro(const FTool *ftool, Button *button, const char_t *resource_path)
 {
     cassert_no_null(ftool);
+    button_tooltip(button, tc(ftool->tooltip));
     button_hpadding(button, ftool->hpadding);
     button_vpadding(button, ftool->vpadding);
 

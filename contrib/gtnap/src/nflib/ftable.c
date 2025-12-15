@@ -33,6 +33,7 @@ void ftable_synchro(const FTable *table, TableView *view)
         tableview_del_column(view, 0);
 
     tableview_size(view, s2df(table->min_width, table->min_height));
+    tableview_header_resizable(view, TRUE);
     arrst_foreach_const(header, table->headers, FHeader)
         uint32_t id = tableview_add_column_text(view);
         cassert(id == header_i);
