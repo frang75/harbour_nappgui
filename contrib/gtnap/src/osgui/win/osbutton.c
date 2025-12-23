@@ -172,10 +172,7 @@ static void i_draw_flat_button(OSButton *button, const Image *image)
 static void i_update_focus_show(const OSButton *button)
 {
     cassert_no_null(button);
-    if ((button_get_type(button->flags) == ekBUTTON_CHECK2
-        || button_get_type(button->flags) == ekBUTTON_CHECK3
-        || button_get_type(button->flags) == ekBUTTON_RADIO)
-        && button->empty_text == TRUE)
+    if ((button_get_type(button->flags) == ekBUTTON_CHECK2 || button_get_type(button->flags) == ekBUTTON_CHECK3 || button_get_type(button->flags) == ekBUTTON_RADIO) && button->empty_text == TRUE)
     {
         SendMessage(button->control.hwnd, WM_UPDATEUISTATE, MAKEWPARAM(UIS_SET, UISF_HIDEFOCUS), 0);
     }
