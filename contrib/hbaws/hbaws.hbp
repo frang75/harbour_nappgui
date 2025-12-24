@@ -15,8 +15,8 @@
 -i{allgcc&debug}${AWS_SDK_ROOT}/gcc/Debug/include
 -i{allgcc&!debug}${AWS_SDK_ROOT}/gcc/Release/include
 
-# Avoid linker error '__gxx_personality_v0'
--cpp=yes
+# AWS-SDK requires, at least, C++11
+-cpp=iso11
 
 # Flags
 -cflag={allgcc&debug}-g

@@ -18,6 +18,10 @@ ALL_BUILD_COMPILER=gcc
 BUILD=Release
 HBMK_FLAGS=
 
+if [ "$(uname)" == "Darwin" ]; then
+    ALL_BUILD_COMPILER=clang
+fi
+
 while [[ $# -gt 0 ]]; do
   case $1 in
     -comp)

@@ -7,6 +7,7 @@
     - [AWS-SDK with MSVC](#aws-sdk-with-msvc)
     - [AWS-SDK with GCC Linux](#aws-sdk-with-gcc-linux)
     - [AWS-SDK with CLANG Linux](#aws-sdk-with-clang-linux)
+    - [AWS-SDK with CLANG macOS](#aws-sdk-with-clang-macos)
     - [AWS-SDK result](#aws-sdk-result)
 
 * [Build HBAWS](#build-hbaws)
@@ -15,6 +16,8 @@
     - [Build HBAWS with MSVC](#build-hbaws-with-msvc)
     - [Build HBAWS with GCC Linux](#build-hbaws-with-gcc-linux)
     - [Build HBAWS with CLANG Linux](#build-hbaws-with-clang-linux)
+    - [Build HBAWS with CLANG macOS](#build-hbaws-with-clang-macos)
+
 * [HBAWS examples](#hbaws-examples)
 * [Reference guide](#reference-guide)
     - [HBAWS_INIT](#hbaws_init)
@@ -55,7 +58,7 @@
     sudo apt-get install libssl-dev
     ```
 
-- Set the `AWS_SDK_ROOT` environment variable. This path will be used to download and compile the code, as well as to install the headers and binaries once they are generated. E.g: `C:\aws-sdk` (Windows) or `/home/user/aws-sdk` (Linux).
+- Set the `AWS_SDK_ROOT` environment variable. This path will be used to download and compile the code, as well as to install the headers and binaries once they are generated. E.g: `C:\aws-sdk` (Windows), `/home/user/aws-sdk` (Linux) or `/Users/user/aws-sdk` (macOS).
 
 ### AWS-SDK with MinGW
 
@@ -105,6 +108,14 @@ cd contrib/hbaws
 ./awssdk -comp clang -b [Debug|Release]
 ```
 
+### AWS-SDK with CLANG macOS
+
+```
+AWS_SDK_ROOT=/Users/user/aws-sdk
+cd contrib/hbaws
+./awssdk -comp clang -b [Debug|Release]
+```
+
 ### AWS-SDK result
 
 If the `awssdk` script runs successfully, you will have the AWS-SDK headers and libraries in `$AWS_SDK_ROOT/$COMPILER/$BUILD`.
@@ -124,6 +135,10 @@ If the `awssdk` script runs successfully, you will have the AWS-SDK headers and 
 **Linux redistributables .so** in `/lib` folder.
 
 ![linux_aws_so](https://github.com/user-attachments/assets/d8529946-c9a0-4ee1-b576-fa05a26c6514)
+
+**macOS redistributables .dylib** in `/lib` folder.
+
+![macos_aws_dylib](https://github.com/user-attachments/assets/d8529946-c9a0-4ee1-b576-fa05a26c6514)
 
 ## Build HBAWS
 
@@ -185,6 +200,16 @@ build -comp clang -b [Debug|Release]
 
 The `libhbaws.a` will be generated in `hbaws/build/[Debug|Release]/lib`.
 
+### Build HBAWS with CLANG macOS
+
+```
+cd contrib/hbaws
+export AWS_SDK_ROOT=/Users/user/aws-sdk
+build -comp clang -b [Debug|Release]
+```
+
+The `libhbaws.a` will be generated in `hbaws/build/[Debug|Release]/lib`.
+
 ## HBAWS examples
 
 Some examples have been provided in `contrib/hbaws/tests/harbour`.
@@ -202,12 +227,16 @@ Some examples have been provided in `contrib/hbaws/tests/harbour`.
     # Linux GCC
     export LD_LIBRARY_PATH=$AWS_SDK_ROOT/gcc/Release/lib:$LD_LIBRARY_PATH
 
+    # macOS Clang
+    export DYLD_LIBRARY_PATH=$AWS_SDK_ROOT/clang/Release/lib:$DYLD_LIBRARY_PATH
+
 * `listall`: Use of `HBAWS_S3_LIST_ALL` function.
     ```
     cd contrib\hbaws\tests\harbour
     ..\..\..\..\bin\win\mingw64\hbmk2 listall.prg credentials.prg hbaws.hbc -comp=mingw64
     ..\..\..\..\bin\win\msvc64\hbmk2 listall.prg credentials.prg hbaws.hbc -comp=msvc64
     ../../../../bin/linux/gcc/hbmk2 listall.prg credentials.prg hbaws.hbc
+    ../../../../bin/darwin/clang/hbmk2 listall.prg credentials.prg hbaws.hbc
     ```
 
 * `listpage`: Use of `HBAWS_S3_LIST_PAGINATED` function.
@@ -216,6 +245,7 @@ Some examples have been provided in `contrib/hbaws/tests/harbour`.
     ..\..\..\..\bin\win\mingw64\hbmk2 listpage.prg credentials.prg hbaws.hbc -comp=mingw64
     ..\..\..\..\bin\win\msvc64\hbmk2 listpage.prg credentials.prg hbaws.hbc -comp=msvc64
     ../../../../bin/linux/gcc/hbmk2 listpage.prg credentials.prg hbaws.hbc
+    ../../../../bin/darwin/clang/hbmk2 listpage.prg credentials.prg hbaws.hbc
     ```
 
 * `upload`: Use of `HBAWS_S3_UPLOAD_SIMPLE` function.
@@ -224,6 +254,7 @@ Some examples have been provided in `contrib/hbaws/tests/harbour`.
     ..\..\..\..\bin\win\mingw64\hbmk2 upload.prg credentials.prg hbaws.hbc -comp=mingw64
     ..\..\..\..\bin\win\msvc64\hbmk2 upload.prg credentials.prg hbaws.hbc -comp=msvc64
     ../../../../bin/linux/gcc/hbmk2 upload.prg credentials.prg hbaws.hbc
+    ../../../../bin/darwin/clang/hbmk2 upload.prg credentials.prg hbaws.hbc
     ```
 
 * `uploadm`: Use of `HBAWS_S3_UPLOAD_MULTIPART` function.
@@ -232,6 +263,7 @@ Some examples have been provided in `contrib/hbaws/tests/harbour`.
     ..\..\..\..\bin\win\mingw64\hbmk2 uploadm.prg credentials.prg hbaws.hbc -comp=mingw64
     ..\..\..\..\bin\win\msvc64\hbmk2 uploadm.prg credentials.prg hbaws.hbc -comp=msvc64
     ../../../../bin/linux/gcc/hbmk2 uploadm.prg credentials.prg hbaws.hbc
+    ../../../../bin/darwin/clang/hbmk2 uploadm.prg credentials.prg hbaws.hbc
     ```
 
 * `copy`: Use of `HBAWS_S3_COPY_SIMPLE` function.
@@ -240,6 +272,7 @@ Some examples have been provided in `contrib/hbaws/tests/harbour`.
     ..\..\..\..\bin\win\mingw64\hbmk2 copy.prg credentials.prg hbaws.hbc -comp=mingw64
     ..\..\..\..\bin\win\msvc64\hbmk2 copy.prg credentials.prg hbaws.hbc -comp=msvc64
     ../../../../bin/linux/gcc/hbmk2 copy.prg credentials.prg hbaws.hbc
+    ../../../../bin/darwin/clang/hbmk2 copy.prg credentials.prg hbaws.hbc
     ```
 
 * `copym`: Use of `HBAWS_S3_COPY_MULTIPART` function.
@@ -248,6 +281,7 @@ Some examples have been provided in `contrib/hbaws/tests/harbour`.
     ..\..\..\..\bin\win\mingw64\hbmk2 copym.prg credentials.prg hbaws.hbc -comp=mingw64
     ..\..\..\..\bin\win\msvc64\hbmk2 copym.prg credentials.prg hbaws.hbc -comp=msvc64
     ../../../../bin/linux/gcc/hbmk2 copym.prg credentials.prg hbaws.hbc
+    ../../../../bin/darwin/clang/hbmk2 copym.prg credentials.prg hbaws.hbc
     ```
 
 * `download`: Use of `HBAWS_S3_DOWNLOAD` function.
@@ -256,6 +290,7 @@ Some examples have been provided in `contrib/hbaws/tests/harbour`.
     ..\..\..\..\bin\win\mingw64\hbmk2 download.prg credentials.prg hbaws.hbc -comp=mingw64
     ..\..\..\..\bin\win\msvc64\hbmk2 download.prg credentials.prg hbaws.hbc -comp=msvc64
     ../../../../bin/linux/gcc/hbmk2 download.prg credentials.prg hbaws.hbc
+    ../../../../bin/darwin/clang/hbmk2 download.prg credentials.prg hbaws.hbc
     ```
 
 * `delete`: Use of `HBAWS_S3_DELETE` function.
@@ -264,6 +299,7 @@ Some examples have been provided in `contrib/hbaws/tests/harbour`.
     ..\..\..\..\bin\win\mingw64\hbmk2 delete.prg credentials.prg hbaws.hbc -comp=mingw64
     ..\..\..\..\bin\win\msvc64\hbmk2 delete.prg credentials.prg hbaws.hbc -comp=msvc64
     ../../../../bin/linux/gcc/hbmk2 delete.prg credentials.prg hbaws.hbc
+    ../../../../bin/darwin/clang/hbmk2 delete.prg credentials.prg hbaws.hbc
     ```
 
 * `restore`: Use of `HBAWS_S3_RESTORE` function.
@@ -272,6 +308,7 @@ Some examples have been provided in `contrib/hbaws/tests/harbour`.
     ..\..\..\..\bin\win\mingw64\hbmk2 restore.prg credentials.prg hbaws.hbc -comp=mingw64
     ..\..\..\..\bin\win\msvc64\hbmk2 restore.prg credentials.prg hbaws.hbc -comp=msvc64
     ../../../../bin/linux/gcc/hbmk2 restore.prg credentials.prg hbaws.hbc
+    ../../../../bin/darwin/clang/hbmk2 restore.prg credentials.prg hbaws.hbc
     ```
 
 ## Reference guide
