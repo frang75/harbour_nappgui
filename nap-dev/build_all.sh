@@ -15,11 +15,13 @@
 #
 BUILD_HARBOUR=yes
 ALL_BUILD_COMPILER=gcc
+PLATFORM=linux
 BUILD=Release
 HBMK_FLAGS=
 
 if [ "$(uname)" == "Darwin" ]; then
     ALL_BUILD_COMPILER=clang
+    PLATFORM=darwin
 fi
 
 while [[ $# -gt 0 ]]; do
@@ -46,7 +48,7 @@ done
 
 cd ..
 
-# Allowed compilers for Linux
+# Allowed compilers for Unix-like
 if [[ "$ALL_BUILD_COMPILER" != "gcc" && "$ALL_BUILD_COMPILER" != "clang" ]]; then
     echo Error Unknown compiler: $ALL_BUILD_COMPILER
     exit 1
@@ -62,8 +64,8 @@ echo ----------------------------------------
 # Compile Harbour with gcc or clang
 if [[ "$BUILD_HARBOUR" == "yes" ]]; then
     # Remove previous compilations
-    rm -rf bin/linux
-    rm -rf lib/linux
+    rm -rf bin/$PLATFORM
+    rm -rf lib/$PLATFORM
     make clean
     make -j4 HB_CPU=x86_64 HB_COMPILER=$ALL_BUILD_COMPILER
     echo ----------------------------------------
@@ -114,10 +116,17 @@ echo -------------------------
 cd tests/cuademo/gtnap_cualib
 rm exemplo
 rm *.so
-cp ../../../../hboffice/build/$BUILD/bin/libofficesdk.so .
-../../../../../bin/linux/$ALL_BUILD_COMPILER/hbmk2 -comp=$ALL_BUILD_COMPILER exemplo.hbp
-export LIBREOFFICE_HOME=/usr/lib/libreoffice
-export LD_LIBRARY_PATH=.:/usr/lib/libreoffice/program
+cp ../../../../hboffice/build/$BUILD/bin/libofficesdk.* .
+../../../../../bin/$PLATFORM/$ALL_BUILD_COMPILER/hbmk2 -comp=$ALL_BUILD_COMPILER exemplo.hbp
+
+if [ "$(uname)" == "Darwin" ]; then
+    export LIBREOFFICE_HOME=/Applications/LibreOffice.app
+    export PATH=$PATH:/Applications/LibreOffice.app/Contents/MacOS
+    export DYLD_LIBRARY_PATH=.:$LIBREOFFICE_HOME/Contents/Frameworks
+else
+    export LIBREOFFICE_HOME=/usr/lib/libreoffice
+    export LD_LIBRARY_PATH=.:/usr/lib/libreoffice/program
+fi
 
 ./exemplo --hb:gtnap
 
