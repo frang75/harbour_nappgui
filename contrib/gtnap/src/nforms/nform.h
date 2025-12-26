@@ -22,6 +22,10 @@ _nforms_api void nform_set_control_int(NForm *form, const char_t *cell_name, con
 
 _nforms_api void nform_set_control_real(NForm *form, const char_t *cell_name, const real32_t value);
 
+_nforms_api void nform_clear_control_list(NForm *form, const char_t *cell_name);
+
+_nforms_api void nform_add_control_item(NForm *form, const char_t *cell_name, const char_t *value);
+
 _nforms_api bool_t nform_get_control_str(const NForm *form, const char_t *cell_name, const char_t **value);
 
 _nforms_api bool_t nform_get_control_bool(const NForm *form, const char_t *cell_name, bool_t *value);

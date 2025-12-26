@@ -71,6 +71,16 @@ HB_FUNC(NAP_FORM_INSERT_TEXT)
 
 /*---------------------------------------------------------------------------*/
 
+HB_FUNC(NAP_FORM_ITEM_LIST)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    const char_t *cell_name = hb_parcx(2);
+    HB_ITEM *items_block = hb_param(3, HB_IT_ARRAY);
+    hb_gtnap_form_item_list(form, cell_name, items_block);
+}
+
+/*---------------------------------------------------------------------------*/
+
 HB_FUNC(NAP_FORM_MODAL)
 {
     GtNapForm *form = cast(hb_parptr(1), GtNapForm);
