@@ -1671,6 +1671,14 @@ static Menu *i_menu(Designer *app)
     menuitem_submenu(item2, &submenu2);
     menuitem_submenu(item3, &submenu3);
     menuitem_submenu(item4, &submenu4);
+    
+#if defined(__APPLE__)
+    {
+        MenuItem *appitem = menuitem_create();
+        menu_add_item(menu, appitem);
+    }
+#endif
+    
     menu_add_item(menu, item1);
     menu_add_item(menu, item2);
     menu_add_item(menu, item3);
