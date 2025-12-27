@@ -45,13 +45,14 @@ struct _ossplittrack_t
     ArrPt(OSSplit) *splits;
     OSSplit *pressed;
     OSSplit *captured;
+    bool_t restored;
 };
 
 DeclPt(OSSplit);
 
 /*---------------------------------------------------------------------------*/
 
-static OSSplitTrack i_SPLIT_TRACKS = {NULL, NULL, NULL};
+static OSSplitTrack i_SPLIT_TRACKS = {NULL, NULL, NULL, FALSE};
 
 /*---------------------------------------------------------------------------*/
 
@@ -387,6 +388,8 @@ void _ossplit_OnMove(GtkWidget *sender, GdkEventMotion *event)
                 _osgui_ns_resize_cursor(sender);
             else
                 _osgui_ew_resize_cursor(sender);
+
+            i_SPLIT_TRACKS.restored = FALSE;
         }
         else
         {
@@ -396,7 +399,11 @@ void _ossplit_OnMove(GtkWidget *sender, GdkEventMotion *event)
                 i_SPLIT_TRACKS.captured = NULL;
             }
 
-            _osgui_default_cursor(sender);
+            if (i_SPLIT_TRACKS.restored == FALSE)
+            {
+                _osgui_default_cursor(sender);
+                i_SPLIT_TRACKS.restored = TRUE;
+            }
         }
     }
 }
