@@ -514,7 +514,7 @@ Buffer *hfile_buffer(const char_t *pathname, ferror_t *error)
 {
     file_type_t file_type;
     uint64_t file_size;
-    if (bfile_lstat(pathname, &file_type, &file_size, NULL, error) == TRUE)
+    if (bfile_lstat(pathname, &file_type, &file_size, NULL, error) == TRUE && file_type == ekARCHIVE)
     {
         if (file_size < 0xFFFFFFFF)
         {

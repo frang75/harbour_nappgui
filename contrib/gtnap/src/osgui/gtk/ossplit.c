@@ -123,7 +123,7 @@ static gboolean i_OnMove(GtkWidget *widget, GdkEventMotion *event, OSSplit *view
 {
     cassert_no_null(view);
     cassert_unref(widget == view->control.widget, widget);
-    _ossplit_OnMove(view, event);
+    _ossplit_OnMove(view->control.widget, event);
     return FALSE;
 }
 
@@ -192,8 +192,6 @@ void ossplit_attach_control(OSSplit *view, OSControl *control)
 {
     cassert_no_null(view);
     _oscontrol_attach_to_parent(control, view->control.widget);
-    if (control->type == ekGUI_TYPE_CUSTOMVIEW)
-        _osview_set_parent_split(cast(control, OSView), view);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -341,10 +339,10 @@ void _ossplit_OnRelease(OSSplit *view, GdkEventButton *event)
 
 /*---------------------------------------------------------------------------*/
 
-void _ossplit_OnMove(OSSplit *view, GdkEventMotion *event)
+void _ossplit_OnMove(GtkWidget *sender, GdkEventMotion *event)
 {
     cassert_no_null(event);
-    unref(view);
+    cassert_no_null(sender);
     if (i_SPLIT_TRACKS.pressed != NULL)
     {
         if (i_SPLIT_TRACKS.pressed->OnDrag != NULL)
@@ -386,9 +384,9 @@ void _ossplit_OnMove(OSSplit *view, GdkEventMotion *event)
             }
 
             if (split_get_type(i_SPLIT_TRACKS.captured->flags) == ekSPLIT_HORZ)
-                _osgui_ns_resize_cursor(view->control.widget);
+                _osgui_ns_resize_cursor(sender);
             else
-                _osgui_ew_resize_cursor(view->control.widget);
+                _osgui_ew_resize_cursor(sender);
         }
         else
         {
@@ -398,7 +396,7 @@ void _ossplit_OnMove(OSSplit *view, GdkEventMotion *event)
                 i_SPLIT_TRACKS.captured = NULL;
             }
 
-            _osgui_default_cursor(view->control.widget);
+            _osgui_default_cursor(sender);
         }
     }
 }
