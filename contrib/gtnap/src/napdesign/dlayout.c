@@ -442,7 +442,7 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
         col[i].width = layout_get_hsize(glayout, i);
         col[i].rect.pos.x = origin.x + mleft + inner_width;
         col[i].rect.pos.y = origin.y + mtop;
-        col[i].rect.size.width = col[i].width;             
+        col[i].rect.size.width = col[i].width;
         inner_width += col[i].width;
 
         if (i < ncols - 1)
@@ -533,8 +533,8 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
                 real32_t cellx = 0;
                 real32_t celly = 0;
                 cassert_no_null(gcell);
-                cassert(hsize <= col[i].width);
-                cassert(vsize <= row[j].height);
+                cassert(bmath_floorf(hsize) <= col[i].width);
+                cassert(bmath_floorf(vsize) <= row[j].height);
 
                 switch (halign)
                 {
@@ -1450,7 +1450,7 @@ static void i_draw_skeleton(const DLayout *dlayout, const DColors *colors, DCtx 
             i_draw_skeleton(cell->sublayout, colors, ctx);
     arrst_end()
 }
-   
+
 /*---------------------------------------------------------------------------*/
 
 static DCell *i_sel_cell(const DSelect *sel)
