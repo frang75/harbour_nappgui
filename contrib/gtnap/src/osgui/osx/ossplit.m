@@ -194,6 +194,13 @@ static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
 
 /*---------------------------------------------------------------------------*/
 
+- (void)mouseExited:(NSEvent *)event
+{
+    [[NSCursor arrowCursor] set];
+}
+
+/*---------------------------------------------------------------------------*/
+
 - (BOOL)isFlipped
 {
     return YES;
