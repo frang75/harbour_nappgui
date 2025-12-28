@@ -36,25 +36,25 @@ The main goal this year is to consolidate the use of GTNAP/Forms in the Aspec pr
 
 - Sprint 1: Windows flickering. Use `DeferWindowPos()` Win32 API.
 - Sprint 2: GTK resizing issue. Review GTK API and monitor the mouse events.
-- Sprint 3: Improve NAppGUI layout algorithm to take into account panel scrollbars width/height.
-- Sprint 4: Implement line widgets (hor/ver) in NAppGUI and add them to designer.
-- Sprint 5: --> Possible maintenance tasks for current projects.
-- Sprint 6: Implement group widget in NAppGUI.
-- Sprint 7: Add panel widget and group widget to designer.
-- Sprint 8: Implement TabBar widget in NAppGUI.
-- Sprint 9: Implement TreeView widget in NAppGUI.
-- Sprint 10: --> Possible maintenance tasks for current projects.
-- Sprint 11: Add TabBar and TreeView to designer.
-- Sprint 12: Implement HiDPI support in NAppGUI Win32 backend (I).
-- Sprint 13: Implement HiDPI support in NAppGUI Win32 backend (II).
-- Sprint 14: Implement support in NAppGUI for GTK3/Wayland backend. Ubuntu 24+ application icon.
-- Sprint 15: --> Possible maintenance tasks for current projects.
-- Sprint 16: Implement HiDPI support in NAppGUI GTK backend.
-- Sprint 17: Aspec-clone app: Delve deeper into the user mode.
-- Sprint 18: Aspec-clone app: Main Window, modals, navigation.
-- Sprint 19: Aspec-clone app: Support for editbox with char patterns (date/time/document).
-- Sprint 20: --> Possible maintenance tasks for current projects.
-- Sprint 21: Aspec-clone app: Keyboard navigation within the form. Hotkeys.
-- Sprint 22: Aspec-clone app: Messagebox, secondary windows.
-- Sprint 23: Aspec-clone app: Reuse parts in designer.
-- Sprint 24: Aspec-clone app: Designer manual/tutorial.
+- Sprint 3: macOS panels with scrollbar (remains at fixed pos).
+- Sprint 4: Improve NAppGUI layout algorithm to take into account panel scrollbars width/height.
+- Sprint 5: Implement line widgets (hor/ver) in NAppGUI and add them to designer.
+- Sprint 6: --> Possible maintenance tasks for current projects.
+- Sprint 7: Implement group widget in NAppGUI.
+- Sprint 8: Add panel widget and group widget to designer.
+- Sprint 9: Implement TabBar widget in NAppGUI.
+- Sprint 10: Implement TreeView widget in NAppGUI.
+- Sprint 11: --> Possible maintenance tasks for current projects.
+- Sprint 12: Add TabBar and TreeView to designer.
+- Sprint 13: Implement HiDPI support in NAppGUI Win32 backend (I).
+- Sprint 14: Implement HiDPI support in NAppGUI Win32 backend (II).
+- Sprint 15: Implement support in NAppGUI for GTK3/Wayland backend. Ubuntu 24+ application icon.
+- Sprint 16: --> Possible maintenance tasks for current projects.
+- Sprint 17: Implement HiDPI support in NAppGUI GTK backend.
+- Sprint 18: Aspec-clone app: Delve deeper into the user mode.
+- Sprint 19: Aspec-clone app: Main Window, modals, navigation.
+- Sprint 20: Aspec-clone app: Support for editbox with char patterns (date/time/document).
+- Sprint 21: --> Possible maintenance tasks for current projects.
+- Sprint 22: Aspec-clone app: Keyboard navigation within the form. Hotkeys.
+- Sprint 23: Aspec-clone app: Messagebox, secondary windows.
+- Sprint 24: Aspec-clone app: Reuse parts in designer.
