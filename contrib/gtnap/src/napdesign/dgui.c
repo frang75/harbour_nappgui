@@ -62,27 +62,16 @@ static void i_destroy_header_data(HeaderData **data)
 
 /*---------------------------------------------------------------------------*/
 
-void dgui_init(void)
+void dgui_init(const DColors *colors)
 {
     color_t opened = gui_label_color();
     color_t closed = gui_line_color();
     color_t hover = gui_link_color();
-
-    if (gui_dark_mode() == TRUE)
-    {
-        i_HEADER_GRADIENT[0] = color_rgb(0x35, 0x2A, 0x27);
-        i_HEADER_GRADIENT[1] = color_rgb(0x2C, 0x31, 0x37);
-        i_DRAWER_GRADIENT[0] = color_rgb(0x39, 0x3C, 0x42);
-        i_DRAWER_GRADIENT[1] = color_rgb(0x2D, 0x30, 0x34);
-    }
-    else
-    {
-        i_HEADER_GRADIENT[0] = color_rgb(0xDE, 0xDE, 0xDE);
-        i_HEADER_GRADIENT[1] = color_rgb(0xDA, 0xDA, 0xDA);
-        i_DRAWER_GRADIENT[0] = color_rgb(0xF2, 0xF2, 0xF2);
-        i_DRAWER_GRADIENT[1] = color_rgb(0xE4, 0xE4, 0xE4);
-    }
-
+    cassert_no_null(colors);
+    i_HEADER_GRADIENT[0] = colors->header0;
+    i_HEADER_GRADIENT[1] = colors->header1;
+    i_DRAWER_GRADIENT[0] = colors->drawer0;
+    i_DRAWER_GRADIENT[1] = colors->drawer1;
     i_LEFT_ARROW = imgproc_colorize(gui_image(ARRLEFT_PNG), closed);
     i_LEFT_ARROW_HOVER = imgproc_colorize(gui_image(ARRLEFT_PNG), hover);
     i_DOWN_ARROW = imgproc_colorize(gui_image(ARRDOWN_PNG), opened);

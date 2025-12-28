@@ -895,8 +895,8 @@ static Panel *i_drawer_widget_panel(Designer *app, const drawer_t drawer)
                 cassert(bwidget->label == NULL);
                 button_OnClick(button, listener(app, i_OnWidgetButtonClick, Designer));
                 button_image(button, gui_image(bwidget->imageid));
-                button_vpadding(button, 0);
-                button_hpadding(button, 0);
+                button_vpadding(button, 4);
+                button_hpadding(button, 4);
                 label_text(label, gui_text(bwidget->labelid));
                 label_style_over(label, ekFUNDERLINE);
                 label_OnClick(label, listener(app, i_OnWidgetLabelClick, Designer));
@@ -1916,7 +1916,6 @@ static Designer *i_app(void)
     Designer *app = heap_new0(Designer);
     gui_respack(res_designer_respack);
     gui_language("");
-    dgui_init();
     nflib_start();
     i_dbind();
     dialog_dbind();
@@ -1924,26 +1923,44 @@ static Designer *i_app(void)
 
     if (gui_dark_mode() == TRUE)
     {
-        /* Define Dark-Mode colors */
-        cassert(FALSE);
+        i_COLORS.canvas = color_rgb(0x25, 0x29, 0x2E);
+        i_COLORS.panel = color_rgb(0x56, 0x56, 0x56);
+        i_COLORS.back = color_rgb(0x23, 0x23, 0x23);
+        i_COLORS.main = color_rgb(0xCC, 0xCC, 0xCC);
+        i_COLORS.select = gui_link_color();
+        i_COLORS.title0 = color_rgb(0x39, 0x3C, 0x42);
+        i_COLORS.title1 = color_rgb(0x2D, 0x30, 0x34);
+        i_COLORS.cell = color_rgb(0x6E, 0x1C, 0x87);
+        i_COLORS.cellhot = color_rgb(0x8F, 0x8E, 0x30);
+        i_COLORS.col = color_rgb(0x8D, 0xDB, 0x45);
+        i_COLORS.row = color_rgb(0x6A, 0x8E, 0xD8);
+        i_COLORS.header0 = color_rgb(0x35, 0x2A, 0x27);
+        i_COLORS.header1 = color_rgb(0x2C, 0x31, 0x37);
+        i_COLORS.drawer0 = color_rgb(0x39, 0x3C, 0x42);
+        i_COLORS.drawer1 = color_rgb(0x2D, 0x30, 0x34);
     }
     else
     {
-        i_COLORS.canvas = color_html("#a0a0a0");
-        i_COLORS.panel = color_html("#f0f0f0");
-        i_COLORS.back = color_html("#e0e0e0");
+        i_COLORS.canvas = color_rgb(0xA0, 0xA0, 0xA0);
+        i_COLORS.panel = color_rgb(0xF0, 0xF0, 0xF0);
+        i_COLORS.back = color_rgb(0xE0, 0xE0, 0XE0);
         i_COLORS.main = kCOLOR_BLACK;
         i_COLORS.select = gui_link_color();
-        i_COLORS.title0 = color_html("#99b5d1");
-        i_COLORS.title1 = color_html("#b7cfe8");
-        i_COLORS.cell = color_html("#ffe082");
-        i_COLORS.cellhot = color_html("#ffa000");
-        i_COLORS.col = color_html("#8e03a3");
+        i_COLORS.title0 = color_rgb(0x99, 0xB5, 0xD1);
+        i_COLORS.title1 = color_rgb(0xB7, 0xCF, 0xE8);
+        i_COLORS.cell = color_rgb(0xFF, 0xE0, 0x82);
+        i_COLORS.cellhot = color_rgb(0xFF, 0xA0, 0x00);
+        i_COLORS.col = color_rgb(0x8E, 0x03, 0xA3);
         i_COLORS.row = kCOLOR_BLUE;
+        i_COLORS.header0 = color_rgb(0xDE, 0xDE, 0xDE);
+        i_COLORS.header1 = color_rgb(0xDA, 0xDA, 0xDA);
+        i_COLORS.drawer0 = color_rgb(0xF2, 0xF2, 0xF2);
+        i_COLORS.drawer1 = color_rgb(0xE4, 0xE4, 0xE4);
     }
 
     i_COLORS.add_icon = gui_image(PLUS16_PNG);
     i_COLORS.nap_icon = gui_image(NAPP_PNG);
+    dgui_init(&i_COLORS);
     app->forms = arrpt_create(DForm);
     app->default_font = font_system(font_regular_size(), 0);
     app->bold_font = font_system(font_regular_size(), ekFBOLD);

@@ -873,7 +873,7 @@ static void i_draw_frame(DCtx *ctx, const Font *font, const DColors *colors, con
     draw_rect(ctx, ekFILL, rect->pos.x - EDGE, rect->pos.y + rect->size.height, rect->size.width + EDGE * 2, EDGE);
     draw_fill_linear(ctx, c, s, 2, 0, rect->pos.y - HEADER, 0, rect->pos.y);
     draw_rect(ctx, ekFILL, rect->pos.x - EDGE, rect->pos.y - HEADER, rect->size.width + EDGE * 2, HEADER);
-    draw_line_color(ctx, kCOLOR_BLACK);
+    draw_line_color(ctx, colors->main);
     draw_rect(ctx, ekSTROKE, rect->pos.x - EDGE, rect->pos.y - HEADER, rect->size.width + EDGE * 2, rect->size.height + HEADER + EDGE);
 
     /* Icon and title */
@@ -887,6 +887,7 @@ static void i_draw_frame(DCtx *ctx, const Font *font, const DColors *colors, con
         draw_text_width(ctx, rect->size.width - (real32_t)iwidth - 5);
         draw_font(ctx, font);
         draw_text_trim(ctx, ekELLIPEND);
+        draw_text_color(ctx, colors->main);
         drawctrl_text(ctx, tc(name), (int32_t)(xpos + iwidth + 5), (int32_t)ypos, ekCTRL_STATE_NORMAL);
         str_destroy(&name);
     }

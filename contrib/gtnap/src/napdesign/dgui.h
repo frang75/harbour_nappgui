@@ -2,7 +2,7 @@
 
 #include "designer.hxx"
 
-void dgui_init(void);
+void dgui_init(const DColors *colors);
 
 void dgui_finish(void);
 
