@@ -150,6 +150,26 @@ static gboolean i_OnRelease(GtkWidget *widget, GdkEventButton *event, OSSplit *v
 
 /*---------------------------------------------------------------------------*/
 
+static gboolean i_OnExit(GtkWidget *widget, GdkEventCrossing *event, OSSplit *view)
+{
+    cassert_no_null(event);
+    cassert_no_null(view);
+    cassert(event->type == GDK_LEAVE_NOTIFY);
+    unref(widget);
+    if (event->mode == GDK_CROSSING_NORMAL)
+    {
+        if (i_SPLIT_TRACKS.restored == FALSE)
+        {
+            _osgui_default_cursor(view->control.widget);
+            i_SPLIT_TRACKS.restored = TRUE;
+        }
+    }
+
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 OSSplit *ossplit_create(const uint32_t flags)
 {
     OSSplit *view = heap_new0(OSSplit);
@@ -157,11 +177,13 @@ OSSplit *ossplit_create(const uint32_t flags)
     gulong moved_signal = 0;
     gulong pressed_signal = 0;
     gulong release_signal = 0;
+    gulong leave_signal = 0;
     view->flags = flags;
     _oscontrol_init(&view->control, ekGUI_TYPE_SPLITVIEW, widget, widget, TRUE);
     _oslistener_signal(view->control.widget, TRUE, &moved_signal, GDK_POINTER_MOTION_MASK, "motion-notify-event", G_CALLBACK(i_OnMove), (gpointer)view);
     _oslistener_signal(view->control.widget, TRUE, &pressed_signal, GDK_BUTTON_PRESS_MASK, "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)view);
     _oslistener_signal(view->control.widget, TRUE, &release_signal, GDK_BUTTON_RELEASE_MASK, "button-release-event", G_CALLBACK(i_OnRelease), (gpointer)view);
+    _oslistener_signal(view->control.widget, TRUE, &leave_signal, GDK_LEAVE_NOTIFY_MASK, "leave-notify-event", G_CALLBACK(i_OnExit), (gpointer)view);
     arrpt_append(i_SPLIT_TRACKS.splits, view, OSSplit);
     return view;
 }
