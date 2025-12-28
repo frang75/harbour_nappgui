@@ -6,12 +6,13 @@ Therefore, I have planned these lines of work for 2026.
 
 ## Target-1: Correcting errors in Designer
 
-I have found aspects in NAppGUI-sDK that directly affect the user experience of the designer and need improvement. These are:
+I have found aspects in NAppGUI-SDK that directly affect the user experience of the designer and need improvement. These are:
 
 - Significant flickering on Windows when resizing internally (canvas/toolbox/property editor). SplitView issue.
 - Accuracy errors in internal resizing (SplitView) on Linux/GTK. This results in a very poor user experience.
 - Panels must take into account the thickness of scrollbars to avoid hiding information or widgets beneath them.
 - Resizing windows in GTK/Linux sometimes blocks, preventing the user from reaching the desired window size.
+- Some macOS panels with scroll don't move the content properly. I have investigate and is an issue when mix Cocoa/CoreGraphics with NSScrollView. I have to do the scroll manually, discarding de NSScrollView.
 
 ## Target-2: Evolution of NAppGUI/Designer/Forms
 

@@ -30,17 +30,17 @@
 - Sprint 21/Done 87 (01/08/25): WidgetBox - ComboBox.
 - Sprint 22/Done 89 (26/08/25): WidgetBox - TableView (improvement) and vertical slider.
 - Sprint 23/Done 90 (14/09/25): Forms Toolbox, Menu and Toolbars.
-- Sprint 24/Jumped: Object Inspector. Columns, icons and canvas shading. (*) Done in previous sprints.
-- Sprint 25/Jumped: Property editor. Organize layouts/widgets properties into drawers. (*) Done in previous sprints.
-- Sprint 26/Jumped: Property editor (and II). (*) Done in previous sprints.
+- ~~Sprint 24~~/Jumped: Object Inspector. Columns, icons and canvas shading. (*) Done in previous sprints.
+- ~~Sprint 25~~/Jumped: Property editor. Organize layouts/widgets properties into drawers. (*) Done in previous sprints.
+- ~~Sprint 26~~/Jumped: Property editor (and II). (*) Done in previous sprints.
 - Sprint 27/Done 92 (27/10/25): Layout management. Add/remove columns/rows.
 - Sprint 28/Done 93 (12/11/25): Clipboard. Copy, Paste, Cut cell content.
-- Sprint 29/Jumped: Canvas clipping operation. (*) Not necessary.
-- Sprint 30/Jumped: Canvas overlay info window. (*) Not necessary.
+- ~~Sprint 29~~/Jumped: Canvas clipping operation. (*) Not necessary.
+- ~~Sprint 30~~/Jumped: Canvas overlay info window. (*) Not necessary.
 - Sprint 31/Done 94 (26/11/25): Undo/redo.
-- Sprint 32/Jumped: Undo/redo (and II). (*) Done in previous sprints.
+- ~~Sprint 32~~/Jumped: Undo/redo (and II). (*) Done in previous sprints.
 - Sprint 33/Done 95 (15/12/25): Resizable forms.
-- Sprint 34/Jumped: Resizable forms (II). (*) Done in previous sprints.
-- Sprint 35/Jumped: Resizable forms (and III). (*) Done in previous sprints.
+- ~~Sprint 34~~/Jumped: Resizable forms (II). (*) Done in previous sprints.
+- ~~Sprint 35~~/Jumped: Resizable forms (and III). (*) Done in previous sprints.
 - Sprint 36/Done 96 (31/12/25): ~~Menu and toolbars~~. Full test. Review Linux/macOS versions.
 
