@@ -6,9 +6,17 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/Debug/bin/exemplo",
-            "args": ["--hb:gtnap", "--res:800x600"],
+            "args": ["--hb:gtnap"],
             "environment": [{ "name": "LIBREOFFICE_HOME", "value": "/usr/lib/libreoffice" },
                             { "name": "LD_LIBRARY_PATH", "value": "/usr/lib/libreoffice/program"}],
+            "cwd": "${workspaceFolder}/contrib/gtnap/tests/cuademo/gtnap_cualib"
+        },
+        {
+            "name": "Designer",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Debug/bin/napdesign",
+            "args": [],
             "cwd": "${workspaceFolder}/contrib/gtnap/tests/cuademo/gtnap_cualib"
         },
         {

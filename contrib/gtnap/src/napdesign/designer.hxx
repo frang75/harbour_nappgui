@@ -156,6 +156,10 @@ struct _dcolors_t
     color_t cellhot;
     color_t col;
     color_t row;
+    color_t header0;
+    color_t header1;
+    color_t drawer0;
+    color_t drawer1;
     const Image *add_icon;
     const Image *nap_icon;
 };

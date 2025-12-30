@@ -62,24 +62,16 @@ static void i_destroy_header_data(HeaderData **data)
 
 /*---------------------------------------------------------------------------*/
 
-void dgui_init(void)
+void dgui_init(const DColors *colors)
 {
     color_t opened = gui_label_color();
     color_t closed = gui_line_color();
     color_t hover = gui_link_color();
-
-    if (gui_dark_mode() == TRUE)
-    {
-        cassert(FALSE);
-    }
-    else
-    {
-        i_HEADER_GRADIENT[0] = color_rgb(0xDE, 0xDE, 0xDE);
-        i_HEADER_GRADIENT[1] = color_rgb(0xDA, 0xDA, 0xDA);
-        i_DRAWER_GRADIENT[0] = color_rgb(0xF2, 0xF2, 0xF2);
-        i_DRAWER_GRADIENT[1] = color_rgb(0xE4, 0xE4, 0xE4);
-    }
-
+    cassert_no_null(colors);
+    i_HEADER_GRADIENT[0] = colors->header0;
+    i_HEADER_GRADIENT[1] = colors->header1;
+    i_DRAWER_GRADIENT[0] = colors->drawer0;
+    i_DRAWER_GRADIENT[1] = colors->drawer1;
     i_LEFT_ARROW = imgproc_colorize(gui_image(ARRLEFT_PNG), closed);
     i_LEFT_ARROW_HOVER = imgproc_colorize(gui_image(ARRLEFT_PNG), hover);
     i_DOWN_ARROW = imgproc_colorize(gui_image(ARRDOWN_PNG), opened);
@@ -118,6 +110,7 @@ static void i_OnHeaderDraw(HeaderData *data, Event *e)
     /* Background */
     draw_fill_linear(p->ctx, i_HEADER_GRADIENT, stop, 2, 0, 0, 0, p->height);
     draw_rect(p->ctx, ekFILL, 0.f, 0.f, back_width, p->height);
+    draw_text_trim(p->ctx, ekELLIPEND);
 
     /* Close button */
     {
@@ -228,7 +221,7 @@ View *dgui_panel_header(const char_t *title, const Font *font, Listener *OnClose
     data->font = font_copy(font);
     data->view = view;
     size.width = 100;
-    size.height = font_height(data->font) + 4;
+    size.height = font_height(data->font) + 12;
     listener_update(&data->listener, OnClose);
     view_size(view, size);
     view_OnDraw(view, listener(data, i_OnHeaderDraw, HeaderData));
@@ -266,6 +259,11 @@ static void i_OnDrawerDraw(HeaderData *data, Event *e)
     draw_font(p->ctx, data->font);
     text_ypos = (int32_t)((p->height - font_height(data->font)) / 2);
     icon_ypos = (int32_t)((p->height - i_DRAWER_TRIANGLE_HEIGHT) / 2);
+    
+    if (text_ypos % 2 == 1)
+        text_ypos -= 1;
+    if (icon_ypos % 2 == 1)
+        icon_ypos -= 1;
 
     /* Background */
     draw_fill_linear(p->ctx, i_DRAWER_GRADIENT, stop, 2, 0, 0, 0, p->height);
@@ -356,7 +354,7 @@ static View *i_drawer_header(const char_t *title, const Font *font)
     data->font = font_copy(font);
     data->view = view;
     size.width = 100;
-    size.height = font_height(data->font) + 4;
+    size.height = font_height(data->font) + 10;
 
     if (size.height < i_DRAWER_TRIANGLE_HEIGHT)
         size.height = i_DRAWER_TRIANGLE_HEIGHT;

@@ -442,7 +442,7 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
         col[i].width = layout_get_hsize(glayout, i);
         col[i].rect.pos.x = origin.x + mleft + inner_width;
         col[i].rect.pos.y = origin.y + mtop;
-        col[i].rect.size.width = col[i].width;             
+        col[i].rect.size.width = col[i].width;
         inner_width += col[i].width;
 
         if (i < ncols - 1)
@@ -533,8 +533,8 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
                 real32_t cellx = 0;
                 real32_t celly = 0;
                 cassert_no_null(gcell);
-                cassert(hsize <= col[i].width);
-                cassert(vsize <= row[j].height);
+                cassert(bmath_floorf(hsize) <= col[i].width);
+                cassert(bmath_floorf(vsize) <= row[j].height);
 
                 switch (halign)
                 {
@@ -873,7 +873,7 @@ static void i_draw_frame(DCtx *ctx, const Font *font, const DColors *colors, con
     draw_rect(ctx, ekFILL, rect->pos.x - EDGE, rect->pos.y + rect->size.height, rect->size.width + EDGE * 2, EDGE);
     draw_fill_linear(ctx, c, s, 2, 0, rect->pos.y - HEADER, 0, rect->pos.y);
     draw_rect(ctx, ekFILL, rect->pos.x - EDGE, rect->pos.y - HEADER, rect->size.width + EDGE * 2, HEADER);
-    draw_line_color(ctx, kCOLOR_BLACK);
+    draw_line_color(ctx, colors->main);
     draw_rect(ctx, ekSTROKE, rect->pos.x - EDGE, rect->pos.y - HEADER, rect->size.width + EDGE * 2, rect->size.height + HEADER + EDGE);
 
     /* Icon and title */
@@ -887,6 +887,7 @@ static void i_draw_frame(DCtx *ctx, const Font *font, const DColors *colors, con
         draw_text_width(ctx, rect->size.width - (real32_t)iwidth - 5);
         draw_font(ctx, font);
         draw_text_trim(ctx, ekELLIPEND);
+        draw_text_color(ctx, colors->main);
         drawctrl_text(ctx, tc(name), (int32_t)(xpos + iwidth + 5), (int32_t)ypos, ekCTRL_STATE_NORMAL);
         str_destroy(&name);
     }
@@ -1450,7 +1451,7 @@ static void i_draw_skeleton(const DLayout *dlayout, const DColors *colors, DCtx 
             i_draw_skeleton(cell->sublayout, colors, ctx);
     arrst_end()
 }
-   
+
 /*---------------------------------------------------------------------------*/
 
 static DCell *i_sel_cell(const DSelect *sel)

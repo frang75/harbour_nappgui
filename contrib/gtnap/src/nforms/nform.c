@@ -4,6 +4,7 @@
 #include <nflib/fform.h>
 #include <nflib/flayout.h>
 #include <gui/button.h>
+#include <gui/combo.h>
 #include <gui/edit.h>
 #include <gui/guicontrol.h>
 #include <gui/label.h>
@@ -103,6 +104,7 @@ void nform_set_control_str(NForm *form, const char_t *cell_name, const char_t *v
         Button *button = guicontrol_button(control);
         Label *label = guicontrol_label(control);
         Edit *edit = guicontrol_edit(control);
+        Combo *combo = guicontrol_combo(control);
         TextView *text = guicontrol_textview(control);
 
         if (button != NULL)
@@ -116,6 +118,10 @@ void nform_set_control_str(NForm *form, const char_t *cell_name, const char_t *v
         else if (edit != NULL)
         {
             edit_text(edit, value);
+        }
+        else if (combo != NULL)
+        {
+            combo_text(combo, value);
         }
         else if (text != NULL)
         {
@@ -244,6 +250,46 @@ void nform_set_control_real(NForm *form, const char_t *cell_name, const real32_t
 
 /*---------------------------------------------------------------------------*/
 
+void nform_clear_control_list(NForm *form, const char_t *cell_name)
+{
+    GuiControl *control = NULL;
+    cassert_no_null(form);
+    cassert_no_null(form->fform);
+    cassert_no_null(form->glayout);
+    control = flayout_search_gui_control(form->fform->layout, form->glayout, cell_name);
+    if (control != NULL)
+    {
+        PopUp *popup = guicontrol_popup(control);
+        Combo *combo = guicontrol_combo(control);
+        if (popup != NULL)
+            popup_clear(popup);
+        else if (combo != NULL)
+            combo_clear(combo);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void nform_add_control_item(NForm *form, const char_t *cell_name, const char_t *value)
+{
+    GuiControl *control = NULL;
+    cassert_no_null(form);
+    cassert_no_null(form->fform);
+    cassert_no_null(form->glayout);
+    control = flayout_search_gui_control(form->fform->layout, form->glayout, cell_name);
+    if (control != NULL)
+    {
+        PopUp *popup = guicontrol_popup(control);
+        Combo *combo = guicontrol_combo(control);
+        if (popup != NULL)
+            popup_add_elem(popup, value, NULL);
+        else if (combo != NULL)
+            combo_add_elem(combo, value, NULL);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 bool_t nform_get_control_str(const NForm *form, const char_t *cell_name, const char_t **value)
 {
     GuiControl *control = NULL;
@@ -255,10 +301,16 @@ bool_t nform_get_control_str(const NForm *form, const char_t *cell_name, const c
     if (control != NULL)
     {
         Edit *edit = guicontrol_edit(control);
+        Combo *combo = guicontrol_combo(control);
         TextView *text = guicontrol_textview(control);
         if (edit != NULL)
         {
             *value = edit_get_text(edit);
+            return TRUE;
+        }
+        else if (combo != NULL)
+        {
+            *value = combo_get_text(combo, UINT32_MAX);
             return TRUE;
         }
         else if (text != NULL)

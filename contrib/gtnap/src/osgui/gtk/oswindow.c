@@ -781,7 +781,22 @@ void oswindow_stop_modal(OSWindow *window, const uint32_t return_value)
 bool_t oswindow_get_maximize(const OSWindow *window)
 {
     cassert_no_null(window);
+#if GTK_CHECK_VERSION(3, 12, 0)
     return (bool_t)gtk_window_is_maximized(GTK_WINDOW(window->control.widget));
+#else
+    {
+        GdkWindow *gdk_window = gtk_widget_get_window(window->control.widget);
+        if (gdk_window != NULL)
+        {
+            GdkWindowState state = gdk_window_get_state(gdk_window);
+            return (bool_t)((state & GDK_WINDOW_STATE_MAXIMIZED) != 0);
+        }
+        else
+        {
+            return FALSE;
+        }
+    }
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -955,7 +970,8 @@ void oswindow_set_cursor(OSWindow *window, Cursor *cursor)
     GdkWindow *gdkwindow = NULL;
     cassert_no_null(window);
     gdkwindow = gtk_widget_get_window(window->control.widget);
-    gdk_window_set_cursor(gdkwindow, cast(cursor, GdkCursor));
+    if (gdkwindow != NULL)
+        gdk_window_set_cursor(gdkwindow, cast(cursor, GdkCursor));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1177,4 +1193,17 @@ void _oswindow_release_transient_focus(OSControl *control)
     window = i_root(control->widget);
     if (window != NULL)
         _ostabstop_release_transient(&window->tabstop, control);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _oswindow_cursor_from_child(GtkWidget *widget, GdkCursor *cursor)
+{
+    OSWindow *window = i_root(widget);
+    if (window != NULL)
+    {
+        GdkWindow *gdkwindow = gtk_widget_get_window(window->control.widget);
+        if (gdkwindow != NULL)
+            gdk_window_set_cursor(gdkwindow, cursor);
+    }
 }

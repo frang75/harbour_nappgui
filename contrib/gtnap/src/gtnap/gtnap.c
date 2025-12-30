@@ -4958,6 +4958,7 @@ static void i_map_bind_to_form(NForm *form, ArrSt(GtNapBind) *binds)
             if (HB_ITEM_TYPE(base) == HB_IT_STRING)
             {
                 String *str = hb_block_to_utf8(base);
+                i_rtrim(tcc(str));
                 nform_set_control_str(form, tc(bind->gui_id), tc(str));
                 str_destroy(&str);
             }
@@ -4975,6 +4976,18 @@ static void i_map_bind_to_form(NForm *form, ArrSt(GtNapBind) *binds)
             {
                 double value = hb_itemGetND(base);
                 nform_set_control_real(form, tc(bind->gui_id), (real32_t)value);
+            }
+            else if (HB_ITEM_TYPE(base) == HB_IT_ARRAY)
+            {
+                HB_SIZE i, n = UINT32_MAX;
+                nform_clear_control_list(form, tc(bind->gui_id));
+                n = hb_arrayLen(base);
+                for (i = 1; i <= n; ++i)
+                {
+                    PHB_ITEM hitem = hb_arrayGetItemPtr(base, i);
+                    i_hbitem_to_char(hitem, TEMP_BUFFER, sizeof(TEMP_BUFFER));
+                    nform_add_control_item(form, tc(bind->gui_id), TEMP_BUFFER);
+                }
             }
         }
         else if (bind->listener != NULL)
@@ -5220,7 +5233,6 @@ void hb_gtnap_form_dbind(GtNapForm *form, HB_ITEM *bind_block)
     HB_SIZE i, n = UINT32_MAX;
     cassert_no_null(form);
     cassert(HB_ITEM_TYPE(bind_block) == HB_IT_ARRAY);
-    arrst_clear(form->binds, i_remove_bind, GtNapBind);
     n = hb_arrayLen(bind_block);
     for (i = 1; i <= n; ++i)
     {
@@ -5381,17 +5393,13 @@ static Listener *i_gtnap_form_listener(HB_ITEM *block, GtNapForm *form, FPtr_gtn
 void hb_gtnap_form_OnClick(GtNapForm *form, const char_t *button_cell_name, HB_ITEM *click_block)
 {
     Listener *listener = i_gtnap_form_listener(click_block, form, i_OnFormButtonClick);
+    GtNapBind *bind = NULL;
     cassert_no_null(form);
+    bind = arrst_new0(form->binds, GtNapBind);
+    bind->gui_id = str_c(button_cell_name);
+    bind->listener = listener;
     if (form->window != NULL)
-    {
-        nform_set_listener(form->form, button_cell_name, listener);
-    }
-    else
-    {
-        GtNapBind *bind = arrst_new0(form->binds, GtNapBind);
-        bind->gui_id = str_c(button_cell_name);
-        bind->listener = listener;
-    }
+        i_map_bind_to_form(form->form, form->binds);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -5402,6 +5410,20 @@ void hb_gtnap_form_insert_text(GtNapForm *form, const char_t *cell_name, HB_ITEM
     cassert_no_null(form);
     nform_add_control_str(form->form, cell_name, tc(text));
     str_destroy(&text);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hb_gtnap_form_item_list(GtNapForm *form, const char_t *cell_name, HB_ITEM *items_block)
+{
+    GtNapBind *bind = NULL;
+    cassert_no_null(form);
+    cassert(HB_ITEM_TYPE(items_block) == HB_IT_ARRAY);
+    bind = arrst_new0(form->binds, GtNapBind);
+    bind->gui_id = str_c(cell_name);
+    bind->value = hb_itemNew(items_block);
+    if (form->window != NULL)
+        i_map_bind_to_form(form->form, form->binds);
 }
 
 /*---------------------------------------------------------------------------*/

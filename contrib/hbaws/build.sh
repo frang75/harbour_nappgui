@@ -13,7 +13,8 @@ BUILD=Release
 CWD=$(pwd)
 
 if [ "$(uname)" == "Darwin" ]; then
-    # Do something under Mac OS X platform
+    COMPILER=clang
+    PLATFORM=darwin
     if [[ -z "${MACOSX_DEPLOYMENT_TARGET}" ]]; then
         echo "MACOSX_DEPLOYMENT_TARGET is not set. Please set this environment variable before build."
         exit 1
