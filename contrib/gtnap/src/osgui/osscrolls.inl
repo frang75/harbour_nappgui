@@ -1,6 +1,6 @@
 /*
  * NAppGUI Cross-platform C SDK
- * 2015-2025 Francisco Garcia Collado
+ * 2015-2026 Francisco Garcia Collado
  * MIT Licence
  * https://nappgui.com/en/legal/license.html
  *
@@ -15,6 +15,10 @@
 __EXTERN_C
 
 OSScrolls *_osscrolls_create(OSControl *control, const bool_t horizontal, const bool_t vertical);
+
+OSScroll *_osscrolls_horizontal(OSScrolls *scroll);
+
+OSScroll *_osscrolls_vertical(OSScrolls *scroll);
 
 void _osscrolls_destroy(OSScrolls **scroll);
 

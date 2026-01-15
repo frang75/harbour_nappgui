@@ -1,6 +1,6 @@
 /*
  * NAppGUI Cross-platform C SDK
- * 2015-2025 Francisco Garcia Collado
+ * 2015-2026 Francisco Garcia Collado
  * MIT Licence
  * https://nappgui.com/en/legal/license.html
  *
@@ -763,7 +763,7 @@ void osview_frame(OSView *view, const real32_t x, const real32_t y, const real32
     cassert_no_null(lview);
     _oscontrol_set_frame(cast(lview, NSView), x, y, width, height);
 
-    if (lview->scroll)
+    if (lview->scroll != nil)
         _osscrolls_control_size(lview->scroll, (uint32_t)width, (uint32_t)height);
 
     i_update_tracking_area(lview);
