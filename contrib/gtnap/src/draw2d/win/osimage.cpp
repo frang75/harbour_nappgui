@@ -1,6 +1,6 @@
 /*
  * NAppGUI Cross-platform C SDK
- * 2015-2025 Francisco Garcia Collado
+ * 2015-2026 Francisco Garcia Collado
  * MIT Licence
  * https://nappgui.com/en/legal/license.html
  *
@@ -50,9 +50,9 @@ static IStream *i_SHCreateMemStream(const BYTE *pInit, UINT cbInit)
 {
 #if defined(_MSC_VER) && _MSC_VER <= 1400
     return i_kSHCreateMemStream(pInit, cbInit);
-#endif
-
+#else
     return SHCreateMemStream(pInit, cbInit);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

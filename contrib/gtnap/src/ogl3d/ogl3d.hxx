@@ -1,6 +1,6 @@
 /*
  * NAppGUI Cross-platform C SDK
- * 2015-2025 Francisco Garcia Collado
+ * 2015-2026 Francisco Garcia Collado
  * MIT Licence
  * https://nappgui.com/en/legal/license.html
  *
@@ -11,8 +11,8 @@
 
 /* OpenGL */
 
-#ifndef __OPENGL_HXX__
-#define __OPENGL_HXX__
+#ifndef __OGL3D_HXX__
+#define __OGL3D_HXX__
 
 #include <sewer/sewer.hxx>
 #include "ogl3d.hdf"
