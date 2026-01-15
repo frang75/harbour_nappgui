@@ -1137,9 +1137,12 @@ static void i_OnDraw(Designer *app, Event *e)
     draw_clear(p->ctx, i_COLORS.canvas);
     if (app->config.sel_form != UINT32_MAX)
     {
-        DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
-        const char_t *name = i_list_text(app->form_list, app->config.sel_form);
-        dform_draw(form, app->config.swidget, app->default_font, app->bold_font, app->cmode, &i_COLORS, name, app->focus, p->ctx);
+        if (app->config.sel_form < arrpt_size(app->forms, DForm))
+        {
+            DForm *form = arrpt_get(app->forms, app->config.sel_form, DForm);
+            const char_t *name = i_list_text(app->form_list, app->config.sel_form);
+            dform_draw(form, app->config.swidget, app->default_font, app->bold_font, app->cmode, &i_COLORS, name, app->focus, p->ctx);
+        }
     }
 }
 

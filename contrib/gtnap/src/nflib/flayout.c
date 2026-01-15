@@ -195,6 +195,7 @@ FLayout *flayout_create(const uint32_t ncols, const uint32_t nrows)
         {
             FCell *cell = arrst_new0(layout->cells, FCell);
             cell->name = str_c("");
+            cell->tabstop = TRUE;
             cell->type = ekCELL_TYPE_EMPTY;
             cell->halign = ekHALIGN_LEFT;
             cell->valign = ekVALIGN_TOP;
