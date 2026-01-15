@@ -2,7 +2,14 @@
 # HBOffice CMake build script
 # Copyright (C) 2024 Francisco Garci­a Collado
 #------------------------------------------------------------------------------
-cmake_minimum_required(VERSION 3.0)
+# https://gitlab.kitware.com/cmake/cmake/-/issues/25196
+if(${CMAKE_VERSION} VERSION_GREATER "3.99.999")
+    cmake_minimum_required(VERSION 3.10)
+elseif(${CMAKE_VERSION} VERSION_GREATER "3.26.999")
+    cmake_minimum_required(VERSION 3.5)
+else()
+    cmake_minimum_required(VERSION 3.0)
+endif()
 project(HBOffice)
 
 set(NAPPGUI_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
