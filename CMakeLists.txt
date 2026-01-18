@@ -36,7 +36,14 @@
 # ../../../../../bin/linux/gcc/hbmk2 exemplo.hbp
 # ./exemplo --hb:gtnap
 
-cmake_minimum_required(VERSION 3.0)
+# https://gitlab.kitware.com/cmake/cmake/-/issues/25196
+if(${CMAKE_VERSION} VERSION_GREATER "3.99.999")
+    cmake_minimum_required(VERSION 3.10)
+elseif(${CMAKE_VERSION} VERSION_GREATER "3.26.999")
+    cmake_minimum_required(VERSION 3.5)
+else()
+    cmake_minimum_required(VERSION 3.0)
+endif()
 project(Exemplo)
 
 # Globals
