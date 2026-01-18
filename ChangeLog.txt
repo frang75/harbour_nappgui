@@ -7,6 +7,360 @@
    Entries may not always be in chronological/commit order.
    See license at the end of file. */
 
+2025-10-23 21:45 UTC+0200 Aleksander Czajczynski (hb fki.pl)
+  * src/vm/extrap.c
+    + added Windows ARM64 CPU register dump
+
+2025-10-23 19:53 UTC+0200 Aleksander Czajczynski (hb fki.pl)
+  * utils/hbmk2/hbmk2.prg
+    * make the MSVC version detection based on paths a little less
+      trustful. With rolling releases of these MS tools, it's more
+      likely that "random" numbers will appear in dir names.
+
+2025-10-21 13:20 UTC+0200 Aleksander Czajczynski (hb fki.pl)
+  * contrib/hbssl/hbssl.hbc
+    ! actually target VS 2017 for libcrypto, libssl
+
+  * utils/hbmk2/hbmk2.prg
+    ! slight rework of MSVC version detection, so it actually operates
+      with empty cPath_CompC variable
+
+    * also try to discover version number of future MSVC releases
+
+    * with Zig building GUI applications on Windows, hbmk2 will
+      now pass -Wl,/subsystem:windows to the linker
+
+2025-10-20 17:42 UTC+0200 Aleksander Czajczynski (hb fki.pl)
+  * contrib/hbssl/hbssl.hbc
+    ! actually lib* prefix should stay on win/msvc platform
+      OpenSSL builds. Thanks to Mario H. Sabado for testing
+      and feedback.
+
+2025-10-20 10:47 UTC+0200 Aleksander Czajczynski (hb fki.pl)
+  * .github/workflows/windows-ci.yml
+    * encourage to test OpenSSL
+
+  * contrib/hbssl/hbssl.hbc
+    * treat Microsoft Visual Studio 2017 or newer can use
+      the latest OpenSSL lib. That's very loose approximation,
+      but hopefully better than before. If you are using such
+      compiler please update your OpenSSL library.
+
+    % deduplicated the rules, leftovers from old static "_s" suffixing
+
+2025-10-19 22:48 UTC+0200 Aleksander Czajczynski (hb fki.pl)
+  * .github/workflows/windows-ci.yml
+    + add openssl-devel to MSYS2 CI
+
+2025-10-19 22:12 UTC+0200 Aleksander Czajczynski (hb fki.pl)
+  * contrib/hbssl/hbssl.h
+  * contrib/hbssl/hbssl.hbm
+  * contrib/hbssl/ssl.c
+    ! HB_OPENSSL_HAS_APPLINK was never checked,
+      defining HB_OPENSSL_NO_APPLINK didn't do anything
+
+    * make current OpenSSL 3.6.0 build under fresh MSYS2
+      shell. MSYS2 does not distribute applink.c, claiming
+      MingGW C runtime is safe for operation without it.
+      Have to define HB_OPENSSL_NO_APPLINK and additional
+      workaround for lacking __int64 type when including
+      ssl.h. If you need similar workround outside of
+      MSYS2 shell, setenv: HB_USER_CFLAGS=-DHB_OPENSSL_MSYS
+
+      packages needed: openssl-devel (for headers)
+                       mingw-w64-x86_64-openssl (for libs)
+                       mingw-w64-aarch64-openssl
+
+  * contrib/hbssl/hbssl.hbc
+    * using Clang or Zig compiler on Windows, build will
+      now reference libssl and libcrypto instead of old
+      ssleay32/libeay32 pair when linking.
+
+  * config/win/zig.mk
+    % unnecessary check
+
+2025-10-18 23:15 UTC+0200 Aleksander Czajczynski (hb fki.pl)
+  + config/bsd/zig-noauto.mk
+  + config/bsd/zig.mk
+  + config/common/zig-noauto.mk
+  + config/common/zig.mk
+  + config/darwin/zig-noauto.mk
+  + config/darwin/zig.mk
+  + config/linux/zig-noauto.mk
+  + config/linux/zig.mk
+  + config/win/zig-noauto.mk
+  + config/win/zig.mk
+  * config/global.mk
+  * utils/hbmk2/hbmk2.prg
+    ! typo fixed in Alpha target (this path was really untested)
+
+    + added support for using Zig as LLVM C compiler frontend. Recent
+      idea comes from Marcos Gambeta Harbour++ fork, though I haven't
+      borrowed any code. Here the functionalty is complete, whole
+      Harbour source tree can be compiled, together with shared libs.
+
+      Zig has unique ability of managing cross-compiled builds, mostly
+      without downloading anything else. For example you should be able
+      to easily make a Linux+musl libc build of your Harbour application
+      that will run on any distribution with Linux kernel >= 2.6.39 (untested).
+
+      Zig is not auto-detected by the Harbour build process, HB_COMPILER=zig
+      has to be defined. The only exception is that, hbmk2 on Windows can
+      locate "zig.exe" while building final Harbour applications. Usually
+      there are no conflicting tools on PATH on this platform.
+
+      After downloading zig from https://ziglang.org/download/
+      specific to your OS, assuming the tool being unpacked to
+      /home/user/zig or C:\zig, usage is as follows:
+
+      Linux/BSD native build:
+      PATH=$PATH:/home/user/zig
+      HB_COMPILER=zig make -j8
+
+      Unix to Windows x64 cross:
+      PATH=$PATH:/home/user/zig
+      export HB_ZIG_TARGET=x86_64-windows
+      # (or) export HB_ZIG_TARGET=x86_64-windows-gnu
+      export HB_CPU=x86_64
+      # have to build a Harbour for your host first, for a native hbmk2
+      export HB_HOST_BIN=/home/user/harbour/bin/linux/zig
+      export HB_PLATFORM=win
+      export HB_BUILD_NAME=64cross
+      export HB_COMPILER=zig
+      make -j16
+
+      Windows native build:
+      PATH=C:\zig;%PATH%
+      set HB_COMPILER=zig
+      win-make -j8
+
+      Windows to Windows-on-ARM cross:
+      set HB_ZIG_TARGET=aarch64-windows
+      set HB_CPU=arm64
+      set HB_HOST_BIN=C:\harbour\bin\win\zig
+      set HB_COMPILER=zig
+      win-make -j8
+
+      Windows to Linux ARM64:
+      set HB_USER_CFLAGS=-fPIC
+      set HB_ZIG_TARGET=aarch64-linux
+      set HB_PLATFORM=linux
+      set HB_CPU=arm64
+      set HB_HOST_BIN=C:\harbour\bin\win\zig
+      set HB_COMPILER=zig
+      win-make -j8
+
+      Instead of setting HB_ZIG_TARGET, the less convenient way is:
+      HB_USER_CFLAGS=-target aarch64-linux
+      HB_USER_LDFLAGS=-target aarch64-linux
+      HB_USER_DFLAGS=-target aarch64-linux
+
+      Some target platforms need PIC mode even for static builds,
+      in such case add:
+      HB_USER_CFLAGS=-fPIC
+
+    ; TOFIX: shared lib symlinks are not created when cross-building from
+             Windows to Linux, could copy or adapt modern Windows counterpart
+
+             olectl.h is missing when cross-building hbwin contrib from
+             Linux to Windows (likely needs headers from Windows SDK)
+
+             basically a non issue, but HB_CPU and HB_PLATFORM are not guessed
+             from HB_ZIG_TARGET - conversion table seems to be doable, if
+             someone is interested in making a patch.
+
+2025-10-16 22:04 UTC+0200 Aleksander Czajczynski (hb fki.pl)
+  * utils/hbmk2/hbmk2.prg
+    * remaining LEFTEQUAL() changed to hb_LeftEq() calls
+    - removed LEFTEQUAL() macro
+
+2025-10-16 21:40 UTC+0200 Aleksander Czajczynski (hb fki.pl)
+  * config/global.mk
+    * follow up to previous, define __ARCH64BIT__ for .prg files
+      if applicable during first stage done by GNU Make
+
+    * consider Alpha a 64-bit CPU too when it's a cross-build target
+      (untested)
+
+  * utils/hbmk2/hbmk2.prg
+    * updated stored list of Visual Studio (2013-2022) versions to C comp
+      revisions, which could be used in .hbp files HB_COMP_VER macro
+
+    ; https://learn.microsoft.com/en-us/cpp/overview/compiler-versions
+      more detailed versioning available if someone is interested in that
+      please submit a patch that would translate C compiler path to
+      version according to the linked rules - MSVC now has rolling
+      releases
+
+2025-10-16 21:09 UTC+0200 Aleksander Czajczynski (hb fki.pl)
+  * utils/hbmk2/hbmk2.prg
+    * updated approach to define __ARCH64BIT__ at .prg level when
+      cross-compiling for such architecture.
+      Thanks to Alexey Zapolskiy for noticing.
+
+    + local hb_RightEq() deployed as macro
+
+2025-10-04 09:09 UTC+0100 Antonio Linares (antonio.fivetech/at/gmail.com)
+  * config/bin.mk
+    ! fixed duplicate library warnings on macOS by defining platform-specific
+      HB_LIBS_TPL template without duplicate hbrtl and hbvmmt libraries
+
+  * utils/hbmk2/hbmk2.prg
+    ! fixed timing of macOS-specific library deduplication in aLIB_BASE_RDD
+      and aLIB_BASE_RDD_MT arrays to occur after platform detection, eliminating
+      duplicate library warnings during program compilation
+
+2025-09-16 13:16 UTC+0200 Przemyslaw Czerpak (druzus/at/poczta.onet.pl)
+  * contrib/hbcurl/core.c
+    ! pacified warning
+
+2025-09-10 09:08 UTC+0200 Przemyslaw Czerpak (druzus/at/poczta.onet.pl)
+  * contrib/hbbmp/core.c
+    ! pacified BCC warnings
+
+2025-09-09 19:55 UTC+0200 Przemyslaw Czerpak (druzus/at/poczta.onet.pl)
+  * contrib/hbbmp/core.c
+    ! pacified BCC warnings
+
+  * src/vm/macro.c
+    * minor modification to test if it can pacify false warning in recent GCC
+
+2025-09-09 18:58 UTC+0200 Przemyslaw Czerpak (druzus/at/poczta.onet.pl)
+  * src/3rd/png/pngrutil.c
+    ! moved PNG_UNUSED() before return statement to avoid BCC W8070 Warning
+
+  * src/3rd/png/png.diff
+    ! rediffed with
+         hbmk2 ../../../bin/3rdpatch.hb -rediff
+
+2025-09-09 18:13 UTC+0200 Przemyslaw Czerpak (druzus/at/poczta.onet.pl)
+  * src/3rd/zlib/Makefile
+  * src/3rd/zlib/README
+  * src/3rd/zlib/deflate.c
+  * src/3rd/zlib/deflate.h
+  * src/3rd/zlib/gzguts.h
+  * src/3rd/zlib/gzlib.c
+  * src/3rd/zlib/inflate.c
+  * src/3rd/zlib/inftrees.c
+  * src/3rd/zlib/inftrees.h
+  * src/3rd/zlib/trees.c
+  * src/3rd/zlib/zconf.h
+  * src/3rd/zlib/zlib.h
+  * src/3rd/zlib/zutil.h
+  * src/3rd/zlib/zlib.diff
+    * updated to version 1.3.1
+
+2025-09-09 17:38 UTC+0200 Przemyslaw Czerpak (druzus/at/poczta.onet.pl)
+  * contrib/hbmlzo/3rd/minilzo/README
+  * contrib/hbmlzo/3rd/minilzo/lzoconf.h
+  * contrib/hbmlzo/3rd/minilzo/lzodefs.h
+  * contrib/hbmlzo/3rd/minilzo/minilzo.c
+  - contrib/hbmlzo/3rd/minilzo/minilzo.diff
+  * contrib/hbmlzo/3rd/minilzo/minilzo.h
+  * contrib/hbmlzo/3rd/minilzo/minilzo.hbp
+    * updated to version 2.10
+
+2025-09-09 16:36 UTC+0200 Przemyslaw Czerpak (druzus/at/poczta.onet.pl)
+  * src/3rd/png/LICENSE
+  * src/3rd/png/Makefile
+  * src/3rd/png/png.c
+  * src/3rd/png/png.diff
+  * src/3rd/png/png.h
+  * src/3rd/png/pngconf.h
+  * src/3rd/png/pngdebug.h
+  * src/3rd/png/pngerror.c
+  * src/3rd/png/pngget.c
+  * src/3rd/png/pnginfo.h
+  * src/3rd/png/pnglconf.h
+  * src/3rd/png/pngmem.c
+  * src/3rd/png/pngpread.c
+  * src/3rd/png/pngpriv.h
+  * src/3rd/png/pngread.c
+  * src/3rd/png/pngrio.c
+  * src/3rd/png/pngrtran.c
+  * src/3rd/png/pngrutil.c
+  * src/3rd/png/pngset.c
+  * src/3rd/png/pngstru.h
+  * src/3rd/png/pngtrans.c
+  * src/3rd/png/pngwio.c
+  * src/3rd/png/pngwrite.c
+  * src/3rd/png/pngwtran.c
+  * src/3rd/png/pngwutil.c
+    * updated to version 1.6.50
+
+  * contrib/hbmlzo/3rd/minilzo/minilzo.c
+  + contrib/hbmlzo/3rd/minilzo/minilzo.diff
+    ! fixed compilation with ISO C++ 17 compilers
+
+2025-09-09 13:50 UTC+0200 Przemyslaw Czerpak (druzus/at/poczta.onet.pl)
+  * include/hbdefs.h
+    + added new types HB_WCHAR16 and HB_WCHAR32, existing type HB_WCHAR
+      is mapped to HB_WCHAR16 (just like before)
+
+  * include/hbapicdp.h
+  * src/harbour.def
+  * src/rtl/cdpapi.c
+    + added new C functions for encoding and decoding UTF-8 string using
+      which HB_WCHAR32:
+         int hb_cdpU32CharToUTF8( char * szUTF8, HB_WCHAR32 wc );
+         HB_BOOL hb_cdpUTF8GetU32( const char * pSrc, HB_SIZE nLen,
+                                   HB_SIZE * pnIndex, HB_WCHAR32 * pWC );
+         HB_BOOL hb_cdpUTF8GetUCS( const char * pSrc, HB_SIZE nLen,
+                                   HB_SIZE * pnIndex, HB_WCHAR32 * pWC );
+         HB_BOOL hb_cdpUTF8GetU16( const char * pSrc, HB_SIZE nLen,
+                                   HB_SIZE * pnIndex, HB_WCHAR16 * pWC );
+         HB_BOOL hb_cdpUTF8Validate( const char * pSrc, HB_SIZE nLen );
+      They support full UCS and are much more restrictive against errors and
+      wrong UTF-8 encoding, i.e. now overlong encoding is forbidden.
+      The wrong characters are translated to 0xFFFD and later if such
+      character does not exist in final CP to '?' ASCII character.
+    * declaration of the following UTF-8 C functions have been changed to
+      operate on HB_WCHAR32 instead of HB_WCHAR:
+         int hb_cdpUTF8CharSize( HB_WCHAR32 wc );
+         HB_WCHAR32 hb_cdpUTF8StringPeek( const char * pSrc, HB_SIZE nLen,
+                                          HB_SIZE nPos );
+    * the following C functions have been changed to internally operate on
+      HB_WCHAR32 instead of HB_WCHAR:
+         hb_cdpUTF8StringLength()
+         hb_cdpUTF8StringAt()
+         hb_cdpUTF8StringSubstr()
+    * the following C functions have been changed to use new hb_cdpUTF8GetU*()
+      instead of step by step decoding with hb_cdpUTF8ToU16NextChar()
+         hb_cdpStrToUTF8Disp()
+         hb_cdpUTF8AsStrLen()
+         hb_cdpUTF8ToStr()
+         hb_cdpStrToU16()
+         hb_cdpUtf8Char()
+    * use HB_CDP_ERROR_* macros to mark wrong encoding
+
+  * src/rtl/cdpapihb.c
+    * the following UTF-8 C functions have been changed to operate on
+      HB_WCHAR32 instead of HB_WCHAR:
+         hb_utf8Chr()
+         hb_utf8Asc()
+         hb_utf8Poke()
+         hb_utf8Peek()
+      Other UTF-8 PRG functions have been adopted to HB_WCHAR32 by changes
+      in corresponding C functions.
+
+  * src/codepage/cp_utf8.c
+    * use new function hb_cdpUTF8GetU16() to decode UTF-8 strings in UTF8EX CP
+
+  * src/rtl/arc4.c
+    + added new macro HB_NO_SYSCTL which allow to disable sysctl() in Linux
+      builds for GLIBC < 2.30
+
+2025-09-03 12:21 UTC+0200 Przemyslaw Czerpak (druzus/at/poczta.onet.pl)
+  * src/rtl/cdpapi.c
+    + added fallback translation table for different variants of Latin
+      character, now when translation is made between different encoding
+      and the variant of Latin character does not exist in destination
+      code page then it's translated to their base Latin form, i.e.:
+         hb_utf8ToStr( "ĄĆĘŁŃÓŚŹŻąćęłńóśźż", "EN" ) -> "ACELNOSZZacelnószz"
+
+  * tests/uc16_gen.prg
+    ; updated comment
+
 2025-08-29 12:49 UTC+0200 Przemyslaw Czerpak (druzus/at/poczta.onet.pl)
   * contrib/hbbmp/core.c
   * contrib/hbbmp/hbbmp.ch
