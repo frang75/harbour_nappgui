@@ -81,6 +81,7 @@ awssdk -b [Debug|Release] -comp clang
 At least Visual Studio 2015 is required. First, you need to set the `CMAKE_GENERATOR` environment variable to the version you plan to use.
 
 ```
+set CMAKE_GENERATOR=Visual Studio 18 2026
 set CMAKE_GENERATOR=Visual Studio 17 2022
 set CMAKE_GENERATOR=Visual Studio 16 2019
 set CMAKE_GENERATOR=Visual Studio 15 2017
