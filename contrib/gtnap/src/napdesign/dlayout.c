@@ -84,8 +84,13 @@ DLayout *dlayout_from_flayout(const FLayout *flayout, const char_t *resource_pat
             const FCell *fcell = flayout_ccell(flayout, i, j);
             if (fcell->type == ekCELL_TYPE_TOOL)
             {
-                String *path = str_printf("%s%s", resource_path, tc(fcell->widget.tool->path));
-                Image *image = image_from_file(tc(path), NULL);
+                Image *image = NULL;
+                if (str_empty(fcell->widget.tool->path) == FALSE)
+                {
+                    String *path = str_printf("%s%s", resource_path, tc(fcell->widget.tool->path));
+                    image = image_from_file(tc(path), NULL);
+                    str_destroy(&path);
+                }
 
                 if (image != NULL)
                 {
@@ -96,8 +101,6 @@ DLayout *dlayout_from_flayout(const FLayout *flayout, const char_t *resource_pat
                 {
                     dlayout_set_image(layout, nflib_default_icon(), i, j, colors);
                 }
-
-                str_destroy(&path);
             }
             else if (fcell->type == ekCELL_TYPE_IMAGE)
             {
@@ -108,8 +111,16 @@ DLayout *dlayout_from_flayout(const FLayout *flayout, const char_t *resource_pat
                     image = image_from_file(tc(path), NULL);
                     str_destroy(&path);
                 }
-                dlayout_set_image(layout, image, i, j, colors);
-                ptr_destopt(image_destroy, &image, Image);
+
+                if (image != NULL)
+                {
+                    dlayout_set_image(layout, image, i, j, colors);
+                    image_destroy(&image);
+                }
+                else
+                {
+                    dlayout_set_image(layout, nflib_default_image(), i, j, colors);
+                }
             }
             else if (fcell->type == ekCELL_TYPE_POPUP)
             {
