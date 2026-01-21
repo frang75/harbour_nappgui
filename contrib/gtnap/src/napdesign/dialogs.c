@@ -20,6 +20,7 @@
 #include <nflib/fvslider.h>
 #include <nflib/ftable.h>
 #include <nflib/ftext.h>
+#include <nflib/fview.h>
 #include <gui/button.h>
 #include <gui/cell.h>
 #include <gui/comwin.h>
@@ -1092,6 +1093,48 @@ FProgress *dialog_new_progress(Window *parent, const Font *font, const DSelect *
     str_destroy(&caption);
     i_remove_dialog_data(&data);
     return fprogress;
+}
+
+/*---------------------------------------------------------------------------*/
+
+FView *dialog_new_view(Window *parent, const Font *font, const DSelect *sel)
+{
+    DialogData data = i_dialog_data();
+    Layout *layout1 = layout_create(2, 2);
+    FView *fview = fview_create();    
+    String *caption = NULL;
+    uint32_t ret = 0;
+    cassert_no_null(sel);
+    cassert_no_null(sel->flayout);
+
+    /* Widget layout */
+    {
+        Label *label1 = label_create();
+        Label *label2 = label_create();
+        Layout *layout2 = i_value_updown_layout();
+        Layout *layout3 = i_value_updown_layout();
+        label_text(label1, gui_text(TEXT_MIN_WIDTH));
+        label_text(label2, gui_text(TEXT_MIN_HEIGHT));
+        layout_label(layout1, label1, 0, 0);
+        layout_label(layout1, label2, 0, 1);
+        layout_layout(layout1, layout2, 1, 0);
+        layout_layout(layout1, layout3, 1, 1);
+        layout_hmargin(layout1, 0, 5);
+        cell_dbind(layout_cell(layout1, 1, 0), FView, real32_t, min_width);
+        cell_dbind(layout_cell(layout1, 1, 1), FView, real32_t, min_height);
+        layout_dbind(layout1, NULL, FView);
+        layout_dbind_obj(layout1, fview, FView);
+    }
+
+    caption = str_printf(gui_text(TEXT_NEW_CUSTOMVIEW), sel->col, sel->row, tc(sel->flayout->name));
+    ret = i_modal_launch(parent, &data, layout1, font, VIEW_PNG, TEXT_CUSTOM_VIEW, tc(caption), ekDBUT_OK_CANCEL_DEF_OK);
+
+    if (ret != BUTTON_OK)
+        fview_destroy(&fview);
+
+    str_destroy(&caption);
+    i_remove_dialog_data(&data);
+    return fview;
 }
 
 /*---------------------------------------------------------------------------*/

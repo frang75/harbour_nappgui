@@ -975,6 +975,7 @@ static bool_t i_is_widget_drawer(const drawer_t drawer)
     case ekDRAWER_HSLIDER_PROPS:
     case ekDRAWER_VSLIDER_PROPS:
     case ekDRAWER_PROGRESS_PROPS:
+    case ekDRAWER_VIEW_PROPS:
     case ekDRAWER_TEXT_PROPS:
     case ekDRAWER_IMAGE_PROPS:
     case ekDRAWER_TABLE_FRAME_PROPS:
@@ -1992,6 +1993,7 @@ static Designer *i_app(void)
     i_add_drawer(app->wdrawers, ekDRAWER_HSLIDER_PROPS, TEXT_SLIDER_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_VSLIDER_PROPS, TEXT_VSLIDER_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_PROGRESS_PROPS, TEXT_PROGRESS_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_VIEW_PROPS, TEXT_VIEW_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_TEXT_PROPS, TEXT_TEXT_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_IMAGE_PROPS, TEXT_IMAGE_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_TABLE_FRAME_PROPS, TEXT_TABLE_PROPS);
@@ -2012,6 +2014,7 @@ static Designer *i_app(void)
     i_add_widget(app->bwidgets, ekWIDGET_POPUP, TEXT_POPUP_BUTTON, POPUP_PNG, ekDRAWER_WIDGET_ITEMS);
     i_add_widget(app->bwidgets, ekWIDGET_TABLEVIEW, TEXT_TABLE_VIEW, TABLEVIEW_PNG, ekDRAWER_WIDGET_ITEMS);
     i_add_widget(app->bwidgets, ekWIDGET_IMAGEVIEW, TEXT_IMAGE_VIEW, IMAGEVIEW_PNG, ekDRAWER_WIDGET_OTHERS);
+    i_add_widget(app->bwidgets, ekWIDGET_CUSTOMVIEW, TEXT_CUSTOM_VIEW, VIEW_PNG, ekDRAWER_WIDGET_OTHERS);
     i_add_widget(app->bwidgets, ekWIDGET_HORZ_SLIDER, TEXT_HORZ_SLIDER, HORSLIDER_PNG, ekDRAWER_WIDGET_OTHERS);
     i_add_widget(app->bwidgets, ekWIDGET_VERT_SLIDER, TEXT_VERT_SLIDER, VERSLIDER_PNG, ekDRAWER_WIDGET_OTHERS);
     i_add_widget(app->bwidgets, ekWIDGET_PROGRESS, TEXT_PROGRESS_BAR, PROGRESSBAR_PNG, ekDRAWER_WIDGET_OTHERS);

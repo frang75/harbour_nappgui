@@ -48,6 +48,8 @@ FVSlider *dialog_new_vslider(Window *parent, const Font *font, const DSelect *se
 
 FProgress *dialog_new_progress(Window *parent, const Font *font, const DSelect *sel);
 
+FView *dialog_new_view(Window *parent, const Font *font, const DSelect *sel);
+
 FText *dialog_new_text(Window *parent, const Font *font, const DSelect *sel);
 
 FImage *dialog_new_image(Window *parent, const Font *font, const DSelect *sel, const char_t *folder_path);

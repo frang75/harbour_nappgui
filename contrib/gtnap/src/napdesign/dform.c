@@ -961,6 +961,21 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 }
             }
 
+            case ekWIDGET_CUSTOMVIEW:
+            {
+                FView *fview = dialog_new_view(window, font, &sel);
+                if (fview != NULL)
+                {
+                    i_new_view(fview, &sel);
+                    i_after_new_widget(form, inspect, propedit, &sel);
+                    return TRUE;
+                }
+                else
+                {
+                    return FALSE;
+                }
+            }
+
             case ekWIDGET_TEXTVIEW:
             {
                 FText *ftext = dialog_new_text(window, font, &sel);
