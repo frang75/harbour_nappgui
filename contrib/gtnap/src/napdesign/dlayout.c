@@ -1235,6 +1235,11 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                 break;
             }
 
+            case ekCELL_TYPE_VIEW:
+            {
+                break;
+            }
+
             case ekCELL_TYPE_TEXT:
             {
                 real32_t pattern[2] = {1, 2};

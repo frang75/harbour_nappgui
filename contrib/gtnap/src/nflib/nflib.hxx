@@ -19,6 +19,7 @@ typedef struct _flistbox_t FListBox;
 typedef struct _fslider_t FSlider;
 typedef struct _fvslider_t FVSlider;
 typedef struct _fprogress_t FProgress;
+typedef struct _fview_t FView;
 typedef struct _ftext_t FText;
 typedef struct _fimage_t FImage;
 typedef struct _fheader_t FHeader;
@@ -50,7 +51,8 @@ typedef enum _celltype_t
     ekCELL_TYPE_TOOL,
     ekCELL_TYPE_RADIO,
     ekCELL_TYPE_COMBO,
-    ekCELL_TYPE_VSLIDER
+    ekCELL_TYPE_VSLIDER,
+    ekCELL_TYPE_VIEW
 } celltype_t;
 
 /* Don't change the order. Add new values to end */
@@ -164,6 +166,12 @@ struct _fprogress_t
 	real32_t min_width;
 };
 
+struct _fview_t
+{
+    real32_t min_width;
+    real32_t min_height;
+};
+
 struct _ftext_t
 {
     bool_t read_only;
@@ -225,6 +233,7 @@ struct _fwidget_t
     FSlider *slider;
     FVSlider *vslider;
     FProgress *progress;
+    FView *view;
     FText *text;
     FImage *image;
     FTable *table;

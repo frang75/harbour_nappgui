@@ -2250,6 +2250,10 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
             layout_dbind_obj(data->progress_layout, cell->widget.progress, FProgress);
             panel_visible_layout(data->cell_panel, 13);
         }
+        else if (cell->type == ekCELL_TYPE_PROGRESS)
+        {
+            cassert(FALSE);
+        }
         else if (cell->type == ekCELL_TYPE_TEXT)
         {
             layout_dbind_obj(data->text_layout, cell->widget.text, FText);

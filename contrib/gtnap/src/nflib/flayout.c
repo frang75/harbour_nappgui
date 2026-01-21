@@ -18,6 +18,7 @@
 #include "ftable.h"
 #include "ftext.h"
 #include "ftool.h"
+#include "fview.h"
 #include <gui/button.h>
 #include <gui/cell.h>
 #include <gui/combo.h>
@@ -28,10 +29,11 @@
 #include <gui/edit.h>
 #include <gui/textview.h>
 #include <gui/imageview.h>
-#include <gui/slider.h>
-#include <gui/tableview.h>
 #include <gui/progress.h>
 #include <gui/popup.h>
+#include <gui/slider.h>
+#include <gui/tableview.h>
+#include <gui/view.h>
 #include <draw2d/image.h>
 #include <geom2d/s2d.h>
 #include <core/arrst.h>
@@ -120,6 +122,10 @@ static void i_remove_cell(FCell *cell)
 
     case ekCELL_TYPE_PROGRESS:
         fprogress_destroy(&cell->widget.progress);
+        break;
+
+    case ekCELL_TYPE_VIEW:
+        fview_destroy(&cell->widget.view);
         break;
 
     case ekCELL_TYPE_TEXT:
@@ -407,6 +413,16 @@ static FProgress *i_read_progress(Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
+static FView *i_read_view(Stream *stm)
+{
+    FView *view = heap_new0(FView);
+    view->min_width = stm_read_r32(stm);
+    view->min_height = stm_read_r32(stm);
+    return view;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static FText *i_read_text(Stream *stm)
 {
     FText *text = heap_new0(FText);
@@ -508,6 +524,9 @@ static void i_read_cell(Stream *stm, FCell *cell, const uint16_t *vers)
         break;
     case ekCELL_TYPE_PROGRESS:
         cell->widget.progress = i_read_progress(stm);
+        break;
+    case ekCELL_TYPE_VIEW:
+        cell->widget.view = i_read_view(stm);
         break;
     case ekCELL_TYPE_TEXT:
         cell->widget.text = i_read_text(stm);
@@ -725,6 +744,15 @@ static void i_write_progress(Stream *stm, const FProgress *progress)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_write_view(Stream *stm, const FView *view)
+{
+    cassert_no_null(view);
+    stm_write_r32(stm, view->min_width);
+    stm_write_r32(stm, view->min_height);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_write_text(Stream *stm, const FText *text)
 {
     cassert_no_null(text);
@@ -817,6 +845,9 @@ static void i_write_cell(Stream *stm, const FCell *cell)
         break;
     case ekCELL_TYPE_PROGRESS:
         i_write_progress(stm, cell->widget.progress);
+        break;
+     case ekCELL_TYPE_VIEW:
+        i_write_view(stm, cell->widget.view);
         break;
     case ekCELL_TYPE_TEXT:
         i_write_text(stm, cell->widget.text);
@@ -1145,6 +1176,20 @@ void flayout_add_progress(FLayout *layout, FProgress *progress, const uint32_t c
     cell->halign = ekHALIGN_JUSTIFY;
     cell->valign = ekVALIGN_CENTER;
     cell->widget.progress = progress;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_add_view(FLayout *layout, FView *view, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(view);
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_VIEW;
+    cell->halign = ekHALIGN_JUSTIFY;
+    cell->valign = ekVALIGN_JUSTIFY;
+    cell->widget.view = view;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1534,6 +1579,14 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     break;
                 }
 
+                case ekCELL_TYPE_VIEW:
+                {
+                    View *view = view_create();
+                    fview_synchro(cells->widget.view, view);
+                    layout_view(glayout, view, i, j);
+                    break;
+                }
+
                 case ekCELL_TYPE_TEXT:
                 {
                     TextView *view = textview_create();
@@ -1608,6 +1661,7 @@ GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout
                 case ekCELL_TYPE_SLIDER:
                 case ekCELL_TYPE_VSLIDER:
                 case ekCELL_TYPE_PROGRESS:
+                case ekCELL_TYPE_VIEW:
                 case ekCELL_TYPE_TEXT:
                 case ekCELL_TYPE_IMAGE:
                 case ekCELL_TYPE_TABLEVIEW:
