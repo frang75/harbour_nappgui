@@ -140,6 +140,10 @@ DLayout *dlayout_from_flayout(const FLayout *flayout, const char_t *resource_pat
                     ptr_destopt(image_destroy, &image, Image);
                 arrst_end()
             }
+            else if (fcell->type == ekCELL_TYPE_VIEW)
+            {
+                dlayout_set_image(layout, nflib_default_view(), i, j, colors);
+            }
             else if (fcell->type == ekCELL_TYPE_LAYOUT)
             {
                 dcell->sublayout = dlayout_from_flayout(fcell->widget.layout, resource_path, colors);
@@ -927,6 +931,7 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
             const FCell *fcell = flayout_ccell(flayout, i, j);
             Cell *gcell = layout_cell(cast(glayout, Layout), i, j);
             color_t wcolor = i_is_cell_sel(hover, dlayout, i, j) ? colors->select : colors->main;
+            color_t bcolor = i_is_cell_sel(hover, dlayout, i, j) ? colors->main : colors->select;
 
             draw_r2df(ctx, ekSTROKE, &dcell->rect);
 
@@ -1237,6 +1242,25 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
 
             case ekCELL_TYPE_VIEW:
             {
+                const Image *image = i_get_image(dcell, 0, i_is_cell_sel(hover, dlayout, i, j));
+                if (image != NULL)
+                {
+                    T2Df t2d;
+                    real32_t imgwidth = (real32_t)image_width(image);
+                    real32_t imgheight = (real32_t)image_height(image);
+                    real32_t scalex = dcell->content_rect.size.width /imgwidth;
+                    real32_t scaley = dcell->content_rect.size.height / imgheight;
+                    t2d_movef(&t2d, kT2D_IDENTf, dcell->content_rect.pos.x, dcell->content_rect.pos.y);
+                    t2d_scalef(&t2d, &t2d, scalex, scaley);
+                    draw_matrixf(ctx, &t2d);
+                    draw_image(ctx, image, 0, 0);
+                    draw_matrixf(ctx, kT2D_IDENTf);
+                }
+
+                draw_line_color(ctx, bcolor);
+                draw_line_width(ctx, 2);
+                draw_rect(ctx, ekSTROKE, dcell->content_rect.pos.x + 1, dcell->content_rect.pos.y + 1, dcell->content_rect.size.width, dcell->content_rect.size.height);
+                draw_line_width(ctx, 1);
                 break;
             }
 

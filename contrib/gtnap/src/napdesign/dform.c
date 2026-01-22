@@ -705,13 +705,14 @@ static void i_new_progress(FProgress *fprogress, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_new_view(FView *fview, const DSelect *sel)
+static void i_new_view(FView *fview, const DSelect *sel, const DColors *colors)
 {
     View *view = view_create();
     cassert_no_null(sel);
     fview_synchro(fview, view);
     flayout_add_view(sel->flayout, fview, sel->col, sel->row);
     layout_view(sel->glayout, view, sel->col, sel->row);
+    dlayout_set_image(sel->dlayout, nflib_default_view(), sel->col, sel->row, colors);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -966,7 +967,7 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 FView *fview = dialog_new_view(window, font, &sel);
                 if (fview != NULL)
                 {
-                    i_new_view(fview, &sel);
+                    i_new_view(fview, &sel, colors);
                     i_after_new_widget(form, inspect, propedit, &sel);
                     return TRUE;
                 }
@@ -1436,7 +1437,7 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
             case ekCELL_TYPE_VIEW:
             {
                 FView *fview = dbind_copy(clipboard->fcell->widget.view, FView);
-                i_new_view(fview, &form->sel);
+                i_new_view(fview, &form->sel, colors);
                 break;
             }
 
