@@ -2295,6 +2295,10 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
             layout_dbind_obj(data->view_layout, cell->widget.view, FView);
             panel_visible_layout(data->cell_panel, 14);
         }
+        else if (cell->type == ekCELL_TYPE_SCROLL_VIEW)
+        {
+            cassert(FALSE);
+        }
         else if (cell->type == ekCELL_TYPE_TEXT)
         {
             layout_dbind_obj(data->text_layout, cell->widget.text, FText);

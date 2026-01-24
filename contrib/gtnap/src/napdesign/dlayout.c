@@ -144,6 +144,10 @@ DLayout *dlayout_from_flayout(const FLayout *flayout, const char_t *resource_pat
             {
                 dlayout_set_image(layout, nflib_default_view(), i, j, colors);
             }
+            else if (fcell->type == ekCELL_TYPE_SCROLL_VIEW)
+            {
+                dlayout_set_image(layout, nflib_default_view(), i, j, colors);
+            }
             else if (fcell->type == ekCELL_TYPE_LAYOUT)
             {
                 dcell->sublayout = dlayout_from_flayout(fcell->widget.layout, resource_path, colors);
@@ -1261,6 +1265,11 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                 draw_line_width(ctx, 2);
                 draw_rect(ctx, ekSTROKE, dcell->content_rect.pos.x + 1, dcell->content_rect.pos.y + 1, dcell->content_rect.size.width, dcell->content_rect.size.height);
                 draw_line_width(ctx, 1);
+                break;
+            }
+
+            case ekCELL_TYPE_SCROLL_VIEW:
+            {
                 break;
             }
 

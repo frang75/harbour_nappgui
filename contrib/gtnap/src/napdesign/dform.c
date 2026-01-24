@@ -26,6 +26,7 @@
 #include <nflib/ftext.h>
 #include <nflib/ftool.h>
 #include <nflib/fview.h>
+#include <nflib/fsview.h>
 #include <gui/guicontrol.h>
 #include <gui/button.h>
 #include <gui/edit.h>
@@ -711,6 +712,18 @@ static void i_new_view(FView *fview, const DSelect *sel, const DColors *colors)
     cassert_no_null(sel);
     fview_synchro(fview, view);
     flayout_add_view(sel->flayout, fview, sel->col, sel->row);
+    layout_view(sel->glayout, view, sel->col, sel->row);
+    dlayout_set_image(sel->dlayout, nflib_default_view(), sel->col, sel->row, colors);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_sview(FSView *fsview, const DSelect *sel, const DColors *colors)
+{
+    View *view = view_scroll();
+    cassert_no_null(sel);
+    fsview_synchro(fsview, view);
+    flayout_add_sview(sel->flayout, fsview, sel->col, sel->row);
     layout_view(sel->glayout, view, sel->col, sel->row);
     dlayout_set_image(sel->dlayout, nflib_default_view(), sel->col, sel->row, colors);
 }
@@ -1441,6 +1454,13 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
                 break;
             }
 
+            case ekCELL_TYPE_SCROLL_VIEW:
+            {
+                FSView *fsview = dbind_copy(clipboard->fcell->widget.sview, FSView);
+                i_new_sview(fsview, &form->sel, colors);
+                break;
+            }
+
             case ekCELL_TYPE_TEXT:
             {
                 FText *ftext = dbind_copy(clipboard->fcell->widget.text, FText);
@@ -2017,6 +2037,21 @@ void dform_synchro_view(DForm *form, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+void dform_synchro_sview(DForm *form, const DSelect *sel)
+{
+    FCell *cell = i_sel_fcell(sel);
+    View *view = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_SCROLL_VIEW);
+    i_need_save(form, TRUE);
+    view = layout_get_view(sel->glayout, sel->col, sel->row);
+    fsview_synchro(cell->widget.sview, view);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dform_synchro_textview(DForm *form, const DSelect *sel)
 {
     FCell *cell = i_sel_fcell(sel);
@@ -2195,6 +2230,8 @@ const char_t* dform_cell_type(const celltype_t type)
         return gui_text(TEXT_CELL_PROGRESS);
     case ekCELL_TYPE_VIEW:
         return gui_text(TEXT_CELL_VIEW);
+    case ekCELL_TYPE_SCROLL_VIEW:
+        return gui_text(TEXT_CELL_SVIEW);
     case ekCELL_TYPE_TEXT:
         return gui_text(TEXT_CELL_TEXT);
     case ekCELL_TYPE_IMAGE:
@@ -2244,6 +2281,8 @@ const Image *dform_cell_icon(const celltype_t type)
         return gui_image(PROGRESSBAR16_PNG);
     case ekCELL_TYPE_VIEW:
         return gui_image(VIEW16_PNG);
+    case ekCELL_TYPE_SCROLL_VIEW:
+        return gui_image(SVIEW16_PNG);
     case ekCELL_TYPE_TEXT:
         return gui_image(TEXTVIEW16_PNG);
     case ekCELL_TYPE_IMAGE:

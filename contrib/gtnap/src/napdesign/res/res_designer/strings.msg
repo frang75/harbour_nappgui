@@ -143,6 +143,7 @@ TEXT_CELL_SLIDER    SliderCell
 TEXT_CELL_VSLIDER   VertSliderCell
 TEXT_CELL_PROGRESS  ProgressCell
 TEXT_CELL_VIEW      ViewCell
+TEXT_CELL_SVIEW     ScrollViewCell
 TEXT_CELL_TEXT      TextViewCell
 TEXT_CELL_IMAGE     ImageViewCell
 TEXT_CELL_TABLE     TableCell

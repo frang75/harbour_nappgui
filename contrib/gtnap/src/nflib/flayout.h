@@ -50,6 +50,8 @@ _nflib_api void flayout_add_progress(FLayout *layout, FProgress *progress, const
 
 _nflib_api void flayout_add_view(FLayout *layout, FView *view, const uint32_t col, const uint32_t row);
 
+_nflib_api void flayout_add_sview(FLayout *layout, FSView *sview, const uint32_t col, const uint32_t row);
+
 _nflib_api void flayout_add_text(FLayout *layout, FText *text, const uint32_t col, const uint32_t row);
 
 _nflib_api void flayout_add_image(FLayout *layout, FImage *image, const uint32_t col, const uint32_t row);
