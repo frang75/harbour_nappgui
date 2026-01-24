@@ -18,6 +18,7 @@ TEXT_NEW_SLIDER     A new slider will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_VSLIDER    A new vertical slider will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_PROGRESS   A new progressbar will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_CUSTOMVIEW A new custom view will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_SCROLLVIEW A new scroll view will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_TEXTVIEW   A new textview will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_IMAGEVIEW  A new imageview will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_TABLEVIEW  A new tableview will be placed in cell (%d, %d) of '%s' layout
@@ -50,6 +51,7 @@ TEXT_LAYOUTS        Layouts
 TEXT_BUTTONS        Buttons
 TEXT_TEXT_WIDGETS   Text Widgets
 TEXT_ITEM_WIDGETS   Item Widgets
+TEXT_DISPLAY_WIDGETS Display Widgets
 TEXT_OTHER_WIDGETS  Other Widgets
 TEXT_SELECT         Select
 TEXT_SINGLE_LAYOUT  Single Layout
@@ -71,6 +73,7 @@ TEXT_HORZ_SLIDER    Horizontal Slider
 TEXT_VERT_SLIDER    Vertical Slider
 TEXT_PROGRESS_BAR   Progress Bar
 TEXT_CUSTOM_VIEW    Custom View
+TEXT_SCROLL_VIEW    Scroll View
 TEXT_TEXT_VIEW      Text View
 TEXT_IMAGE_VIEW     Image View
 TEXT_TABLE_VIEW     Table View

@@ -957,6 +957,7 @@ static bool_t i_is_widget_drawer(const drawer_t drawer)
     case ekDRAWER_WIDGET_BUTTONS:
     case ekDRAWER_WIDGET_TEXT:
     case ekDRAWER_WIDGET_ITEMS:
+    case ekDRAWER_WIDGET_DISPLAY:
     case ekDRAWER_WIDGET_OTHERS:
         return TRUE;
     case ekDRAWER_LAYOUT_PROPS:
@@ -1976,6 +1977,7 @@ static Designer *i_app(void)
     i_add_drawer(app->wdrawers, ekDRAWER_WIDGET_BUTTONS, TEXT_BUTTONS);
     i_add_drawer(app->wdrawers, ekDRAWER_WIDGET_TEXT, TEXT_TEXT_WIDGETS);
     i_add_drawer(app->wdrawers, ekDRAWER_WIDGET_ITEMS, TEXT_ITEM_WIDGETS);
+    i_add_drawer(app->wdrawers, ekDRAWER_WIDGET_DISPLAY, TEXT_DISPLAY_WIDGETS);
     i_add_drawer(app->wdrawers, ekDRAWER_WIDGET_OTHERS, TEXT_OTHER_WIDGETS);
     i_add_drawer(app->wdrawers, ekDRAWER_LAYOUT_PROPS, TEXT_LAYOUT_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_COLUMN_PROPS, TEXT_COLUMN_PROPS);
@@ -2013,8 +2015,9 @@ static Designer *i_app(void)
     i_add_widget(app->bwidgets, ekWIDGET_LISTBOX, TEXT_LIST_BOX, LISTVIEW_PNG, ekDRAWER_WIDGET_ITEMS);
     i_add_widget(app->bwidgets, ekWIDGET_POPUP, TEXT_POPUP_BUTTON, POPUP_PNG, ekDRAWER_WIDGET_ITEMS);
     i_add_widget(app->bwidgets, ekWIDGET_TABLEVIEW, TEXT_TABLE_VIEW, TABLEVIEW_PNG, ekDRAWER_WIDGET_ITEMS);
-    i_add_widget(app->bwidgets, ekWIDGET_IMAGEVIEW, TEXT_IMAGE_VIEW, IMAGEVIEW_PNG, ekDRAWER_WIDGET_OTHERS);
-    i_add_widget(app->bwidgets, ekWIDGET_CUSTOMVIEW, TEXT_CUSTOM_VIEW, VIEW_PNG, ekDRAWER_WIDGET_OTHERS);
+    i_add_widget(app->bwidgets, ekWIDGET_IMAGEVIEW, TEXT_IMAGE_VIEW, IMAGEVIEW_PNG, ekDRAWER_WIDGET_DISPLAY);
+    i_add_widget(app->bwidgets, ekWIDGET_CUSTOMVIEW, TEXT_CUSTOM_VIEW, VIEW_PNG, ekDRAWER_WIDGET_DISPLAY);
+    i_add_widget(app->bwidgets, ekWIDGET_SCROLLVIEW, TEXT_SCROLL_VIEW, SVIEW_PNG, ekDRAWER_WIDGET_DISPLAY);
     i_add_widget(app->bwidgets, ekWIDGET_HORZ_SLIDER, TEXT_HORZ_SLIDER, HORSLIDER_PNG, ekDRAWER_WIDGET_OTHERS);
     i_add_widget(app->bwidgets, ekWIDGET_VERT_SLIDER, TEXT_VERT_SLIDER, VERSLIDER_PNG, ekDRAWER_WIDGET_OTHERS);
     i_add_widget(app->bwidgets, ekWIDGET_PROGRESS, TEXT_PROGRESS_BAR, PROGRESSBAR_PNG, ekDRAWER_WIDGET_OTHERS);

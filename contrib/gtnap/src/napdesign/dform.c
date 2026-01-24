@@ -990,6 +990,21 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                 }
             }
 
+            case ekWIDGET_SCROLLVIEW:
+            {
+                FSView *fsview = dialog_new_sview(window, font, &sel);
+                if (fsview != NULL)
+                {
+                    i_new_sview(fsview, &sel, colors);
+                    i_after_new_widget(form, inspect, propedit, &sel);
+                    return TRUE;
+                }
+                else
+                {
+                    return FALSE;
+                }
+            }
+
             case ekWIDGET_TEXTVIEW:
             {
                 FText *ftext = dialog_new_text(window, font, &sel);
