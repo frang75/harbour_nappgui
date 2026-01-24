@@ -1245,6 +1245,7 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
             }
 
             case ekCELL_TYPE_VIEW:
+            case ekCELL_TYPE_SCROLL_VIEW:
             {
                 const Image *image = i_get_image(dcell, 0, i_is_cell_sel(hover, dlayout, i, j));
                 if (image != NULL)
@@ -1260,16 +1261,50 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                     draw_image(ctx, image, 0, 0);
                     draw_matrixf(ctx, kT2D_IDENTf);
                 }
+                
+                /* Draw scrollbars*/
+                if (fcell->type == ekCELL_TYPE_SCROLL_VIEW)
+                {
+                    static const real32_t i_SCROLL_WIDTH = 10;
+                    static const real32_t i_SCROLL_RADIUS = 2;
+                    const real32_t i_RADIUS_OFFSET = i_SCROLL_WIDTH / 2;
+                    if (dcell->content_rect.size.width > i_SCROLL_WIDTH)
+                    {
+                        real32_t x = dcell->content_rect.pos.x + dcell->content_rect.size.width - i_SCROLL_WIDTH;
+                        real32_t y = dcell->content_rect.pos.y;
+                        real32_t width = i_SCROLL_WIDTH;
+                        real32_t height = dcell->content_rect.size.height;
+                        draw_fill_color(ctx, bcolor);
+                        draw_rect(ctx, ekFILL, x, y, width, height);
+                        draw_fill_color(ctx, wcolor);
+                        draw_rect(ctx, ekFILL, x, y, i_SCROLL_WIDTH, i_SCROLL_WIDTH);
+                        draw_rect(ctx, ekFILL, x, y + height - i_SCROLL_WIDTH, i_SCROLL_WIDTH, i_SCROLL_WIDTH);
+                        draw_fill_color(ctx, bcolor);
+                        draw_circle(ctx, ekFILL, x + i_RADIUS_OFFSET, y + i_RADIUS_OFFSET, i_SCROLL_RADIUS);
+                        draw_circle(ctx, ekFILL, x + i_RADIUS_OFFSET, y + height - i_SCROLL_WIDTH + i_RADIUS_OFFSET, i_SCROLL_RADIUS);
+                    }
+
+                    if (dcell->content_rect.size.height > i_SCROLL_WIDTH)
+                    {
+                        real32_t x = dcell->content_rect.pos.x;
+                        real32_t y = dcell->content_rect.pos.y + dcell->content_rect.size.height - i_SCROLL_WIDTH;
+                        real32_t height = i_SCROLL_WIDTH;
+                        real32_t width = dcell->content_rect.size.width - i_SCROLL_WIDTH;
+                        draw_fill_color(ctx, bcolor);
+                        draw_rect(ctx, ekFILL, x, y, width, height);
+                        draw_fill_color(ctx, wcolor);
+                        draw_rect(ctx, ekFILL, x, y, i_SCROLL_WIDTH, i_SCROLL_WIDTH);
+                        draw_rect(ctx, ekFILL, x + width - i_SCROLL_WIDTH, y, i_SCROLL_WIDTH, i_SCROLL_WIDTH);
+                        draw_fill_color(ctx, bcolor);
+                        draw_circle(ctx, ekFILL, x + i_RADIUS_OFFSET, y + i_RADIUS_OFFSET, i_SCROLL_RADIUS);
+                        draw_circle(ctx, ekFILL, x + width - i_SCROLL_WIDTH + i_RADIUS_OFFSET, y + i_RADIUS_OFFSET, i_SCROLL_RADIUS);
+                    }
+                }
 
                 draw_line_color(ctx, bcolor);
                 draw_line_width(ctx, 2);
                 draw_rect(ctx, ekSTROKE, dcell->content_rect.pos.x + 1, dcell->content_rect.pos.y + 1, dcell->content_rect.size.width, dcell->content_rect.size.height);
                 draw_line_width(ctx, 1);
-                break;
-            }
-
-            case ekCELL_TYPE_SCROLL_VIEW:
-            {
                 break;
             }
 
