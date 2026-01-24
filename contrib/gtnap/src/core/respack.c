@@ -118,7 +118,7 @@ void respack_destroy(ResPack **pack)
 {
     cassert_no_null(pack);
     cassert_no_null(*pack);
-    cassert(i_dump_resources((*pack)->resources, TRUE) == TRUE);
+    cassert(i_dump_resources((*pack)->resources, FALSE) == TRUE);
     str_destroy(&(*pack)->name);
     arrst_destroy(&(*pack)->resources, i_remove_resource, i_Resource);
     if ((*pack)->type == i_ekTYPE_PACKED)

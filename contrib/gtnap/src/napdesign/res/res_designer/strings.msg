@@ -42,7 +42,8 @@ TEXT_LIST_PROPS     Listbox properties
 TEXT_SLIDER_PROPS   Slider properties
 TEXT_VSLIDER_PROPS  VertSlider properties
 TEXT_PROGRESS_PROPS Progressbar properties
-TEXT_VIEW_PROPS     Customview properties
+TEXT_VIEW_PROPS     Custom view properties
+TEXT_SVIEW_PROPS    Scroll view properties
 TEXT_TEXT_PROPS     Textview properties
 TEXT_IMAGE_PROPS    Imageview properties
 TEXT_TABLE_PROPS    Tableview properties

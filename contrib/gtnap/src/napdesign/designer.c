@@ -977,6 +977,7 @@ static bool_t i_is_widget_drawer(const drawer_t drawer)
     case ekDRAWER_VSLIDER_PROPS:
     case ekDRAWER_PROGRESS_PROPS:
     case ekDRAWER_VIEW_PROPS:
+    case ekDRAWER_SVIEW_PROPS:
     case ekDRAWER_TEXT_PROPS:
     case ekDRAWER_IMAGE_PROPS:
     case ekDRAWER_TABLE_FRAME_PROPS:
@@ -1996,6 +1997,7 @@ static Designer *i_app(void)
     i_add_drawer(app->wdrawers, ekDRAWER_VSLIDER_PROPS, TEXT_VSLIDER_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_PROGRESS_PROPS, TEXT_PROGRESS_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_VIEW_PROPS, TEXT_VIEW_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_SVIEW_PROPS, TEXT_SVIEW_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_TEXT_PROPS, TEXT_TEXT_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_IMAGE_PROPS, TEXT_IMAGE_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_TABLE_FRAME_PROPS, TEXT_TABLE_PROPS);

@@ -92,6 +92,8 @@ void dform_synchro_progress(DForm *form, const DSelect *sel);
 
 void dform_synchro_view(DForm *form, const DSelect *sel);
 
+void dform_synchro_sview(DForm *form, const DSelect *sel);
+
 void dform_synchro_textview(DForm *form, const DSelect *sel);
 
 void dform_synchro_imageview(DForm *form, const DSelect *sel);
