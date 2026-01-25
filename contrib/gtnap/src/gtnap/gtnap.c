@@ -35,6 +35,7 @@
 #include <draw2d/color.h>
 #include <draw2d/font.h>
 #include <draw2d/image.h>
+#include <draw2d/draw.h>
 #include <geom2d/s2d.h>
 #include <geom2d/v2d.h>
 #include <core/arrst.h>
@@ -5691,6 +5692,54 @@ void hbnap_forms_show(GtNapForm *form, HB_ITEM *onclose_block)
     form->OnClose_block = hb_itemNew(onclose_block);
     window_OnClose(form->window, listener(form, i_OnFormClose, GtNapForm));
     window_show(form->window);
+}
+
+typedef struct i_maindata_t MainData;
+
+struct i_maindata_t
+{
+    String *title;
+    Image *logo;
+};
+
+/*---------------------------------------------------------------------------*/
+
+static void i_destroy_maindata(MainData **data)
+{
+    cassert_no_null(data);
+    cassert_no_null(*data);
+    str_destopt(&(*data)->title);
+    ptr_destopt(image_destroy, &(*data)->logo, Image);
+    heap_delete(data, MainData);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnDrawMainView(GtNapForm *form, Event *e)
+{
+    const EvDraw *p = event_params(e, EvDraw);
+    View *view = event_sender(e, View);
+    MainData *data = view_get_data(view, MainData);
+    unref(form);
+    if (data->title != NULL)
+        draw_text(p->ctx, tc(data->title), 0, 0);
+    if (data->logo != NULL)
+        draw_image(p->ctx, data->logo, 0, 20);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const char_t *title, const char_t *logo_path)
+{
+    View *view = NULL;
+    MainData *data = heap_new0(MainData);
+    cassert_no_null(form);
+    view = nform_get_view(form->form, canvas_cell);
+    cassert_no_null(view);
+    data->title = str_c(title);
+    data->logo = image_from_file(logo_path, NULL);
+    view_data(view, &data, i_destroy_maindata, MainData);
+    view_OnDraw(view, listener(form, i_OnDrawMainView, GtNapForm));
 }
 
 /*---------------------------------------------------------------------------*/

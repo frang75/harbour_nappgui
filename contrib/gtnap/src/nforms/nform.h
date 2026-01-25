@@ -40,4 +40,6 @@ _nforms_api R2Df nform_get_control_frame(NForm *form, const char_t *cell_name, W
 
 _nforms_api TableView *nform_get_tableview(NForm *form, const char_t *cell_name);
 
+_nforms_api View *nform_get_view(NForm *form, const char_t *cell_name);
+
 __END_C

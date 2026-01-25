@@ -34,6 +34,14 @@ HB_FUNC(HBNAP_FORMS_LOAD)
 
 /*---------------------------------------------------------------------------*/
 
+HB_FUNC(HBNAP_FORMS_DESTROY)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    hbnap_forms_destroy(&form);
+}
+
+/*---------------------------------------------------------------------------*/
+
 HB_FUNC(HBNAP_FORMS_TITLE)
 {
     GtNapForm *form = cast(hb_parptr(1), GtNapForm);
@@ -52,8 +60,12 @@ HB_FUNC(HBNAP_FORMS_SHOW)
 
 /*---------------------------------------------------------------------------*/
 
-HB_FUNC(HBNAP_FORMS_DESTROY)
+HB_FUNC(HBNAP_FORMS_MAIN_COVER)
 {
     GtNapForm *form = cast(hb_parptr(1), GtNapForm);
-    hbnap_forms_destroy(&form);
+    const char_t *canvas_cell = hb_parcx(2);
+    const char_t *title = hb_parcx(3);
+    const char_t *logo_path = hb_parcx(4);
+    hbnap_forms_main_cover(form, canvas_cell, title, logo_path);
 }
+

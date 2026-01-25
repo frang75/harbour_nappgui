@@ -228,11 +228,13 @@ extern void hbnap_forms_exit_app(void);
 
 extern GtNapForm *hbnap_forms_load(const char_t *pathname, const char_t *resource_path, const uint32_t flags);
 
+extern void hbnap_forms_destroy(GtNapForm **form);
+
 extern void hbnap_forms_title(GtNapForm *form, HB_ITEM *text_block);
 
 extern void hbnap_forms_show(GtNapForm *form, HB_ITEM *onclose_block);
 
-extern void hbnap_forms_destroy(GtNapForm **form);
+extern void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const char_t *title, const char_t *logo_path);
 
 
 /* --------------------------- */
