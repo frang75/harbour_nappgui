@@ -2,16 +2,18 @@
 ///* encoding: cp850 */
 #INCLUDE "ord.ch"
 #INCLUDE "inkey.ch"
+#INCLUDE "hbnap.ch"
 //#INCLUDE "cua.ch"
 // #INCLUDE "box.ch"
 
-// Desativar na "cuademo", para página de código ser a padrão Windows/Linux
+// Desativar na "cuademo", para pï¿½gina de cï¿½digo ser a padrï¿½o Windows/Linux
 REQUEST HB_CODEPAGE_PT850
 REQUEST HB_CODEPAGE_PTISO
 REQUEST HB_LANG_PT_BR
 
 ANNOUNCE HB_GT_SYS
 
+// STATIC C_FORMS_PATH := "forms/"
 STATIC V_MainWindow := NIL
 
 *
@@ -27,8 +29,8 @@ SET CENT ON
 SET DATE BRIT
 SET DELE ON
 SETBLINK(.F.)    // "*" passa a indicar background intenso
-SET AUTOPEN OFF  // tornar a abertura do indice cdx não automatica
-// Desativar na "cuademo", para página de código ser a padrão Windows/Linux
+SET AUTOPEN OFF  // tornar a abertura do indice cdx nï¿½o automatica
+// Desativar na "cuademo", para pï¿½gina de cï¿½digo ser a padrï¿½o Windows/Linux
 // hb_cdpSelect("PT850")
 // hb_LangSelect("pt_BR","PT850")
 hb_cdpSelect("PTISO")
@@ -56,14 +58,14 @@ MSETCURSOR( .T. )
 //
 IF HB_GTVERSION()=="NAP"
     // DIRET_BMPS("../bmps/")
-    DIRET_FORMS("forms/")
+    ASPEC_RESPATH("forms/")
     // DIRET_NFORMS("../nforms/")
     //Setup_nap("Exemplo das rotinas de janelamento", 35, 110, {|| RUN_MAIN() })
-    NAP_FORM_INIT_APP({|| RUN_MAIN() })
+    HBNAP_FORMS_INIT_APP({|| RUN_MAIN() })
 
  ELSE
     // SETMODE(35,110)
-    // NAP_CUALIB_INIT_LOG()
+    // HBNAP_CUALIB_INIT_LOG()
     // RUN_MAIN()
 
  ENDIF
@@ -73,9 +75,9 @@ IF HB_GTVERSION()=="NAP"
 // From here, all CUALIB based code will be the same as original implementation
 //
 PROC RUN_MAIN
-    V_MainWindow := NAP_FORM_LOAD(DIRET_FORMS() + "Customer.nfm")
-    //LOCAL N_RES := 0
-    NAP_FORM_TITLE(V_MainWindow, "Primeiro exemplo de formulário GTNAP")
+    V_MainWindow := HBNAP_FORMS_LOAD(ASPEC_RESPATH() + "Customer.nfm", ASPEC_RESPATH(), HBNAP_FORMS_RESIZABLE)
+    HBNAP_FORMS_TITLE(V_MainWindow, "Main Window")
+    HBNAP_FORMS_SHOW(V_MainWindow, {|| MAIN_WINDOW_CLOSE() })
     //N_RES := NAP_FORM_MODAL(V_FORM, DIRET_FORMS(), .F.)
     //NAP_FORM_DESTROY(V_MainWindow)
     RETURN
@@ -93,15 +95,15 @@ PROC RUN_MAIN
 
 // ESPECIALIZE V_Janela MENU
 
-// ADDOPCAO V_JANELA TEXTO "#menu de opções" ;
+// ADDOPCAO V_JANELA TEXTO "#menu de opï¿½ï¿½es" ;
 //     ACAO EXEMPLO_MENU() AJUDA "P06671"
 // ADDOPCAO V_Janela TEXTO "browse de #DBF" ;
 //     ACAO EXEMPLO_BROWSE_DBF() AJUDA "P06673"
 // ADDOPCAO V_Janela TEXTO "browse de #vetor" ;
 //     ACAO EXEMPLO_BROWSE_VETOR() AJUDA "P06675"
-// ADDOPCAO V_Janela TEXTO "exibição/edição de #texto em memória" ;
+// ADDOPCAO V_Janela TEXTO "exibiï¿½ï¿½o/ediï¿½ï¿½o de #texto em memï¿½ria" ;
 //     ACAO EXEMPLO_TEXTO_MEMORIA() AJUDA "P06677"
-// ADDOPCAO V_Janela TEXTO "exibição de #arquivo texto" ;
+// ADDOPCAO V_Janela TEXTO "exibiï¿½ï¿½o de #arquivo texto" ;
 //     ACAO EXEMPLO_TEXTO_ARQUIVO() AJUDA "P06679"
 // ADDOPCAO V_Janela TEXTO "#entrada de dados" ;
 //     ACAO EXEMPLO_ENTRADA_DADOS() AJUDA "P06681"
@@ -133,13 +135,18 @@ PROC RUN_MAIN
     QUIT
  */
 
-FUNCTION DIRET_FORMS(C_DIRET_NEW)
-    STATIC C_DIRET_FORMS := ""
-    LOCAL C_DIRET_ANT := C_DIRET_FORMS
-    IF C_DIRET_NEW # NIL
-        C_DIRET_FORMS := C_DIRET_NEW
+FUNCTION MAIN_WINDOW_CLOSE()
+    HBNAP_FORMS_DESTROY(V_MainWindow)
+    HBNAP_FORMS_EXIT_APP()
+    RETURN .T.
+
+FUNCTION ASPEC_RESPATH(C_NEW_PATH)
+    STATIC C_RESPATH := ""
+    LOCAL C_PREV_PATH := C_RESPATH
+    IF C_NEW_PATH # NIL
+        C_RESPATH := C_NEW_PATH
     ENDIF
-    RETURN C_DIRET_ANT
+    RETURN C_PREV_PATH
 
 
 // *******************
@@ -160,7 +167,7 @@ FUNCTION DIRET_FORMS(C_DIRET_NEW)
 // **************************
 // LOCAL N_Resposta, L_Confirmacao
 
-// N_Resposta = PERGUN("Cancelar digitação dos dados ?",{"sim","nao"},2)
+// N_Resposta = PERGUN("Cancelar digitaï¿½ï¿½o dos dados ?",{"sim","nao"},2)
 // IF N_Resposta == 1
 //    L_Confirmacao = .T.
 // ELSE

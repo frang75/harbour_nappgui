@@ -7,6 +7,7 @@
 #include "gtnap.h"
 #include "gtnap.inl"
 #include "gtnap.ch"
+#include "hbnap.ch"
 #include "nap_menu.inl"
 #include "nap_debugger.inl"
 #include <nforms/nforms.h>
@@ -240,6 +241,7 @@ struct _gtnap_form_t
     Window *window;
     uint32_t modal_ret;
     GtNapFArea *area;
+    HB_ITEM *OnClose_block;
     ArrSt(GtNapBind) *binds;
     ArrPt(GtNapCallback) *callbacks;
 };
@@ -627,9 +629,9 @@ static void i_gtnap_forms_destroy(GtNap **gtnap)
     cassert_no_null(gtnap);
     cassert_no_null(*gtnap);
     cassert(*gtnap == GTNAP_GLOBAL);
-    cassert(arrpt_size((*gtnap)->menu_callbacks, GtNapCallback) == 0);
-    arrpt_destroy(&(*gtnap)->windows, i_destroy_gtwin, GtNapWindow);
-    arrpt_destroy(&(*gtnap)->menu_callbacks, i_destroy_callback, GtNapCallback);
+    //cassert(arrpt_size((*gtnap)->menu_callbacks, GtNapCallback) == 0);
+    //arrpt_destroy(&(*gtnap)->windows, i_destroy_gtwin, GtNapWindow);
+    //arrpt_destroy(&(*gtnap)->menu_callbacks, i_destroy_callback, GtNapCallback);
     //font_destroy(&(*gtnap)->global_font);
     //font_destroy(&(*gtnap)->button_font);
     //font_destroy(&(*gtnap)->edit_font);
@@ -2850,7 +2852,7 @@ void hb_gtnap_init(const char_t *title, const uint32_t rows, const uint32_t cols
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_form_init_app(HB_ITEM *main_block)
+void hbnap_forms_init_app(HB_ITEM *main_block)
 {
     void *hInstance = NULL;
 
@@ -2867,6 +2869,13 @@ void hb_gtnap_form_init_app(HB_ITEM *main_block)
         (FPtr_app_update)i_gtnap_forms_update,
         (FPtr_destroy)i_gtnap_forms_destroy,
         (char_t *)"");
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_exit_app(void)
+{
+    osapp_finish();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -5065,6 +5074,40 @@ GtNapForm *hb_gtnap_form_load(const char_t *pathname)
 
 /*---------------------------------------------------------------------------*/
 
+GtNapForm *hbnap_forms_load(const char_t *pathname, const char_t *resource_path, const uint32_t flags)
+{
+    NForm *form = nform_from_file(pathname, NULL);
+    if (form != NULL)
+    {
+        GtNapForm *gtform = heap_new0(GtNapForm);
+        uint32_t nflags = 0;
+        gtform->form = form;
+        gtform->binds = arrst_create(GtNapBind);
+        gtform->callbacks = arrpt_create(GtNapCallback);
+
+        if (flags & HBNAP_FORMS_RESIZABLE)
+            nflags |= ekWINDOW_STDRES;
+        else
+            nflags |= ekWINDOW_STD;
+
+        if (flags & HBNAP_FORMS_CLOSE_ON_ESC)
+            nflags |= ekWINDOW_ESC;
+
+        if (flags & HBNAP_FORMS_CLOSE_ON_RETURN)
+            nflags |= ekWINDOW_RETURN;
+
+        gtform->window = nform_window(gtform->form, nflags, resource_path);
+        if (gtform->window == NULL)
+            hbnap_forms_destroy(&gtform);
+
+        return gtform;
+    }
+
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void hb_gtnap_form_title(GtNapForm *form, HB_ITEM *text_block)
 {
     String *title = hb_block_to_utf8(text_block);
@@ -5073,6 +5116,17 @@ void hb_gtnap_form_title(GtNapForm *form, HB_ITEM *text_block)
     form->title = title;
     if (form->window != NULL)
         window_title(form->window, tc(form->title));
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_title(GtNapForm *form, HB_ITEM *text_block)
+{
+    String *title = hb_block_to_utf8(text_block);
+    cassert_no_null(form);
+    cassert(form->title == NULL);
+    window_title(form->window, tc(title));
+    str_destroy(&title);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -5611,6 +5665,36 @@ uint32_t hb_gtnap_form_modal(GtNapForm *form, const char_t *resource_path, const
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnFormClose(GtNapForm *form, Event *e)
+{
+    cassert_no_null(form);
+    if (form->OnClose_block != NULL)
+    {
+        PHB_ITEM ritem = hb_itemDo(form->OnClose_block, 0);
+        if (HB_ITEM_TYPE(ritem) == HB_IT_LOGICAL)
+        {
+            bool_t *r = event_result(e, bool_t);
+            *r = (bool_t)hb_itemGetL(ritem);
+        }
+        hb_itemRelease(ritem);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_show(GtNapForm *form, HB_ITEM *onclose_block)
+{
+    cassert_no_null(form);
+    if (form->OnClose_block != NULL)
+        hb_itemRelease(form->OnClose_block);
+
+    form->OnClose_block = hb_itemNew(onclose_block);
+    window_OnClose(form->window, listener(form, i_OnFormClose, GtNapForm));
+    window_show(form->window);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void hb_gtnap_form_stop_modal(GtNapForm *form, const uint32_t value)
 {
     cassert_no_null(form);
@@ -5695,6 +5779,28 @@ void hb_gtnap_form_destroy(GtNapForm **form)
     cassert_no_null(*form);
     ptr_destopt(window_destroy, &(*form)->window, Window);
     str_destopt(&(*form)->title);
+    arrst_destroy(&(*form)->binds, i_remove_bind, GtNapBind);
+    arrpt_destroy(&(*form)->callbacks, i_destroy_callback, GtNapCallback);
+    ptr_destopt(i_destroy_farea, &(*form)->area, GtNapFArea);
+    nform_destroy(&(*form)->form);
+    heap_delete(form, GtNapForm);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_destroy(GtNapForm **form)
+{
+    cassert_no_null(form);
+    cassert_no_null(*form);
+    ptr_destopt(window_destroy, &(*form)->window, Window);
+    str_destopt(&(*form)->title);
+
+    if ((*form)->OnClose_block != NULL)
+    {
+        hb_itemRelease((*form)->OnClose_block);
+        (*form)->OnClose_block = NULL;
+    }
+
     arrst_destroy(&(*form)->binds, i_remove_bind, GtNapBind);
     arrpt_destroy(&(*form)->callbacks, i_destroy_callback, GtNapCallback);
     ptr_destopt(i_destroy_farea, &(*form)->area, GtNapFArea);

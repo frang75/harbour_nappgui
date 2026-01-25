@@ -38,6 +38,8 @@
 -hbx=${hb_name}.hbx
 
 # Files
+src/gtnap/hbnap_forms.c
+
 src/gtnap/gtnap.c
 src/gtnap/nap_button.c
 src/gtnap/nap_color.c
