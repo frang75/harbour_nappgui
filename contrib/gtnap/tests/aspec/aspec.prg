@@ -12,6 +12,8 @@ REQUEST HB_LANG_PT_BR
 
 ANNOUNCE HB_GT_SYS
 
+STATIC V_MainWindow := NIL
+
 *
 *********
 PROC MAIN
@@ -39,6 +41,7 @@ RDDINFO(RDDI_MEMOTYPE,1)
 #DEFINE _COR2_PADRAO   "N/W,N/BG*,N,,N/W*"
 SETCOLOR(_COR2_PADRAO)
 MSETCURSOR( .T. )
+
 
 // hb_DispBox( 0, 1, 2, 2, HB_B_DOUBLE_UNI, 0 )
 
@@ -70,12 +73,12 @@ IF HB_GTVERSION()=="NAP"
 // From here, all CUALIB based code will be the same as original implementation
 //
 PROC RUN_MAIN
-    LOCAL V_FORM := NAP_FORM_LOAD(DIRET_FORMS() + "Customer.nfm")
-    LOCAL N_RES := 0
-    NAP_FORM_TITLE(V_FORM, "Primeiro exemplo de formulário GTNAP")
-    N_RES := NAP_FORM_MODAL(V_FORM, DIRET_FORMS(), .F.)
-    NAP_FORM_DESTROY(V_FORM)
-
+    V_MainWindow := NAP_FORM_LOAD(DIRET_FORMS() + "Customer.nfm")
+    //LOCAL N_RES := 0
+    NAP_FORM_TITLE(V_MainWindow, "Primeiro exemplo de formulário GTNAP")
+    //N_RES := NAP_FORM_MODAL(V_FORM, DIRET_FORMS(), .F.)
+    //NAP_FORM_DESTROY(V_MainWindow)
+    RETURN
 // LOCAL L_FechouComAutoclose, V_Janela
 
 // PRIVATE INFO_VERSAO := {"99","9","999","999",;
@@ -121,14 +124,14 @@ PROC RUN_MAIN
 // Just like initialization, finish an event-driven application needs to properly close
 // the internal message runloop structures.
 //
-    IF HB_GTVERSION()=="NAP"
+/*     IF HB_GTVERSION()=="NAP"
         NAP_EXIT()
     ENDIF
 
 //HBOFFICE_FINISH()
 
     QUIT
-
+ */
 
 FUNCTION DIRET_FORMS(C_DIRET_NEW)
     STATIC C_DIRET_FORMS := ""
