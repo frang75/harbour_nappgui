@@ -1,0 +1,43 @@
+# Beep at the end of the build
+-beep
+
+# Binary type
+-hbexe
+
+# Its a GUI project
+-gui
+
+# GT
+-gtnap
+#-gtwin{allmsvc|allmingw}
+#-gttrm{gcc}
+
+# Sources
+aspec.prg
+
+# Icon
+{allmsvc|allmingw}aspec.rc
+
+# Libraries
+#hboffice.hbc
+gtnap.hbc
+hbct.hbc
+
+# Harbour compiler options
+-m -a -w -es2 -ql
+-b{debug}
+-d_TESTE{DEBUG}
+-z
+
+
+#
+# To remove...
+#
+# C compiler options
+#-debug{DEBUG}
+
+# From command line
+#-workdir=./build
+#-debug
+#-trace
+# -o.\exemplo

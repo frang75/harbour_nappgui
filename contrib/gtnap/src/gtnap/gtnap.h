@@ -20,6 +20,8 @@ HB_EXTERN_BEGIN
 
 extern void hb_gtnap_init(const char_t *title, const uint32_t rows, const uint32_t cols, HB_ITEM *begin_block);
 
+extern void hb_gtnap_form_init_app(HB_ITEM *main_block);
+
 extern void hb_gtnap_log(const char_t *text);
 
 extern uint32_t hb_gtnap_width(void);

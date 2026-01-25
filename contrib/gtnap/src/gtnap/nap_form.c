@@ -7,6 +7,14 @@
 
 /*---------------------------------------------------------------------------*/
 
+HB_FUNC(NAP_FORM_INIT_APP)
+{
+    PHB_ITEM main_block = hb_param(1, HB_IT_BLOCK);
+    hb_gtnap_form_init_app(main_block);
+}
+
+/*---------------------------------------------------------------------------*/
+
 HB_FUNC(NAP_FORM_LOAD)
 {
     const char_t *pathname = hb_parcx(1);
