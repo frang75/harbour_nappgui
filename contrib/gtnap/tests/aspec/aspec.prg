@@ -33,7 +33,7 @@ PROC RUN_MAIN
         { "Almoxarifado", ASPEC_RESPATH() + "images/main/cubes.png", "#6A5ACD", "", .F., { || WAREHOUSE_START() }}, ;
         { "Frota", ASPEC_RESPATH() + "images/main/fleet.png", "#5B5784", "", .F., { || FLEET_START() }}, ;
         { "Doações", ASPEC_RESPATH() + "images/main/carry.png", "#8FBC8F", "", .F., { || DONATIONS_START() }}, ;
-        { "Backup", ASPEC_RESPATH() + "images/main/carry.png", "#C0C0C0", "", .F., { || BACKUP_START() }} ;
+        { "Backup", ASPEC_RESPATH() + "images/main/backup.png", "#C0C0C0", "", .F., { || BACKUP_START() }} ;
         }
 
     O_MAINWINDOW := HBNAP_FORMS_LOAD(ASPEC_RESPATH() + "MainWindow.nfm", ASPEC_RESPATH(), HBNAP_FORMS_RESIZABLE)
@@ -47,7 +47,6 @@ FUNCTION MAIN_WINDOW_CLOSE()
     HBNAP_FORMS_DESTROY(O_MAINWINDOW)
     HBNAP_FORMS_EXIT_APP()
     RETURN .T.
-
 
 // Main cover items callbacks
 FUNCTION BUDGET_START()
@@ -80,7 +79,7 @@ FUNCTION DONATIONS_START()
 FUNCTION BACKUP_START()
     RETURN .T.
 
-// Support func
+// Support funcs
 FUNCTION ASPEC_RESPATH(C_NEW_PATH)
     STATIC C_RESPATH := ""
     LOCAL C_PREV_PATH := C_RESPATH

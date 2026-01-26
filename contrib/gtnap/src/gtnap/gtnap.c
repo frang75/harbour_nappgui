@@ -5694,13 +5694,43 @@ void hbnap_forms_show(GtNapForm *form, HB_ITEM *onclose_block)
     window_show(form->window);
 }
 
+/*---------------------------------------------------------------------------*/
+
+typedef struct i_mainitem_t MainItem;
 typedef struct i_maindata_t MainData;
+
+struct i_mainitem_t
+{
+    String *title;
+    String *more;
+    color_t back;
+    Image *icon;
+    bool_t isnew;
+    HB_ITEM *OnClick;
+};
 
 struct i_maindata_t
 {
     String *title;
     Image *logo;
+    ArrSt(MainItem) *items;
 };
+
+DeclSt(MainItem);
+
+/*---------------------------------------------------------------------------*/
+
+static void i_remove_mainitem(MainItem *item)
+{
+    str_destroy(&item->title);
+    str_destroy(&item->more);
+    ptr_destopt(image_destroy, &item->icon, Image);
+    if (item->OnClick != NULL)
+    {
+        hb_itemRelease(item->OnClick);
+        item->OnClick = NULL;
+    }
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -5710,6 +5740,7 @@ static void i_destroy_maindata(MainData **data)
     cassert_no_null(*data);
     str_destopt(&(*data)->title);
     ptr_destopt(image_destroy, &(*data)->logo, Image);
+    arrst_destroy(&(*data)->items, i_remove_mainitem, MainItem);
     heap_delete(data, MainData);
 }
 
@@ -5733,12 +5764,50 @@ void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const ch
 {
     View *view = NULL;
     MainData *data = heap_new0(MainData);
+    HB_SIZE i, n;
     cassert_no_null(form);
     view = nform_get_view(form->form, canvas_cell);
     cassert_no_null(view);
-    unref(cover_items);
+    cassert_no_null(cover_items);
+    cassert(HB_ITEM_TYPE(cover_items) == HB_IT_ARRAY);
     data->title = str_c(title);
     data->logo = image_from_file(logo_path, NULL);
+    data->items = arrst_create(MainItem);
+
+    n = hb_arrayLen(cover_items);
+    for (i = 1; i <= n; ++i)
+    {
+        MainItem *item = arrst_new0(data->items, MainItem);
+        HB_ITEM *citem = hb_arrayGetItemPtr(cover_items, i);
+        HB_ITEM *ititle = NULL;
+        HB_ITEM *icon = NULL;
+        HB_ITEM *color = NULL;
+        HB_ITEM *more = NULL;
+        HB_ITEM *isnew = NULL;
+        HB_ITEM *block = NULL;
+        cassert_no_null(citem);
+        cassert(HB_ITEM_TYPE(citem) == HB_IT_ARRAY);
+        cassert(hb_arrayLen(citem) == 6);
+        ititle = hb_arrayGetItemPtr(citem, 1);
+        icon = hb_arrayGetItemPtr(citem, 2);
+        color = hb_arrayGetItemPtr(citem, 3);
+        more = hb_arrayGetItemPtr(citem, 4);
+        isnew = hb_arrayGetItemPtr(citem, 5);
+        block = hb_arrayGetItemPtr(citem, 6);
+        cassert(HB_ITEM_TYPE(ititle) == HB_IT_STRING);
+        cassert(HB_ITEM_TYPE(icon) == HB_IT_STRING);
+        cassert(HB_ITEM_TYPE(color) == HB_IT_STRING);
+        cassert(HB_ITEM_TYPE(more) == HB_IT_STRING);
+        cassert(HB_ITEM_TYPE(isnew) == HB_IT_LOGICAL);
+        cassert(HB_ITEM_TYPE(block) == HB_IT_BLOCK);
+        item->title = str_c(hb_itemGetCPtr(ititle));
+        item->icon = image_from_file(hb_itemGetCPtr(icon), NULL);
+        item->back = color_html(hb_itemGetCPtr(color));
+        item->more = str_c(hb_itemGetCPtr(more));
+        item->isnew = (bool_t)hb_itemGetL(isnew);
+        item->OnClick = hb_itemNew(block);
+    }
+
     view_data(view, &data, i_destroy_maindata, MainData);
     view_OnDraw(view, listener(form, i_OnDrawMainView, GtNapForm));
 }
