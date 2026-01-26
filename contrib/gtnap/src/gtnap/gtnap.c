@@ -5729,13 +5729,14 @@ static void i_OnDrawMainView(GtNapForm *form, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const char_t *title, const char_t *logo_path)
+void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const char_t *title, const char_t *logo_path, HB_ITEM *cover_items)
 {
     View *view = NULL;
     MainData *data = heap_new0(MainData);
     cassert_no_null(form);
     view = nform_get_view(form->form, canvas_cell);
     cassert_no_null(view);
+    unref(cover_items);
     data->title = str_c(title);
     data->logo = image_from_file(logo_path, NULL);
     view_data(view, &data, i_destroy_maindata, MainData);

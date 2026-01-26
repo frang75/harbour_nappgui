@@ -234,7 +234,7 @@ extern void hbnap_forms_title(GtNapForm *form, HB_ITEM *text_block);
 
 extern void hbnap_forms_show(GtNapForm *form, HB_ITEM *onclose_block);
 
-extern void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const char_t *title, const char_t *logo_path);
+extern void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const char_t *title, const char_t *logo_path, HB_ITEM *cover_items);
 
 
 /* --------------------------- */

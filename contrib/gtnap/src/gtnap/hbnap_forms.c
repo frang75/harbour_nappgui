@@ -66,6 +66,7 @@ HB_FUNC(HBNAP_FORMS_MAIN_COVER)
     const char_t *canvas_cell = hb_parcx(2);
     const char_t *title = hb_parcx(3);
     const char_t *logo_path = hb_parcx(4);
-    hbnap_forms_main_cover(form, canvas_cell, title, logo_path);
+    HB_ITEM *cover_items = hb_param(5, HB_IT_ARRAY);
+    hbnap_forms_main_cover(form, canvas_cell, title, logo_path, cover_items);
 }
 

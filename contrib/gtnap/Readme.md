@@ -532,7 +532,7 @@ Just adding `-gtnap` flag into your `.hbp` project file.
 - To compile in Windows with VisualStudio:
    ```
    :: Set 64bit compiler
-   "%ProgramFiles(x86)%\Microsoft Visual Studio 11.0\VC\vcvarsall.bat" x64
+   "%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 
    :: Use -debug option or omit for release version
    cd contrib\gtnap\tests\cuademo\gtnap_cualib
