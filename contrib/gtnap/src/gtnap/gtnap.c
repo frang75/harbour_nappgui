@@ -36,7 +36,9 @@
 #include <draw2d/font.h>
 #include <draw2d/image.h>
 #include <draw2d/draw.h>
+#include <draw2d/dctx.h>
 #include <geom2d/s2d.h>
+#include <geom2d/t2d.h>
 #include <geom2d/v2d.h>
 #include <core/arrst.h>
 #include <core/arrpt.h>
@@ -5707,6 +5709,8 @@ struct i_mainitem_t
     Image *icon;
     bool_t isnew;
     HB_ITEM *OnClick;
+    real32_t pos_x;
+    real32_t pos_y;
 };
 
 struct i_maindata_t
@@ -5716,7 +5720,12 @@ struct i_maindata_t
     ArrSt(MainItem) *items;
 };
 
+/*---------------------------------------------------------------------------*/
+
 DeclSt(MainItem);
+static const real32_t i_ITEM_WIDTH = 260;
+static const real32_t i_ITEM_HEIGHT = 160;
+static const real32_t i_ITEM_SEP = 16;
 
 /*---------------------------------------------------------------------------*/
 
@@ -5746,16 +5755,72 @@ static void i_destroy_maindata(MainData **data)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_draw_mainitem(DCtx *ctx, const MainItem *item, const T2Df *origin) 
+{
+    cassert_no_null(item);
+    draw_matrixf(ctx, origin);
+    draw_fill_color(ctx, item->back);
+    draw_rect(ctx, ekFILL, 0, 0, i_ITEM_WIDTH, i_ITEM_HEIGHT);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnDrawMainView(GtNapForm *form, Event *e)
 {
     const EvDraw *p = event_params(e, EvDraw);
     View *view = event_sender(e, View);
     MainData *data = view_get_data(view, MainData);
+    cassert_no_null(data);
     unref(form);
-    if (data->title != NULL)
-        draw_text(p->ctx, tc(data->title), 0, 0);
-    if (data->logo != NULL)
-        draw_image(p->ctx, data->logo, 0, 20);
+    arrst_foreach_const(item, data->items, MainItem)
+        T2Df origin;
+        t2d_movef(&origin, kT2D_IDENTf, item->pos_x, item->pos_y);
+        i_draw_mainitem(p->ctx, item, &origin);
+    arrst_end()
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_mainitems_locations(View *view, const real32_t width)
+{
+    MainData *data = view_get_data(view, MainData);
+    real32_t content_width = 0;
+    real32_t content_height = 0;
+    uint32_t n = 0, ncols, nrows;
+    cassert_no_null(data);
+    n = arrst_size(data->items, MainItem);
+
+    /* Compute the number of columns */
+    for (ncols = 4; ncols >= 1; --ncols)
+    {
+        content_width = i_ITEM_WIDTH * ncols + i_ITEM_SEP * (ncols - 1);
+        if (content_width < width || ncols == 1)
+            break;
+    }
+
+    cassert(ncols > 0);
+    nrows = (n / ncols) + ((n % ncols) ? 1 : 0);
+    content_height = i_ITEM_HEIGHT * nrows + i_ITEM_SEP * (nrows - 1);
+
+    /* Compute the items position */
+    arrst_foreach(item, data->items, MainItem)
+        uint32_t i = item_i % ncols;
+        uint32_t j = item_i / ncols;
+        item->pos_x = ((width - content_width) / 2) + i * (i_ITEM_WIDTH + i_ITEM_SEP);
+        item->pos_y = 20 + j * (i_ITEM_HEIGHT + i_ITEM_SEP);
+    arrst_end()
+
+    view_content_size(view, s2df(content_width, content_height), s2df(10, 10));
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnSizeMainView(GtNapForm *form, Event *e)
+{
+    const EvSize *p = event_params(e, EvSize);
+    View *view = event_sender(e, View);
+    i_mainitems_locations(view, p->width);
+    unref(form);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -5763,6 +5828,7 @@ static void i_OnDrawMainView(GtNapForm *form, Event *e)
 void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const char_t *title, const char_t *logo_path, HB_ITEM *cover_items)
 {
     View *view = NULL;
+    S2Df view_size;
     MainData *data = heap_new0(MainData);
     HB_SIZE i, n;
     cassert_no_null(form);
@@ -5810,6 +5876,9 @@ void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const ch
 
     view_data(view, &data, i_destroy_maindata, MainData);
     view_OnDraw(view, listener(form, i_OnDrawMainView, GtNapForm));
+    view_OnSize(view, listener(form, i_OnSizeMainView, GtNapForm));
+    view_get_size(view, &view_size);
+    i_mainitems_locations(view, view_size.width);
 }
 
 /*---------------------------------------------------------------------------*/
