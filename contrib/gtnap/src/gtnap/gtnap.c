@@ -5717,8 +5717,11 @@ struct i_maindata_t
 {
     String *title;
     Image *logo;
+    real32_t title_width;
+    real32_t title_height;
     real32_t logo_width;
     real32_t logo_height;
+    Font *title_font;
     ArrSt(MainItem) *items;
 };
 
@@ -5731,6 +5734,7 @@ static const real32_t i_ITEM_SEP = 16;
 static const real32_t i_IMAGE_PADDING_TOP = 30;
 static const real32_t i_IMAGE_PADDING_BOTTOM = 36;
 static const real32_t i_IMAGE_PADDING_RIGHT = 70;
+static const real32_t i_TITLE_PADDING_LEFT = 80;
 
 /*---------------------------------------------------------------------------*/
 
@@ -5753,6 +5757,7 @@ static void i_destroy_maindata(MainData **data)
     cassert_no_null(data);
     cassert_no_null(*data);
     str_destopt(&(*data)->title);
+    font_destroy(&(*data)->title_font);
     ptr_destopt(image_destroy, &(*data)->logo, Image);
     arrst_destroy(&(*data)->items, i_remove_mainitem, MainItem);
     heap_delete(data, MainData);
@@ -5775,10 +5780,47 @@ static void i_OnDrawMainView(GtNapForm *form, Event *e)
     const EvDraw *p = event_params(e, EvDraw);
     View *view = event_sender(e, View);
     MainData *data = view_get_data(view, MainData);
+    real32_t logo_x = 0;
+    bool_t draw_title = FALSE;
+    color_t text_color;
     cassert_no_null(data);
     unref(form);
+
+    if (gui_dark_mode() == TRUE)
+        text_color = color_rgb(255, 255, 255);
+    else
+        text_color = color_rgb(99, 99, 99);
+
+    logo_x = p->width - data->logo_width - i_IMAGE_PADDING_RIGHT;
+
+    if (str_empty(data->title) == FALSE)
+    {
+        draw_text_color(p->ctx, text_color);
+        draw_line_color(p->ctx, text_color);
+        draw_font(p->ctx, data->title_font);
+
+        if (data->title_width == 0)
+            draw_text_extents(p->ctx, tc(data->title), -1, &data->title_width, &data->title_height);
+
+        /* Avoid title and logo overlap */
+        if (data->title_width + i_TITLE_PADDING_LEFT < logo_x)
+            draw_title = TRUE;
+
+        if (draw_title == TRUE)
+        {
+            real32_t line_y = i_IMAGE_PADDING_TOP + data->logo_height;
+            draw_text(p->ctx, tc(data->title), i_TITLE_PADDING_LEFT, i_IMAGE_PADDING_TOP + data->logo_height - data->title_height);
+            draw_line(p->ctx, i_TITLE_PADDING_LEFT, line_y, i_TITLE_PADDING_LEFT + data->title_width + data->logo_width, line_y);
+        }
+    }
+
     if (data->logo != NULL)
-        draw_image(p->ctx, data->logo, p->width - data->logo_width - i_IMAGE_PADDING_RIGHT, i_IMAGE_PADDING_TOP);
+    {
+        /* If no title is drawn, the logo is centered */
+        if (draw_title == FALSE)
+            logo_x = (p->width - data->logo_width) / 2;
+        draw_image(p->ctx, data->logo, logo_x, i_IMAGE_PADDING_TOP);
+    }
 
     arrst_foreach_const(item, data->items, MainItem)
         T2Df origin;
@@ -5853,6 +5895,7 @@ void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const ch
     cassert_no_null(cover_items);
     cassert(HB_ITEM_TYPE(cover_items) == HB_IT_ARRAY);
     data->title = str_c(title);
+    data->title_font = font_system(40, 0);
     data->logo = image_from_file(logo_path, NULL);
 
     if (data->logo != NULL)
