@@ -5717,6 +5717,8 @@ struct i_maindata_t
 {
     String *title;
     Image *logo;
+    real32_t logo_width;
+    real32_t logo_height;
     ArrSt(MainItem) *items;
 };
 
@@ -5726,6 +5728,9 @@ DeclSt(MainItem);
 static const real32_t i_ITEM_WIDTH = 260;
 static const real32_t i_ITEM_HEIGHT = 160;
 static const real32_t i_ITEM_SEP = 16;
+static const real32_t i_IMAGE_PADDING_TOP = 30;
+static const real32_t i_IMAGE_PADDING_BOTTOM = 36;
+static const real32_t i_IMAGE_PADDING_RIGHT = 70;
 
 /*---------------------------------------------------------------------------*/
 
@@ -5772,6 +5777,9 @@ static void i_OnDrawMainView(GtNapForm *form, Event *e)
     MainData *data = view_get_data(view, MainData);
     cassert_no_null(data);
     unref(form);
+    if (data->logo != NULL)
+        draw_image(p->ctx, data->logo, p->width - data->logo_width - i_IMAGE_PADDING_RIGHT, i_IMAGE_PADDING_TOP);
+
     arrst_foreach_const(item, data->items, MainItem)
         T2Df origin;
         t2d_movef(&origin, kT2D_IDENTf, item->pos_x, item->pos_y);
@@ -5800,14 +5808,22 @@ static void i_mainitems_locations(View *view, const real32_t width)
 
     cassert(ncols > 0);
     nrows = (n / ncols) + ((n % ncols) ? 1 : 0);
-    content_height = i_ITEM_HEIGHT * nrows + i_ITEM_SEP * (nrows - 1);
+    content_height = i_IMAGE_PADDING_TOP + i_ITEM_HEIGHT * nrows + i_ITEM_SEP * (nrows - 1);
+    content_height += data->logo_height;
+
+    if (data->logo_height > 0)
+        content_height += i_IMAGE_PADDING_BOTTOM;
+
+    content_height += i_IMAGE_PADDING_BOTTOM;
 
     /* Compute the items position */
     arrst_foreach(item, data->items, MainItem)
         uint32_t i = item_i % ncols;
         uint32_t j = item_i / ncols;
         item->pos_x = ((width - content_width) / 2) + i * (i_ITEM_WIDTH + i_ITEM_SEP);
-        item->pos_y = 20 + j * (i_ITEM_HEIGHT + i_ITEM_SEP);
+        item->pos_y = i_IMAGE_PADDING_TOP + data->logo_height + j * (i_ITEM_HEIGHT + i_ITEM_SEP);
+        if (data->logo_height > 0)
+            item->pos_y += i_IMAGE_PADDING_BOTTOM;
     arrst_end()
 
     view_content_size(view, s2df(content_width, content_height), s2df(10, 10));
@@ -5838,6 +5854,13 @@ void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const ch
     cassert(HB_ITEM_TYPE(cover_items) == HB_IT_ARRAY);
     data->title = str_c(title);
     data->logo = image_from_file(logo_path, NULL);
+
+    if (data->logo != NULL)
+    {
+        data->logo_width = (real32_t)image_width(data->logo);
+        data->logo_height = (real32_t)image_height(data->logo);
+    }
+
     data->items = arrst_create(MainItem);
 
     n = hb_arrayLen(cover_items);
