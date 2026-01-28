@@ -37,6 +37,7 @@
 #include <draw2d/image.h>
 #include <draw2d/draw.h>
 #include <draw2d/dctx.h>
+#include <geom2d/r2d.h>
 #include <geom2d/s2d.h>
 #include <geom2d/t2d.h>
 #include <geom2d/v2d.h>
@@ -5722,6 +5723,7 @@ struct i_maindata_t
     real32_t logo_width;
     real32_t logo_height;
     Font *title_font;
+    uint32_t hover_item;
     ArrSt(MainItem) *items;
 };
 
@@ -5765,12 +5767,29 @@ static void i_destroy_maindata(MainData **data)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_draw_mainitem(DCtx *ctx, const MainItem *item, const T2Df *origin) 
+static void i_draw_mainitem(DCtx *ctx, const MainItem *item, const T2Df *t2d) 
 {
     cassert_no_null(item);
-    draw_matrixf(ctx, origin);
+    draw_matrixf(ctx, t2d);
     draw_fill_color(ctx, item->back);
     draw_rect(ctx, ekFILL, 0, 0, i_ITEM_WIDTH, i_ITEM_HEIGHT);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static T2Df i_item_transform(const MainItem *item, const bool_t hover)
+{
+    T2Df t2d;
+    t2d_movef(&t2d, kT2D_IDENTf, item->pos_x, item->pos_y);
+
+    if (hover == TRUE)
+    {
+        t2d_movef(&t2d, &t2d, i_ITEM_WIDTH / 2, i_ITEM_HEIGHT / 2);
+        t2d_scalef(&t2d, &t2d, 1.05f, 1.05f);
+        t2d_movef(&t2d, &t2d, - i_ITEM_WIDTH / 2, - i_ITEM_HEIGHT / 2);
+    }
+
+    return t2d;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -5823,9 +5842,8 @@ static void i_OnDrawMainView(GtNapForm *form, Event *e)
     }
 
     arrst_foreach_const(item, data->items, MainItem)
-        T2Df origin;
-        t2d_movef(&origin, kT2D_IDENTf, item->pos_x, item->pos_y);
-        i_draw_mainitem(p->ctx, item, &origin);
+        T2Df t2d = i_item_transform(item, (bool_t)(item_i == data->hover_item));
+        i_draw_mainitem(p->ctx, item, &t2d);
     arrst_end()
 }
 
@@ -5883,6 +5901,27 @@ static void i_OnSizeMainView(GtNapForm *form, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnMoveMainView(GtNapForm *form, Event *e)
+{
+    const EvMouse *p = event_params(e, EvMouse);
+    View *view = event_sender(e, View);
+    MainData *data = view_get_data(view, MainData);
+    cassert_no_null(data);
+    data->hover_item = UINT32_MAX;
+    arrst_foreach_const(item, data->items, MainItem)
+        R2Df r2d = r2df(item->pos_x, item->pos_y, i_ITEM_WIDTH, i_ITEM_HEIGHT);
+        if (r2d_containsf(&r2d, p->x, p->y) == TRUE)
+        {
+            data->hover_item = item_i;
+            break;
+        }
+    arrst_end()
+    view_update(view);
+    unref(form);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const char_t *title, const char_t *logo_path, HB_ITEM *cover_items)
 {
     View *view = NULL;
@@ -5895,7 +5934,7 @@ void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const ch
     cassert_no_null(cover_items);
     cassert(HB_ITEM_TYPE(cover_items) == HB_IT_ARRAY);
     data->title = str_c(title);
-    data->title_font = font_system(40, 0);
+    data->title_font = font_system(42, 0);
     data->logo = image_from_file(logo_path, NULL);
 
     if (data->logo != NULL)
@@ -5905,6 +5944,7 @@ void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const ch
     }
 
     data->items = arrst_create(MainItem);
+    data->hover_item = UINT32_MAX;
 
     n = hb_arrayLen(cover_items);
     for (i = 1; i <= n; ++i)
@@ -5943,6 +5983,7 @@ void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const ch
     view_data(view, &data, i_destroy_maindata, MainData);
     view_OnDraw(view, listener(form, i_OnDrawMainView, GtNapForm));
     view_OnSize(view, listener(form, i_OnSizeMainView, GtNapForm));
+    view_OnMove(view, listener(form, i_OnMoveMainView, GtNapForm));
     view_get_size(view, &view_size);
     i_mainitems_locations(view, view_size.width);
 }
