@@ -5712,6 +5712,7 @@ struct i_mainitem_t
     HB_ITEM *OnClick;
     real32_t pos_x;
     real32_t pos_y;
+    real32_t icon_scale;
 };
 
 struct i_maindata_t
@@ -5723,6 +5724,8 @@ struct i_maindata_t
     real32_t logo_width;
     real32_t logo_height;
     Font *title_font;
+    Font *item_font;
+    Font *item_sfont;
     uint32_t hover_item;
     ArrSt(MainItem) *items;
 };
@@ -5733,6 +5736,10 @@ DeclSt(MainItem);
 static const real32_t i_ITEM_WIDTH = 260;
 static const real32_t i_ITEM_HEIGHT = 160;
 static const real32_t i_ITEM_SEP = 16;
+static const real32_t i_ITEM_CIRCLE_RADIX = 50;
+static const real32_t i_ITEM_CIRCLE_OFFSET = 14;
+static const real32_t i_ITEM_ICON_SIZE = 64;
+static const real32_t i_ITEM_TEXT_PADDING_BOTTOM = 12;
 static const real32_t i_IMAGE_PADDING_TOP = 30;
 static const real32_t i_IMAGE_PADDING_BOTTOM = 36;
 static const real32_t i_IMAGE_PADDING_RIGHT = 70;
@@ -5760,6 +5767,8 @@ static void i_destroy_maindata(MainData **data)
     cassert_no_null(*data);
     str_destopt(&(*data)->title);
     font_destroy(&(*data)->title_font);
+    font_destroy(&(*data)->item_font);
+    font_destroy(&(*data)->item_sfont);
     ptr_destopt(image_destroy, &(*data)->logo, Image);
     arrst_destroy(&(*data)->items, i_remove_mainitem, MainItem);
     heap_delete(data, MainData);
@@ -5767,12 +5776,41 @@ static void i_destroy_maindata(MainData **data)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_draw_mainitem(DCtx *ctx, const MainItem *item, const T2Df *t2d) 
+static void i_draw_mainitem(DCtx *ctx, const MainItem *item, const Font *font, const Font *sfont, const T2Df *t2d) 
 {
+    color_t color = kCOLOR_WHITE;
     cassert_no_null(item);
     draw_matrixf(ctx, t2d);
     draw_fill_color(ctx, item->back);
+    draw_line_color(ctx, color);
+    draw_text_color(ctx, color);
+    draw_line_width(ctx, 3);
     draw_rect(ctx, ekFILL, 0, 0, i_ITEM_WIDTH, i_ITEM_HEIGHT);
+    draw_circle(ctx, ekSTROKE, i_ITEM_WIDTH / 2, (i_ITEM_HEIGHT / 2) - i_ITEM_CIRCLE_OFFSET, i_ITEM_CIRCLE_RADIX);
+
+    if (item->icon != NULL)
+    {
+        T2Df scale;
+        t2d_movef(&scale, t2d, (i_ITEM_WIDTH - i_ITEM_ICON_SIZE) / 2, (i_ITEM_HEIGHT - i_ITEM_ICON_SIZE) / 2 - i_ITEM_CIRCLE_OFFSET);
+        t2d_scalef(&scale, &scale, item->icon_scale, item->icon_scale);
+        draw_matrixf(ctx, &scale);
+        draw_image(ctx, item->icon, 0, 0);
+        draw_matrixf(ctx, t2d);
+    }
+
+    if (str_empty(item->title) == FALSE)
+    {
+        draw_font(ctx, font);
+        draw_text_align(ctx, ekCENTER, ekBOTTOM);
+        draw_text(ctx, tc(item->title), i_ITEM_WIDTH / 2, i_ITEM_HEIGHT - i_ITEM_TEXT_PADDING_BOTTOM);
+    }
+
+    if (str_empty(item->more) == FALSE)
+    {
+        draw_font(ctx, sfont);
+        draw_text_align(ctx, ekRIGHT, ekTOP);
+        draw_text(ctx, tc(item->more), i_ITEM_WIDTH, 0);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -5843,7 +5881,7 @@ static void i_OnDrawMainView(GtNapForm *form, Event *e)
 
     arrst_foreach_const(item, data->items, MainItem)
         T2Df t2d = i_item_transform(item, (bool_t)(item_i == data->hover_item));
-        i_draw_mainitem(p->ctx, item, &t2d);
+        i_draw_mainitem(p->ctx, item, data->item_font, data->item_sfont, &t2d);
     arrst_end()
 }
 
@@ -5935,6 +5973,8 @@ void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const ch
     cassert(HB_ITEM_TYPE(cover_items) == HB_IT_ARRAY);
     data->title = str_c(title);
     data->title_font = font_system(42, 0);
+    data->item_font = font_system(20, ekFBOLD);
+    data->item_sfont = font_system(14, ekFBOLD);
     data->logo = image_from_file(logo_path, NULL);
 
     if (data->logo != NULL)
@@ -5978,6 +6018,12 @@ void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const ch
         item->more = str_c(hb_itemGetCPtr(more));
         item->isnew = (bool_t)hb_itemGetL(isnew);
         item->OnClick = hb_itemNew(block);
+
+        if (item->icon != NULL)
+        {
+            real32_t width = (real32_t)image_width(item->icon);
+            item->icon_scale = i_ITEM_ICON_SIZE / width;
+        }
     }
 
     view_data(view, &data, i_destroy_maindata, MainData);
