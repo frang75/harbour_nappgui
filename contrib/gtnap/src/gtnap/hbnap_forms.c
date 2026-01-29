@@ -61,6 +61,16 @@ HB_FUNC(HBNAP_FORMS_SET_TEXT)
 
 /*---------------------------------------------------------------------------*/
 
+HB_FUNC(HBNAP_FORMS_ONCLICK)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    const char_t *cell = hb_parcx(2);
+    HB_ITEM *block = hb_param(3, HB_IT_BLOCK);
+    hbnap_forms_OnClick(form, cell, block);
+}
+
+/*---------------------------------------------------------------------------*/
+
 HB_FUNC(HBNAP_FORMS_MAXIMIZE)
 {
     GtNapForm *form = cast(hb_parptr(1), GtNapForm);
@@ -74,6 +84,25 @@ HB_FUNC(HBNAP_FORMS_SHOW)
     GtNapForm *form = cast(hb_parptr(1), GtNapForm);
     HB_ITEM *onclose_block = hb_param(2, HB_IT_BLOCK);
     hbnap_forms_show(form, onclose_block);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(HBNAP_FORMS_MODAL)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    GtNapForm *parent = cast(hb_parptr(2), GtNapForm);
+    uint32_t ret = hbnap_forms_modal(form, parent);
+    hb_retni(ret);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(HBNAP_FORMS_STOP_MODAL)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    uint32_t value = hb_parni(2);
+    hbnap_forms_stop_modal(form, value);
 }
 
 /*---------------------------------------------------------------------------*/

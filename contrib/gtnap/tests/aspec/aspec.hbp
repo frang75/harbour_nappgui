@@ -9,8 +9,6 @@
 
 # GT
 -gtnap
-#-gtwin{allmsvc|allmingw}
-#-gttrm{gcc}
 
 # Sources
 aspec.prg
@@ -19,7 +17,6 @@ aspec.prg
 {allmsvc|allmingw}aspec.rc
 
 # Libraries
-#hboffice.hbc
 gtnap.hbc
 hbct.hbc
 
@@ -28,16 +25,3 @@ hbct.hbc
 -b{debug}
 -d_TESTE{DEBUG}
 -z
-
-
-#
-# To remove...
-#
-# C compiler options
-#-debug{DEBUG}
-
-# From command line
-#-workdir=./build
-#-debug
-#-trace
-# -o.\exemplo

@@ -5143,6 +5143,43 @@ void hbnap_forms_set_text(GtNapForm *form, const char_t *cell, const char_t *tex
 
 /*---------------------------------------------------------------------------*/
 
+static Listener *i_gtnap_form_listener(HB_ITEM *block, GtNapForm *form, FPtr_gtnap_callback func_callback)
+{
+    GtNapCallback *callback = heap_new0(GtNapCallback);
+    cassert_no_null(form);
+    callback->block = block ? hb_itemNew(block) : NULL;
+    callback->form = form;
+    callback->key = INT32_MAX;
+    callback->autoclose_id = UINT32_MAX;
+    arrpt_append(form->callbacks, callback, GtNapCallback);
+    return listener(callback, func_callback, GtNapCallback);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnFormButtonClick(GtNapCallback *callback, Event *e)
+{
+    cassert_no_null(callback);
+    cassert_no_null(callback->form);
+    unref(e);
+    if (callback->block != NULL)
+    {
+        PHB_ITEM ritem = hb_itemDo(callback->block, 0);
+        hb_itemRelease(ritem);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_OnClick(GtNapForm *form, const char_t *cell, HB_ITEM *click_block)
+{
+    Listener *listener = i_gtnap_form_listener(click_block, form, i_OnFormButtonClick);
+    cassert_no_null(form);
+    nform_set_listener(form->form, cell, listener);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void hbnap_forms_maximize(GtNapForm *form)
 {
     cassert_no_null(form);
@@ -5581,34 +5618,6 @@ void hb_gtnap_form_dbind_store(GtNapForm *form)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnFormButtonClick(GtNapCallback *callback, Event *e)
-{
-    cassert_no_null(callback);
-    cassert_no_null(callback->form);
-    unref(e);
-    if (callback->block != NULL)
-    {
-        PHB_ITEM ritem = hb_itemDo(callback->block, 0);
-        hb_itemRelease(ritem);
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-static Listener *i_gtnap_form_listener(HB_ITEM *block, GtNapForm *form, FPtr_gtnap_callback func_callback)
-{
-    GtNapCallback *callback = heap_new0(GtNapCallback);
-    cassert_no_null(form);
-    callback->block = block ? hb_itemNew(block) : NULL;
-    callback->form = form;
-    callback->key = INT32_MAX;
-    callback->autoclose_id = UINT32_MAX;
-    arrpt_append(form->callbacks, callback, GtNapCallback);
-    return listener(callback, func_callback, GtNapCallback);
-}
-
-/*---------------------------------------------------------------------------*/
-
 void hb_gtnap_form_OnClick(GtNapForm *form, const char_t *button_cell_name, HB_ITEM *click_block)
 {
     Listener *listener = i_gtnap_form_listener(click_block, form, i_OnFormButtonClick);
@@ -5716,6 +5725,26 @@ void hbnap_forms_show(GtNapForm *form, HB_ITEM *onclose_block)
 
 /*---------------------------------------------------------------------------*/
 
+uint32_t hbnap_forms_modal(GtNapForm *form, GtNapForm *parent)
+{
+    cassert_no_null(form);
+    cassert_no_null(parent);
+    window_update(form->window);
+    i_center_window(parent->window, form->window);
+    form->modal_ret = window_modal(form->window, parent->window);
+    return form->modal_ret;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_stop_modal(GtNapForm *form, const uint32_t value)
+{
+    cassert_no_null(form);
+    window_stop_modal(form->window, value);
+}
+
+/*---------------------------------------------------------------------------*/
+
 typedef struct i_mainitem_t MainItem;
 typedef struct i_maindata_t MainData;
 
@@ -5793,7 +5822,7 @@ static void i_destroy_maindata(MainData **data)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_draw_mainitem(DCtx *ctx, const MainItem *item, const Font *font, const Font *sfont, const T2Df *t2d) 
+static void i_draw_mainitem(DCtx *ctx, const MainItem *item, const Font *font, const Font *sfont, const T2Df *t2d)
 {
     color_t color = kCOLOR_WHITE;
     cassert_no_null(item);
@@ -5977,6 +6006,22 @@ static void i_OnMoveMainView(GtNapForm *form, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnClickMainView(GtNapForm *form, Event *e)
+{
+    View *view = event_sender(e, View);
+    MainData *data = view_get_data(view, MainData);
+    cassert_no_null(data);
+    if (data->hover_item != UINT32_MAX)
+    {
+        const MainItem *item = arrst_get_const(data->items, data->hover_item, MainItem);
+        PHB_ITEM ritem = hb_itemDo(item->OnClick, 0);
+        hb_itemRelease(ritem);
+    }
+    unref(form);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const char_t *title, const char_t *logo_path, HB_ITEM *cover_items)
 {
     View *view = NULL;
@@ -6047,6 +6092,7 @@ void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const ch
     view_OnDraw(view, listener(form, i_OnDrawMainView, GtNapForm));
     view_OnSize(view, listener(form, i_OnSizeMainView, GtNapForm));
     view_OnMove(view, listener(form, i_OnMoveMainView, GtNapForm));
+    view_OnClick(view, listener(form, i_OnClickMainView, GtNapForm));
     view_get_size(view, &view_size);
     i_mainitems_locations(view, view_size.width);
 }
