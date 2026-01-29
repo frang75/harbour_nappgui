@@ -2,6 +2,12 @@
 #INCLUDE "ord.ch"       // For RDD API Index Order
 #INCLUDE "hbnap.ch"     // For HBNAP API
 
+
+STATIC C_MAIN_TITLE := "Sistemas Aspec"
+STATIC C_APP_NAME := "Sistema de Gestão Pública"
+STATIC C_VERSION := "Versão 25.1h(b426)-S07688"
+STATIC C_URL := "www.aspec.com.br"
+STATIC C_COPYRIGHT := "Aspec ©1993-2026. Todos os direitos reservados"
 STATIC O_MAINWINDOW := NIL
 
 PROC MAIN
@@ -34,11 +40,15 @@ PROC RUN_MAIN
         { "Frota", ASPEC_RESPATH() + "images/main/fleet.png", "#5B5784", "", .F., { || FLEET_START() }}, ;
         { "Doações", ASPEC_RESPATH() + "images/main/carry.png", "#8FBC8F", "", .F., { || DONATIONS_START() }}, ;
         { "Backup", ASPEC_RESPATH() + "images/main/backup.png", "#C0C0C0", "", .F., { || BACKUP_START() }} ;
-        }
+    }
 
     O_MAINWINDOW := HBNAP_FORMS_LOAD(ASPEC_RESPATH() + "MainWindow.nfm", ASPEC_RESPATH(), HBNAP_FORMS_RESIZABLE)
-    HBNAP_FORMS_TITLE(O_MAINWINDOW, "Sistemas Aspec")
-    HBNAP_FORMS_MAIN_COVER(O_MAINWINDOW, "canvas", "Sistema de Gestão Pública", ASPEC_RESPATH() + "images/logo_aspec.png", V_COVER)
+    HBNAP_FORMS_TITLE(O_MAINWINDOW, C_MAIN_TITLE)
+    HBNAP_FORMS_SET_TEXT(O_MAINWINDOW, "url", C_URL)
+    HBNAP_FORMS_SET_TEXT(O_MAINWINDOW, "version", C_VERSION)
+    HBNAP_FORMS_SET_TEXT(O_MAINWINDOW, "copyright", C_COPYRIGHT)
+    HBNAP_FORMS_MAIN_COVER(O_MAINWINDOW, "canvas", C_APP_NAME, ASPEC_RESPATH() + "images/logo_aspec.png", V_COVER)
+    HBNAP_FORMS_MAXIMIZE(O_MAINWINDOW)
     HBNAP_FORMS_SHOW(O_MAINWINDOW, {|| MAIN_WINDOW_CLOSE() })
     RETURN
 

@@ -51,6 +51,24 @@ HB_FUNC(HBNAP_FORMS_TITLE)
 
 /*---------------------------------------------------------------------------*/
 
+HB_FUNC(HBNAP_FORMS_SET_TEXT)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    const char_t *cell = hb_parcx(2);
+    const char_t *text = hb_parcx(3);
+    hbnap_forms_set_text(form, cell, text);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(HBNAP_FORMS_MAXIMIZE)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    hbnap_forms_maximize(form);
+}
+
+/*---------------------------------------------------------------------------*/
+
 HB_FUNC(HBNAP_FORMS_SHOW)
 {
     GtNapForm *form = cast(hb_parptr(1), GtNapForm);

@@ -5135,6 +5135,22 @@ void hbnap_forms_title(GtNapForm *form, HB_ITEM *text_block)
 
 /*---------------------------------------------------------------------------*/
 
+void hbnap_forms_set_text(GtNapForm *form, const char_t *cell, const char_t *text)
+{
+    cassert_no_null(form);
+    nform_set_control_str(form->form, cell, text);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_maximize(GtNapForm *form)
+{
+    cassert_no_null(form);
+    window_maximize(form->window);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_remove_bind(GtNapBind *bind)
 {
     cassert_no_null(bind);
@@ -5694,6 +5710,7 @@ void hbnap_forms_show(GtNapForm *form, HB_ITEM *onclose_block)
 
     form->OnClose_block = hb_itemNew(onclose_block);
     window_OnClose(form->window, listener(form, i_OnFormClose, GtNapForm));
+    window_update(form->window);
     window_show(form->window);
 }
 
