@@ -217,6 +217,36 @@ extern void hb_gtnap_form_update(GtNapForm *form);
 
 extern void hb_gtnap_form_destroy(GtNapForm **form);
 
+
+/* -------------------------------------------------- */
+/* GTNAP/Forms NEW API. For full graphic applications */
+/* NOT VALID for semigraphic/cua applications         */
+/* -------------------------------------------------- */
+extern void hbnap_forms_init_app(HB_ITEM *main_block);
+
+extern void hbnap_forms_exit_app(void);
+
+extern GtNapForm *hbnap_forms_load(const char_t *pathname, const char_t *resource_path, const uint32_t flags);
+
+extern void hbnap_forms_destroy(GtNapForm **form);
+
+extern void hbnap_forms_title(GtNapForm *form, HB_ITEM *text_block);
+
+extern void hbnap_forms_set_text(GtNapForm *form, const char_t *cell, const char_t *text);
+
+extern void hbnap_forms_OnClick(GtNapForm *form, const char_t *cell, HB_ITEM *click_block);
+
+extern void hbnap_forms_maximize(GtNapForm *form);
+
+extern void hbnap_forms_show(GtNapForm *form, HB_ITEM *onclose_block);
+
+extern uint32_t hbnap_forms_modal(GtNapForm *form, GtNapForm *parent);
+
+extern void hbnap_forms_stop_modal(GtNapForm *form, const uint32_t value);
+
+extern void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const char_t *title, const char_t *logo_path, HB_ITEM *cover_items);
+
+
 /* --------------------------- */
 /* GTNAP/Dynamic menus support */
 /* --------------------------- */

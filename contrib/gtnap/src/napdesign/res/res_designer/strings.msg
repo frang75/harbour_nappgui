@@ -17,6 +17,8 @@ TEXT_NEW_LISTBOX    A new listbox will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SLIDER     A new slider will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_VSLIDER    A new vertical slider will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_PROGRESS   A new progressbar will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_CUSTOMVIEW A new custom view will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_SCROLLVIEW A new scroll view will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_TEXTVIEW   A new textview will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_IMAGEVIEW  A new imageview will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_TABLEVIEW  A new tableview will be placed in cell (%d, %d) of '%s' layout
@@ -40,6 +42,8 @@ TEXT_LIST_PROPS     Listbox properties
 TEXT_SLIDER_PROPS   Slider properties
 TEXT_VSLIDER_PROPS  VertSlider properties
 TEXT_PROGRESS_PROPS Progressbar properties
+TEXT_VIEW_PROPS     Custom view properties
+TEXT_SVIEW_PROPS    Scroll view properties
 TEXT_TEXT_PROPS     Textview properties
 TEXT_IMAGE_PROPS    Imageview properties
 TEXT_TABLE_PROPS    Tableview properties
@@ -48,6 +52,7 @@ TEXT_LAYOUTS        Layouts
 TEXT_BUTTONS        Buttons
 TEXT_TEXT_WIDGETS   Text Widgets
 TEXT_ITEM_WIDGETS   Item Widgets
+TEXT_DISPLAY_WIDGETS Display Widgets
 TEXT_OTHER_WIDGETS  Other Widgets
 TEXT_SELECT         Select
 TEXT_SINGLE_LAYOUT  Single Layout
@@ -68,6 +73,8 @@ TEXT_LIST_BOX       List Box
 TEXT_HORZ_SLIDER    Horizontal Slider
 TEXT_VERT_SLIDER    Vertical Slider
 TEXT_PROGRESS_BAR   Progress Bar
+TEXT_CUSTOM_VIEW    Custom View
+TEXT_SCROLL_VIEW    Scroll View
 TEXT_TEXT_VIEW      Text View
 TEXT_IMAGE_VIEW     Image View
 TEXT_TABLE_VIEW     Table View
@@ -139,6 +146,8 @@ TEXT_CELL_LISTBOX   ListBoxCell
 TEXT_CELL_SLIDER    SliderCell
 TEXT_CELL_VSLIDER   VertSliderCell
 TEXT_CELL_PROGRESS  ProgressCell
+TEXT_CELL_VIEW      ViewCell
+TEXT_CELL_SVIEW     ScrollViewCell
 TEXT_CELL_TEXT      TextViewCell
 TEXT_CELL_IMAGE     ImageViewCell
 TEXT_CELL_TABLE     TableCell
@@ -228,6 +237,8 @@ TIP_LIST_MHEIGHT    Listbox height.
 TIP_SLIDER_MWIDTH   Slider width.
 TIP_SLIDER_MHEIGHT  Slider height.
 TIP_PROGRESS_MWIDTH Progress width.
+TIP_VIEW_MWIDTH     View width.
+TIP_VIEW_MHEIGHT    View height.
 TIP_TEXT_MWIDTH     Textview width.
 TIP_TEXT_MHEIGHT    Textview height.
 TIP_IMAGE_MWIDTH    Imageview width.

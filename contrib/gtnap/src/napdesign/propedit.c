@@ -57,6 +57,8 @@ struct _propdata_t
     Layout *slider_layout;
     Layout *vslider_layout;
     Layout *progress_layout;
+    Layout *view_layout;
+    Layout *sview_layout;
     Layout *text_layout;
     Layout *image_layout;
     Layout *table_layout;
@@ -1558,6 +1560,78 @@ static Layout *i_progress_layout(PropData *data)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnViewNotify(PropData *data, Event *e)
+{
+    cassert_no_null(data);
+    cassert_unref(event_type(e) == ekGUI_EVENT_OBJCHANGE, e);
+    dform_synchro_view(data->form, &data->sel);
+    dform_compose(data->form);
+    designer_canvas_update(data->app);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Layout *i_view_layout(PropData *data)
+{
+    Layout *layout1 = layout_create(2, 3);
+    Layout *layout2 = i_value_updown_layout(gui_text(TIP_VIEW_MWIDTH));
+    Layout *layout3 = i_value_updown_layout(gui_text(TIP_VIEW_MHEIGHT));
+    Label *label1 = label_create();
+    Label *label2 = label_create();
+    cassert_no_null(data);
+    label_text(label1, gui_text(TEXT_MIN_WIDTH));
+    label_text(label2, gui_text(TEXT_MIN_HEIGHT));
+    layout_label(layout1, label1, 0, 0);
+    layout_label(layout1, label2, 0, 1);
+    layout_layout(layout1, layout2, 1, 0);
+    layout_layout(layout1, layout3, 1, 1);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
+    layout_vexpand(layout1, 2);
+    cell_dbind(layout_cell(layout1, 1, 0), FView, real32_t, min_width);
+    cell_dbind(layout_cell(layout1, 1, 1), FView, real32_t, min_height);
+    layout_dbind(layout1, listener(data, i_OnViewNotify, PropData), FView);
+    data->view_layout = layout1;
+    return i_drawer_layout(data->app, layout1, ekDRAWER_VIEW_PROPS);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnSViewNotify(PropData *data, Event *e)
+{
+    cassert_no_null(data);
+    cassert_unref(event_type(e) == ekGUI_EVENT_OBJCHANGE, e);
+    dform_synchro_sview(data->form, &data->sel);
+    dform_compose(data->form);
+    designer_canvas_update(data->app);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Layout *i_sview_layout(PropData *data)
+{
+    Layout *layout1 = layout_create(2, 3);
+    Layout *layout2 = i_value_updown_layout(gui_text(TIP_VIEW_MWIDTH));
+    Layout *layout3 = i_value_updown_layout(gui_text(TIP_VIEW_MHEIGHT));
+    Label *label1 = label_create();
+    Label *label2 = label_create();
+    cassert_no_null(data);
+    label_text(label1, gui_text(TEXT_MIN_WIDTH));
+    label_text(label2, gui_text(TEXT_MIN_HEIGHT));
+    layout_label(layout1, label1, 0, 0);
+    layout_label(layout1, label2, 0, 1);
+    layout_layout(layout1, layout2, 1, 0);
+    layout_layout(layout1, layout3, 1, 1);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
+    layout_vexpand(layout1, 2);
+    cell_dbind(layout_cell(layout1, 1, 0), FSView, real32_t, min_width);
+    cell_dbind(layout_cell(layout1, 1, 1), FSView, real32_t, min_height);
+    layout_dbind(layout1, listener(data, i_OnSViewNotify, PropData), FSView);
+    data->sview_layout = layout1;
+    return i_drawer_layout(data->app, layout1, ekDRAWER_SVIEW_PROPS);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnTextNotify(PropData *data, Event *e)
 {
     cassert_no_null(data);
@@ -1940,9 +2014,11 @@ static Panel *i_cell_content_panel(PropData *data)
     Layout *layout12 = i_slider_layout(data);
     Layout *layout13 = i_vslider_layout(data);
     Layout *layout14 = i_progress_layout(data);
-    Layout *layout15 = i_text_layout(data);
-    Layout *layout16 = i_image_layout(data);
-    Layout *layout17 = i_table_layout(data);
+    Layout *layout15 = i_view_layout(data);
+    Layout *layout16 = i_sview_layout(data);
+    Layout *layout17 = i_text_layout(data);
+    Layout *layout18 = i_image_layout(data);
+    Layout *layout19 = i_table_layout(data);
     Panel *panel = panel_create();
     cassert_no_null(data);
     panel_layout(panel, layout1);
@@ -1962,6 +2038,8 @@ static Panel *i_cell_content_panel(PropData *data)
     panel_layout(panel, layout15);
     panel_layout(panel, layout16);
     panel_layout(panel, layout17);
+    panel_layout(panel, layout18);
+    panel_layout(panel, layout19);
     panel_visible_layout(panel, 0);
     data->cell_panel = panel;
     return panel;
@@ -2135,6 +2213,8 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
     layout_dbind_obj(data->slider_layout, NULL, FSlider);
     layout_dbind_obj(data->vslider_layout, NULL, FVSlider);
     layout_dbind_obj(data->progress_layout, NULL, FProgress);
+    layout_dbind_obj(data->view_layout, NULL, FView);
+    layout_dbind_obj(data->sview_layout, NULL, FSView);
     layout_dbind_obj(data->text_layout, NULL, FText);
     layout_dbind_obj(data->image_layout, NULL, FImage);
     layout_dbind_obj(data->table_layout, NULL, FTable);
@@ -2250,22 +2330,32 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
             layout_dbind_obj(data->progress_layout, cell->widget.progress, FProgress);
             panel_visible_layout(data->cell_panel, 13);
         }
+        else if (cell->type == ekCELL_TYPE_VIEW)
+        {
+            layout_dbind_obj(data->view_layout, cell->widget.view, FView);
+            panel_visible_layout(data->cell_panel, 14);
+        }
+        else if (cell->type == ekCELL_TYPE_SCROLL_VIEW)
+        {
+            layout_dbind_obj(data->sview_layout, cell->widget.sview, FSView);
+            panel_visible_layout(data->cell_panel, 15);
+        }
         else if (cell->type == ekCELL_TYPE_TEXT)
         {
             layout_dbind_obj(data->text_layout, cell->widget.text, FText);
-            panel_visible_layout(data->cell_panel, 14);
+            panel_visible_layout(data->cell_panel, 16);
         }
         else if (cell->type == ekCELL_TYPE_IMAGE)
         {
             layout_dbind_obj(data->image_layout, cell->widget.image, FImage);
             i_update_icon(data->view_image_icon, data->label_image_icon, data->button_image_icon, folder_path, tc(cell->widget.image->path));
-            panel_visible_layout(data->cell_panel, 15);
+            panel_visible_layout(data->cell_panel, 17);
         }
         else if (cell->type == ekCELL_TYPE_TABLEVIEW)
         {
             layout_dbind_obj(data->table_layout, cell->widget.table, FTable);
             i_update_header_list(cell->widget.table->headers, data->table_list, data->header_layout);
-            panel_visible_layout(data->cell_panel, 16);
+            panel_visible_layout(data->cell_panel, 18);
         }
         else
         {

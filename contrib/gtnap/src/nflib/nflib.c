@@ -40,6 +40,8 @@ static void i_dbind(void)
     dbind_enum(celltype_t, ekCELL_TYPE_SLIDER, "");
     dbind_enum(celltype_t, ekCELL_TYPE_VSLIDER, "");
     dbind_enum(celltype_t, ekCELL_TYPE_PROGRESS, "");
+    dbind_enum(celltype_t, ekCELL_TYPE_VIEW, "");
+    dbind_enum(celltype_t, ekCELL_TYPE_SCROLL_VIEW, "");    
     dbind_enum(celltype_t, ekCELL_TYPE_TEXT, "");
     dbind_enum(celltype_t, ekCELL_TYPE_IMAGE, "");
     dbind_enum(celltype_t, ekCELL_TYPE_TABLEVIEW, "");
@@ -88,6 +90,10 @@ static void i_dbind(void)
     dbind(FSlider, real32_t, min_width);
     dbind(FVSlider, real32_t, min_height);
     dbind(FProgress, real32_t, min_width);
+    dbind(FView, real32_t, min_width);
+    dbind(FView, real32_t, min_height);
+    dbind(FSView, real32_t, min_width);
+    dbind(FSView, real32_t, min_height);
     dbind(FText, bool_t, read_only);
     dbind(FText, real32_t, min_width);
     dbind(FText, real32_t, min_height);
@@ -182,6 +188,22 @@ static void i_dbind(void)
     dbind_increment(FProgress, real32_t, min_width, 1);
     dbind_precision(FProgress, real32_t, min_width, 1);
     dbind_range(FProgress, real32_t, min_width, 10, 1000);
+    dbind_default(FView, real32_t, min_width, 100);
+    dbind_increment(FView, real32_t, min_width, 1);
+    dbind_precision(FView, real32_t, min_width, 1);
+    dbind_range(FView, real32_t, min_width, 10, 1000);
+    dbind_default(FView, real32_t, min_height, 100);
+    dbind_increment(FView, real32_t, min_height, 1);
+    dbind_precision(FView, real32_t, min_height, 1);
+    dbind_range(FView, real32_t, min_height, 10, 1000);
+    dbind_default(FSView, real32_t, min_width, 100);
+    dbind_increment(FSView, real32_t, min_width, 1);
+    dbind_precision(FSView, real32_t, min_width, 1);
+    dbind_range(FSView, real32_t, min_width, 10, 1000);
+    dbind_default(FSView, real32_t, min_height, 100);
+    dbind_increment(FSView, real32_t, min_height, 1);
+    dbind_precision(FSView, real32_t, min_height, 1);
+    dbind_range(FSView, real32_t, min_height, 10, 1000);
     dbind_default(FText, bool_t, read_only, FALSE);
     dbind_default(FText, real32_t, min_width, 100);
     dbind_increment(FText, real32_t, min_width, 1);
@@ -274,6 +296,8 @@ static void i_dbind(void)
     dbind(FWidget, FSlider *, slider);
     dbind(FWidget, FVSlider *, vslider);
     dbind(FWidget, FProgress *, progress);
+    dbind(FWidget, FView *, view);
+    dbind(FWidget, FSView *, sview);
     dbind(FWidget, FText *, text);
     dbind(FWidget, FImage *, image);
     dbind(FWidget, FTable*, table);
@@ -292,6 +316,8 @@ static void i_dbind(void)
     dbind_default(FWidget, FSlider *, slider, NULL);
     dbind_default(FWidget, FVSlider *, vslider, NULL);
     dbind_default(FWidget, FProgress *, progress, NULL);
+    dbind_default(FWidget, FView *, view, NULL);
+    dbind_default(FWidget, FSView *, sview, NULL);
     dbind_default(FWidget, FText *, text, NULL);
     dbind_default(FWidget, FImage *, image, NULL);
     dbind_default(FWidget, FTable*, table, NULL);
@@ -336,6 +362,15 @@ const Image *nflib_default_image(void)
     if (i_RESPACK == NULL)
         i_RESPACK = nflib_res_respack("");
     return image_from_resource(i_RESPACK, NOIMAGE_PNG);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const Image *nflib_default_view(void)
+{
+    if (i_RESPACK == NULL)
+        i_RESPACK = nflib_res_respack("");
+    return image_from_resource(i_RESPACK, NOVIEW_PNG);
 }
 
 /*---------------------------------------------------------------------------*/

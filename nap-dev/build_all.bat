@@ -9,6 +9,7 @@
 ::          -b [Debug|Release]            (Release default)
 ::          -noharbour                    (Avoid recompile Harbour)
 ::
+:: "C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvars64.bat"
 :: build_all.bat -comp msvc64 -b Release
 :: build_all.bat -comp mingw64 -b Release 1> full_build_log.txt 2>&1
 :: build_all.bat -noharbour -comp mingw64 -b Release 1> noharbour_build_log.txt 2>&1
@@ -66,11 +67,11 @@ IF "%BUILD%"=="Debug" SET HBMK_FLAGS=-debug
 
 :: Compile Harbour using Visual Studio
 :harbour_vs
-:: Use of Visual Studio 2022. Change two next commands to use another version
+:: Use of Visual Studio 2026. Change two next commands to use another version
 :: This command allow all MSVC tools available for Harbour compiler.
-call "%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" x86_amd64
+call "%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvars64.bat"
 :: Set generator for all CMake-based build scripts
-set CMAKE_GENERATOR=Visual Studio 17 2022
+set CMAKE_GENERATOR=Visual Studio 18 2026
 
 call win-make -j4 HB_CPU=x86_64 HB_COMPILER=msvc64 || goto error_harbour_vs
 echo ----------------------------------
@@ -101,8 +102,6 @@ rmdir /s /q build
 
 :: The LibreOffice dll MUST to be compiled with Visual Studio (no MinGW/Clang support from LibreOffice)
 :: This command allow all MSVC tools available for Harbour compiler.
-call "%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" x86_amd64
-set CMAKE_GENERATOR=Visual Studio 17 2022
 call build.bat -dll -b %BUILD% || goto error_hboffice_dll
 echo --------------------------------
 echo hboffice dll build successfully

@@ -7,6 +7,7 @@
 #include "gtnap.h"
 #include "gtnap.inl"
 #include "gtnap.ch"
+#include "hbnap.ch"
 #include "nap_menu.inl"
 #include "nap_debugger.inl"
 #include <nforms/nforms.h>
@@ -34,7 +35,11 @@
 #include <draw2d/color.h>
 #include <draw2d/font.h>
 #include <draw2d/image.h>
+#include <draw2d/draw.h>
+#include <draw2d/dctx.h>
+#include <geom2d/r2d.h>
 #include <geom2d/s2d.h>
+#include <geom2d/t2d.h>
 #include <geom2d/v2d.h>
 #include <core/arrst.h>
 #include <core/arrpt.h>
@@ -240,6 +245,7 @@ struct _gtnap_form_t
     Window *window;
     uint32_t modal_ret;
     GtNapFArea *area;
+    HB_ITEM *OnClose_block;
     ArrSt(GtNapBind) *binds;
     ArrPt(GtNapCallback) *callbacks;
 };
@@ -610,6 +616,30 @@ static void i_gtnap_destroy(GtNap **gtnap)
     font_destroy(&(*gtnap)->button_font);
     font_destroy(&(*gtnap)->edit_font);
     str_destroy(&(*gtnap)->title);
+    str_destroy(&(*gtnap)->working_path);
+    str_destroy(&(*gtnap)->debugger_path);
+
+    if ((*gtnap)->debugger != NULL)
+        nap_debugger_destroy(&(*gtnap)->debugger);
+
+    nforms_finish();
+    heap_delete(&(*gtnap), GtNap);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_gtnap_forms_destroy(GtNap **gtnap)
+{
+    cassert_no_null(gtnap);
+    cassert_no_null(*gtnap);
+    cassert(*gtnap == GTNAP_GLOBAL);
+    //cassert(arrpt_size((*gtnap)->menu_callbacks, GtNapCallback) == 0);
+    //arrpt_destroy(&(*gtnap)->windows, i_destroy_gtwin, GtNapWindow);
+    //arrpt_destroy(&(*gtnap)->menu_callbacks, i_destroy_callback, GtNapCallback);
+    //font_destroy(&(*gtnap)->global_font);
+    //font_destroy(&(*gtnap)->button_font);
+    //font_destroy(&(*gtnap)->edit_font);
+    //str_destroy(&(*gtnap)->title);
     str_destroy(&(*gtnap)->working_path);
     str_destroy(&(*gtnap)->debugger_path);
 
@@ -1247,6 +1277,71 @@ static GtNap *i_gtnap_create(void)
     {
         log_printf("Program can't init because invalid resolution %gx%g", screen.width, screen.height);
         osapp_finish();
+    }
+
+    hb_itemRelease(INIT_CODEBLOCK);
+    INIT_TITLE[0] = 0;
+    INIT_CODEBLOCK = NULL;
+    return GTNAP_GLOBAL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static GtNap *i_gtnap_forms_create(void)
+{
+    //S2Df screen;
+    const char_t *build_cfg = NULL;
+    GTNAP_GLOBAL = heap_new0(GtNap);
+    //GTNAP_GLOBAL->title = i_cp_to_utf8_string(INIT_TITLE);
+    //GTNAP_GLOBAL->rows = INIT_ROWS;
+    //GTNAP_GLOBAL->cols = INIT_COLS;
+    //GTNAP_GLOBAL->windows = arrpt_create(GtNapWindow);
+    //GTNAP_GLOBAL->menu_callbacks = arrpt_create(GtNapCallback);
+    GTNAP_GLOBAL->date_digits = (hb_setGetCentury() == (HB_BOOL)HB_TRUE) ? 8 : 6;
+    GTNAP_GLOBAL->date_chars = GTNAP_GLOBAL->date_digits + 2;
+
+    {
+        char_t path[512];
+        bfile_dir_work(path, sizeof(path));
+        GTNAP_GLOBAL->working_path = str_c(path);
+    }
+
+#if defined(__DEBUG__)
+    build_cfg = "Debug";
+#else
+    build_cfg = "Release";
+#endif
+
+    {
+        const char_t *debpath = deblib_path();
+#if defined(__MACOS__)
+        GTNAP_GLOBAL->debugger_path = str_cpath("%s/%s/bin/gtnapdeb.app/Contents/MacOS/gtnapdeb", debpath, build_cfg);
+#else
+        GTNAP_GLOBAL->debugger_path = str_cpath("%s/%s/bin/gtnapdeb", debpath, build_cfg);
+#endif
+        GTNAP_GLOBAL->debugger_visible = FALSE;
+        GTNAP_GLOBAL->debugger = NULL;
+    }
+
+    //screen = i_resolution();
+    //if (i_compute_font_size(screen.width, screen.height, GTNAP_GLOBAL) == TRUE)
+    //{
+    //    PHB_ITEM ritem = NULL;
+    //    deblib_init_colors(i_COLORS);
+    //    ritem = hb_itemDo(INIT_CODEBLOCK, 0);
+    //    hb_itemRelease(ritem);
+    //}
+    //else
+    //{
+    //    log_printf("Program can't init because invalid resolution %gx%g", screen.width, screen.height);
+    //    osapp_finish();
+    //}
+
+    {
+        PHB_ITEM ritem = NULL;
+        deblib_init_colors(i_COLORS);
+        ritem = hb_itemDo(INIT_CODEBLOCK, 0);
+        hb_itemRelease(ritem);
     }
 
     hb_itemRelease(INIT_CODEBLOCK);
@@ -2702,6 +2797,41 @@ static void i_gtnap_update(GtNap *gtnap, const real64_t prtime, const real64_t c
 
 /*---------------------------------------------------------------------------*/
 
+static void i_gtnap_forms_update(GtNap *gtnap, const real64_t prtime, const real64_t ctime)
+{
+    cassert(gtnap == NULL || gtnap == GTNAP_GLOBAL);
+    gtnap = GTNAP_GLOBAL;
+    cassert_no_null(gtnap);
+    unref(prtime);
+    unref(ctime);
+    //if (gtnap->modal_time_window != NULL)
+    //{
+    //    GtNapWindow *gtwin = gtnap->modal_time_window;
+    //    if (arrpt_find(gtnap->windows, gtwin, GtNapWindow) != UINT32_MAX)
+    //    {
+    //        if (gtnap->modal_delay_seconds > 0)
+    //        {
+    //            uint64_t now = btime_now();
+    //            if ((now - gtnap->modal_timestamp) / 1000000 >= gtnap->modal_delay_seconds)
+    //            {
+    //                gtnap->modal_timestamp = 0;
+    //                gtnap->modal_delay_seconds = 0;
+    //                gtnap->modal_time_window = NULL;
+    //                i_stop_modal(gtnap, gtwin, NAP_MODAL_TIMESTAMP);
+    //            }
+    //        }
+    //    }
+    //    else
+    //    {
+    //        gtnap->modal_timestamp = 0;
+    //        gtnap->modal_delay_seconds = 0;
+    //        gtnap->modal_time_window = NULL;
+    //    }
+    //}
+}
+
+/*---------------------------------------------------------------------------*/
+
 void hb_gtnap_init(const char_t *title, const uint32_t rows, const uint32_t cols, PHB_ITEM begin_block)
 {
     void *hInstance = NULL;
@@ -2722,6 +2852,34 @@ void hb_gtnap_init(const char_t *title, const uint32_t rows, const uint32_t cols
         (FPtr_app_update)i_gtnap_update,
         (FPtr_destroy)i_gtnap_destroy,
         (char_t *)"");
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_init_app(HB_ITEM *main_block)
+{
+    void *hInstance = NULL;
+
+#if defined(HB_OS_WIN)
+    hb_winmainArgGet(&hInstance, NULL, NULL);
+#endif
+
+    nforms_start();
+    INIT_CODEBLOCK = hb_itemNew(main_block);
+
+    osmain_imp(
+        0, NULL, hInstance, 0.5f,
+        (FPtr_app_create)i_gtnap_forms_create,
+        (FPtr_app_update)i_gtnap_forms_update,
+        (FPtr_destroy)i_gtnap_forms_destroy,
+        (char_t *)"");
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_exit_app(void)
+{
+    osapp_finish();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -4920,6 +5078,40 @@ GtNapForm *hb_gtnap_form_load(const char_t *pathname)
 
 /*---------------------------------------------------------------------------*/
 
+GtNapForm *hbnap_forms_load(const char_t *pathname, const char_t *resource_path, const uint32_t flags)
+{
+    NForm *form = nform_from_file(pathname, NULL);
+    if (form != NULL)
+    {
+        GtNapForm *gtform = heap_new0(GtNapForm);
+        uint32_t nflags = 0;
+        gtform->form = form;
+        gtform->binds = arrst_create(GtNapBind);
+        gtform->callbacks = arrpt_create(GtNapCallback);
+
+        if (flags & HBNAP_FORMS_RESIZABLE)
+            nflags |= ekWINDOW_STDRES;
+        else
+            nflags |= ekWINDOW_STD;
+
+        if (flags & HBNAP_FORMS_CLOSE_ON_ESC)
+            nflags |= ekWINDOW_ESC;
+
+        if (flags & HBNAP_FORMS_CLOSE_ON_RETURN)
+            nflags |= ekWINDOW_RETURN;
+
+        gtform->window = nform_window(gtform->form, nflags, resource_path);
+        if (gtform->window == NULL)
+            hbnap_forms_destroy(&gtform);
+
+        return gtform;
+    }
+
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void hb_gtnap_form_title(GtNapForm *form, HB_ITEM *text_block)
 {
     String *title = hb_block_to_utf8(text_block);
@@ -4928,6 +5120,70 @@ void hb_gtnap_form_title(GtNapForm *form, HB_ITEM *text_block)
     form->title = title;
     if (form->window != NULL)
         window_title(form->window, tc(form->title));
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_title(GtNapForm *form, HB_ITEM *text_block)
+{
+    String *title = hb_block_to_utf8(text_block);
+    cassert_no_null(form);
+    cassert(form->title == NULL);
+    window_title(form->window, tc(title));
+    str_destroy(&title);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_set_text(GtNapForm *form, const char_t *cell, const char_t *text)
+{
+    cassert_no_null(form);
+    nform_set_control_str(form->form, cell, text);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Listener *i_gtnap_form_listener(HB_ITEM *block, GtNapForm *form, FPtr_gtnap_callback func_callback)
+{
+    GtNapCallback *callback = heap_new0(GtNapCallback);
+    cassert_no_null(form);
+    callback->block = block ? hb_itemNew(block) : NULL;
+    callback->form = form;
+    callback->key = INT32_MAX;
+    callback->autoclose_id = UINT32_MAX;
+    arrpt_append(form->callbacks, callback, GtNapCallback);
+    return listener(callback, func_callback, GtNapCallback);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnFormButtonClick(GtNapCallback *callback, Event *e)
+{
+    cassert_no_null(callback);
+    cassert_no_null(callback->form);
+    unref(e);
+    if (callback->block != NULL)
+    {
+        PHB_ITEM ritem = hb_itemDo(callback->block, 0);
+        hb_itemRelease(ritem);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_OnClick(GtNapForm *form, const char_t *cell, HB_ITEM *click_block)
+{
+    Listener *listener = i_gtnap_form_listener(click_block, form, i_OnFormButtonClick);
+    cassert_no_null(form);
+    nform_set_listener(form->form, cell, listener);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_maximize(GtNapForm *form)
+{
+    cassert_no_null(form);
+    window_maximize(form->window);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -5362,34 +5618,6 @@ void hb_gtnap_form_dbind_store(GtNapForm *form)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnFormButtonClick(GtNapCallback *callback, Event *e)
-{
-    cassert_no_null(callback);
-    cassert_no_null(callback->form);
-    unref(e);
-    if (callback->block != NULL)
-    {
-        PHB_ITEM ritem = hb_itemDo(callback->block, 0);
-        hb_itemRelease(ritem);
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-static Listener *i_gtnap_form_listener(HB_ITEM *block, GtNapForm *form, FPtr_gtnap_callback func_callback)
-{
-    GtNapCallback *callback = heap_new0(GtNapCallback);
-    cassert_no_null(form);
-    callback->block = block ? hb_itemNew(block) : NULL;
-    callback->form = form;
-    callback->key = INT32_MAX;
-    callback->autoclose_id = UINT32_MAX;
-    arrpt_append(form->callbacks, callback, GtNapCallback);
-    return listener(callback, func_callback, GtNapCallback);
-}
-
-/*---------------------------------------------------------------------------*/
-
 void hb_gtnap_form_OnClick(GtNapForm *form, const char_t *button_cell_name, HB_ITEM *click_block)
 {
     Listener *listener = i_gtnap_form_listener(click_block, form, i_OnFormButtonClick);
@@ -5462,6 +5690,411 @@ uint32_t hb_gtnap_form_modal(GtNapForm *form, const char_t *resource_path, const
     i_center_window(mwin->window, form->window);
     form->modal_ret = window_modal(form->window, gtwin->window);
     return form->modal_ret;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnFormClose(GtNapForm *form, Event *e)
+{
+    cassert_no_null(form);
+    if (form->OnClose_block != NULL)
+    {
+        PHB_ITEM ritem = hb_itemDo(form->OnClose_block, 0);
+        if (HB_ITEM_TYPE(ritem) == HB_IT_LOGICAL)
+        {
+            bool_t *r = event_result(e, bool_t);
+            *r = (bool_t)hb_itemGetL(ritem);
+        }
+        hb_itemRelease(ritem);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_show(GtNapForm *form, HB_ITEM *onclose_block)
+{
+    cassert_no_null(form);
+    if (form->OnClose_block != NULL)
+        hb_itemRelease(form->OnClose_block);
+
+    form->OnClose_block = hb_itemNew(onclose_block);
+    window_OnClose(form->window, listener(form, i_OnFormClose, GtNapForm));
+    window_update(form->window);
+    window_show(form->window);
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t hbnap_forms_modal(GtNapForm *form, GtNapForm *parent)
+{
+    cassert_no_null(form);
+    cassert_no_null(parent);
+    window_update(form->window);
+    i_center_window(parent->window, form->window);
+    form->modal_ret = window_modal(form->window, parent->window);
+    return form->modal_ret;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_stop_modal(GtNapForm *form, const uint32_t value)
+{
+    cassert_no_null(form);
+    window_stop_modal(form->window, value);
+}
+
+/*---------------------------------------------------------------------------*/
+
+typedef struct i_mainitem_t MainItem;
+typedef struct i_maindata_t MainData;
+
+struct i_mainitem_t
+{
+    String *title;
+    String *more;
+    color_t back;
+    Image *icon;
+    bool_t isnew;
+    HB_ITEM *OnClick;
+    real32_t pos_x;
+    real32_t pos_y;
+    real32_t icon_scale;
+};
+
+struct i_maindata_t
+{
+    String *title;
+    Image *logo;
+    real32_t title_width;
+    real32_t title_height;
+    real32_t logo_width;
+    real32_t logo_height;
+    Font *title_font;
+    Font *item_font;
+    Font *item_sfont;
+    uint32_t hover_item;
+    ArrSt(MainItem) *items;
+};
+
+/*---------------------------------------------------------------------------*/
+
+DeclSt(MainItem);
+static const real32_t i_ITEM_WIDTH = 260;
+static const real32_t i_ITEM_HEIGHT = 160;
+static const real32_t i_ITEM_SEP = 16;
+static const real32_t i_ITEM_CIRCLE_RADIX = 50;
+static const real32_t i_ITEM_CIRCLE_OFFSET = 14;
+static const real32_t i_ITEM_ICON_SIZE = 64;
+static const real32_t i_ITEM_TEXT_PADDING_BOTTOM = 12;
+static const real32_t i_IMAGE_PADDING_TOP = 30;
+static const real32_t i_IMAGE_PADDING_BOTTOM = 36;
+static const real32_t i_IMAGE_PADDING_RIGHT = 70;
+static const real32_t i_TITLE_PADDING_LEFT = 80;
+
+/*---------------------------------------------------------------------------*/
+
+static void i_remove_mainitem(MainItem *item)
+{
+    str_destroy(&item->title);
+    str_destroy(&item->more);
+    ptr_destopt(image_destroy, &item->icon, Image);
+    if (item->OnClick != NULL)
+    {
+        hb_itemRelease(item->OnClick);
+        item->OnClick = NULL;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_destroy_maindata(MainData **data)
+{
+    cassert_no_null(data);
+    cassert_no_null(*data);
+    str_destopt(&(*data)->title);
+    font_destroy(&(*data)->title_font);
+    font_destroy(&(*data)->item_font);
+    font_destroy(&(*data)->item_sfont);
+    ptr_destopt(image_destroy, &(*data)->logo, Image);
+    arrst_destroy(&(*data)->items, i_remove_mainitem, MainItem);
+    heap_delete(data, MainData);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_draw_mainitem(DCtx *ctx, const MainItem *item, const Font *font, const Font *sfont, const T2Df *t2d)
+{
+    color_t color = kCOLOR_WHITE;
+    cassert_no_null(item);
+    draw_matrixf(ctx, t2d);
+    draw_fill_color(ctx, item->back);
+    draw_line_color(ctx, color);
+    draw_text_color(ctx, color);
+    draw_line_width(ctx, 3);
+    draw_rect(ctx, ekFILL, 0, 0, i_ITEM_WIDTH, i_ITEM_HEIGHT);
+    draw_circle(ctx, ekSTROKE, i_ITEM_WIDTH / 2, (i_ITEM_HEIGHT / 2) - i_ITEM_CIRCLE_OFFSET, i_ITEM_CIRCLE_RADIX);
+
+    if (item->icon != NULL)
+    {
+        T2Df scale;
+        t2d_movef(&scale, t2d, (i_ITEM_WIDTH - i_ITEM_ICON_SIZE) / 2, (i_ITEM_HEIGHT - i_ITEM_ICON_SIZE) / 2 - i_ITEM_CIRCLE_OFFSET);
+        t2d_scalef(&scale, &scale, item->icon_scale, item->icon_scale);
+        draw_matrixf(ctx, &scale);
+        draw_image(ctx, item->icon, 0, 0);
+        draw_matrixf(ctx, t2d);
+    }
+
+    if (str_empty(item->title) == FALSE)
+    {
+        draw_font(ctx, font);
+        draw_text_align(ctx, ekCENTER, ekBOTTOM);
+        draw_text(ctx, tc(item->title), i_ITEM_WIDTH / 2, i_ITEM_HEIGHT - i_ITEM_TEXT_PADDING_BOTTOM);
+    }
+
+    if (str_empty(item->more) == FALSE)
+    {
+        draw_font(ctx, sfont);
+        draw_text_align(ctx, ekRIGHT, ekTOP);
+        draw_text(ctx, tc(item->more), i_ITEM_WIDTH, 0);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static T2Df i_item_transform(const MainItem *item, const bool_t hover)
+{
+    T2Df t2d;
+    t2d_movef(&t2d, kT2D_IDENTf, item->pos_x, item->pos_y);
+
+    if (hover == TRUE)
+    {
+        t2d_movef(&t2d, &t2d, i_ITEM_WIDTH / 2, i_ITEM_HEIGHT / 2);
+        t2d_scalef(&t2d, &t2d, 1.05f, 1.05f);
+        t2d_movef(&t2d, &t2d, - i_ITEM_WIDTH / 2, - i_ITEM_HEIGHT / 2);
+    }
+
+    return t2d;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnDrawMainView(GtNapForm *form, Event *e)
+{
+    const EvDraw *p = event_params(e, EvDraw);
+    View *view = event_sender(e, View);
+    MainData *data = view_get_data(view, MainData);
+    real32_t logo_x = 0;
+    bool_t draw_title = FALSE;
+    color_t text_color;
+    cassert_no_null(data);
+    unref(form);
+
+    if (gui_dark_mode() == TRUE)
+        text_color = color_rgb(255, 255, 255);
+    else
+        text_color = color_rgb(99, 99, 99);
+
+    logo_x = p->width - data->logo_width - i_IMAGE_PADDING_RIGHT;
+
+    if (str_empty(data->title) == FALSE)
+    {
+        draw_text_color(p->ctx, text_color);
+        draw_line_color(p->ctx, text_color);
+        draw_font(p->ctx, data->title_font);
+
+        if (data->title_width == 0)
+            draw_text_extents(p->ctx, tc(data->title), -1, &data->title_width, &data->title_height);
+
+        /* Avoid title and logo overlap */
+        if (data->title_width + i_TITLE_PADDING_LEFT < logo_x)
+            draw_title = TRUE;
+
+        if (draw_title == TRUE)
+        {
+            real32_t line_y = i_IMAGE_PADDING_TOP + data->logo_height;
+            draw_text(p->ctx, tc(data->title), i_TITLE_PADDING_LEFT, i_IMAGE_PADDING_TOP + data->logo_height - data->title_height);
+            draw_line(p->ctx, i_TITLE_PADDING_LEFT, line_y, i_TITLE_PADDING_LEFT + data->title_width + data->logo_width, line_y);
+        }
+    }
+
+    if (data->logo != NULL)
+    {
+        /* If no title is drawn, the logo is centered */
+        if (draw_title == FALSE)
+            logo_x = (p->width - data->logo_width) / 2;
+        draw_image(p->ctx, data->logo, logo_x, i_IMAGE_PADDING_TOP);
+    }
+
+    arrst_foreach_const(item, data->items, MainItem)
+        T2Df t2d = i_item_transform(item, (bool_t)(item_i == data->hover_item));
+        i_draw_mainitem(p->ctx, item, data->item_font, data->item_sfont, &t2d);
+    arrst_end()
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_mainitems_locations(View *view, const real32_t width)
+{
+    MainData *data = view_get_data(view, MainData);
+    real32_t content_width = 0;
+    real32_t content_height = 0;
+    uint32_t n = 0, ncols, nrows;
+    cassert_no_null(data);
+    n = arrst_size(data->items, MainItem);
+
+    /* Compute the number of columns */
+    for (ncols = 4; ncols >= 1; --ncols)
+    {
+        content_width = i_ITEM_WIDTH * ncols + i_ITEM_SEP * (ncols - 1);
+        if (content_width < width || ncols == 1)
+            break;
+    }
+
+    cassert(ncols > 0);
+    nrows = (n / ncols) + ((n % ncols) ? 1 : 0);
+    content_height = i_IMAGE_PADDING_TOP + i_ITEM_HEIGHT * nrows + i_ITEM_SEP * (nrows - 1);
+    content_height += data->logo_height;
+
+    if (data->logo_height > 0)
+        content_height += i_IMAGE_PADDING_BOTTOM;
+
+    content_height += i_IMAGE_PADDING_BOTTOM;
+
+    /* Compute the items position */
+    arrst_foreach(item, data->items, MainItem)
+        uint32_t i = item_i % ncols;
+        uint32_t j = item_i / ncols;
+        item->pos_x = ((width - content_width) / 2) + i * (i_ITEM_WIDTH + i_ITEM_SEP);
+        item->pos_y = i_IMAGE_PADDING_TOP + data->logo_height + j * (i_ITEM_HEIGHT + i_ITEM_SEP);
+        if (data->logo_height > 0)
+            item->pos_y += i_IMAGE_PADDING_BOTTOM;
+    arrst_end()
+
+    view_content_size(view, s2df(content_width, content_height), s2df(10, 10));
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnSizeMainView(GtNapForm *form, Event *e)
+{
+    const EvSize *p = event_params(e, EvSize);
+    View *view = event_sender(e, View);
+    i_mainitems_locations(view, p->width);
+    unref(form);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnMoveMainView(GtNapForm *form, Event *e)
+{
+    const EvMouse *p = event_params(e, EvMouse);
+    View *view = event_sender(e, View);
+    MainData *data = view_get_data(view, MainData);
+    cassert_no_null(data);
+    data->hover_item = UINT32_MAX;
+    arrst_foreach_const(item, data->items, MainItem)
+        R2Df r2d = r2df(item->pos_x, item->pos_y, i_ITEM_WIDTH, i_ITEM_HEIGHT);
+        if (r2d_containsf(&r2d, p->x, p->y) == TRUE)
+        {
+            data->hover_item = item_i;
+            break;
+        }
+    arrst_end()
+    view_update(view);
+    unref(form);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnClickMainView(GtNapForm *form, Event *e)
+{
+    View *view = event_sender(e, View);
+    MainData *data = view_get_data(view, MainData);
+    cassert_no_null(data);
+    if (data->hover_item != UINT32_MAX)
+    {
+        const MainItem *item = arrst_get_const(data->items, data->hover_item, MainItem);
+        PHB_ITEM ritem = hb_itemDo(item->OnClick, 0);
+        hb_itemRelease(ritem);
+    }
+    unref(form);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const char_t *title, const char_t *logo_path, HB_ITEM *cover_items)
+{
+    View *view = NULL;
+    S2Df view_size;
+    MainData *data = heap_new0(MainData);
+    HB_SIZE i, n;
+    cassert_no_null(form);
+    view = nform_get_view(form->form, canvas_cell);
+    cassert_no_null(view);
+    cassert_no_null(cover_items);
+    cassert(HB_ITEM_TYPE(cover_items) == HB_IT_ARRAY);
+    data->title = str_c(title);
+    data->title_font = font_system(42, 0);
+    data->item_font = font_system(20, ekFBOLD);
+    data->item_sfont = font_system(14, ekFBOLD);
+    data->logo = image_from_file(logo_path, NULL);
+
+    if (data->logo != NULL)
+    {
+        data->logo_width = (real32_t)image_width(data->logo);
+        data->logo_height = (real32_t)image_height(data->logo);
+    }
+
+    data->items = arrst_create(MainItem);
+    data->hover_item = UINT32_MAX;
+
+    n = hb_arrayLen(cover_items);
+    for (i = 1; i <= n; ++i)
+    {
+        MainItem *item = arrst_new0(data->items, MainItem);
+        HB_ITEM *citem = hb_arrayGetItemPtr(cover_items, i);
+        HB_ITEM *ititle = NULL;
+        HB_ITEM *icon = NULL;
+        HB_ITEM *color = NULL;
+        HB_ITEM *more = NULL;
+        HB_ITEM *isnew = NULL;
+        HB_ITEM *block = NULL;
+        cassert_no_null(citem);
+        cassert(HB_ITEM_TYPE(citem) == HB_IT_ARRAY);
+        cassert(hb_arrayLen(citem) == 6);
+        ititle = hb_arrayGetItemPtr(citem, 1);
+        icon = hb_arrayGetItemPtr(citem, 2);
+        color = hb_arrayGetItemPtr(citem, 3);
+        more = hb_arrayGetItemPtr(citem, 4);
+        isnew = hb_arrayGetItemPtr(citem, 5);
+        block = hb_arrayGetItemPtr(citem, 6);
+        cassert(HB_ITEM_TYPE(ititle) == HB_IT_STRING);
+        cassert(HB_ITEM_TYPE(icon) == HB_IT_STRING);
+        cassert(HB_ITEM_TYPE(color) == HB_IT_STRING);
+        cassert(HB_ITEM_TYPE(more) == HB_IT_STRING);
+        cassert(HB_ITEM_TYPE(isnew) == HB_IT_LOGICAL);
+        cassert(HB_ITEM_TYPE(block) == HB_IT_BLOCK);
+        item->title = str_c(hb_itemGetCPtr(ititle));
+        item->icon = image_from_file(hb_itemGetCPtr(icon), NULL);
+        item->back = color_html(hb_itemGetCPtr(color));
+        item->more = str_c(hb_itemGetCPtr(more));
+        item->isnew = (bool_t)hb_itemGetL(isnew);
+        item->OnClick = hb_itemNew(block);
+
+        if (item->icon != NULL)
+        {
+            real32_t width = (real32_t)image_width(item->icon);
+            item->icon_scale = i_ITEM_ICON_SIZE / width;
+        }
+    }
+
+    view_data(view, &data, i_destroy_maindata, MainData);
+    view_OnDraw(view, listener(form, i_OnDrawMainView, GtNapForm));
+    view_OnSize(view, listener(form, i_OnSizeMainView, GtNapForm));
+    view_OnMove(view, listener(form, i_OnMoveMainView, GtNapForm));
+    view_OnClick(view, listener(form, i_OnClickMainView, GtNapForm));
+    view_get_size(view, &view_size);
+    i_mainitems_locations(view, view_size.width);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -5550,6 +6183,28 @@ void hb_gtnap_form_destroy(GtNapForm **form)
     cassert_no_null(*form);
     ptr_destopt(window_destroy, &(*form)->window, Window);
     str_destopt(&(*form)->title);
+    arrst_destroy(&(*form)->binds, i_remove_bind, GtNapBind);
+    arrpt_destroy(&(*form)->callbacks, i_destroy_callback, GtNapCallback);
+    ptr_destopt(i_destroy_farea, &(*form)->area, GtNapFArea);
+    nform_destroy(&(*form)->form);
+    heap_delete(form, GtNapForm);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_destroy(GtNapForm **form)
+{
+    cassert_no_null(form);
+    cassert_no_null(*form);
+    ptr_destopt(window_destroy, &(*form)->window, Window);
+    str_destopt(&(*form)->title);
+
+    if ((*form)->OnClose_block != NULL)
+    {
+        hb_itemRelease((*form)->OnClose_block);
+        (*form)->OnClose_block = NULL;
+    }
+
     arrst_destroy(&(*form)->binds, i_remove_bind, GtNapBind);
     arrpt_destroy(&(*form)->callbacks, i_destroy_callback, GtNapCallback);
     ptr_destopt(i_destroy_farea, &(*form)->area, GtNapFArea);

@@ -379,6 +379,7 @@ This will generate several static libraries:
 
 > **Important:** The MSVC compiler used by Harbour `hbmk2` is configured using the `vcvarsall.bat` script of the specific version of Visual Studio we are going to use. To configure the compiler in CMake, we must set the `CMAKE_GENERATOR` environment variable to the same version as `vcvarsall.bat`.
 ```
+set CMAKE_GENERATOR=Visual Studio 18 2026
 set CMAKE_GENERATOR=Visual Studio 17 2022
 set CMAKE_GENERATOR=Visual Studio 16 2019
 set CMAKE_GENERATOR=Visual Studio 15 2017
@@ -396,10 +397,10 @@ set CMAKE_GENERATOR=Visual Studio 8 2005
 :: Goto gtnap folder
 cd contrib\gtnap
 
-:: Set Visual Studio 2017 CMake generator
-set CMAKE_GENERATOR=Visual Studio 15 2017
-:: Set Visual Studio 2017 64bit compiler for hbmk2 (msvc64)
-"%ProgramFiles(x86)%\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
+:: Set Visual Studio 2026 CMake generator
+set CMAKE_GENERATOR=Visual Studio 18 2026
+:: Set Visual Studio 2026 64bit compiler for hbmk2 (msvc64)
+"%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 
 :: Just build
 build.bat -b [Debug|Release] -comp msvc64
@@ -521,6 +522,8 @@ Just adding `-gtnap` flag into your `.hbp` project file.
    ```
    :: Use -debug option or omit for release version
    cd contrib\gtnap\tests\cuademo\gtnap_cualib
+    set CMAKE_GENERATOR=Visual Studio 18 2026
+    "%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
    ..\..\..\..\..\bin\win\mingw64\hbmk2.exe [-debug] -comp=mingw64 exemplo.hbp
    exemplo --hb:gtnap
    exemplo --hb:gtwin
@@ -529,7 +532,7 @@ Just adding `-gtnap` flag into your `.hbp` project file.
 - To compile in Windows with VisualStudio:
    ```
    :: Set 64bit compiler
-   "%ProgramFiles(x86)%\Microsoft Visual Studio 11.0\VC\vcvarsall.bat" x64
+   "%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 
    :: Use -debug option or omit for release version
    cd contrib\gtnap\tests\cuademo\gtnap_cualib

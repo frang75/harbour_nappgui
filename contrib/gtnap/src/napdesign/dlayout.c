@@ -84,8 +84,13 @@ DLayout *dlayout_from_flayout(const FLayout *flayout, const char_t *resource_pat
             const FCell *fcell = flayout_ccell(flayout, i, j);
             if (fcell->type == ekCELL_TYPE_TOOL)
             {
-                String *path = str_printf("%s%s", resource_path, tc(fcell->widget.tool->path));
-                Image *image = image_from_file(tc(path), NULL);
+                Image *image = NULL;
+                if (str_empty(fcell->widget.tool->path) == FALSE)
+                {
+                    String *path = str_printf("%s%s", resource_path, tc(fcell->widget.tool->path));
+                    image = image_from_file(tc(path), NULL);
+                    str_destroy(&path);
+                }
 
                 if (image != NULL)
                 {
@@ -96,8 +101,6 @@ DLayout *dlayout_from_flayout(const FLayout *flayout, const char_t *resource_pat
                 {
                     dlayout_set_image(layout, nflib_default_icon(), i, j, colors);
                 }
-
-                str_destroy(&path);
             }
             else if (fcell->type == ekCELL_TYPE_IMAGE)
             {
@@ -108,8 +111,16 @@ DLayout *dlayout_from_flayout(const FLayout *flayout, const char_t *resource_pat
                     image = image_from_file(tc(path), NULL);
                     str_destroy(&path);
                 }
-                dlayout_set_image(layout, image, i, j, colors);
-                ptr_destopt(image_destroy, &image, Image);
+
+                if (image != NULL)
+                {
+                    dlayout_set_image(layout, image, i, j, colors);
+                    image_destroy(&image);
+                }
+                else
+                {
+                    dlayout_set_image(layout, nflib_default_image(), i, j, colors);
+                }
             }
             else if (fcell->type == ekCELL_TYPE_POPUP)
             {
@@ -128,6 +139,14 @@ DLayout *dlayout_from_flayout(const FLayout *flayout, const char_t *resource_pat
                     dlayout_add_image(layout, image, i, j, colors);
                     ptr_destopt(image_destroy, &image, Image);
                 arrst_end()
+            }
+            else if (fcell->type == ekCELL_TYPE_VIEW)
+            {
+                dlayout_set_image(layout, nflib_default_view(), i, j, colors);
+            }
+            else if (fcell->type == ekCELL_TYPE_SCROLL_VIEW)
+            {
+                dlayout_set_image(layout, nflib_default_view(), i, j, colors);
             }
             else if (fcell->type == ekCELL_TYPE_LAYOUT)
             {
@@ -916,6 +935,7 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
             const FCell *fcell = flayout_ccell(flayout, i, j);
             Cell *gcell = layout_cell(cast(glayout, Layout), i, j);
             color_t wcolor = i_is_cell_sel(hover, dlayout, i, j) ? colors->select : colors->main;
+            color_t bcolor = i_is_cell_sel(hover, dlayout, i, j) ? colors->main : colors->select;
 
             draw_r2df(ctx, ekSTROKE, &dcell->rect);
 
@@ -1221,6 +1241,70 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                     draw_rect(ctx, ekFILL, dcell->content_rect.pos.x + x, dcell->content_rect.pos.y + margin, step_width, dcell->content_rect.size.height - 2 * margin);
                     x += step_width + margin;
                 }
+                break;
+            }
+
+            case ekCELL_TYPE_VIEW:
+            case ekCELL_TYPE_SCROLL_VIEW:
+            {
+                const Image *image = i_get_image(dcell, 0, i_is_cell_sel(hover, dlayout, i, j));
+                if (image != NULL)
+                {
+                    T2Df t2d;
+                    real32_t imgwidth = (real32_t)image_width(image);
+                    real32_t imgheight = (real32_t)image_height(image);
+                    real32_t scalex = dcell->content_rect.size.width /imgwidth;
+                    real32_t scaley = dcell->content_rect.size.height / imgheight;
+                    t2d_movef(&t2d, kT2D_IDENTf, dcell->content_rect.pos.x, dcell->content_rect.pos.y);
+                    t2d_scalef(&t2d, &t2d, scalex, scaley);
+                    draw_matrixf(ctx, &t2d);
+                    draw_image(ctx, image, 0, 0);
+                    draw_matrixf(ctx, kT2D_IDENTf);
+                }
+                
+                /* Draw scrollbars*/
+                if (fcell->type == ekCELL_TYPE_SCROLL_VIEW)
+                {
+                    static const real32_t i_SCROLL_WIDTH = 10;
+                    static const real32_t i_SCROLL_RADIUS = 2;
+                    const real32_t i_RADIUS_OFFSET = i_SCROLL_WIDTH / 2;
+                    if (dcell->content_rect.size.width > i_SCROLL_WIDTH)
+                    {
+                        real32_t x = dcell->content_rect.pos.x + dcell->content_rect.size.width - i_SCROLL_WIDTH;
+                        real32_t y = dcell->content_rect.pos.y;
+                        real32_t width = i_SCROLL_WIDTH;
+                        real32_t height = dcell->content_rect.size.height;
+                        draw_fill_color(ctx, bcolor);
+                        draw_rect(ctx, ekFILL, x, y, width, height);
+                        draw_fill_color(ctx, wcolor);
+                        draw_rect(ctx, ekFILL, x, y, i_SCROLL_WIDTH, i_SCROLL_WIDTH);
+                        draw_rect(ctx, ekFILL, x, y + height - i_SCROLL_WIDTH, i_SCROLL_WIDTH, i_SCROLL_WIDTH);
+                        draw_fill_color(ctx, bcolor);
+                        draw_circle(ctx, ekFILL, x + i_RADIUS_OFFSET, y + i_RADIUS_OFFSET, i_SCROLL_RADIUS);
+                        draw_circle(ctx, ekFILL, x + i_RADIUS_OFFSET, y + height - i_SCROLL_WIDTH + i_RADIUS_OFFSET, i_SCROLL_RADIUS);
+                    }
+
+                    if (dcell->content_rect.size.height > i_SCROLL_WIDTH)
+                    {
+                        real32_t x = dcell->content_rect.pos.x;
+                        real32_t y = dcell->content_rect.pos.y + dcell->content_rect.size.height - i_SCROLL_WIDTH;
+                        real32_t height = i_SCROLL_WIDTH;
+                        real32_t width = dcell->content_rect.size.width - i_SCROLL_WIDTH;
+                        draw_fill_color(ctx, bcolor);
+                        draw_rect(ctx, ekFILL, x, y, width, height);
+                        draw_fill_color(ctx, wcolor);
+                        draw_rect(ctx, ekFILL, x, y, i_SCROLL_WIDTH, i_SCROLL_WIDTH);
+                        draw_rect(ctx, ekFILL, x + width - i_SCROLL_WIDTH, y, i_SCROLL_WIDTH, i_SCROLL_WIDTH);
+                        draw_fill_color(ctx, bcolor);
+                        draw_circle(ctx, ekFILL, x + i_RADIUS_OFFSET, y + i_RADIUS_OFFSET, i_SCROLL_RADIUS);
+                        draw_circle(ctx, ekFILL, x + width - i_SCROLL_WIDTH + i_RADIUS_OFFSET, y + i_RADIUS_OFFSET, i_SCROLL_RADIUS);
+                    }
+                }
+
+                draw_line_color(ctx, bcolor);
+                draw_line_width(ctx, 2);
+                draw_rect(ctx, ekSTROKE, dcell->content_rect.pos.x + 1, dcell->content_rect.pos.y + 1, dcell->content_rect.size.width, dcell->content_rect.size.height);
+                draw_line_width(ctx, 1);
                 break;
             }
 

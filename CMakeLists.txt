@@ -36,7 +36,14 @@
 # ../../../../../bin/linux/gcc/hbmk2 exemplo.hbp
 # ./exemplo --hb:gtnap
 
-cmake_minimum_required(VERSION 3.0)
+# https://gitlab.kitware.com/cmake/cmake/-/issues/25196
+if(${CMAKE_VERSION} VERSION_GREATER "3.99.999")
+    cmake_minimum_required(VERSION 3.10)
+elseif(${CMAKE_VERSION} VERSION_GREATER "3.26.999")
+    cmake_minimum_required(VERSION 3.5)
+else()
+    cmake_minimum_required(VERSION 3.0)
+endif()
 project(Exemplo)
 
 # Globals
@@ -98,6 +105,7 @@ nap_generate_tools()
 # Generate C executable targets for .hbp
 include(nap-dev/HarbourTools.cmake)
 harbour_to_c_exe("exemplo" "${GTNAP_ROOT_PATH}/src/exemplo" "${GTNAP_ROOT_PATH}/tests/cuademo/gtnap_cualib/exemplo.hbp")
+harbour_to_c_exe("aspec" "${GTNAP_ROOT_PATH}/src/aspec" "${GTNAP_ROOT_PATH}/tests/aspec/aspec.hbp")
 
 # Generate targets
 include(${NAPPGUI_ROOT_PATH}/prj/NAppTarget.cmake)
@@ -133,3 +141,6 @@ add_subdirectory(${HBOFFICE_ROOT_PATH}/src/hboffice)
 # Add the Harbour executable projects
 set(EXECUTABLE_NAME "exemplo")
 add_subdirectory("${GTNAP_ROOT_PATH}/src/exemplo")
+
+set(EXECUTABLE_NAME "aspec")
+add_subdirectory("${GTNAP_ROOT_PATH}/src/aspec")

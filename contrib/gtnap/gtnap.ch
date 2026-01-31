@@ -21,3 +21,5 @@
 #define NAP_MAX_BUTTONS 50
 #define NAP_MAX_VKEY 112
 #define NAP_WINDOW_FIST_ID 10000
+
+

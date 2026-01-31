@@ -476,3 +476,15 @@ TableView *nform_get_tableview(NForm *form, const char_t *cell_name)
     control = flayout_search_gui_control(form->fform->layout, form->glayout, cell_name);
     return guicontrol_tableview(control);
 }
+
+/*---------------------------------------------------------------------------*/
+
+View *nform_get_view(NForm *form, const char_t *cell_name)
+{
+    GuiControl *control = NULL;
+    cassert_no_null(form);
+    cassert_no_null(form->fform);
+    cassert_no_null(form->glayout);
+    control = flayout_search_gui_control(form->fform->layout, form->glayout, cell_name);
+    return guicontrol_view(control);
+}

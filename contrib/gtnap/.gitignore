@@ -1,9 +1,11 @@
 /build
 /build-dev
 /src/exemplo
+/src/aspec
 /src/hello
 /tests/cuademo/gtnap_cualib/exemplo
 /tests/cuademo/gtnap_cualib/exemplo.app
+/tests/aspec/aspec
 /tools/build
 /tests/unotest/test.pdf
 
