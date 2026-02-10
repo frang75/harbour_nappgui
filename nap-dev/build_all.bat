@@ -9,7 +9,7 @@
 ::          -b [Debug|Release]            (Release default)
 ::          -noharbour                    (Avoid recompile Harbour)
 ::
-:: "C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvars64.bat"
+:: "%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 :: build_all.bat -comp msvc64 -b Release
 :: build_all.bat -comp mingw64 -b Release 1> full_build_log.txt 2>&1
 :: build_all.bat -noharbour -comp mingw64 -b Release 1> noharbour_build_log.txt 2>&1
