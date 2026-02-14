@@ -54,6 +54,16 @@ FUNCTION DIRET_NFORMS(C_DIRET_NEW)
 
 /*---------------------------------------------------------------------------*/
 
+FUNCTION WITH_HBNAP(L_HBNAP_NEW)
+    STATIC L_HBNAP := .F.
+    LOCAL L_HBNAP_ANT := L_HBNAP
+    IF L_HBNAP_NEW # NIL
+        L_HBNAP := L_HBNAP_NEW
+    ENDIF
+    RETURN L_HBNAP_ANT
+
+/*---------------------------------------------------------------------------*/
+
 ***********************
 STAT FUNCTION Perguntar (C_Cabec_x, C_SubCabec, VC_Menu, VC_TxtBotoes, N_Default)
 ***********************
