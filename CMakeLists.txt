@@ -53,6 +53,7 @@ set(HARBOUR_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 set(NAPPGUI_ROOT_PATH ${HARBOUR_ROOT_PATH}/contrib/gtnap)
 set(GTNAP_ROOT_PATH ${HARBOUR_ROOT_PATH}/contrib/gtnap)
 set(HBOFFICE_ROOT_PATH ${HARBOUR_ROOT_PATH}/contrib/hboffice)
+set(HBAWS_ROOT_PATH ${HARBOUR_ROOT_PATH}/contrib/hbaws)
 set(NAPPGUI_SHARED False CACHE BOOL "Build NAppGUI shared libraries.")
 set(HBOFFICE_DEVELOPER_MODE YES)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -137,6 +138,9 @@ add_subdirectory(${NAPPGUI_ROOT_PATH}/src/napdesign)
 # HBOffice
 add_subdirectory(${HBOFFICE_ROOT_PATH}/src/officesdk)
 add_subdirectory(${HBOFFICE_ROOT_PATH}/src/hboffice)
+
+# HBAWS
+add_subdirectory(${HBAWS_ROOT_PATH}/src)
 
 # Add the Harbour executable projects
 set(EXECUTABLE_NAME "exemplo")

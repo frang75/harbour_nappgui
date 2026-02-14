@@ -48,6 +48,7 @@ texto.prg
 {allmsvc|allmingw}exemplo.rc
 
 # Libraries
+hbaws.hbc
 hboffice.hbc
 gtnap.hbc
 hbct.hbc
