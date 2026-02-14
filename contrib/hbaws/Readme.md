@@ -167,11 +167,11 @@ The `libhbaws.a` will be generated in `hbaws\build\[Debug|Release]\lib`.
 
 ### Build HBAWS with MSVC
 
-The HBMK2 system needs access to MSVC compilers (cl). To do this, you need to run the corresponding script according to the version of VisualStudio installed. For example, for VS 2017.
+The HBMK2 system needs access to MSVC compilers (cl). To do this, you need to run the corresponding script according to the version of VisualStudio installed. For example, for VS 2026.
 
 ```
-:: Set Visual Studio 2017 64bit compiler for hbmk2 (msvc)
-"%ProgramFiles(x86)%\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
+:: Set Visual Studio 2026 64bit compiler for hbmk2 (msvc)
+"%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 ```
 ```
 cd contrib\hbaws

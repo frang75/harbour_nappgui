@@ -11,4 +11,4 @@ incpaths=.
 {allgcc&debug}libpaths=build/Debug/lib ${AWS_SDK_ROOT}/gcc/Debug/lib ${AWS_SDK_ROOT}/gcc/Debug/bin
 
 libs=hbaws aws-cpp-sdk-core aws-cpp-sdk-s3
-{bsd|darwin}libs=stdc++
+{allmingw|bsd|darwin}libs=stdc++

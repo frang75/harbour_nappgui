@@ -6,5 +6,6 @@ listall
 listpage
 download
 
-# Tests binaries
+# Tests
 tests/harbour/upload
+tests/harbour/credentials.prg
