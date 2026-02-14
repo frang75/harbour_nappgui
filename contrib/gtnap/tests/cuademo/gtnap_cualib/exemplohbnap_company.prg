@@ -2,22 +2,6 @@
 #INCLUDE "gtnap.ch"
 #INCLUDE "cua.ch"
 
-*******************
-PROC EXEMPLO_ASPEC_FORMS
-*******************
-LOCAL V_JANELA
-*
-CUA20 @ 15,20,25,70 JANELA V_JANELA ;
-     TITULO "Formulários GTNAP em aplicações ASPEC" SUBTITULO "%T";
-     AJUDA "T?????"
-*
-ESPECIALIZE V_JANELA MENU
-ADDOPCAO V_JANELA TEXTO "Gestão de Negócios" ;
-    ACAO TST_FORM_EMPRESAS() AJUDA "P?????"
-*
-ATIVE(V_JANELA)
-*
-
 ********************************
 STAT FUNC VALIDAR_EMPRESA(O_EMPRESA)
 ********************************
@@ -55,7 +39,7 @@ ENDIF
 ********************************
 STAT PROC FORM_EMPRESA_DETAIL(C_FORM_TITLE)
 ********************************
-LOCAL V_FORM := NAP_FORM_LOAD(DIRET_NFORMS() + "Company_detail.nfm")
+LOCAL V_FORM := NAP_FORM_LOAD(DIRET_FORMS() + "Company_detail.nfm")
 LOCAL O_EMPRESA := { empresas->uf, empresas->codcid, empresas->cidade, empresas->codent, empresas->gestora }
 LOCAL V_BIND := { ;
                     {"uf_combo", @O_EMPRESA[1] }, ;
@@ -95,7 +79,7 @@ NAP_FORM_ITEM_LIST(V_FORM, "uf_combo", C_UF)
 NAP_FORM_ITEM_LIST(V_FORM, "cidade_combo", C_CIDADE)
 NAP_FORM_ONCLICK(V_FORM, "salvar_button", {|| SALVAR_EMPRESA(V_FORM, O_EMPRESA) })
 
-N_RES := NAP_FORM_MODAL(V_FORM, DIRET_NFORMS(), .T.)
+N_RES := NAP_FORM_MODAL(V_FORM, DIRET_FORMS(), .T.)
 
 
 IF N_RES == NAP_MODAL_ENTER .OR. N_RES == 1000
@@ -135,9 +119,9 @@ IF SELRECNO != -1
 ENDIF
 
 ********************************
-STAT PROC TST_FORM_EMPRESAS
+PROC TST_FORM_EMPRESAS
 ********************************
-LOCAL V_FORM := NAP_FORM_LOAD(DIRET_NFORMS() + "Company_list.nfm")
+LOCAL V_FORM := NAP_FORM_LOAD(DIRET_FORMS() + "Company_list.nfm")
 
 LOCAL N_RES := 0
 LOCAL C_MESSAGE := ""
@@ -165,7 +149,7 @@ NAP_FORM_ONCLICK(V_FORM, "remove_button", {|| REMOVE_EMPRESA(V_FORM) })
 NAP_FORM_ONCLICK(V_FORM, "remove_tool", {|| REMOVE_EMPRESA(V_FORM) })
 
 // Launch the form
-N_RES := NAP_FORM_MODAL(V_FORM, DIRET_NFORMS(), .T.)
+N_RES := NAP_FORM_MODAL(V_FORM, DIRET_FORMS(), .T.)
 
 IF N_RES == NAP_MODAL_ENTER .OR. N_RES == 1000
 

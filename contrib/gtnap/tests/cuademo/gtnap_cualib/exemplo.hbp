@@ -21,8 +21,8 @@ exemplodbf.prg
 exemplovetor.prg
 exemplotextomemoria.prg
 exemplotextoarquivo.prg
-exemploaws-credentials.prg
-exemploaws.prg
+# exemploaws-credentials.prg
+# exemploaws.prg
 exemplospreadsheet.prg
 exemplotext-R00044.prg
 exemplotext-R00234.prg
@@ -31,8 +31,8 @@ exemplotext-R00688.prg
 exemplotext-R00948.prg
 exemplotext-R02680.prg
 exemplohbnap.prg
+exemplohbnap_company.prg
 exemploforms.prg
-aspec_forms.prg
 acentos.prg
 arqtexto.prg
 entrada.prg
