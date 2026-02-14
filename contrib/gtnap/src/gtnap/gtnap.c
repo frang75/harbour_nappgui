@@ -5737,6 +5737,19 @@ uint32_t hbnap_forms_modal(GtNapForm *form, GtNapForm *parent)
 
 /*---------------------------------------------------------------------------*/
 
+uint32_t hbnap_forms_modal_gtnap(GtNapForm *form)
+{
+    GtNapWindow *gtwin = i_current_gtwin(GTNAP_GLOBAL);
+    cassert_no_null(form);
+    cassert_no_null(gtwin);
+    window_update(form->window);
+    i_center_window(gtwin->window, form->window);
+    form->modal_ret = window_modal(form->window, gtwin->window);
+    return form->modal_ret;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void hbnap_forms_stop_modal(GtNapForm *form, const uint32_t value)
 {
     cassert_no_null(form);

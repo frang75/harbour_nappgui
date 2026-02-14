@@ -139,8 +139,8 @@ add_subdirectory(${NAPPGUI_ROOT_PATH}/src/napdesign)
 add_subdirectory(${HBOFFICE_ROOT_PATH}/src/officesdk)
 add_subdirectory(${HBOFFICE_ROOT_PATH}/src/hboffice)
 
-# HBAWS
-add_subdirectory(${HBAWS_ROOT_PATH}/src)
+# # HBAWS
+# add_subdirectory(${HBAWS_ROOT_PATH}/src)
 
 # Add the Harbour executable projects
 set(EXECUTABLE_NAME "exemplo")

@@ -15,6 +15,9 @@ ANNOUNCE HB_GT_SYS
 PROC MAIN
 *********
 *
+// LOCAL L_OK := .T.
+// LOCAL C_ERR := nil
+
 // Application global SETTERS
 SET CURSOR OFF
 SET SCOR OFF
@@ -40,6 +43,12 @@ MSETCURSOR( .T. )
 
 // LibreOffice initialization
 HBOFFICE_INIT()
+
+//L_OK := HBAWS_INIT(@C_ERR, Exemplo_AWS_AccessKey(), Exemplo_AWS_Secret())
+
+// // AWS initialization
+// L_OK := HBAWS_INIT(@C_ERR, AWS_AccessKey(), AWS_Secret())
+
 
 //
 // Event-driven applications (especially GTK+3 and macOS-Cocoa) cannot be started directly from main().
@@ -112,6 +121,7 @@ IF HB_GTVERSION()=="NAP"
 ENDIF
 
 HBOFFICE_FINISH()
+//HBAWS_FINISH()
 
 QUIT
 
@@ -167,12 +177,6 @@ ATIVE(V_Janela)
 PROC EXEMPLO_AWS()
     RETURN
 *******************
-
-*******************
-PROC EXEMPLO_HBNAP()
-    RETURN
-*******************
-
 
 *******************
 FUNC CONFIRMA_DADOS

@@ -98,6 +98,15 @@ HB_FUNC(HBNAP_FORMS_MODAL)
 
 /*---------------------------------------------------------------------------*/
 
+HB_FUNC(HBNAP_FORMS_MODAL_GTNAP)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    uint32_t ret = hbnap_forms_modal_gtnap(form);
+    hb_retni(ret);
+}
+
+/*---------------------------------------------------------------------------*/
+
 HB_FUNC(HBNAP_FORMS_STOP_MODAL)
 {
     GtNapForm *form = cast(hb_parptr(1), GtNapForm);
