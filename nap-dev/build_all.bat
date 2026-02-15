@@ -49,6 +49,18 @@ GOTO parse
 
 cd ..
 
+IF "%ALL_BUILD_COMPILER%"=="msvc64" GOTO set_vs
+goto begin_script
+
+:set_vs
+:: Use of Visual Studio 2026. Change two next commands to use another version
+:: This command allow all MSVC tools available for Harbour compiler.
+call "%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvars64.bat"
+:: Set generator for all CMake-based build scripts
+set CMAKE_GENERATOR=Visual Studio 18 2026
+
+:begin_script
+
 IF "%BUILD_HARBOUR%"=="no" GOTO hboffice
 
 :: Remove previous compilations
@@ -67,11 +79,6 @@ IF "%BUILD%"=="Debug" SET HBMK_FLAGS=-debug
 
 :: Compile Harbour using Visual Studio
 :harbour_vs
-:: Use of Visual Studio 2026. Change two next commands to use another version
-:: This command allow all MSVC tools available for Harbour compiler.
-call "%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvars64.bat"
-:: Set generator for all CMake-based build scripts
-set CMAKE_GENERATOR=Visual Studio 18 2026
 
 call win-make -j4 HB_CPU=x86_64 HB_COMPILER=msvc64 || goto error_harbour_vs
 echo ----------------------------------
