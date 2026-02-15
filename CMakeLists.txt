@@ -92,8 +92,8 @@ if (WIN32)
         removeFlag(CMAKE_CXX_FLAGS_DEBUG "/MDd")
         removeFlag(CMAKE_C_FLAGS_DEBUG "/MTd")
         removeFlag(CMAKE_C_FLAGS_DEBUG "/MDd")
-        addFlag(CMAKE_CXX_FLAGS_DEBUG "/MT")
-        addFlag(CMAKE_C_FLAGS_DEBUG "/MT")
+        addFlag(CMAKE_CXX_FLAGS_DEBUG "/MD")
+        addFlag(CMAKE_C_FLAGS_DEBUG "/MD")
     endif()
 
 endif()
@@ -139,8 +139,8 @@ add_subdirectory(${NAPPGUI_ROOT_PATH}/src/napdesign)
 add_subdirectory(${HBOFFICE_ROOT_PATH}/src/officesdk)
 add_subdirectory(${HBOFFICE_ROOT_PATH}/src/hboffice)
 
-# # HBAWS
-# add_subdirectory(${HBAWS_ROOT_PATH}/src)
+# HBAWS
+add_subdirectory(${HBAWS_ROOT_PATH}/src)
 
 # Add the Harbour executable projects
 set(EXECUTABLE_NAME "exemplo")

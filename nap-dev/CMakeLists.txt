@@ -12,7 +12,7 @@ if (NOT LOROOT)
     message(FATAL_ERROR "LOROOT is not set.")
 endif()
 
-nap_desktop_app(${EXECUTABLE_NAME} "gtnap;hboffice" NRC_NONE)
+nap_desktop_app(${EXECUTABLE_NAME} "gtnap;hboffice;hbaws" NRC_NONE)
 target_include_directories(${EXECUTABLE_NAME} PUBLIC "../../src")
 
 # Harbour libraries
