@@ -121,7 +121,7 @@
 ********************************
 PROC TST_FORM_EMPRESAS(O_PARENT_FORM)
 ********************************
-LOCAL O_FORM := HBNAP_FORMS_LOAD(DIRET_FORMS() + "Company_list.nfm", DIRET_FORMS(), HBNAP_FORMS_CLOSE_ON_RETURN)
+LOCAL O_FORM := HBNAP_FORMS_LOAD(DIRET_FORMS() + "Company_list.nfm", DIRET_FORMS(), hb_bitOr(HBNAP_FORMS_RESIZABLE, HBNAP_FORMS_CLOSE_ON_ESC, HBNAP_FORMS_CLOSE_ON_RETURN))
 LOCAL N_RES := 0
 LOCAL C_MESSAGE := ""
 
@@ -137,7 +137,7 @@ LOCAL V_DBBIND := { ;
 USE ../dados/empresas NEW SHARED
 GOTO TOP
 
-HBNAP_FORMS_TITLE(O_FORM, "Primeiro exemplo de formulário GTNAP")
+HBNAP_FORMS_TITLE(O_FORM, "Empresas")
 //NAP_FORM_DBIND_AREA(V_FORM, V_DBBIND)
 
 // NAP_FORM_ONCLICK(V_FORM, "add_button", {|| ADD_EMPRESA(V_FORM) })
@@ -150,9 +150,15 @@ HBNAP_FORMS_TITLE(O_FORM, "Primeiro exemplo de formulário GTNAP")
 // Launch the form
 N_RES := HBNAP_FORMS_MODAL(O_FORM, O_PARENT_FORM)
 
-// IF N_RES == NAP_MODAL_ENTER .OR. N_RES == 1000
-
-// ENDIF
+IF N_RES == HBNAP_CLOSED_BY_ESC
+    INFO_MESSAGE_BOX("Form closed by pressing [ESC] key", O_FORM)
+ELSEIF N_RES == HBNAP_CLOSED_BY_RETURN
+    INFO_MESSAGE_BOX("Form closed by pressing [RETURN] key", O_FORM)
+ELSEIF N_RES == HBNAP_CLOSED_BY_BUTTON
+    INFO_MESSAGE_BOX("Form closed by pressing [X] button", O_FORM)
+ELSE
+    INFO_MESSAGE_BOX("Form closed by user func with code: " + hb_ntos(N_RES), O_FORM)
+ENDIF
 
 HBNAP_FORMS_DESTROY(O_FORM)
 
