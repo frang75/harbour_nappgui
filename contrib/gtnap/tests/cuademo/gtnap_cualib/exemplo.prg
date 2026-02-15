@@ -15,9 +15,6 @@ ANNOUNCE HB_GT_SYS
 PROC MAIN
 *********
 *
-// LOCAL L_OK := .T.
-// LOCAL C_ERR := nil
-
 // Application global SETTERS
 SET CURSOR OFF
 SET SCOR OFF
@@ -44,12 +41,6 @@ MSETCURSOR( .T. )
 // LibreOffice initialization
 HBOFFICE_INIT()
 
-//L_OK := HBAWS_INIT(@C_ERR, Exemplo_AWS_AccessKey(), Exemplo_AWS_Secret())
-
-// // AWS initialization
-// L_OK := HBAWS_INIT(@C_ERR, AWS_AccessKey(), AWS_Secret())
-
-
 //
 // Event-driven applications (especially GTK+3 and macOS-Cocoa) cannot be started directly from main().
 // They need to set up an event execution loop and other internal structures. In GTNAP based applications,
@@ -59,7 +50,6 @@ HBOFFICE_INIT()
 IF HB_GTVERSION()=="NAP"
     DIRET_BMPS("../bmps/")
     DIRET_FORMS("../forms/")
-    DIRET_NFORMS("../nforms/")
     WITH_HBNAP(.T.)
     Setup_nap("Exemplo das rotinas de janelamento", 35, 110, {|| RUN_MAIN() })
 
@@ -98,7 +88,7 @@ ADDOPCAO V_JANELA TEXTO "#LibreOffice support" ;
     ACAO EXEMPLO_LIBREOFFICE() AJUDA "P06671"
 
 ADDOPCAO V_JANELA TEXTO "#AWS support" ;
-    ACAO EXEMPLO_AWS() AJUDA "P06671"
+    ACAO EXEMPLO_HBAWS() AJUDA "P06671"
 
 ADDOPCAO V_JANELA TEXTO "#HBNAP support" ;
     ACAO EXEMPLO_HBNAP() AJUDA "P06671"
@@ -121,7 +111,7 @@ IF HB_GTVERSION()=="NAP"
 ENDIF
 
 HBOFFICE_FINISH()
-//HBAWS_FINISH()
+HBAWS_FINISH()
 
 QUIT
 
@@ -172,11 +162,6 @@ ADDOPCAO V_Janela TEXTO "#LibreOffice textdocument" ;
 
 ATIVE(V_Janela)
 
-
-*******************
-PROC EXEMPLO_AWS()
-    RETURN
-*******************
 
 *******************
 FUNC CONFIRMA_DADOS
