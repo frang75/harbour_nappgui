@@ -10,7 +10,7 @@
 ::          -noharbour                    (Avoid recompile Harbour)
 ::
 :: "%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
-:: build_all.bat -comp msvc64 -b Release
+:: build_all.bat -noharbour -comp msvc64 -b Release
 :: build_all.bat -comp mingw64 -b Release 1> full_build_log.txt 2>&1
 :: build_all.bat -noharbour -comp mingw64 -b Release 1> noharbour_build_log.txt 2>&1
 ::
@@ -58,6 +58,7 @@ goto begin_script
 call "%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvars64.bat"
 :: Set generator for all CMake-based build scripts
 set CMAKE_GENERATOR=Visual Studio 18 2026
+set PATH=%PATH%;%AWS_SDK_ROOT%\msvc64\Release\bin
 
 :begin_script
 
@@ -165,6 +166,7 @@ cd ..
 echo ---------------------------------------
 echo All build jobs generated successfully
 echo ---------------------------------------
+echo ..\contrib\gtnap\tests\cuademo\gtnap_cualib\exemplo --hb:gtnap
 
 cd nap-dev
 goto end
