@@ -4382,7 +4382,7 @@ static void i_rtrim(char_t *buffer)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_hbitem_to_char(HB_ITEM *item, char_t *buffer, const uint32_t size)
+static void i_hbitem_to_char(HB_ITEM *item, char_t *buffer, const uint32_t size, const bool_t utf8)
 {
     HB_TYPE type = HB_ITEM_TYPE(item);
     buffer[0] = '\0';
@@ -4390,7 +4390,16 @@ static void i_hbitem_to_char(HB_ITEM *item, char_t *buffer, const uint32_t size)
     switch (type)
     {
     case HB_IT_STRING:
-        hb_itemCopyStrUTF8(item, buffer, size);
+        if (utf8 == TRUE)
+        {
+            const char_t *text = hb_itemGetCPtr(item);
+            str_copy_c(buffer, size, text);
+        }
+        else
+        {
+            hb_itemCopyStrUTF8(item, buffer, size);
+        }
+
         i_rtrim(buffer);
         break;
 
@@ -4453,7 +4462,7 @@ static const char_t *i_area_eval_field(GtNapArea *gtarea, const uint32_t field_i
     ritem = hb_itemDo(column->block, 0);
 
     /* Fill the temporal cell buffer with cell result */
-    i_hbitem_to_char(ritem, TEMP_BUFFER, sizeof(TEMP_BUFFER));
+    i_hbitem_to_char(ritem, TEMP_BUFFER, sizeof(TEMP_BUFFER), FALSE);
 
     hb_itemRelease(ritem);
 
@@ -4594,7 +4603,7 @@ static const char_t *i_data_eval_field(GtNapObject *gtobj, const uint32_t col_id
     ritem = hb_itemDo(column->block, 1, pitem);
 
     /* Fill the temporal cell buffer with cell result */
-    i_hbitem_to_char(ritem, TEMP_BUFFER, sizeof(TEMP_BUFFER));
+    i_hbitem_to_char(ritem, TEMP_BUFFER, sizeof(TEMP_BUFFER), FALSE);
 
     hb_itemRelease(pitem);
     hb_itemRelease(ritem);
@@ -5195,7 +5204,7 @@ static const char_t *i_farea_eval_field(GtNapFArea *area, const uint32_t field_i
     ritem = hb_itemDo(column->block, 0);
 
     /* Fill the temporal cell buffer with cell result */
-    i_hbitem_to_char(ritem, TEMP_BUFFER, sizeof(TEMP_BUFFER));
+    i_hbitem_to_char(ritem, TEMP_BUFFER, sizeof(TEMP_BUFFER), TRUE);
 
     hb_itemRelease(ritem);
     return TEMP_BUFFER;
@@ -5430,7 +5439,8 @@ static void i_map_bind_to_form(NForm *form, ArrSt(GtNapBind) *binds)
 
             if (HB_ITEM_TYPE(base) == HB_IT_STRING)
             {
-                String *str = hb_block_to_utf8(base);
+                const char_t *text = hb_itemGetCPtr(base);
+                String *str = str_c(text);
                 i_rtrim(tcc(str));
                 nform_set_control_str(form, tc(bind->gui_id), tc(str));
                 str_destroy(&str);
