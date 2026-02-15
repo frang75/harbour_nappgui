@@ -74,11 +74,18 @@ color_t osglobals_color(const syscolor_t *color)
 
 void osglobals_resolution(const void *non_used, real32_t *width, real32_t *height)
 {
+    RECT rcWork;
     unref(non_used);
     cassert_no_null(width);
     cassert_no_null(height);
     *width = (real32_t)GetSystemMetrics(SM_CXSCREEN);
     *height = (real32_t)GetSystemMetrics(SM_CYSCREEN);
+    /* TODO: Move to another func */
+    if (SystemParametersInfo( SPI_GETWORKAREA, 0, &rcWork, 0))
+    {
+        *width = (real32_t)(rcWork.right - rcWork.left);
+        *height = (real32_t)(rcWork.bottom - rcWork.top);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
