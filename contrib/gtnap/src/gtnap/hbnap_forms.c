@@ -70,19 +70,27 @@ HB_FUNC(HBNAP_FORMS_BIND)
 
 /*---------------------------------------------------------------------------*/
 
-HB_FUNC(HBNAP_FORMS_BIND_AREA)
-{
-    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
-    HB_ITEM *column_bind = hb_param(2, HB_IT_ARRAY);
-    hbnap_forms_bind_area(form, column_bind);
-}
-
-/*---------------------------------------------------------------------------*/
-
 HB_FUNC(HBNAP_FORMS_BIND_STORE)
 {
     GtNapForm *form = cast(hb_parptr(1), GtNapForm);
     hbnap_forms_bind_store(form);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(HBNAP_FORMS_AREA_BIND)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    HB_ITEM *column_bind = hb_param(2, HB_IT_ARRAY);
+    hbnap_forms_area_bind(form, column_bind);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(HBNAP_FORMS_AREA_REFRESH)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    hbnap_forms_area_refresh(form);
 }
 
 /*---------------------------------------------------------------------------*/

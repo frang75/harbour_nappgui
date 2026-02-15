@@ -5472,7 +5472,48 @@ void hbnap_forms_item_list(GtNapForm *form, const char_t *cell, HB_ITEM *items)
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_bind_area(GtNapForm *form, HB_ITEM *column_bind)
+void hbnap_forms_bind_store(GtNapForm *form)
+{
+    cassert_no_null(form);
+    arrst_foreach(bind, form->binds, GtNapBind)
+        if (bind->value != NULL)
+        {
+            /* We only can save a value in HB_IT_BYREF types */
+            if (HB_ITEM_TYPE(bind->value) == HB_IT_BYREF)
+            {
+                PHB_ITEM base = hb_itemUnRef(bind->value);
+                if (HB_ITEM_TYPE(base) == HB_IT_STRING)
+                {
+                    const char_t *text = NULL;
+                    if (nform_get_control_str(form->form, tc(bind->gui_id), &text) == TRUE)
+                        hb_itemPutC(base, text);
+                }
+                else if (HB_ITEM_TYPE(base) == HB_IT_LOGICAL)
+                {
+                    bool_t value = FALSE;
+                    if (nform_get_control_bool(form->form, tc(bind->gui_id), &value) == TRUE)
+                        hb_itemPutL(base, value ? HB_TRUE : HB_FALSE);
+                }
+                else if (HB_ITEM_TYPE(base) == HB_IT_INTEGER)
+                {
+                    int32_t value = 0;
+                    if (nform_get_control_int(form->form, tc(bind->gui_id), &value) == TRUE)
+                        hb_itemPutNL(base, (long)value);
+                }
+                else if (HB_ITEM_TYPE(base) == HB_IT_DOUBLE)
+                {
+                    real32_t value = 0;
+                    if (nform_get_control_real(form->form, tc(bind->gui_id), &value) == TRUE)
+                        hb_itemPutND(base, (double)value);
+                }
+            }
+        }
+    arrst_end()
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_area_bind(GtNapForm *form, HB_ITEM *column_bind)
 {
     AREA *area = NULL;
     HB_SIZE n = UINT32_MAX;
@@ -5516,43 +5557,13 @@ void hbnap_forms_bind_area(GtNapForm *form, HB_ITEM *column_bind)
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_bind_store(GtNapForm *form)
+void hbnap_forms_area_refresh(GtNapForm *form)
 {
     cassert_no_null(form);
-    arrst_foreach(bind, form->binds, GtNapBind)
-        if (bind->value != NULL)
-        {
-            /* We only can save a value in HB_IT_BYREF types */
-            if (HB_ITEM_TYPE(bind->value) == HB_IT_BYREF)
-            {
-                PHB_ITEM base = hb_itemUnRef(bind->value);
-                if (HB_ITEM_TYPE(base) == HB_IT_STRING)
-                {
-                    const char_t *text = NULL;
-                    if (nform_get_control_str(form->form, tc(bind->gui_id), &text) == TRUE)
-                        hb_itemPutC(base, text);
-                }
-                else if (HB_ITEM_TYPE(base) == HB_IT_LOGICAL)
-                {
-                    bool_t value = FALSE;
-                    if (nform_get_control_bool(form->form, tc(bind->gui_id), &value) == TRUE)
-                        hb_itemPutL(base, value ? HB_TRUE : HB_FALSE);
-                }
-                else if (HB_ITEM_TYPE(base) == HB_IT_INTEGER)
-                {
-                    int32_t value = 0;
-                    if (nform_get_control_int(form->form, tc(bind->gui_id), &value) == TRUE)
-                        hb_itemPutNL(base, (long)value);
-                }
-                else if (HB_ITEM_TYPE(base) == HB_IT_DOUBLE)
-                {
-                    real32_t value = 0;
-                    if (nform_get_control_real(form->form, tc(bind->gui_id), &value) == TRUE)
-                        hb_itemPutND(base, (double)value);
-                }
-            }
-        }
-    arrst_end()
+    cassert_no_null(form->area);
+    i_farea_refresh(form->area);
+    tableview_update(form->area->table);
+    i_farea_select_row(form->area);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -235,9 +235,11 @@ extern void hbnap_forms_set_text(GtNapForm *form, const char_t *cell, const char
 
 extern void hbnap_forms_bind(GtNapForm *form, HB_ITEM *cell_bind);
 
-extern void hbnap_forms_bind_area(GtNapForm *form, HB_ITEM *column_bind);
-
 extern void hbnap_forms_bind_store(GtNapForm *form);
+
+extern void hbnap_forms_area_bind(GtNapForm *form, HB_ITEM *column_bind);
+
+extern void hbnap_forms_area_refresh(GtNapForm *form);
 
 extern void hbnap_forms_item_list(GtNapForm *form, const char_t *cell, HB_ITEM *items);
 
