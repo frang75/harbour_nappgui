@@ -3,7 +3,7 @@
 // HBNAP uses UTF-8. Save file in UTF8 format
 //
 
-#INCLUDE "hbnap.ch"     // For HBNAP API
+#INCLUDE "hbnap.ch"
 
 STATIC C_MAIN_TITLE := "Sistemas Aspec"
 STATIC C_APP_NAME := "Sistema de Gestão Pública"

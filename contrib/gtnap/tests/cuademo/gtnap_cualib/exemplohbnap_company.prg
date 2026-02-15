@@ -1,40 +1,43 @@
-/* encoding: cp850 */
-//#INCLUDE "gtnap.ch"
-#INCLUDE "hbnap.ch"     // For HBNAP API
+//
+// Important!!
+// HBNAP uses UTF-8. Save file in UTF8 format
+//
 
-// ********************************
-// STAT FUNC VALIDAR_EMPRESA(O_EMPRESA)
-// ********************************
-// RETURN .T.
+#INCLUDE "hbnap.ch"
 
-// ********************************
-// STAT PROC SALVAR_EMPRESA(V_FORM, O_EMPRESA)
-// ********************************
-// LOCAL C_MESSAGE
+********************************
+STAT FUNC VALIDAR_EMPRESA(O_EMPRESA)
+********************************
+RETURN .T.
 
-// // Recovery data from form
-// NAP_FORM_DBIND_STORE(V_FORM)
+********************************
+STAT PROC SALVAR_EMPRESA(O_FORM, O_EMPRESA)
+********************************
+LOCAL C_MESSAGE
 
-// IF VALIDAR_EMPRESA(O_EMPRESA) == .T.
+// Recovery data from form
+HBNAP_FORMS_BIND_STORE(O_FORM)
 
-//     IF RLOCK()
-//         empresas->uf := O_EMPRESA[1]
-//         empresas->codcid := O_EMPRESA[2]
-//         empresas->cidade := O_EMPRESA[3]
-//         empresas->codent := O_EMPRESA[4]
-//         empresas->gestora := O_EMPRESA[5]
-//         UNLOCK
-//     ENDIF
+IF VALIDAR_EMPRESA(O_EMPRESA) == .T.
 
-//     C_MESSAGE := "C_UF: " + O_EMPRESA[1] + ";" + ;
-//                     "C_CODCID: " + O_EMPRESA[2] + ";" + ;
-//                     "C_CIDADE: " + O_EMPRESA[3] + ";" + ;
-//                     "C_CODENT: " + O_EMPRESA[4] + ";" + ;
-//                     "C_GESTORA: " + O_EMPRESA[5]
+    IF RLOCK()
+        empresas->uf := O_EMPRESA[1]
+        empresas->codcid := O_EMPRESA[2]
+        empresas->cidade := O_EMPRESA[3]
+        empresas->codent := O_EMPRESA[4]
+        empresas->gestora := O_EMPRESA[5]
+        UNLOCK
+    ENDIF
 
-//     MOSTRAR("M?????",C_Message)
+    C_MESSAGE := "C_UF: " + O_EMPRESA[1] + HB_EOL() + ;
+                 "C_CODCID: " + O_EMPRESA[2] + HB_EOL() + ;
+                 "C_CIDADE: " + O_EMPRESA[3] + HB_EOL() + ;
+                 "C_CODENT: " + O_EMPRESA[4] + HB_EOL() + ;
+                 "C_GESTORA: " + O_EMPRESA[5]
 
-// ENDIF
+    INFO_MESSAGE_BOX(C_MESSAGE, O_FORM)
+
+ENDIF
 
 ********************************
 STAT PROC FORM_EMPRESA_DETAIL(C_FORM_TITLE, O_PARENT_FORM)
@@ -77,7 +80,7 @@ HBNAP_FORMS_TITLE(O_FORM, C_FORM_TITLE)
 HBNAP_FORMS_BIND(O_FORM, V_BIND)
 HBNAP_FORMS_ITEM_LIST(O_FORM, "uf_combo", C_UF)
 HBNAP_FORMS_ITEM_LIST(O_FORM, "cidade_combo", C_CIDADE)
-// NAP_FORM_ONCLICK(O_FORM, "salvar_button", {|| SALVAR_EMPRESA(O_FORM, O_EMPRESA) })
+HBNAP_FORMS_ONCLICK(O_FORM, "salvar_button", {|| SALVAR_EMPRESA(O_FORM, O_EMPRESA) })
 
 N_RES := HBNAP_FORMS_MODAL(O_FORM, O_PARENT_FORM)
 
