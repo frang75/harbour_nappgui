@@ -1,3 +1,9 @@
+//
+//
+// TO BE REMOVED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//
+//
+
 /* encoding: cp850 */
 #INCLUDE "gtnap.ch"
 #INCLUDE "cua.ch"

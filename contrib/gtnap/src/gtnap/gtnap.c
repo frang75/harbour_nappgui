@@ -241,7 +241,6 @@ struct _gtnap_farea_t
 struct _gtnap_form_t
 {
     NForm *form;
-    String *title;
     Window *window;
     uint32_t modal_ret;
     GtNapFArea *area;
@@ -5112,25 +5111,22 @@ GtNapForm *hbnap_forms_load(const char_t *pathname, const char_t *resource_path,
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_form_title(GtNapForm *form, HB_ITEM *text_block)
-{
-    String *title = hb_block_to_utf8(text_block);
-    cassert_no_null(form);
-    str_destopt(&form->title);
-    form->title = title;
-    if (form->window != NULL)
-        window_title(form->window, tc(form->title));
-}
+//void hb_gtnap_form_title(GtNapForm *form, HB_ITEM *text_block)
+//{
+//    String *title = hb_block_to_utf8(text_block);
+//    cassert_no_null(form);
+//    str_destopt(&form->title);
+//    form->title = title;
+//    if (form->window != NULL)
+//        window_title(form->window, tc(form->title));
+//}
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_title(GtNapForm *form, HB_ITEM *text_block)
+void hbnap_forms_title(GtNapForm *form, const char_t *text)
 {
-    String *title = hb_block_to_utf8(text_block);
     cassert_no_null(form);
-    cassert(form->title == NULL);
-    window_title(form->window, tc(title));
-    str_destroy(&title);
+    window_title(form->window, text);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -5669,28 +5665,28 @@ static void i_center_window(const Window *parent, Window *window)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_form_modal(GtNapForm *form, const char_t *resource_path, const bool_t resizable)
-{
-    GtNapWindow *gtwin = i_current_gtwin(GTNAP_GLOBAL);
-    GtNapWindow *mwin = i_current_main_gtwin(GTNAP_GLOBAL);
-    cassert_no_null(form);
-    cassert_no_null(gtwin);
-    cassert_no_null(mwin);
-    if (form->window == NULL)
-    {
-        uint32_t flags = (resizable == TRUE) ? ekWINDOW_STDRES : ekWINDOW_STD;
-        flags |= ekWINDOW_RETURN | ekWINDOW_ESC;
-        form->window = nform_window(form->form, flags, resource_path);
-        window_title(form->window, tc(form->title));
-        i_map_bind_to_form(form->form, form->binds);
-        if (form->area != NULL)
-            i_map_bind_area_to_form(form->area);
-    }
-
-    i_center_window(mwin->window, form->window);
-    form->modal_ret = window_modal(form->window, gtwin->window);
-    return form->modal_ret;
-}
+//uint32_t hb_gtnap_form_modal(GtNapForm *form, const char_t *resource_path, const bool_t resizable)
+//{
+//    GtNapWindow *gtwin = i_current_gtwin(GTNAP_GLOBAL);
+//    GtNapWindow *mwin = i_current_main_gtwin(GTNAP_GLOBAL);
+//    cassert_no_null(form);
+//    cassert_no_null(gtwin);
+//    cassert_no_null(mwin);
+//    if (form->window == NULL)
+//    {
+//        uint32_t flags = (resizable == TRUE) ? ekWINDOW_STDRES : ekWINDOW_STD;
+//        flags |= ekWINDOW_RETURN | ekWINDOW_ESC;
+//        form->window = nform_window(form->form, flags, resource_path);
+//        window_title(form->window, tc(form->title));
+//        i_map_bind_to_form(form->form, form->binds);
+//        if (form->area != NULL)
+//            i_map_bind_area_to_form(form->area);
+//    }
+//
+//    i_center_window(mwin->window, form->window);
+//    form->modal_ret = window_modal(form->window, gtwin->window);
+//    return form->modal_ret;
+//}
 
 /*---------------------------------------------------------------------------*/
 
@@ -6190,18 +6186,18 @@ static void i_destroy_farea(GtNapFArea **area)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_form_destroy(GtNapForm **form)
-{
-    cassert_no_null(form);
-    cassert_no_null(*form);
-    ptr_destopt(window_destroy, &(*form)->window, Window);
-    str_destopt(&(*form)->title);
-    arrst_destroy(&(*form)->binds, i_remove_bind, GtNapBind);
-    arrpt_destroy(&(*form)->callbacks, i_destroy_callback, GtNapCallback);
-    ptr_destopt(i_destroy_farea, &(*form)->area, GtNapFArea);
-    nform_destroy(&(*form)->form);
-    heap_delete(form, GtNapForm);
-}
+//void hb_gtnap_form_destroy(GtNapForm **form)
+//{
+//    cassert_no_null(form);
+//    cassert_no_null(*form);
+//    ptr_destopt(window_destroy, &(*form)->window, Window);
+//    str_destopt(&(*form)->title);
+//    arrst_destroy(&(*form)->binds, i_remove_bind, GtNapBind);
+//    arrpt_destroy(&(*form)->callbacks, i_destroy_callback, GtNapCallback);
+//    ptr_destopt(i_destroy_farea, &(*form)->area, GtNapFArea);
+//    nform_destroy(&(*form)->form);
+//    heap_delete(form, GtNapForm);
+//}
 
 /*---------------------------------------------------------------------------*/
 
@@ -6210,7 +6206,6 @@ void hbnap_forms_destroy(GtNapForm **form)
     cassert_no_null(form);
     cassert_no_null(*form);
     ptr_destopt(window_destroy, &(*form)->window, Window);
-    str_destopt(&(*form)->title);
 
     if ((*form)->OnClose_block != NULL)
     {

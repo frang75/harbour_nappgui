@@ -49,7 +49,7 @@ FUNCTION INFO_MESSAGE_BOX(C_TEXT)
 
 // Main cover items callbacks
 FUNCTION BUDGET_START()
-    TST_FORM_EMPRESAS()
+    TST_FORM_EMPRESAS(O_MAINWINDOW)
     RETURN INFO_MESSAGE_BOX("Aqui será implementado o código dedicado à gestão orçamentária.")
 
 FUNCTION ACCOUNTING_START()

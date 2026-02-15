@@ -45,8 +45,8 @@ HB_FUNC(HBNAP_FORMS_DESTROY)
 HB_FUNC(HBNAP_FORMS_TITLE)
 {
     GtNapForm *form = cast(hb_parptr(1), GtNapForm);
-    HB_ITEM *text_block = hb_param(2, HB_IT_BLOCK | HB_IT_STRING);
-    hbnap_forms_title(form, text_block);
+    const char_t *text = hb_parcx(2);
+    hbnap_forms_title(form, text);
 }
 
 /*---------------------------------------------------------------------------*/
