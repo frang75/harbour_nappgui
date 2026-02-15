@@ -20,26 +20,22 @@
 -cflag={clang}-D_M_AMD64
 -cflag={allgcc&debug}-g
 -cflag={clang&debug}-g
-#-cflag={allgcc}-std=c++98
 -cflag={debug}-DCMAKE_DEBUG
 -cflag={nodebug}-DCMAKE_RELEASE
+#-cflag={allgcc}-std=c++98
 #-cflag=-DGTNAP_DIR=${hb_dir}
 
 # Output
 {debug}-obuild/Debug/lib/${hb_name}
 {nodebug}-obuild/Release/lib/${hb_name}
 
-# Fran: Whats that? -w3 == Warning level   -es2???
 -w3 -es2
-
 -cpp=yes
 
-# Create Harbour header
+# Harbour header
 -hbx=${hb_name}.hbx
 
 # Files
-src/gtnap/hbnap_forms.c
-
 src/gtnap/gtnap.c
 src/gtnap/nap_button.c
 src/gtnap/nap_color.c
@@ -47,7 +43,6 @@ src/gtnap/nap_cualib.c
 src/gtnap/nap_debugger.c
 src/gtnap/nap_dmenu.c
 src/gtnap/nap_edit.c
-src/gtnap/nap_form.c
 src/gtnap/nap_global.c
 src/gtnap/nap_image.c
 src/gtnap/nap_label.c
@@ -55,3 +50,6 @@ src/gtnap/nap_menu.c
 src/gtnap/nap_tableview.c
 src/gtnap/nap_textview.c
 src/gtnap/nap_window.c
+
+# New HBNAP Api
+src/gtnap/hbnap_forms.c

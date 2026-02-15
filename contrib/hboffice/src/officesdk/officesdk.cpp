@@ -326,6 +326,10 @@ sdkres_t OfficeSdk::Init()
         if (res == ekSDKRES_OK)
             this->m_init = true;
     }
+    else
+    {
+        res = ConnectServer();
+    }
 
     return res;
 }
@@ -377,15 +381,15 @@ sdkres_t OfficeSdk::WakeUpServer()
     switch (pt)
     {
     case ekWINDOWS:
-        connect = str_c("soffice \"--accept=socket,host=localhost,port=2083;urp;StarOffice.ServiceManager\" --nodefault --nologo");
+        connect = str_c("soffice \"--accept=socket,host=localhost,port=2083;urp\" --nodefault --nologo --headless");
         break;
     case ekLINUX:
-        connect = str_c("libreoffice \"--accept=socket,host=0,port=2083;urp;\" --nodefault --nologo");
+        connect = str_c("libreoffice \"--accept=socket,host=0,port=2083;urp\" --nodefault --nologo --headless");
         break;
     case ekMACOS:
     {
         const char_t *env = blib_getenv("LIBREOFFICE_HOME");
-        connect = str_printf("%s/Contents/MacOS/soffice --accept=\"socket,host=localhost,port=2083;urp;StarOffice.ServiceManager\" --nodefault --nologo", env);
+        connect = str_printf("%s/Contents/MacOS/soffice --accept=\"socket,host=localhost,port=2083;urp\" --nodefault --nologo --headless", env);
         break;
     }
     case ekIOS:

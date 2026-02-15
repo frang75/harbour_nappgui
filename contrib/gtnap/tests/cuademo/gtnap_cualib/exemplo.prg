@@ -2,7 +2,6 @@
 #INCLUDE "ord.ch"
 #INCLUDE "inkey.ch"
 #INCLUDE "cua.ch"
-// #INCLUDE "box.ch"
 
 // Desativar na "cuademo", para página de código ser a padrão Windows/Linux
 // REQUEST HB_CODEPAGE_PT850
@@ -39,8 +38,6 @@ RDDINFO(RDDI_MEMOTYPE,1)
 SETCOLOR(_COR2_PADRAO)
 MSETCURSOR( .T. )
 
-// hb_DispBox( 0, 1, 2, 2, HB_B_DOUBLE_UNI, 0 )
-
 // LibreOffice initialization
 HBOFFICE_INIT()
 
@@ -53,11 +50,12 @@ HBOFFICE_INIT()
 IF HB_GTVERSION()=="NAP"
     DIRET_BMPS("../bmps/")
     DIRET_FORMS("../forms/")
-    DIRET_NFORMS("../nforms/")
+    WITH_HBNAP(.T.)
     Setup_nap("Exemplo das rotinas de janelamento", 35, 110, {|| RUN_MAIN() })
 
  ELSE
     SETMODE(35,110)
+    WITH_HBNAP(.F.)
     NAP_CUALIB_INIT_LOG()
     RUN_MAIN()
 
@@ -83,28 +81,17 @@ CUA20 ADDIMAGEM V_Janela ARQUIVO DIRET_BMPS()+"logaspec.bmp"  ;
 
 ESPECIALIZE V_Janela MENU
 
-ADDOPCAO V_JANELA TEXTO "#menu de opções" ;
-    ACAO EXEMPLO_MENU() AJUDA "P06671"
-ADDOPCAO V_Janela TEXTO "browse de #DBF" ;
-    ACAO EXEMPLO_BROWSE_DBF() AJUDA "P06673"
-ADDOPCAO V_Janela TEXTO "browse de #vetor" ;
-    ACAO EXEMPLO_BROWSE_VETOR() AJUDA "P06675"
-ADDOPCAO V_Janela TEXTO "exibição/edição de #texto em memória" ;
-    ACAO EXEMPLO_TEXTO_MEMORIA() AJUDA "P06677"
-ADDOPCAO V_Janela TEXTO "exibição de #arquivo texto" ;
-    ACAO EXEMPLO_TEXTO_ARQUIVO() AJUDA "P06679"
-ADDOPCAO V_Janela TEXTO "#entrada de dados" ;
-    ACAO EXEMPLO_ENTRADA_DADOS() AJUDA "P06681"
-ADDOPCAO V_Janela TEXTO "#janelas auxiliares" ;
-    ACAO EXEMPLO_AUXILIARES() AJUDA "P06683"
-ADDOPCAO V_Janela TEXTO "#LibreOffice spreadsheet" ;
-    ACAO EXEMPLO_PLANILHA() AJUDA "P06683"
-ADDOPCAO V_Janela TEXTO "#LibreOffice textdocument" ;
-    ACAO EXEMPLO_TEXT_DOCUMENT() AJUDA "P06683"
-ADDOPCAO V_Janela TEXTO "GTNAP #Forms" ;
-    ACAO EXEMPLO_FORMS() AJUDA "P06683"
-ADDOPCAO V_Janela TEXTO "GTNAP ASPEC #Forms" ;
-    ACAO EXEMPLO_ASPEC_FORMS() AJUDA "P06683"
+ADDOPCAO V_JANELA TEXTO "#Cualib support" ;
+    ACAO EXEMPLO_CUALIB() AJUDA "P06671"
+
+ADDOPCAO V_JANELA TEXTO "#LibreOffice support" ;
+    ACAO EXEMPLO_LIBREOFFICE() AJUDA "P06671"
+
+ADDOPCAO V_JANELA TEXTO "#AWS support" ;
+    ACAO EXEMPLO_HBAWS() AJUDA "P06671"
+
+ADDOPCAO V_JANELA TEXTO "#HBNAP support" ;
+    ACAO EXEMPLO_HBNAP() AJUDA "P06671"
 
 L_FechouComAutoclose := ATIVE(V_Janela)
 
@@ -119,8 +106,57 @@ IF HB_GTVERSION()=="NAP"
 ENDIF
 
 HBOFFICE_FINISH()
+HBAWS_FINISH()
 
 QUIT
+
+
+***********************
+PROC EXEMPLO_CUALIB
+***********************
+LOCAL V_Janela
+*
+CUA20 @ 10,20,26,80 JANELA V_Janela ;
+     TITULO "Escolha o exemplo CUALIB" SUBTITULO "%T";
+     AJUDA "T?????"
+
+ESPECIALIZE V_Janela MENU
+
+ADDOPCAO V_JANELA TEXTO "#menu de opções" ;
+    ACAO EXEMPLO_MENU() AJUDA "P06671"
+ADDOPCAO V_Janela TEXTO "browse de #DBF" ;
+    ACAO EXEMPLO_BROWSE_DBF() AJUDA "P06673"
+ADDOPCAO V_Janela TEXTO "browse de #vetor" ;
+    ACAO EXEMPLO_BROWSE_VETOR() AJUDA "P06675"
+ADDOPCAO V_Janela TEXTO "exibição/edição de #texto em memória" ;
+    ACAO EXEMPLO_TEXTO_MEMORIA() AJUDA "P06677"
+ADDOPCAO V_Janela TEXTO "exibição de #arquivo texto" ;
+    ACAO EXEMPLO_TEXTO_ARQUIVO() AJUDA "P06679"
+ADDOPCAO V_Janela TEXTO "#entrada de dados" ;
+    ACAO EXEMPLO_ENTRADA_DADOS() AJUDA "P06681"
+ADDOPCAO V_Janela TEXTO "#janelas auxiliares" ;
+    ACAO EXEMPLO_AUXILIARES() AJUDA "P06683"
+
+ATIVE(V_Janela)
+
+****************************
+PROC EXEMPLO_LIBREOFFICE()
+****************************
+LOCAL V_Janela
+*
+CUA20 @ 10,20,26,80 JANELA V_Janela ;
+     TITULO "Escolha o exemplo LIBREOFFICE" SUBTITULO "%T";
+     AJUDA "T?????"
+
+ESPECIALIZE V_Janela MENU
+
+ADDOPCAO V_Janela TEXTO "#LibreOffice spreadsheet" ;
+    ACAO EXEMPLO_PLANILHA() AJUDA "P06683"
+ADDOPCAO V_Janela TEXTO "#LibreOffice textdocument" ;
+    ACAO EXEMPLO_TEXT_DOCUMENT() AJUDA "P06683"
+
+ATIVE(V_Janela)
+
 
 *******************
 FUNC CONFIRMA_DADOS

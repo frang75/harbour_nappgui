@@ -44,13 +44,13 @@ FUNCTION DIRET_FORMS(C_DIRET_NEW)
 
 /*---------------------------------------------------------------------------*/
 
-FUNCTION DIRET_NFORMS(C_DIRET_NEW)
-    STATIC C_DIRET_NFORMS := ""
-    LOCAL C_DIRET_ANT := C_DIRET_NFORMS
-    IF C_DIRET_NEW # NIL
-        C_DIRET_NFORMS := C_DIRET_NEW
+FUNCTION WITH_HBNAP(L_HBNAP_NEW)
+    STATIC L_HBNAP := .F.
+    LOCAL L_HBNAP_ANT := L_HBNAP
+    IF L_HBNAP_NEW # NIL
+        L_HBNAP := L_HBNAP_NEW
     ENDIF
-    RETURN C_DIRET_ANT
+    RETURN L_HBNAP_ANT
 
 /*---------------------------------------------------------------------------*/
 

@@ -4,6 +4,15 @@
  */
 
 #include "hbaws.h"
+
+#ifdef _MSC_VER
+#pragma warning(disable: 4061)
+#pragma warning(disable: 4266)
+#pragma warning(disable: 4514)
+#pragma warning(disable: 4625)
+#pragma warning(disable: 4626)
+#endif
+
 #include <aws/core/Aws.h>
 #include <aws/core/auth/AWSCredentials.h>
 #include <aws/s3/S3Client.h>
@@ -21,13 +30,20 @@
 #include <aws/s3/model/GetObjectRequest.h>
 #include <aws/s3/model/DeleteObjectRequest.h>
 #include <aws/s3/model/RestoreObjectRequest.h>
-#include <fstream>
-#include <ios>
-
 #include "hbapiitm.h"
 #include "hbapistr.h"
 #include "hbdate.h"
 #include "hbset.h"
+
+#ifdef _MSC_VER
+#pragma warning(default: 4061)
+#pragma warning(default: 4266)
+#pragma warning(default: 4625)
+#pragma warning(default: 4626)
+#endif
+
+#include <fstream>
+#include <ios>
 
 struct HBAWS
 {
@@ -673,7 +689,7 @@ HB_BOOL hb_aws_s3_copy_multipart(HB_ITEM *src_bucket_block, HB_ITEM *src_key_blo
 
             if (head_res.IsSuccess())
             {
-                object_size = head_res.GetResult().GetContentLength();
+                object_size = (uint64_t)head_res.GetResult().GetContentLength();
                 // log << "Source object size: " << object_size << std::endl;
             }
             else
@@ -977,7 +993,7 @@ int hb_aws_s3_size(const S3Objs *objs)
 
 /*---------------------------------------------------------------------------*/
 
-const char *hb_aws_s3_key(const S3Objs *objs, int i)
+const char *hb_aws_s3_key(const S3Objs *objs, size_t i)
 {
     const Aws::Vector<Aws::S3::Model::Object> *awsObjs = reinterpret_cast<const Aws::Vector<Aws::S3::Model::Object> *>(objs);
     return (*awsObjs)[i].GetKey().c_str();
@@ -985,7 +1001,7 @@ const char *hb_aws_s3_key(const S3Objs *objs, int i)
 
 /*---------------------------------------------------------------------------*/
 
-long long hb_aws_s3_content_size(const S3Objs *objs, int i)
+long long hb_aws_s3_content_size(const S3Objs *objs, size_t i)
 {
     const Aws::Vector<Aws::S3::Model::Object> *awsObjs = reinterpret_cast<const Aws::Vector<Aws::S3::Model::Object> *>(objs);
     return (*awsObjs)[i].GetSize();
@@ -993,7 +1009,7 @@ long long hb_aws_s3_content_size(const S3Objs *objs, int i)
 
 /*---------------------------------------------------------------------------*/
 
-const char *hb_aws_s3_content_type(const S3Objs *objs, int i)
+const char *hb_aws_s3_content_type(const S3Objs *objs, size_t i)
 {
     const Aws::Vector<Aws::S3::Model::Object> *awsObjs = reinterpret_cast<const Aws::Vector<Aws::S3::Model::Object> *>(objs);
     const Aws::String &key = (*awsObjs)[i].GetKey();
@@ -1033,7 +1049,7 @@ static Aws::String i_timezone(const Aws::Utils::DateTime &dateTime)
 /*---------------------------------------------------------------------------*/
 
 const char *
-hb_aws_s3_date(const S3Objs *objs, int i)
+hb_aws_s3_date(const S3Objs *objs, size_t i)
 {
     const Aws::Vector<Aws::S3::Model::Object> *awsObjs = reinterpret_cast<const Aws::Vector<Aws::S3::Model::Object> *>(objs);
     const Aws::Utils::DateTime &dateTime = (*awsObjs)[i].GetLastModified();
@@ -1043,7 +1059,7 @@ hb_aws_s3_date(const S3Objs *objs, int i)
 
 /*---------------------------------------------------------------------------*/
 
-const char *hb_aws_s3_time(const S3Objs *objs, int i)
+const char *hb_aws_s3_time(const S3Objs *objs, size_t i)
 {
     const Aws::Vector<Aws::S3::Model::Object> *awsObjs = reinterpret_cast<const Aws::Vector<Aws::S3::Model::Object> *>(objs);
     const Aws::Utils::DateTime &dateTime = (*awsObjs)[i].GetLastModified();
@@ -1053,7 +1069,7 @@ const char *hb_aws_s3_time(const S3Objs *objs, int i)
 
 /*---------------------------------------------------------------------------*/
 
-const char *hb_aws_s3_timezone(const S3Objs *objs, int i)
+const char *hb_aws_s3_timezone(const S3Objs *objs, size_t i)
 {
     const Aws::Vector<Aws::S3::Model::Object> *awsObjs = reinterpret_cast<const Aws::Vector<Aws::S3::Model::Object> *>(objs);
     const Aws::Utils::DateTime &dateTime = (*awsObjs)[i].GetLastModified();
@@ -1063,7 +1079,7 @@ const char *hb_aws_s3_timezone(const S3Objs *objs, int i)
 
 /*---------------------------------------------------------------------------*/
 
-const char *hb_aws_s3_storage_class(const S3Objs *objs, int i)
+const char *hb_aws_s3_storage_class(const S3Objs *objs, size_t i)
 {
     const Aws::Vector<Aws::S3::Model::Object> *awsObjs = reinterpret_cast<const Aws::Vector<Aws::S3::Model::Object> *>(objs);
     const Aws::S3::Model::ObjectStorageClass &storage = (*awsObjs)[i].GetStorageClass();
@@ -1073,7 +1089,7 @@ const char *hb_aws_s3_storage_class(const S3Objs *objs, int i)
 
 /*---------------------------------------------------------------------------*/
 
-HB_BOOL hb_aws_s3_is_restore(const S3Objs *objs, int i)
+HB_BOOL hb_aws_s3_is_restore(const S3Objs *objs, size_t i)
 {
     const Aws::Vector<Aws::S3::Model::Object> *awsObjs = reinterpret_cast<const Aws::Vector<Aws::S3::Model::Object> *>(objs);
     const Aws::S3::Model::RestoreStatus &restore = (*awsObjs)[i].GetRestoreStatus();
@@ -1082,7 +1098,7 @@ HB_BOOL hb_aws_s3_is_restore(const S3Objs *objs, int i)
 
 /*---------------------------------------------------------------------------*/
 
-const char *hb_aws_s3_restore_date(const S3Objs *objs, int i)
+const char *hb_aws_s3_restore_date(const S3Objs *objs, size_t i)
 {
     const Aws::Vector<Aws::S3::Model::Object> *awsObjs = reinterpret_cast<const Aws::Vector<Aws::S3::Model::Object> *>(objs);
     const Aws::S3::Model::RestoreStatus &restore = (*awsObjs)[i].GetRestoreStatus();
@@ -1101,7 +1117,7 @@ const char *hb_aws_s3_restore_date(const S3Objs *objs, int i)
 
 /*---------------------------------------------------------------------------*/
 
-const char *hb_aws_s3_restore_time(const S3Objs *objs, int i)
+const char *hb_aws_s3_restore_time(const S3Objs *objs, size_t i)
 {
     const Aws::Vector<Aws::S3::Model::Object> *awsObjs = reinterpret_cast<const Aws::Vector<Aws::S3::Model::Object> *>(objs);
     const Aws::S3::Model::RestoreStatus &restore = (*awsObjs)[i].GetRestoreStatus();
@@ -1120,7 +1136,7 @@ const char *hb_aws_s3_restore_time(const S3Objs *objs, int i)
 
 /*---------------------------------------------------------------------------*/
 
-const char *hb_aws_s3_restore_timezone(const S3Objs *objs, int i)
+const char *hb_aws_s3_restore_timezone(const S3Objs *objs, size_t i)
 {
     const Aws::Vector<Aws::S3::Model::Object> *awsObjs = reinterpret_cast<const Aws::Vector<Aws::S3::Model::Object> *>(objs);
     const Aws::S3::Model::RestoreStatus &restore = (*awsObjs)[i].GetRestoreStatus();
@@ -1139,7 +1155,7 @@ const char *hb_aws_s3_restore_timezone(const S3Objs *objs, int i)
 
 /*---------------------------------------------------------------------------*/
 
-const char *hb_aws_s3_checksum_algorithm(const S3Objs *objs, int i)
+const char *hb_aws_s3_checksum_algorithm(const S3Objs *objs, size_t i)
 {
     const Aws::Vector<Aws::S3::Model::Object> *awsObjs = reinterpret_cast<const Aws::Vector<Aws::S3::Model::Object> *>(objs);
     const Aws::Vector<Aws::S3::Model::ChecksumAlgorithm> &algs = (*awsObjs)[i].GetChecksumAlgorithm();
@@ -1152,7 +1168,7 @@ const char *hb_aws_s3_checksum_algorithm(const S3Objs *objs, int i)
 
 /*---------------------------------------------------------------------------*/
 
-const char *hb_aws_s3_etag(const S3Objs *objs, int i)
+const char *hb_aws_s3_etag(const S3Objs *objs, size_t i)
 {
     const Aws::Vector<Aws::S3::Model::Object> *awsObjs = reinterpret_cast<const Aws::Vector<Aws::S3::Model::Object> *>(objs);
     HBAWS_GLOBAL.aws_temp_conv = (*awsObjs)[i].GetETag();
@@ -1161,6 +1177,7 @@ const char *hb_aws_s3_etag(const S3Objs *objs, int i)
 
 #if defined(_MSC_VER)
 
+/*
 #define stdin (__acrt_iob_func(0))
 #define stdout (__acrt_iob_func(1))
 #define stderr (__acrt_iob_func(2))
@@ -1172,5 +1189,7 @@ extern "C" FILE *__cdecl __iob_func(void)
     _iob[2] = *stderr;
     return _iob;
 }
+*/
 
 #endif
+

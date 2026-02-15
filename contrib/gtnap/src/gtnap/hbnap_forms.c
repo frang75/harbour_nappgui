@@ -45,8 +45,8 @@ HB_FUNC(HBNAP_FORMS_DESTROY)
 HB_FUNC(HBNAP_FORMS_TITLE)
 {
     GtNapForm *form = cast(hb_parptr(1), GtNapForm);
-    HB_ITEM *text_block = hb_param(2, HB_IT_BLOCK | HB_IT_STRING);
-    hbnap_forms_title(form, text_block);
+    const char_t *text = hb_parcx(2);
+    hbnap_forms_title(form, text);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -57,6 +57,69 @@ HB_FUNC(HBNAP_FORMS_SET_TEXT)
     const char_t *cell = hb_parcx(2);
     const char_t *text = hb_parcx(3);
     hbnap_forms_set_text(form, cell, text);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(HBNAP_FORMS_INSERT_TEXT)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    const char_t *cell = hb_parcx(2);
+    const char_t *text = hb_parcx(3);
+    hbnap_forms_insert_text(form, cell, text);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(HBNAP_FORMS_BIND)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    HB_ITEM *cell_bind = hb_param(2, HB_IT_ARRAY);
+    hbnap_forms_bind(form, cell_bind);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(HBNAP_FORMS_BIND_STORE)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    hbnap_forms_bind_store(form);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(HBNAP_FORMS_AREA_BIND)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    HB_ITEM *column_bind = hb_param(2, HB_IT_ARRAY);
+    hbnap_forms_area_bind(form, column_bind);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(HBNAP_FORMS_AREA_REFRESH)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    hbnap_forms_area_refresh(form);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(HBNAP_FORMS_AREA_RECNO)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    uint32_t recno = hbnap_forms_area_recno(form);
+    hb_retni(recno);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(HBNAP_FORMS_ITEM_LIST)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    const char_t *cell = hb_parcx(2);
+    HB_ITEM *items = hb_param(3, HB_IT_ARRAY);
+    hbnap_forms_item_list(form, cell, items);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -93,6 +156,15 @@ HB_FUNC(HBNAP_FORMS_MODAL)
     GtNapForm *form = cast(hb_parptr(1), GtNapForm);
     GtNapForm *parent = cast(hb_parptr(2), GtNapForm);
     uint32_t ret = hbnap_forms_modal(form, parent);
+    hb_retni(ret);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(HBNAP_FORMS_MODAL_GTNAP)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    uint32_t ret = hbnap_forms_modal_gtnap(form);
     hb_retni(ret);
 }
 

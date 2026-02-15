@@ -21,6 +21,8 @@ exemplodbf.prg
 exemplovetor.prg
 exemplotextomemoria.prg
 exemplotextoarquivo.prg
+exemploaws-credentials.prg
+exemploaws.prg
 exemplospreadsheet.prg
 exemplotext-R00044.prg
 exemplotext-R00234.prg
@@ -28,8 +30,8 @@ exemplotext-R00236.prg
 exemplotext-R00688.prg
 exemplotext-R00948.prg
 exemplotext-R02680.prg
-exemploforms.prg
-aspec_forms.prg
+exemplohbnap.prg
+exemplohbnap_company.prg
 acentos.prg
 arqtexto.prg
 entrada.prg
@@ -48,6 +50,7 @@ texto.prg
 {allmsvc|allmingw}exemplo.rc
 
 # Libraries
+hbaws.hbc
 hboffice.hbc
 gtnap.hbc
 hbct.hbc

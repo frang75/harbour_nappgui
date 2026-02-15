@@ -184,43 +184,8 @@ extern uint32_t hb_gtnap_cualib_window_current_edit(void);
 extern void hb_gtnap_cualib_default_button(const uint32_t nDefault);
 /*------------------------ */
 
-/* ------------------- */
-/* GTNAP/Forms support */
-/* ------------------- */
-extern GtNapForm *hb_gtnap_form_load(const char_t *pathname);
-
-extern void hb_gtnap_form_title(GtNapForm *form, HB_ITEM *text_block);
-
-extern void hb_gtnap_form_dbind(GtNapForm *form, HB_ITEM *bind_block);
-
-extern void hb_gtnap_form_dbind_area(GtNapForm *form, HB_ITEM *bind_block);
-
-extern void hb_gtnap_form_dbind_store(GtNapForm *form);
-
-extern void hb_gtnap_form_OnClick(GtNapForm *form, const char_t *button_cell_name, HB_ITEM *click_block);
-
-extern void hb_gtnap_form_insert_text(GtNapForm *form, const char_t *cell_name, HB_ITEM *text_block);
-
-extern void hb_gtnap_form_item_list(GtNapForm *form, const char_t *cell_name, HB_ITEM *items_block);
-
-extern uint32_t hb_gtnap_form_modal(GtNapForm *form, const char_t *resource_path, const bool_t resizable);
-
-extern void hb_gtnap_form_stop_modal(GtNapForm *form, const uint32_t value);
-
-extern R2Df hb_gtnap_form_control_frame(GtNapForm *form, const char_t *cell_name);
-
-extern uint32_t hb_gtnap_form_sel_recno(GtNapForm *form);
-
-extern void hb_gtnap_form_refresh_area(GtNapForm *form);
-
-extern void hb_gtnap_form_update(GtNapForm *form);
-
-extern void hb_gtnap_form_destroy(GtNapForm **form);
-
-
 /* -------------------------------------------------- */
-/* GTNAP/Forms NEW API. For full graphic applications */
-/* NOT VALID for semigraphic/cua applications         */
+/* HBNAP/Forms NEW API. For full graphic applications */
 /* -------------------------------------------------- */
 extern void hbnap_forms_init_app(HB_ITEM *main_block);
 
@@ -230,9 +195,23 @@ extern GtNapForm *hbnap_forms_load(const char_t *pathname, const char_t *resourc
 
 extern void hbnap_forms_destroy(GtNapForm **form);
 
-extern void hbnap_forms_title(GtNapForm *form, HB_ITEM *text_block);
+extern void hbnap_forms_title(GtNapForm *form, const char_t *text);
 
 extern void hbnap_forms_set_text(GtNapForm *form, const char_t *cell, const char_t *text);
+
+extern void hbnap_forms_insert_text(GtNapForm *form, const char_t *cell, const char_t *text);
+
+extern void hbnap_forms_bind(GtNapForm *form, HB_ITEM *cell_bind);
+
+extern void hbnap_forms_bind_store(GtNapForm *form);
+
+extern void hbnap_forms_area_bind(GtNapForm *form, HB_ITEM *column_bind);
+
+extern void hbnap_forms_area_refresh(GtNapForm *form);
+
+extern uint32_t hbnap_forms_area_recno(GtNapForm *form);
+
+extern void hbnap_forms_item_list(GtNapForm *form, const char_t *cell, HB_ITEM *items);
 
 extern void hbnap_forms_OnClick(GtNapForm *form, const char_t *cell, HB_ITEM *click_block);
 
@@ -241,6 +220,8 @@ extern void hbnap_forms_maximize(GtNapForm *form);
 extern void hbnap_forms_show(GtNapForm *form, HB_ITEM *onclose_block);
 
 extern uint32_t hbnap_forms_modal(GtNapForm *form, GtNapForm *parent);
+
+extern uint32_t hbnap_forms_modal_gtnap(GtNapForm *form);
 
 extern void hbnap_forms_stop_modal(GtNapForm *form, const uint32_t value);
 
