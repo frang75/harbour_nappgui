@@ -627,30 +627,6 @@ static void i_gtnap_destroy(GtNap **gtnap)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_gtnap_forms_destroy(GtNap **gtnap)
-{
-    cassert_no_null(gtnap);
-    cassert_no_null(*gtnap);
-    cassert(*gtnap == GTNAP_GLOBAL);
-    //cassert(arrpt_size((*gtnap)->menu_callbacks, GtNapCallback) == 0);
-    //arrpt_destroy(&(*gtnap)->windows, i_destroy_gtwin, GtNapWindow);
-    //arrpt_destroy(&(*gtnap)->menu_callbacks, i_destroy_callback, GtNapCallback);
-    //font_destroy(&(*gtnap)->global_font);
-    //font_destroy(&(*gtnap)->button_font);
-    //font_destroy(&(*gtnap)->edit_font);
-    //str_destroy(&(*gtnap)->title);
-    str_destroy(&(*gtnap)->working_path);
-    str_destroy(&(*gtnap)->debugger_path);
-
-    if ((*gtnap)->debugger != NULL)
-        nap_debugger_destroy(&(*gtnap)->debugger);
-
-    nforms_finish();
-    heap_delete(&(*gtnap), GtNap);
-}
-
-/*---------------------------------------------------------------------------*/
-
 static GtNapWindow *i_gtwin(GtNap *gtnap, const uint32_t wid)
 {
     cassert_no_null(gtnap);
@@ -1276,71 +1252,6 @@ static GtNap *i_gtnap_create(void)
     {
         log_printf("Program can't init because invalid resolution %gx%g", screen.width, screen.height);
         osapp_finish();
-    }
-
-    hb_itemRelease(INIT_CODEBLOCK);
-    INIT_TITLE[0] = 0;
-    INIT_CODEBLOCK = NULL;
-    return GTNAP_GLOBAL;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static GtNap *i_gtnap_forms_create(void)
-{
-    //S2Df screen;
-    const char_t *build_cfg = NULL;
-    GTNAP_GLOBAL = heap_new0(GtNap);
-    //GTNAP_GLOBAL->title = i_cp_to_utf8_string(INIT_TITLE);
-    //GTNAP_GLOBAL->rows = INIT_ROWS;
-    //GTNAP_GLOBAL->cols = INIT_COLS;
-    //GTNAP_GLOBAL->windows = arrpt_create(GtNapWindow);
-    //GTNAP_GLOBAL->menu_callbacks = arrpt_create(GtNapCallback);
-    GTNAP_GLOBAL->date_digits = (hb_setGetCentury() == (HB_BOOL)HB_TRUE) ? 8 : 6;
-    GTNAP_GLOBAL->date_chars = GTNAP_GLOBAL->date_digits + 2;
-
-    {
-        char_t path[512];
-        bfile_dir_work(path, sizeof(path));
-        GTNAP_GLOBAL->working_path = str_c(path);
-    }
-
-#if defined(__DEBUG__)
-    build_cfg = "Debug";
-#else
-    build_cfg = "Release";
-#endif
-
-    {
-        const char_t *debpath = deblib_path();
-#if defined(__MACOS__)
-        GTNAP_GLOBAL->debugger_path = str_cpath("%s/%s/bin/gtnapdeb.app/Contents/MacOS/gtnapdeb", debpath, build_cfg);
-#else
-        GTNAP_GLOBAL->debugger_path = str_cpath("%s/%s/bin/gtnapdeb", debpath, build_cfg);
-#endif
-        GTNAP_GLOBAL->debugger_visible = FALSE;
-        GTNAP_GLOBAL->debugger = NULL;
-    }
-
-    //screen = i_resolution();
-    //if (i_compute_font_size(screen.width, screen.height, GTNAP_GLOBAL) == TRUE)
-    //{
-    //    PHB_ITEM ritem = NULL;
-    //    deblib_init_colors(i_COLORS);
-    //    ritem = hb_itemDo(INIT_CODEBLOCK, 0);
-    //    hb_itemRelease(ritem);
-    //}
-    //else
-    //{
-    //    log_printf("Program can't init because invalid resolution %gx%g", screen.width, screen.height);
-    //    osapp_finish();
-    //}
-
-    {
-        PHB_ITEM ritem = NULL;
-        deblib_init_colors(i_COLORS);
-        ritem = hb_itemDo(INIT_CODEBLOCK, 0);
-        hb_itemRelease(ritem);
     }
 
     hb_itemRelease(INIT_CODEBLOCK);
@@ -2792,41 +2703,6 @@ static void i_gtnap_update(GtNap *gtnap, const real64_t prtime, const real64_t c
             gtnap->modal_time_window = NULL;
         }
     }
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_gtnap_forms_update(GtNap *gtnap, const real64_t prtime, const real64_t ctime)
-{
-    cassert(gtnap == NULL || gtnap == GTNAP_GLOBAL);
-    gtnap = GTNAP_GLOBAL;
-    cassert_no_null(gtnap);
-    unref(prtime);
-    unref(ctime);
-    //if (gtnap->modal_time_window != NULL)
-    //{
-    //    GtNapWindow *gtwin = gtnap->modal_time_window;
-    //    if (arrpt_find(gtnap->windows, gtwin, GtNapWindow) != UINT32_MAX)
-    //    {
-    //        if (gtnap->modal_delay_seconds > 0)
-    //        {
-    //            uint64_t now = btime_now();
-    //            if ((now - gtnap->modal_timestamp) / 1000000 >= gtnap->modal_delay_seconds)
-    //            {
-    //                gtnap->modal_timestamp = 0;
-    //                gtnap->modal_delay_seconds = 0;
-    //                gtnap->modal_time_window = NULL;
-    //                i_stop_modal(gtnap, gtwin, NAP_MODAL_TIMESTAMP);
-    //            }
-    //        }
-    //    }
-    //    else
-    //    {
-    //        gtnap->modal_timestamp = 0;
-    //        gtnap->modal_delay_seconds = 0;
-    //        gtnap->modal_time_window = NULL;
-    //    }
-    //}
 }
 
 /*---------------------------------------------------------------------------*/
@@ -5037,6 +4913,79 @@ void hb_gtnap_cualib_default_button(const uint32_t nDefault)
     cassert(gtwin->default_button == UINT32_MAX);
     cassert(nDefault > 0);
     gtwin->default_button = nDefault - 1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static GtNap *i_gtnap_forms_create(void)
+{
+    const char_t *build_cfg = NULL;
+    GTNAP_GLOBAL = heap_new0(GtNap);
+    GTNAP_GLOBAL->date_digits = (hb_setGetCentury() == (HB_BOOL)HB_TRUE) ? 8 : 6;
+    GTNAP_GLOBAL->date_chars = GTNAP_GLOBAL->date_digits + 2;
+
+    {
+        char_t path[512];
+        bfile_dir_work(path, sizeof(path));
+        GTNAP_GLOBAL->working_path = str_c(path);
+    }
+
+#if defined(__DEBUG__)
+    build_cfg = "Debug";
+#else
+    build_cfg = "Release";
+#endif
+
+    {
+        const char_t *debpath = deblib_path();
+#if defined(__MACOS__)
+        GTNAP_GLOBAL->debugger_path = str_cpath("%s/%s/bin/gtnapdeb.app/Contents/MacOS/gtnapdeb", debpath, build_cfg);
+#else
+        GTNAP_GLOBAL->debugger_path = str_cpath("%s/%s/bin/gtnapdeb", debpath, build_cfg);
+#endif
+        GTNAP_GLOBAL->debugger_visible = FALSE;
+        GTNAP_GLOBAL->debugger = NULL;
+    }
+
+    {
+        PHB_ITEM ritem = NULL;
+        deblib_init_colors(i_COLORS);
+        ritem = hb_itemDo(INIT_CODEBLOCK, 0);
+        hb_itemRelease(ritem);
+    }
+
+    hb_itemRelease(INIT_CODEBLOCK);
+    INIT_TITLE[0] = 0;
+    INIT_CODEBLOCK = NULL;
+    return GTNAP_GLOBAL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_gtnap_forms_update(GtNap *gtnap, const real64_t prtime, const real64_t ctime)
+{
+    cassert(gtnap == NULL || gtnap == GTNAP_GLOBAL);
+    gtnap = GTNAP_GLOBAL;
+    cassert_no_null(gtnap);
+    unref(prtime);
+    unref(ctime);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_gtnap_forms_destroy(GtNap **gtnap)
+{
+    cassert_no_null(gtnap);
+    cassert_no_null(*gtnap);
+    cassert(*gtnap == GTNAP_GLOBAL);
+    str_destroy(&(*gtnap)->working_path);
+    str_destroy(&(*gtnap)->debugger_path);
+
+    if ((*gtnap)->debugger != NULL)
+        nap_debugger_destroy(&(*gtnap)->debugger);
+
+    nforms_finish();
+    heap_delete(&(*gtnap), GtNap);
 }
 
 /*---------------------------------------------------------------------------*/
