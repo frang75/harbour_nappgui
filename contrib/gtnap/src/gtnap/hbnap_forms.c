@@ -61,6 +61,16 @@ HB_FUNC(HBNAP_FORMS_SET_TEXT)
 
 /*---------------------------------------------------------------------------*/
 
+HB_FUNC(HBNAP_FORMS_INSERT_TEXT)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    const char_t *cell = hb_parcx(2);
+    const char_t *text = hb_parcx(3);
+    hbnap_forms_insert_text(form, cell, text);
+}
+
+/*---------------------------------------------------------------------------*/
+
 HB_FUNC(HBNAP_FORMS_BIND)
 {
     GtNapForm *form = cast(hb_parptr(1), GtNapForm);

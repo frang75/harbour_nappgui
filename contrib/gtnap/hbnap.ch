@@ -9,4 +9,3 @@
 #define HBNAP_CLOSED_BY_ESC             1
 #define HBNAP_CLOSED_BY_RETURN          2
 #define HBNAP_CLOSED_BY_BUTTON          3
-
