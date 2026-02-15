@@ -79,6 +79,16 @@ HB_FUNC(HBNAP_FORMS_BIND_AREA)
 
 /*---------------------------------------------------------------------------*/
 
+HB_FUNC(HBNAP_FORMS_ITEM_LIST)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    const char_t *cell = hb_parcx(2);
+    HB_ITEM *items = hb_param(3, HB_IT_ARRAY);
+    hbnap_forms_item_list(form, cell, items);
+}
+
+/*---------------------------------------------------------------------------*/
+
 HB_FUNC(HBNAP_FORMS_ONCLICK)
 {
     GtNapForm *form = cast(hb_parptr(1), GtNapForm);

@@ -237,6 +237,8 @@ extern void hbnap_forms_bind(GtNapForm *form, HB_ITEM *cell_bind);
 
 extern void hbnap_forms_bind_area(GtNapForm *form, HB_ITEM *column_bind);
 
+extern void hbnap_forms_item_list(GtNapForm *form, const char_t *cell, HB_ITEM *items);
+
 extern void hbnap_forms_OnClick(GtNapForm *form, const char_t *cell, HB_ITEM *click_block);
 
 extern void hbnap_forms_maximize(GtNapForm *form);
