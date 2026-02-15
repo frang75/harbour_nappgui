@@ -95,6 +95,15 @@ HB_FUNC(HBNAP_FORMS_AREA_REFRESH)
 
 /*---------------------------------------------------------------------------*/
 
+HB_FUNC(HBNAP_FORMS_AREA_RECNO)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    uint32_t recno = hbnap_forms_area_recno(form);
+    hb_retni(recno);
+}
+
+/*---------------------------------------------------------------------------*/
+
 HB_FUNC(HBNAP_FORMS_ITEM_LIST)
 {
     GtNapForm *form = cast(hb_parptr(1), GtNapForm);

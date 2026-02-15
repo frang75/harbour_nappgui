@@ -5557,6 +5557,25 @@ void hbnap_forms_area_bind(GtNapForm *form, HB_ITEM *column_bind)
 
 /*---------------------------------------------------------------------------*/
 
+uint32_t hbnap_forms_area_recno(GtNapForm *form)
+{
+    const ArrSt(uint32_t) *sel = 0;
+    cassert_no_null(form);
+    cassert_no_null(form->area);
+    sel = tableview_selected(form->area->table);
+    if (arrst_size(sel, uint32_t) == 1)
+    {
+        uint32_t index = *arrst_first_const(sel, uint32_t);
+        return *arrst_get(form->area->records, index, uint32_t);
+    }
+    else
+    {
+        return UINT32_MAX;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void hbnap_forms_area_refresh(GtNapForm *form)
 {
     cassert_no_null(form);
