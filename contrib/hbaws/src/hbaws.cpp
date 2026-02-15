@@ -1177,6 +1177,7 @@ const char *hb_aws_s3_etag(const S3Objs *objs, size_t i)
 
 #if defined(_MSC_VER)
 
+/*
 #define stdin (__acrt_iob_func(0))
 #define stdout (__acrt_iob_func(1))
 #define stderr (__acrt_iob_func(2))
@@ -1188,5 +1189,7 @@ extern "C" FILE *__cdecl __iob_func(void)
     _iob[2] = *stderr;
     return _iob;
 }
+*/
 
 #endif
+

@@ -21,6 +21,24 @@
 # Flags
 -cflag={allgcc&debug}-g
 
+-cflag={allwin}-DUSE_WINDOWS_DLL_SEMANTICS
+-cflag=-DUSE_IMPORT_EXPORT
+-cflag=-DAWS_CRT_CPP_USE_IMPORT_EXPORT
+-cflag=-DAWS_HTTP_USE_IMPORT_EXPORT
+-cflag=-DAWS_IO_USE_IMPORT_EXPORT
+-cflag=-DAWS_ENABLE_IO_COMPLETION_PORTS
+-cflag=-DAWS_COMMON_USE_IMPORT_EXPORT
+-cflag=-DAWS_CAL_USE_IMPORT_EXPORT
+-cflag=-DAWS_COMPRESSION_USE_IMPORT_EXPORT
+-cflag=-DAWS_MQTT_USE_IMPORT_EXPORT
+-cflag=-DAWS_AUTH_USE_IMPORT_EXPORT
+-cflag=-DAWS_SDKUTILS_USE_IMPORT_EXPORT
+-cflag=-DAWS_CHECKSUMS_USE_IMPORT_EXPORT
+-cflag=-DAWS_EVENT_STREAM_USE_IMPORT_EXPORT
+-cflag=-DAWS_S3_USE_IMPORT_EXPORT
+-cflag={allmsvc}/MD
+-cflag={allmsvc}/EHsc
+
 # Output
 {debug}-obuild/Debug/lib/${hb_name}
 {nodebug}-obuild/Release/lib/${hb_name}
