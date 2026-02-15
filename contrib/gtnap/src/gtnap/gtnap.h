@@ -193,7 +193,7 @@ extern GtNapForm *hb_gtnap_form_load(const char_t *pathname);
 
 extern void hb_gtnap_form_dbind(GtNapForm *form, HB_ITEM *bind_block);
 
-extern void hb_gtnap_form_dbind_area(GtNapForm *form, HB_ITEM *bind_block);
+//extern void hb_gtnap_form_dbind_area(GtNapForm *form, HB_ITEM *bind_block);
 
 extern void hb_gtnap_form_dbind_store(GtNapForm *form);
 
@@ -232,6 +232,8 @@ extern void hbnap_forms_destroy(GtNapForm **form);
 extern void hbnap_forms_title(GtNapForm *form, const char_t *text);
 
 extern void hbnap_forms_set_text(GtNapForm *form, const char_t *cell, const char_t *text);
+
+extern void hbnap_forms_bind_area(GtNapForm *form, HB_ITEM *column_bind);
 
 extern void hbnap_forms_OnClick(GtNapForm *form, const char_t *cell, HB_ITEM *click_block);
 
