@@ -5382,6 +5382,89 @@ static GtNapFArea *i_create_farea(GtNapForm *form, AREA *area)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_map_bind_to_form(NForm *form, ArrSt(GtNapBind) *binds)
+{
+    arrst_foreach(bind, binds, GtNapBind)
+        if (bind->value != NULL)
+        {
+            PHB_ITEM base = bind->value;
+
+            if (HB_ITEM_TYPE(base) == HB_IT_BYREF)
+                base = hb_itemUnRef(base);
+
+            if (HB_ITEM_TYPE(base) == HB_IT_STRING)
+            {
+                String *str = hb_block_to_utf8(base);
+                i_rtrim(tcc(str));
+                nform_set_control_str(form, tc(bind->gui_id), tc(str));
+                str_destroy(&str);
+            }
+            else if (HB_ITEM_TYPE(base) == HB_IT_LOGICAL)
+            {
+                HB_BOOL value = hb_itemGetL(base);
+                nform_set_control_bool(form, tc(bind->gui_id), (bool_t)value);
+            }
+            else if (HB_ITEM_TYPE(base) == HB_IT_INTEGER)
+            {
+                long value = hb_itemGetNL(base);
+                nform_set_control_int(form, tc(bind->gui_id), (int32_t)value);
+            }
+            else if (HB_ITEM_TYPE(base) == HB_IT_DOUBLE)
+            {
+                double value = hb_itemGetND(base);
+                nform_set_control_real(form, tc(bind->gui_id), (real32_t)value);
+            }
+            else if (HB_ITEM_TYPE(base) == HB_IT_ARRAY)
+            {
+                HB_SIZE i, n = UINT32_MAX;
+                nform_clear_control_list(form, tc(bind->gui_id));
+                n = hb_arrayLen(base);
+                for (i = 1; i <= n; ++i)
+                {
+                    PHB_ITEM hitem = hb_arrayGetItemPtr(base, i);
+                    i_hbitem_to_char(hitem, TEMP_BUFFER, sizeof(TEMP_BUFFER));
+                    nform_add_control_item(form, tc(bind->gui_id), TEMP_BUFFER);
+                }
+            }
+        }
+        else if (bind->listener != NULL)
+        {
+            if (nform_set_listener(form, tc(bind->gui_id), bind->listener) == TRUE)
+                bind->listener = NULL;
+        }
+    arrst_end()
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_bind(GtNapForm *form, HB_ITEM *cell_bind)
+{
+    HB_SIZE i, n = UINT32_MAX;
+    cassert_no_null(form);
+    cassert(HB_ITEM_TYPE(cell_bind) == HB_IT_ARRAY);
+    n = hb_arrayLen(cell_bind);
+    for (i = 1; i <= n; ++i)
+    {
+        PHB_ITEM bind_item = hb_arrayGetItemPtr(cell_bind, i);
+        PHB_ITEM name_item = NULL;
+        PHB_ITEM var_item = NULL;
+        const char *gui_id = NULL;
+        GtNapBind *bind = arrst_new0(form->binds, GtNapBind);
+        cassert(HB_ITEM_TYPE(bind_item) == HB_IT_ARRAY);
+        cassert(hb_arrayLen(bind_item) == 2);
+        name_item = hb_arrayGetItemPtr(bind_item, 1);
+        var_item = hb_arrayGetItemPtr(bind_item, 2);
+        cassert(HB_ITEM_TYPE(name_item) == HB_IT_STRING);
+        gui_id = hb_itemGetCPtr(name_item);
+        bind->gui_id = str_c(cast_const(gui_id, char_t));
+        bind->value = hb_itemNew(var_item);
+    }
+
+    i_map_bind_to_form(form->form, form->binds);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void hbnap_forms_bind_area(GtNapForm *form, HB_ITEM *column_bind)
 {
     AREA *area = NULL;
@@ -5481,61 +5564,6 @@ static void i_remove_bind(GtNapBind *bind)
     if (bind->listener != NULL)
         listener_destroy(&bind->listener);
     bind->value = NULL;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_map_bind_to_form(NForm *form, ArrSt(GtNapBind) *binds)
-{
-    arrst_foreach(bind, binds, GtNapBind)
-        if (bind->value != NULL)
-        {
-            PHB_ITEM base = bind->value;
-
-            if (HB_ITEM_TYPE(base) == HB_IT_BYREF)
-                base = hb_itemUnRef(base);
-
-            if (HB_ITEM_TYPE(base) == HB_IT_STRING)
-            {
-                String *str = hb_block_to_utf8(base);
-                i_rtrim(tcc(str));
-                nform_set_control_str(form, tc(bind->gui_id), tc(str));
-                str_destroy(&str);
-            }
-            else if (HB_ITEM_TYPE(base) == HB_IT_LOGICAL)
-            {
-                HB_BOOL value = hb_itemGetL(base);
-                nform_set_control_bool(form, tc(bind->gui_id), (bool_t)value);
-            }
-            else if (HB_ITEM_TYPE(base) == HB_IT_INTEGER)
-            {
-                long value = hb_itemGetNL(base);
-                nform_set_control_int(form, tc(bind->gui_id), (int32_t)value);
-            }
-            else if (HB_ITEM_TYPE(base) == HB_IT_DOUBLE)
-            {
-                double value = hb_itemGetND(base);
-                nform_set_control_real(form, tc(bind->gui_id), (real32_t)value);
-            }
-            else if (HB_ITEM_TYPE(base) == HB_IT_ARRAY)
-            {
-                HB_SIZE i, n = UINT32_MAX;
-                nform_clear_control_list(form, tc(bind->gui_id));
-                n = hb_arrayLen(base);
-                for (i = 1; i <= n; ++i)
-                {
-                    PHB_ITEM hitem = hb_arrayGetItemPtr(base, i);
-                    i_hbitem_to_char(hitem, TEMP_BUFFER, sizeof(TEMP_BUFFER));
-                    nform_add_control_item(form, tc(bind->gui_id), TEMP_BUFFER);
-                }
-            }
-        }
-        else if (bind->listener != NULL)
-        {
-            if (nform_set_listener(form, tc(bind->gui_id), bind->listener) == TRUE)
-                bind->listener = NULL;
-        }
-    arrst_end()
 }
 
 /*---------------------------------------------------------------------------*/
