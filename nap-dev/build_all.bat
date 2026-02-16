@@ -47,10 +47,14 @@ GOTO parse
 
 :endparse
 
+:: Harbour main dir
 cd ..
 
+IF "%BUILD%"=="Debug" SET HBMK_FLAGS=-debug
 IF "%ALL_BUILD_COMPILER%"=="msvc64" GOTO set_vs
-goto begin_script
+IF "%ALL_BUILD_COMPILER%"=="mingw64" GOTO set_mingw
+IF "%ALL_BUILD_COMPILER%"=="clang" GOTO set_clang
+goto error_unknown_compiler
 
 :set_vs
 :: Use of Visual Studio 2026. Change two next commands to use another version
@@ -59,50 +63,33 @@ call "%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcv
 :: Set generator for all CMake-based build scripts
 set CMAKE_GENERATOR=Visual Studio 18 2026
 set PATH=%PATH%;%AWS_SDK_ROOT%\msvc64\Release\bin
+goto begin_script
+
+:set_mingw
+set PATH=%PATH%;%AWS_SDK_ROOT%\mingw64\Release\bin
+goto begin_script
+
+:set_clang
+set PATH=%PATH%;%AWS_SDK_ROOT%\clang\Release\bin
+goto begin_script
 
 :begin_script
-
 IF "%BUILD_HARBOUR%"=="no" GOTO hboffice
 
-:: Remove previous compilations
-rmdir /s /q bin\win
-rmdir /s /q lib\win
-win-make clean
-
+::
+:: Compile Harbour
+::
 :build_harbour
-
-IF "%ALL_BUILD_COMPILER%"=="msvc64" GOTO harbour_vs
-IF "%ALL_BUILD_COMPILER%"=="mingw64" GOTO harbour_mingw
-IF "%ALL_BUILD_COMPILER%"=="clang" GOTO harbour_clang
-goto error_unknown_compiler
-
-IF "%BUILD%"=="Debug" SET HBMK_FLAGS=-debug
-
-:: Compile Harbour using Visual Studio
-:harbour_vs
-
-call win-make -j4 HB_CPU=x86_64 HB_COMPILER=msvc64 || goto error_harbour_vs
+rmdir /s /q bin\win\%ALL_BUILD_COMPILER%
+rmdir /s /q lib\win\%ALL_BUILD_COMPILER%
+call win-make -j4 HB_CPU=x86_64 HB_COMPILER=%ALL_BUILD_COMPILER% || goto error_harbour
 echo ----------------------------------
-echo Harbour msvc64 build successfully
+echo Harbour %ALL_BUILD_COMPILER% build successfully
 echo ----------------------------------
-goto hboffice
 
-:: Compile Harbour Mingw-64
-:harbour_mingw
-call mingw32-make.exe -j4 HB_CPU=x86_64 HB_COMPILER=mingw64
-echo -----------------------------------
-echo Harbour mingw64 build successfully
-echo -----------------------------------
-goto hboffice
-
-:: Compile Harbour clang
-:harbour_clang
-call mingw32-make.exe -j4 HB_CPU=x86_64 HB_COMPILER=clang
-echo ---------------------------------
-echo Harbour clang build successfully
-echo ---------------------------------
-goto hboffice
-
+::
+:: Compile HBOffice
+::
 :hboffice
 :hboffice_dll_build
 cd contrib\hboffice
@@ -118,33 +105,42 @@ echo --------------------------------
 :hboffice_lib_build
 call build.bat -lib -comp %ALL_BUILD_COMPILER% -b %BUILD% || goto error_hboffice_lib
 echo --------------------------------
-echo hboffice lib build successfully
+echo hboffice %ALL_BUILD_COMPILER% lib build successfully
 echo --------------------------------
 
-:: Return to harbour main path after hboffice
+:: Return to harbour main path
 cd ..
 cd ..
 
+::
+:: Compile HBAWS
+::
 :hbaws_build
 cd contrib\hbaws
 rmdir /s /q build
 call build.bat -comp %ALL_BUILD_COMPILER% -b %BUILD% || goto error_hbaws
 echo -------------------------
-echo hbaws build successfully
+echo hbaws %ALL_BUILD_COMPILER% build successfully
 echo -------------------------
 
-:: Return to harbour main path after hboffice
+:: Return to harbour main path
 cd ..
 cd ..
 
+::
+:: Compile GTNAP
+::
 :gtnap_build
 cd contrib\gtnap
 rmdir /s /q build
 call build.bat -comp %ALL_BUILD_COMPILER% -b %BUILD% || goto error_gtnap
 echo -------------------------
-echo gtnap build successfully
+echo gtnap %ALL_BUILD_COMPILER% build successfully
 echo -------------------------
 
+::
+:: Running Exemplo test
+::
 :gtnap_exemplo_test
 cd tests/cuademo/gtnap_cualib
 del /q *.exe
@@ -158,7 +154,7 @@ cd ..
 cd ..
 cd ..
 
-:: Return to harbour main path after hboffice
+:: Return to harbour main path
 cd ..
 cd ..
 
@@ -178,16 +174,8 @@ goto end
 echo Error Unknown compiler %ALL_BUILD_COMPILER%
 goto end
 
-:error_harbour_vs
-echo Error building Harbour using VisualStudio (msvc64)
-goto end
-
-:error_harbour_gcc
-echo Error building Harbour using MinGW-GCC (mingw64)
-goto end
-
-:error_harbour_clang
-echo Error building Harbour using Clang (clang)
+:error_harbour
+echo Error building Harbour using %ALL_BUILD_COMPILER%
 goto end
 
 :error_hboffice_dll
