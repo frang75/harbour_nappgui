@@ -12,8 +12,8 @@
 -i{allmingw&!debug}${AWS_SDK_ROOT}/mingw64/Release/include
 -i{allmsvc&debug}${AWS_SDK_ROOT}/msvc64/Debug/include
 -i{allmsvc&!debug}${AWS_SDK_ROOT}/msvc64/Release/include
--i{allgcc&debug}${AWS_SDK_ROOT}/gcc/Debug/include
--i{allgcc&!debug}${AWS_SDK_ROOT}/gcc/Release/include
+-i{gcc&debug}${AWS_SDK_ROOT}/gcc/Debug/include
+-i{gcc&!debug}${AWS_SDK_ROOT}/gcc/Release/include
 
 # AWS-SDK requires, at least, C++11
 -cpp=iso11
@@ -38,6 +38,7 @@
 -cflag=-DAWS_S3_USE_IMPORT_EXPORT
 -cflag={allmsvc}/MD
 -cflag={allmsvc}/EHsc
+-cflag={allgcc}-Wno-ignored-attributes
 
 # Output
 {debug}-obuild/Debug/lib/${hb_name}
