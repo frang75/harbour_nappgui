@@ -15,6 +15,8 @@
 
 * [hboffice examples](#hboffice-examples)
 
+* [hboffice API](./ReadmeAPI.md)
+
 ## Introduction
 
 **hboffice** is a project to use the LibreOffice-SDK in Harbour projects. It is an incomplete API, since the LibreOffice SDK is very extensive. It provides high-level functions in C that hide the complexity of using the SDK directly in C++. This C API is easily portable to Harbour.
