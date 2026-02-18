@@ -22,8 +22,7 @@
 -cflag={clang&debug}-g
 -cflag={debug}-DCMAKE_DEBUG
 -cflag={nodebug}-DCMAKE_RELEASE
-#-cflag={allgcc}-std=c++98
-#-cflag=-DGTNAP_DIR=${hb_dir}
+-cflag={clang}-Wno-deprecated
 
 # Output
 {debug}-obuild/Debug/lib/${hb_name}
