@@ -20,9 +20,9 @@
 -cflag={win&clang}-D_UNICODE
 -cflag={allgcc&debug}-g
 -cflag={clang&debug}-g
-#-cflag={allgcc&!darwin}-std=c++98
 -cflag={debug}-DCMAKE_DEBUG
 -cflag={nodebug}-DCMAKE_RELEASE
+-cflag={clang}-Wno-deprecated
 
 # Output
 {debug}-obuild/Debug/lib/${hb_name}
