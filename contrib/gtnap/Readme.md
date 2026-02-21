@@ -48,6 +48,8 @@ GTNAP is a library for creating cross-platform desktop applications (Windows/Lin
 ![gtnap](doc/images/gtnap.png)
 
 
+## Prerequisites
+
 ## Installing CMake
 
 For building GTNap CMake tool is necessary:
@@ -57,6 +59,7 @@ For building GTNap CMake tool is necessary:
 * Download from https://cmake.org/download/
 
 * Select **Add CMake to the system PATH for all users** when installing.
+
     ![cmake_win](doc/images/cmake_win.png)
 
 * ```
@@ -80,6 +83,7 @@ For building GTNap CMake tool is necessary:
 * Move `CMake.app` to `/Applications` folder.
 
 * By default, CMake does not configure command line access on macOS. You can create symbolic links with `sudo "/Applications/CMake.app/Contents/bin/cmake-gui" --install`.
+
     ![cmake_macos](doc/images/cmake_macos.png)
 
 * ```
@@ -186,6 +190,7 @@ InstalledDir: /usr/bin
 ## Installing Xcode in macOS
 
 Xcode provides the `AppleClang` compiler and build tools for macOS. Download and install it from Apple website [here](https://developer.apple.com/xcode/).
+
 ![xcode_macos](doc/images/macos_xcode.png)
 
 ```
@@ -695,4 +700,4 @@ cmake -G Xcode -S . -B build
 
 * Press `[PLAY]` button or `Product->Run`.
 
-  ![xcode_debugging](doc/images/gtnap_xcode_run.png)
+  ![xcode_debugging](doc/images/gtnap_xcode_debug.png)
