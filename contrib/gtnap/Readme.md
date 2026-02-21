@@ -37,8 +37,6 @@ https://github.com/frang75/nappgui_src
    - [Linux developer mode](#linux-developer-mode)
    - [macOS developer mode](#macos-developer-mode)
 
-* [GTNap design](#gtnap-design)
-
 GTNAP is a library for creating cross-platform desktop applications (Windows/Linux/macOS) from Harbour. It integrates two APIs that can be used within the same application:
 
 * **GTNAP**: Provides direct support for Harbour commands, in order to port applications written in text mode (General Terminal) to graphical windows. It also provides support for the CUA library (Common User Access), a set of rules and guidelines that help to guide the development of user interfaces. Windows are sized in character coordinates with monospaced fonts, simulating text consoles, and graphical expressiveness is very limited.
