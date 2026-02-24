@@ -31,9 +31,9 @@ bash ./build.sh -b [Debug|Release]
 ```
 The application executable can be found at `build/[Debug|Release]/bin/napdesign`, just run it.
 
-## Inspect demo forms
+## Inspect the demo forms
 
-The first time the application starts we will have a blank drawing area and all the buttons are off. To make contact, it is recommended to open the example forms. Designer loads all existing ones in the same folder. Click `Open Forms` button (📁) and select `/contrib/gtnap/tests/cuademo/forms`. We can see the current folder path by placing the mouse over the icon. By clicking on any file, we will select it and see it in the drawing area.
+The first time the application starts we will have a blank drawing area and all the buttons are off. To make a first contact, it is recommended to open the example forms. Designer loads all existing ones in the same folder. Click `Open Forms` button (📁) and select `/contrib/gtnap/tests/cuademo/forms`. We can see the current folder path by placing the mouse over the icon. By clicking on any file, we will select it and see it in the drawing area.
 
 ![openfolder](./images/openfolder.png)
 
@@ -63,7 +63,7 @@ Looking at our form to replicate, we identify a vertical organization composed o
 
     ![subdiv2](./images/subdivision2.png)
 
-Nuestra celda raíz inicial se ha convertido en un stack de tres celdas en vertical. Continuamos creando espacios para la toolbar.
+Our initial root cell has become a stack of three vertical cells. We continue creating spaces for the toolbar.
 
 * Click _Horizontal Layout_ in the _Widget Selector_.
 
@@ -73,7 +73,7 @@ Nuestra celda raíz inicial se ha convertido en un stack de tres celdas en verti
 
     ![subdiv4](./images/subdivision4.png)
 
-Para el area de datos central necesitaremos una rejilla de 2x6 celdas.
+For the central data area we will need a 2x6 cell grid.
 
 * Click _Grid Layout_ in the _Widget Selector_.
 
@@ -87,7 +87,7 @@ Since we are only going to place one button in the Action Buttons area (bottom a
 
 ### Adding widgets
 
-Una vez tenemos la estructura del formulario, vamos a añadir los widgets, comenzando por la toolbar.
+Once we have the structure of the form, we are going to add the widgets, starting with the toolbar.
 
 * Click _Tool button_ in the _Widget Selector_.
 
@@ -127,97 +127,53 @@ Una vez tenemos la estructura del formulario, vamos a añadir los widgets, comen
 
     ![widget7](./images/widgets7.png)
 
+* Now let's add the text editing boxes and combo box. Click on _Combo Box_ in the _Widget Selector_.
 
+* Click on the free cell at the top right.
 
+* We select a size of 100px for the combo.
 
+    ![widget8](./images/widgets8.png)
 
+    ![widget9](./images/widgets9.png)
 
-Click in the top-left cell. A box will appear.
+* Now, click _Edit Box_ in the _Widget Selector_.
 
-* Select _Label_ in the widget selector. Starting with the top left cell, let's create labels for the nine cells on the left: `First Name`, `Last Name`, `Address`, `City`, `Phone number`, `User`, `Pass`, `Bank account` and `Credit card`. You will see how the wider texts will move the rest of the cells to the right. This is an effect of the automatic layout performed by NAppGUI.
+* Click on the free upper right cell.
 
-    ![widgets1](./images/widgets1.png)
+* We select a size of 60px.
 
-* Select _Editbox_ in the widget selector. We are going to add a component for each cell to the right of the texts, except for `Bank account` and `Credit card`. For now, use the default options when creating Editboxes.
+    ![widget10](./images/widgets10.png)
 
-    ![widgets2](./images/widgets2.png)
+    ![widget11](./images/widgets11.png)
 
-* In the case of `Bank account` and `Credit card` we want to separate the entry into different Editboxes. Select _Grid layout_ again in the widget selector and create 4 columns and 1 row for the `Bank account` and 5 columns for the `Credit card`. You will notice that the form expands horizontally, for now do not worry about this.
+> **Important:** We see that, although we have indicated 60px, the Edit Box measures 100px. This is because, by default, the cell containing an Edit Box has horizontal expansion by default. We will return to this later.
 
-    ![widgets3](./images/widgets3.png)
+* We finish the text input block:
 
-* Adds an _Editbox_ for each cell of the `Bank account` and `Credit card`.
+    - `Nombre da cidade`: Combo Box 100px.
+    - `Código da entidade`: Edit Box 50px.
+    - `Unidade gestora centralizadora`: Edit Box 300px.
 
-    ![widgets4](./images/widgets4.png)
+    ![widget12](./images/widgets12.png)
 
-* Select _Button_ in the widget selector and add two buttons `[OK]` and `[Cancel]` in the bottom two cells.
+> **Important:** As we have already indicated, despite having introduced different measurements, all text controls have been expanded horizontally to the width of the width (300px).
 
-    ![widgets5](./images/widgets5.png)
+* To finish, let's add the push button. Click _Push Button_ on the _Widget Selector_.
 
-* Finally select _Checkbox_ in the widget selector and create 4 checks in the remaining cells on the right:
+* Click on the bottom empty cell.
 
-    * `Add mail list`.
-    * `Secure password`.
-    * `Show alerts`.
-    * `Connect bank account`.
+* In the dialog we write `F2 = Save` as the button text.
 
-    ![widgets6](./images/widgets6.png)
+    ![widget13](./images/widgets13.png)
 
-* To conclude, press the button (ðŸ”�) _Simulate current form_ to check how our form works, with the design we have so far.
+    ![widget14](./images/widgets14.png)
 
-    ![simulate1](./images/simulate1.png)
+> **Important:** Buttons (and other text-based controls, such as _Label_) are automatically sized based on the text they contain. However, Push Button cells also expand automatically.
 
+* We have already completed the basic layout of the form. If we press the button (🔍) `Simulate Form` we can launch the form.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-From here we will have to subdivide this first cell using the _Grid Layout_ component of the widget selector. Depending on the layout of the panel we are editing, we will make one or other subdivisions.
-
-* Select _Grid Layout_, click on the cell. A dialog will appear, where you select **Columns: 1, Rows: 2, [OK]**.
-
-
-* We see that in the _Object Inspector_ a hierarchy (path) of Layouts and Cells is being formed.
-
-    ![inspect1](./images/obinspect1.png)
-
-    * **layout0:** Main layout composed of (1x1) cell.
-    * **cell0:** Cell [0,0] of layout0.
-    * **layout1:** Layout of (1x2) cells located in cell0 (position [0,0] of layout0).
-    * **cell2:** Cell (0,0) of layout1, currently empty.
-    * We will delve deeper into the _Object Inspector_ later. For the moment, we are observing how the panel changes as we make subdivisions.
-
-* Keeping _Grid Layout_ in the widget selector, we click on the top cell and select: **Columns: 2, Rows: 1, [OK]**.
-
-    ![subdiv2](./images/subdivision2.png)
-
-* In the upper left cell, we create a grid with 2 columns and 9 rows.
-
-    ![subdiv3](./images/subdivision3.png)
-
-* In the cell on the right 1 column and 4 rows.
-
-    ![subdiv4](./images/subdivision4.png)
-
-* And finally, in the bottom cell, 2 columns and 1 row. With this, we have reached the necessary cell configuration for our form. Let's start inserting content.
-
-    ![subdiv5](./images/subdivision5.png)
+    ![widget15](./images/widgets15.png)
 
 
 ### Margins and maximum size
