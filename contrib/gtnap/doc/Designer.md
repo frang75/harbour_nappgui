@@ -6,7 +6,7 @@
 * [Create a new form](#create-a-new-form)
     - [Space subdivision. Adding cells](#space-subdivision-adding-cells)
     - [Adding widgets](#adding-widgets)
-    - [Margins and maximum size](#margins-and-maximum-size)
+    - [Margins, alignments and sizes](#margins-alignments-and-sizes)
 
 NAppGUI Designer is a visual tool for creating user interfaces (forms) graphically and interactively. These forms will be saved in files that can be loaded at runtime from Harbour, using HBNAP. It has been developed using NAppGUI-SDK and the forms it generates also use NAppGUI to run within the final application (https://nappgui.com).
 
@@ -175,14 +175,71 @@ Once we have the structure of the form, we are going to add the widgets, startin
 
     ![widget15](./images/widgets15.png)
 
-
-### Margins and maximum size
+### Margins, alignments and sizes
 
 While our form is fully functional, it is not very aesthetic. Let's give it some formatting to improve its appearance.
 
-* In the _Object inspector_ select _layout3_, which corresponds to the layout of 2 columns and 9 rows that we added before. In the _Property editor_ select **Column 1** and set the **FWidth** (forced width) property to 300. This "forces" the maximum width of column 1 of the layout to 300 pixels. Interior controls adjust automatically.
+* We start by aligning the Toolbar to the left. We click on the first button of the toolbar on the canvas.
+
+* After clicking, the _Object inspector_ provides us with the "path" from the original cell to the toolbutton, passing through the hierarchy of intermediate cells and sublayouts.
+
+* Click on `cell1` which identifies the cell that contains the entire _Horizontal Grid_ of the toolbar.
+
+* In _Property Editor_ `Cell Properties`, `HAling::Left`.
 
     ![format1](./images/format1.png)
+
+    ![format2](./images/format2.png)
+
+    ![format3](./images/format3.png)
+
+> **Important:** The _Horizontal Grid_ containing the buttons can exactly calculate its dimensions based on the widgets it contains. But since the form has been widened underneath, it expands (default behavior) leaving an unwanted separation between buttons. What we have done is identify this cell (which contains the entire _Horizontal Layout_) with left alignment.
+
+* Let's do something similar with the text controls. Click on the first _Combo Box_.
+
+* In _Property Editor_ `Cell Properties`, `HAling::Left`.
+
+    ![format4](./images/format4.png)
+
+    ![format5](./images/format5.png)
+
+* Now we see the original size that we assigned to the control (100 px), before it was expanded.
+
+* We set `HAling::Left` for all text controls and for the _Push Button_.
+
+    ![format6](./images/format6.png)
+
+> **Important:** The last _Edit Box_ (`Unidade gestora centralizada`), being the widest (300px), it does not matter whether we select `Left` or `Justify` alignment. We will obtain the same effect.
+
+* Let's now work on the margins and spacing of the interior data area.
+
+* Click on the _Label_ `Inclusão de empresa`. Then click on the _Object Inspector_ on the top item (`layout3::Grid Layout`). With this we will have the 2x6 Grid Layout in _Property Editor_.
+
+    ![format7](./images/format7.png)
+
+* In _Layout Properties_ set `10` in the `Left` and `Right` fields. We observe that a separation of 10px is established on both sides of the 2x6 _Grid_.
+
+    ![format8](./images/format8.png)
+
+> **Important:** By setting the margins the entire form has grown, since otherwise it is impossible to guarantee the size restrictions of widgets and spaces.
+
+* We continue in _Layout Properties_ of the 2x6 Grid. We select `Column 0` and then `Right 10`. This will establish a separation between columns 0 and 1 of the grid (the _Label_ and _Edit/Combo Box_).
+
+    ![format9](./images/format9.png)
+
+* In the same way, in _Layout Properties_ of the 2x6 Grid, we select `Row 0` and then `Bottom 3`. We repeat for `Row 1`, `Row 2`, `Row 3` and `Row 4`.
+
+    ![format10](./images/format10.png)
+
+> **Important:** We will not be able to set the `Right/Bottom` properties of the last `Column/Row` of the layout. Interior margins are not considered. Use the `Right/Bottom` properties of the layout.
+
+* Ahora vamos a dejar algo de espacio entre el Grid 2x6 y la Toolbar y el botón de acción. Podríamos hacerlo perfectamente mediante las propiedades `Top/Bottom` del _Layout Properties_, pero vamos a hacerlo de otra forma.
+
+* Click sobre cualquier control del formulario. En _Object Inspector_ selecciona _Vertial Layout_ 1x3. Este es el layout principal que contiene el stack con las tres partes del formulario (toolbar, edit area and button area). Ahora vamos a `Row 0` y `Bottom 10`. Vemos la separación entre las dos primeras celdas del stack principal.
+
+    ![format11](./images/format11.png)
+
+
 
 * Now we are going to leave a small separation between the _Label_ column and the _Editbox_ column. We continue in _layout3_, select **Column 0** and **CRight** to 5. This forces a separation of 5 pixels to the right of column 0. As you can see, you do not have to adjust the position of the Editboxes with the mouse . NAppGUI recalculates the entire design based on the changes we make.
 
