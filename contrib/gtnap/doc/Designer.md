@@ -7,6 +7,12 @@
     - [Space subdivision. Adding cells](#space-subdivision-adding-cells)
     - [Adding widgets](#adding-widgets)
     - [Margins, alignments and sizes](#margins-alignments-and-sizes)
+* [Cut, Copy, Paste](#cut-copy-paste)
+* [Undo, Redo](#undo-redo)
+* [Save, Export](#save-export)
+* [Simulate Forms](#simulate-forms)
+* [Resizable Forms](#resizable-forms)
+* [Property full list](#property-full-list)
 
 NAppGUI Designer is a visual tool for creating user interfaces (forms) graphically and interactively. These forms will be saved in files that can be loaded at runtime from Harbour, using HBNAP. It has been developed using NAppGUI-SDK and the forms it generates also use NAppGUI to run within the final application (https://nappgui.com).
 
@@ -233,12 +239,15 @@ While our form is fully functional, it is not very aesthetic. Let's give it some
 
 > **Important:** We will not be able to set the `Right/Bottom` properties of the last `Column/Row` of the layout. Interior margins are not considered. Use the `Right/Bottom` properties of the layout.
 
-* Ahora vamos a dejar algo de espacio entre el Grid 2x6 y la Toolbar y el botón de acción. Podríamos hacerlo perfectamente mediante las propiedades `Top/Bottom` del _Layout Properties_, pero vamos a hacerlo de otra forma.
+* Now we are going to leave some space between the 2x6 Grid and the Toolbar and the action button. We could do it perfectly using the `Top/Bottom` properties of the _Layout Properties_, but we are going to do it another way.
 
-* Click sobre cualquier control del formulario. En _Object Inspector_ selecciona _Vertial Layout_ 1x3. Este es el layout principal que contiene el stack con las tres partes del formulario (toolbar, edit area and button area). Ahora vamos a `Row 0` y `Bottom 10`. Vemos la separación entre las dos primeras celdas del stack principal.
+* Click on any control on the form. In _Object Inspector_ select _Vertial Layout_ 1x3. This is the main layout that contains the stack with the three parts of the form (toolbar, edit area and button area). Now we go to `Row 0` and `Bottom 10`. We see the separation between the first two cells of the main stack.
 
     ![format11](./images/format11.png)
 
+* After `Row 1` and `Bottom 30`. We see a larger space between the edit area and the button area.
+
+    ![format12](./images/format12.png)
 
 
 * Now we are going to leave a small separation between the _Label_ column and the _Editbox_ column. We continue in _layout3_, select **Column 0** and **CRight** to 5. This forces a separation of 5 pixels to the right of column 0. As you can see, you do not have to adjust the position of the Editboxes with the mouse . NAppGUI recalculates the entire design based on the changes we make.
@@ -284,3 +293,84 @@ While our form is fully functional, it is not very aesthetic. Let's give it some
 * Press the icon (ðŸ”�) _Simulate current form_ to check the final result.
 
     ![simulate2](./images/simulate2.png)
+
+## Cut, Copy, Paste
+
+## Undo, Redo
+
+## Save, Export
+
+## Simulate Forms
+
+## Resizable Forms
+
+## Property full list
+
+In the _Property Editor_ panel we can change the value of the element properties. Any changes will automatically be reflected in the canvas and simulation.
+
+### Layout properties
+
+- **Name:** Layout name. Useful to access the element at run time.
+
+- **Top:** Top margin (in pixels).
+
+- **Left:** Left margin (in pixels).
+
+- **Bottom:** Bottom margin (in pixels).
+
+- **Right:** Right margin (in pixels).
+
+- **Taborder:** Columns/Rows. When we press [TAB] or [CAPS/TAB] the keyboard focus will move through the layout by rows or columns. It will only have an effect on _Grid Layout_ (m x n).
+
+### Column properties (layout)
+
+Within the layout we have the **Column** dropdown to select properties by column (0, m-1).
+
+- **Right:** Inter-column space (in pixels). Disabled in the final column (`m`), because it is considered the right margin of the layout.
+
+- **Width:** Forced column width. If it is `0` (default) the column will be automatically sized based on its components. <u>It is not recommended to use this value, except on special occasions</u>.
+
+### Row properties (layout)
+
+Within the layout we have the **Row** dropdown to select properties by row (0, n-1).
+
+- **Bottom:** Inter-row space (in pixels). Disabled in the final row (`n`), because it is considered the bottom margin of the layout.
+
+- **Height:** Forced row height. If it is `0` (default) the row will be automatically sized based on its components. <u>It is not recommended to use this value, except on special occasions</u>.
+
+### Cell properties
+
+For each interior element of a layout (cell), a series of properties are defined:
+
+- **Name:** Cell name. Useful to access the element at run time.
+
+- **HAlign:** Horizontal alignment. Effective when the cell width is greater than the component size.
+
+    * **Left:** Alignment to the left margin.
+
+    * **Center:** Horizontally centered.
+
+    * **Right:** Alignment to the right margin.
+
+    * **Justify:** Horizontal expansion. The width of the element will be forced to the width of the cell.
+
+- **VAlign:** Vertical alignment. Effective when the cell height is greater than the component size.
+
+    * **Top:** Alignment to the top margin.
+
+    * **Center:** Vertically centered.
+
+    * **Bottom:** Alignment to the bottom margin.
+
+    * **Justify:** Vertical expansion. The height of the element will be forced to the height of the cell.
+
+- **Tabstop:** (On/Off). If `Off`, the cell will be discarded from the tablist, that is, it will not be selected when we navigate with the [TAB]/[CAPS-TAB] keyboard. By default `On`.
+
+- **Top:** (padding). Inner separation between the top edge of the cell and the element (widget) (in pixels).
+
+- **Left:** (padding). Inner separation between the left edge of the cell and the element (widget) (in pixels).
+
+- **Bottom:** (padding). Inner separation between the bottom edge of the cell and the element (widget) (in pixels).
+
+- **Right:** (padding). Inner separation between the right border of the cell and the element (widget) (in pixels).
+
