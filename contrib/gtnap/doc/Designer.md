@@ -12,7 +12,27 @@
 * [Save, Export](#save-export)
 * [Simulate Forms](#simulate-forms)
 * [Resizable Forms](#resizable-forms)
-* [Property full list](#property-full-list)
+* [Property editor list](#property-full-list)
+    - [Layout properties](#layout-properties)
+    - [Cell properties](#cell-properties)
+    - [Push Button properties](#push-button-properties)
+    - [Check Box properties](#check-box-properties)
+    - [Radio Button properties](#radio-button-properties)
+    - [Tool Button properties](#tool-button-properties)
+    - [Label properties](#label-properties)
+    - [Edit Box properties](#edit-box-properties)
+    - [Combo Box properties](#combo-box-properties)
+    - [Text View properties](#text-view-properties)
+    - [List Box properties](#list-box-properties)
+    - [PopUp Button properties](#popup-button-properties)
+    - [Table View properties](#table-view-properties)
+    - [Image View properties](#image-view-properties)
+    - [Custom View properties](#custom-view-properties)
+    - [Scroll View properties](#scroll-view-properties)
+    - [Horizontal Slider properties](#horizontal-slider-properties)
+    - [Vertical Slider properties](#vertical-slider-properties)
+    - [Progress Bar properties](#progress-bar-properties)
+
 
 NAppGUI Designer is a visual tool for creating user interfaces (forms) graphically and interactively. These forms will be saved in files that can be loaded at runtime from Harbour, using HBNAP. It has been developed using NAppGUI-SDK and the forms it generates also use NAppGUI to run within the final application (https://nappgui.com).
 
@@ -310,6 +330,8 @@ In the _Property Editor_ panel we can change the value of the element properties
 
 ### Layout properties
 
+Layouts are rectangular grids (columns x rows) where we can place elements (widgets). More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/layout.html).
+
 - **Name:** Layout name. Useful to access the element at run time.
 
 - **Top:** Top margin (in pixels).
@@ -340,7 +362,7 @@ Within the layout we have the **Row** dropdown to select properties by row (0, n
 
 ### Cell properties
 
-For each interior element of a layout (cell), a series of properties are defined:
+For each interior element of a layout (cell), a series of properties are defined. More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/cell.html).
 
 - **Name:** Cell name. Useful to access the element at run time.
 
@@ -374,3 +396,71 @@ For each interior element of a layout (cell), a series of properties are defined
 
 - **Right:** (padding). Inner separation between the right border of the cell and the element (widget) (in pixels).
 
+### Push Button properties
+
+More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/button.html).
+
+### Check Box properties
+
+More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/button.html).
+
+### Radio Button properties
+
+More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/button.html).
+
+### Tool Button properties
+
+More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/button.html).
+
+### Label properties
+
+More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/label.html).
+
+### Edit Box properties
+
+More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/edit.html).
+
+### Combo Box properties
+
+More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/combo.html).
+
+### Text View properties
+
+More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/textview.html).
+
+### List Box properties
+
+More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/listbox.html).
+
+
+### PopUp Button properties
+
+More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/popup.html).
+
+### Table View properties
+
+More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/tableview.html).
+
+### Image View properties
+
+More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/imageview.html).
+
+### Custom View properties
+
+More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/view.html).
+
+### Scroll View properties
+
+More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/view.html).
+
+### Horizontal Slider properties
+
+More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/slider.html).
+
+### Vertical Slider properties
+
+More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/slider.html).
+
+### Progress Bar properties
+
+More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/progress.html).
