@@ -256,6 +256,10 @@ struct _fcell_t
     celltype_t type;
     halign_t halign;
     valign_t valign;
+    real32_t padding_left;
+    real32_t padding_top;
+    real32_t padding_right;
+    real32_t padding_bottom;
     FWidget widget;
 };
 
