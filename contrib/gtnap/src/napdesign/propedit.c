@@ -2056,9 +2056,7 @@ static void i_OnCellNotify(PropData *data, Event *e)
         designer_inspect_update(data->app);
         dform_set_need_save(data->form);
     }
-    else if (evbind_modify(e, FCell, halign_t, halign) == TRUE
-        || evbind_modify(e, FCell, valign_t, valign) == TRUE
-        || evbind_modify(e, FCell, bool_t, tabstop) == TRUE)
+    else
     {
         FCell *fcell = evbind_object(e, FCell);
         dform_synchro_cell(data->form, &data->sel, fcell, data->sel.col, data->sel.row);
@@ -2072,13 +2070,21 @@ static void i_OnCellNotify(PropData *data, Event *e)
 static Panel *i_cell_props_panel(PropData *data)
 {
     Panel *panel = panel_create();
-    Layout *layout = layout_create(2, 5);
+    Layout *layout1 = layout_create(2, 9);
+    Layout *layout2 = i_value_updown_layout(gui_text(TIP_TOP_PADDING));
+    Layout *layout3 = i_value_updown_layout(gui_text(TIP_LEFT_PADDING));
+    Layout *layout4 = i_value_updown_layout(gui_text(TIP_BOTTOM_PADDING));
+    Layout *layout5 = i_value_updown_layout(gui_text(TIP_RIGHT_PADDING));
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
     Label *label4 = label_create();
     Label *label5 = label_create();
     Label *label6 = label_create();
+    Label *label7 = label_create();
+    Label *label8 = label_create();
+    Label *label9 = label_create();
+    Label *label10 = label_create();
     Edit *edit = edit_create();
     PopUp *popup1 = popup_create();
     PopUp *popup2 = popup_create();
@@ -2089,33 +2095,49 @@ static Panel *i_cell_props_panel(PropData *data)
     label_text(label3, gui_text(TEXT_HALIGN));
     label_text(label4, gui_text(TEXT_VALIGN));
     label_text(label5, gui_text(TEXT_TABSTOP));
+    label_text(label6, gui_text(TEXT_TOP));
+    label_text(label7, gui_text(TEXT_LEFT));
+    label_text(label8, gui_text(TEXT_BOTTOM));
+    label_text(label9, gui_text(TEXT_RIGHT));
     edit_tooltip(edit, gui_text(TIP_CELL_NAME));
     popup_tooltip(popup1, gui_text(TIP_HALIGN));
     popup_tooltip(popup2, gui_text(TIP_VALIGN));
     button_tooltip(check, gui_text(TIP_CELL_TABSTOP));
-    layout_label(layout, label1, 0, 0);
-    layout_label(layout, label2, 0, 1);
-    layout_label(layout, label3, 0, 2);
-    layout_label(layout, label4, 0, 3);
-    layout_label(layout, label5, 0, 4);
-    layout_label(layout, label6, 1, 0);
-    layout_edit(layout, edit, 1, 1);
-    layout_popup(layout, popup1, 1, 2);
-    layout_popup(layout, popup2, 1, 3);
-    layout_button(layout, check, 1, 4);
-    layout_margin4(layout, 1, 0, 1, 0);
-    layout_vmargin(layout, 0, 1);
-    layout_halign(layout, 1, 0, ekJUSTIFY);
-    layout_hmargin(layout, 0, i_LABEL_COLUMN_MARGIN);
-    layout_hexpand(layout, 1);
-    data->cell_type_label = label6;
-    cell_dbind(layout_cell(layout, 1, 1), FCell, String *, name);
-    cell_dbind(layout_cell(layout, 1, 2), FCell, halign_t, halign);
-    cell_dbind(layout_cell(layout, 1, 3), FCell, valign_t, valign);
-    cell_dbind(layout_cell(layout, 1, 4), FCell, bool_t, tabstop);
-    layout_dbind(layout, listener(data, i_OnCellNotify, PropData), FCell);
-    panel_layout(panel, layout);
-    data->cell_layout = layout;
+    layout_label(layout1, label1, 0, 0);
+    layout_label(layout1, label2, 0, 1);
+    layout_label(layout1, label3, 0, 2);
+    layout_label(layout1, label4, 0, 3);
+    layout_label(layout1, label5, 0, 4);
+    layout_label(layout1, label6, 0, 5);
+    layout_label(layout1, label7, 0, 6);
+    layout_label(layout1, label8, 0, 7);
+    layout_label(layout1, label9, 0, 8);
+    layout_label(layout1, label10, 1, 0);
+    layout_edit(layout1, edit, 1, 1);
+    layout_popup(layout1, popup1, 1, 2);
+    layout_popup(layout1, popup2, 1, 3);
+    layout_button(layout1, check, 1, 4);
+    layout_layout(layout1, layout2, 1, 5);
+    layout_layout(layout1, layout3, 1, 6);
+    layout_layout(layout1, layout4, 1, 7);
+    layout_layout(layout1, layout5, 1, 8);
+    layout_margin4(layout1, 1, 0, 1, 0);
+    layout_vmargin(layout1, 0, 1);
+    layout_halign(layout1, 1, 0, ekJUSTIFY);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
+    layout_hexpand(layout1, 1);
+    data->cell_type_label = label10;
+    cell_dbind(layout_cell(layout1, 1, 1), FCell, String *, name);
+    cell_dbind(layout_cell(layout1, 1, 2), FCell, halign_t, halign);
+    cell_dbind(layout_cell(layout1, 1, 3), FCell, valign_t, valign);
+    cell_dbind(layout_cell(layout1, 1, 4), FCell, bool_t, tabstop);
+    cell_dbind(layout_cell(layout1, 1, 5), FCell, real32_t, padding_top);
+    cell_dbind(layout_cell(layout1, 1, 6), FCell, real32_t, padding_left);
+    cell_dbind(layout_cell(layout1, 1, 7), FCell, real32_t, padding_bottom);
+    cell_dbind(layout_cell(layout1, 1, 8), FCell, real32_t, padding_right);
+    layout_dbind(layout1, listener(data, i_OnCellNotify, PropData), FCell);
+    panel_layout(panel, layout1);
+    data->cell_layout = layout1;
     return panel;
 }
 
