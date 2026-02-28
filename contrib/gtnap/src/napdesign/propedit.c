@@ -373,6 +373,26 @@ static void i_row_selector(PropData *data)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_update_layout_type(const FLayout *flayout, Label *layout_type_label)
+{
+    char_t text[64];
+    uint32_t ncols = flayout_ncols(flayout);
+    uint32_t nrows = flayout_nrows(flayout);
+
+    if (ncols == 1 && nrows == 1)
+        blib_strcpy(text, sizeof(text), gui_text(TEXT_LTYPE_SING));
+    else if (ncols == 1)
+        bstd_sprintf(text, sizeof(text), gui_text(TEXT_LTYPE_VERT), nrows);
+    else if (nrows == 1)
+        bstd_sprintf(text, sizeof(text), gui_text(TEXT_LTYPE_HORZ), ncols);
+    else
+        bstd_sprintf(text, sizeof(text), gui_text(TEXT_LTYPE_GRID), ncols, nrows);
+
+    label_text(layout_type_label, text);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_add_column(PropData *data, const uint32_t col_id)
 {
     cassert_no_null(data);
@@ -381,6 +401,7 @@ static void i_add_column(PropData *data, const uint32_t col_id)
     data->sel = dform_get_sel(data->form);
     i_column_selector(data);
     designer_canvas_update(data->app);
+    i_update_layout_type(data->sel.flayout, data->layout_type_label);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -423,6 +444,7 @@ static void i_remove_column(PropData *data, const uint32_t col_id)
             data->sel = dform_get_sel(data->form);
             i_column_selector(data);
             designer_canvas_update(data->app);
+            i_update_layout_type(data->sel.flayout, data->layout_type_label);
         }
     }
     else
@@ -509,6 +531,7 @@ static void i_add_row(PropData *data, const uint32_t row_id)
     data->sel = dform_get_sel(data->form);
     i_row_selector(data);
     designer_canvas_update(data->app);
+    i_update_layout_type(data->sel.flayout, data->layout_type_label);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -551,6 +574,7 @@ static void i_remove_row(PropData *data, const uint32_t row_id)
             data->sel = dform_get_sel(data->form);
             i_row_selector(data);
             designer_canvas_update(data->app);
+            i_update_layout_type(data->sel.flayout, data->layout_type_label);
         }
     }
     else
@@ -2250,20 +2274,7 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
     /* i_layout_layout */
     else if (sel->elem != ekLAYELEM_CELL)
     {
-        char_t text[64];
-        uint32_t ncols = flayout_ncols(sel->flayout);
-        uint32_t nrows = flayout_nrows(sel->flayout);
-
-        if (ncols == 1 && nrows == 1)
-            blib_strcpy(text, sizeof(text), gui_text(TEXT_LTYPE_SING));
-        else if (ncols == 1)
-            bstd_sprintf(text, sizeof(text), gui_text(TEXT_LTYPE_VERT), nrows);
-        else if (nrows == 1)
-            bstd_sprintf(text, sizeof(text), gui_text(TEXT_LTYPE_HORZ), ncols);
-        else
-            bstd_sprintf(text, sizeof(text), gui_text(TEXT_LTYPE_GRID), ncols, nrows);
-
-        label_text(data->layout_type_label, text);
+        i_update_layout_type(sel->flayout, data->layout_type_label);
         i_column_selector(data);
         i_row_selector(data);
         layout_dbind_obj(data->layout_layout, sel->flayout, FLayout);

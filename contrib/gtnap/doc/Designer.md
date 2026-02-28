@@ -7,10 +7,13 @@
     - [Space subdivision. Adding cells](#space-subdivision-adding-cells)
     - [Adding widgets](#adding-widgets)
     - [Margins, alignments and sizes](#margins-alignments-and-sizes)
+* [Simulate Forms](#simulate-forms)
+* [Add/remove columns](#addremove-columns-and-rows)
+* [Promote layouts](#promote-layouts)
+* [Radio groups](#radio-groups)
 * [Cut, Copy, Paste](#cut-copy-paste)
 * [Undo, Redo](#undo-redo)
 * [Save, Export](#save-export)
-* [Simulate Forms](#simulate-forms)
 * [Resizable Forms](#resizable-forms)
 * [Property editor list](#property-full-list)
     - [Layout properties](#layout-properties)
@@ -291,7 +294,31 @@ While our form is fully functional, it is not very aesthetic. Let's give it some
 
 ## Add/remove columns and rows
 
+The number of columns/rows available in each layout/grid are defined at creation time using the _Horizontal Layout_, _Vertical Layout_, _Grid Layout_ widgets. However, we may need to add or remove columns/rows later.
+
+* Select the central 2x6 layout in the _Object Inspector_.
+
+* In `Column properties` select column 1.
+
+* Press the button ![rcol](images/rcol16.png): _Insert new column at right of current column_.
+
+* You will see how a new column with 6 vertical cells appears to the right of the layout.
+
+    ![add](./images/addcolsrows1.png)
+
+* You can also delete an entire column from the layout by pressing the ![dcol](images/dcol16.png): _Delete current column_ button. For example, column 0 (the one with text labels).
+
+    ![del1](./images/delcolsrows1.png)
+
+    ![del2](./images/delcolsrows2.png)
+
+> **Important:** The process of adding/removing rows works exactly the same as in the case of columns.
+
+> **Important:** When a row/column is deleted, all widgets/sublayouts of the deleted cells are lost. If we have done it accidentally, we can recover them with `Undo`.
+
 ## Promote layouts
+
+## Radio groups
 
 ## Cut, Copy, Paste
 
