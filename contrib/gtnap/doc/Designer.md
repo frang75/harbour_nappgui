@@ -269,46 +269,21 @@ While our form is fully functional, it is not very aesthetic. Let's give it some
 
     ![format12](./images/format12.png)
 
+* Finally, we are going to give a small left-bottom separation to the action button, since it has remained very close to the edge of the window. Because the button has been linked directly to the last cell of the _Vertical Grid_ we do not have the margin properties of a sublayout (Layout left margin and others). We will, therefore, use the interior padding, which are properties of each cell.
 
-* Now we are going to leave a small separation between the _Label_ column and the _Editbox_ column. We continue in _layout3_, select **Column 0** and **CRight** to 5. This forces a separation of 5 pixels to the right of column 0. As you can see, you do not have to adjust the position of the Editboxes with the mouse . NAppGUI recalculates the entire design based on the changes we make.
+* Click on the action button `F2 = Salvar`.
 
-    ![format2](./images/format2.png)
+* In _Property Editor_, `Cell properties`. After `Left: 10`, `Bottom: 10`.
 
-* Now select the _cell2_ component, which is the bottom cell that contains a layout with the two buttons. In the _Property editor_ we see that the cell properties appear, where we see the label **Layout cell**. This means that in this cell we do not have a widget, but rather a layout (grid) of 2 columns and 1 row with the two buttons. We changed the **HAlign** property to **Right** (instead of Justify). We will see that both buttons align to the right. By default, when a cell contains a sub-layout the content expands to fill the entire cell space.
+    ![format13](./images/format13.png)
 
-    ![format3](./images/format3.png)
+> **Important:** We can achieve the same visual results with different combinations of Layout margins and Cell paddings.
 
-* Select _layout5_ (the grid with the two buttons). In **Column 0** set **FWidth** to 60 and **CRight** to 10. And in **Column 1**, **FWidth** to 60. This will slightly increase the default width of the buttons and will leave a separation between them of 10 pixels.
+> **Important:** Layout margins properties are available in both the main layout (grid) and sublayouts (subgrids).
 
-    ![format4](./images/format4.png)
+![margins](./images/layout_cell_margins.png)
 
-* Select _layout1_, **Row 0**, **RBottom** 30. This forces a vertical separation between the data area and the buttons.
-
-    ![format5](./images/format5.png)
-
-* Let's now go to _cell4_, which is the cell that contains the sublayout with the 4 _Checkbox_. In **VAlign** we select **Top**. With this we manage to group all the _Checkbox_ at the top of the cell.
-
-    ![format6](./images/format6.png)
-
-* To leave some separation between the _Checkboxes_, select _layout4_ and, for **Row 0**, **Row 1** and **Row 2** set **RBottom** to 5.
-
-    ![format7](./images/format7.png)
-
-* Now, in _layout2_, **Column 0**, **CRight** 10, which will leave a horizontal separation of 10 pixels between the _Editbox_ and the _Checkbox_.
-
-    ![format8](./images/format8.png)
-
-* We want to leave a small vertical separation of 3 pixels between each _Label_/_Editbox_ row. Select _layout3_, **Row 0-7**, **RBottom** 3.
-
-    ![format9](./images/format9.png)
-
-* And another three horizontal pixels between each _Editbox_ of the `Bank account` and `Credit card`. Select _layout7_, **Column 0-3**, **CRight** 3 for `Credit card`.
-
-    ![format10](./images/format10.png)
-
-* And finally we are going to establish a border for the entire form of 10 pixels. Select _layout0_ and set the **Top**, **Left**, **Bottom**, **Right** properties to 10.
-
-    ![format11](./images/format11.png)
+## Simulate Forms
 
 * Press the icon (ðŸ”�) _Simulate current form_ to check the final result.
 
@@ -319,8 +294,6 @@ While our form is fully functional, it is not very aesthetic. Let's give it some
 ## Undo, Redo
 
 ## Save, Export
-
-## Simulate Forms
 
 ## Resizable Forms
 
