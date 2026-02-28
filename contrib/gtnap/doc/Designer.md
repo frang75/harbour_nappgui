@@ -11,7 +11,7 @@
 * [Add/remove columns](#addremove-columns-and-rows)
 * [Promote layouts](#promote-layouts)
 * [Radio groups](#radio-groups)
-* [Cut, Copy, Paste](#cut-copy-paste)
+* [Select, Cut, Copy, Paste, Delete](#select-cut-copy-paste-delete)
 * [Undo, Redo](#undo-redo)
 * [Save, Export](#save-export)
 * [Resizable Forms](#resizable-forms)
@@ -368,7 +368,44 @@ More information in the [official NAppGUI documentation](https://nappgui.com/en/
 
     ![radio2](./images/radiogroup2.png)
 
-## Cut, Copy, Paste
+## Select, Cut, Copy, Paste, Delete
+
+By pressing `Select` (![select](images/cursor16.png)) in the _Widget Selector_ and clicking on any cell on the canvas, the _Object Inspector_ will reflect the layout/sublayouts path from the origin to the selected cell. For example, by clicking on the last Edit Box.
+
+* `layout0`: Origin layout 1x1.
+* `cell0` : Cell (0,0) in `layout0`.
+* `layout1`: Vertical layout 1x3.
+* `cell1`: Cell (0,1) in `layout1` (middle cell).
+* `layout3`: Grid layout 2x6.
+* `cell23`: Selected EditBox cell.
+
+![select1](./images/select1.png)
+
+Now we can select in _Object Inspector_ any (layout/cell) on the path from the origin to the widget. From a selection we can use any standard clipboard operation:
+
+* Cut (![cut](images/cut16.png)). Copies the selection content to the clipboard and deletes the selection. It has no effect if nothing is selected or an empty cell is selected.
+
+* Delete. Pressing the [Del] key will delete the selection without first copying the content to the clipboard.
+
+* Copy (![copy](images/copy16.png)). Copy content of selection to clipboard. It has no effect if nothing is selected or an empty cell is selected.
+
+* Paste (![paste](images/paste16.png)). Paste the contents of the clipboard. It only works if we have an empty cell selected.
+
+Let's see this working with an example:
+
+* Select in the _Object Inspector_ `Grid Layout 2x6`, then `Edit->Copy`.
+
+* Now in `Layout properties` press `Promote Left`. A free cell will appear to the right.
+
+* Click on the new cell and then `Edit->Paste`. You will notice that an exact copy of the entire layout (2x6) has been made in the new cell.
+
+    ![copy1](./images/copy1.png)
+
+    ![copy2](./images/copy2.png)
+
+    ![copy3](./images/copy3.png)
+
+    ![copy4](./images/copy4.png)
 
 ## Undo, Redo
 
