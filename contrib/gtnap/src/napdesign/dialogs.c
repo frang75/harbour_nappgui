@@ -1316,8 +1316,8 @@ FTable *dialog_new_table(Window *parent, const Font *font, const DSelect *sel)
         Label *label2 = label_create();
         Layout *layout2 = i_value_updown_layout();
         Layout *layout3 = i_value_updown_layout();
-        label_text(label1, gui_text(TEXT_MIN_WIDTH));
-        label_text(label2, gui_text(TEXT_MIN_HEIGHT));
+        label_text(label1, gui_text(TEXT_WIDTH));
+        label_text(label2, gui_text(TEXT_HEIGHT));
         layout_label(layout1, label1, 0, 0);
         layout_label(layout1, label2, 0, 1);
         layout_layout(layout1, layout2, 1, 0);

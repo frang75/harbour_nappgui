@@ -1899,8 +1899,8 @@ static Layout *i_table_frame_layout(PropData *data)
     Label *label1 = label_create();
     Label *label2 = label_create();
     cassert_no_null(data);
-    label_text(label1, gui_text(TEXT_MIN_WIDTH));
-    label_text(label2, gui_text(TEXT_MIN_HEIGHT));
+    label_text(label1, gui_text(TEXT_WIDTH));
+    label_text(label2, gui_text(TEXT_HEIGHT));
     layout_label(layout2, label1, 0, 0);
     layout_label(layout2, label2, 0, 1);
     layout_layout(layout2, layout4, 1, 0);

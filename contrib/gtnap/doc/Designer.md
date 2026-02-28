@@ -477,6 +477,26 @@ More information in the [official NAppGUI documentation](https://nappgui.com/en/
 
 More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/tableview.html).
 
+- **Width:** Default width of the table control.
+
+- **Height:** Default height of the table control.
+
+- **Columns:** List of table columns. We can add/remove elements using the buttons ![add](./images/plus16.png) ![remove](./images/error16.png) ![retry](./images/retry16.png). The properties for each column are:
+
+    - **Title:** Column title, displayed in the header.
+
+    - **Align:** Column title alignment.
+
+    - **DAlign:** Column data alignment.
+
+    - **Width:** Column width (in pixels).
+
+    - **Min width:** Minimum width allowed for the column (in case it is resizable).
+
+    - **Max width:** Maximum width allowed for the column (in case it is resizable).
+
+    - **Resizable:** If it is checked (true) it will allow the column to be resized with the mouse.
+
 ### Image View properties
 
 More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/imageview.html).
