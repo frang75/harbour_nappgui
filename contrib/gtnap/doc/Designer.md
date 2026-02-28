@@ -346,6 +346,28 @@ What has really happened is that the 2x6 layout has been transformed into a 2x1 
 
 ## Radio groups
 
+Radio Buttons only make sense when they are in a group, since only one element in each group can be selected. In NAppGUI the groups are formed at the Layout level, that is, all the Radio Buttons that are in the same sublayout will belong to the same RadioGroup.
+
+More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/button.html#h1).
+
+* Create a new form from scratch.
+
+* Create a 2x4 layout and place a Radio Button in each cell.
+
+* Don't worry about the format/margins. It is only as an example.
+
+* If we press `Simulate Form` (🔍) you will see that the 8 radios belong to the same group, being in the same layout.
+
+    ![radio1](./images/radiogroup1.png)
+
+* Create another form from scratch.
+
+* Create a 2x1 layout and then two 1x4s in each of the cells.
+
+* Add the radio buttons and simulate the new form. You will see that we now have two groups of options as the numbers and colors are linked to two different sublayouts.
+
+    ![radio2](./images/radiogroup2.png)
+
 ## Cut, Copy, Paste
 
 ## Undo, Redo
