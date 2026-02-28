@@ -318,6 +318,32 @@ The number of columns/rows available in each layout/grid are defined at creation
 
 ## Promote layouts
 
+It is possible that, during the useful life of the form, we need to make changes to its structure that cannot be implemented by adding columns or rows to the layouts. Let's imagine that we want to add an image to the left of the data area. In our general structure of 3 vertical cells, we occupy the center cell with a 2x6 layout with the data area. If we add a column to the left, said column will have 6 cells and not one to place the image, which is what we are looking for.
+
+**Promoting a layout** means creating a top-level layout, leaving the current layout as a cell to the right, left, top or bottom. We will see it better with an example.
+
+* Select the central 2x6 layout again.
+
+* Press the button ![promote](images/promote_right16.png) _Promote this layout to a right cell_.
+
+* You will see a cell appear on the left.
+
+* Select `Image View` in the _Widget Selector_.
+
+* Click on the new cell.
+
+* In the box press the [...] icon to select an image and then [Ok].
+
+    ![promote1](./images/promote1.png)
+
+    ![promote2](./images/promote2.png)
+
+    ![promote3](./images/promote3.png)
+
+    ![promote4](./images/promote4.png)
+
+What has really happened is that the 2x6 layout has been transformed into a 2x1 layout, adding the previous 2x6 to the right cell, leaving the left cell free. In this free cell, you could add a new sublayout, instead of a widget if the situation requires it.
+
 ## Radio groups
 
 ## Cut, Copy, Paste
