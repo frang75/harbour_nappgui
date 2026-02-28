@@ -430,7 +430,7 @@ void dlayout_synchro_elems(DLayout *layout, const uint32_t col, const uint32_t r
 
 /*---------------------------------------------------------------------------*/
 
-void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df origin)
+void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df gorigin, const V2Df lorigin)
 {
     DColumn *col = NULL;
     DRow *row = NULL;
@@ -439,7 +439,7 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
     real32_t total_width = 0, total_height = 0;
     real32_t inner_width = 0, inner_height = 0;
     real32_t mtop = 0, mbottom = 0, mleft = 0, mright = 0;
-    real32_t x, y;
+    real32_t x = 0, y = 0;
     cassert_no_null(layout);
     col = arrst_all(layout->cols, DColumn);
     row = arrst_all(layout->rows, DRow);
@@ -459,8 +459,8 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
     for (i = 0; i < ncols; ++i)
     {
         col[i].width = layout_get_hsize(glayout, i);
-        col[i].rect.pos.x = origin.x + mleft + inner_width;
-        col[i].rect.pos.y = origin.y + mtop;
+        col[i].rect.pos.x = lorigin.x + mleft + inner_width;
+        col[i].rect.pos.y = lorigin.y + mtop;
         col[i].rect.size.width = col[i].width;
         inner_width += col[i].width;
 
@@ -476,8 +476,8 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
     for (j = 0; j < nrows; ++j)
     {
         row[j].height = layout_get_vsize(glayout, j);
-        row[j].rect.pos.x = origin.x + mleft;
-        row[j].rect.pos.y = origin.y + mtop + inner_height;
+        row[j].rect.pos.x = lorigin.x + mleft;
+        row[j].rect.pos.y = lorigin.y + mtop + inner_height;
         row[j].rect.size.height = row[j].height;
         inner_height += row[j].height;
         if (j < nrows - 1)
@@ -487,7 +487,7 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
     }
 
     /* Global layout rectangle */
-    layout->rect = r2df(origin.x, origin.y, total_width, total_height);
+    layout->rect = r2df(lorigin.x, lorigin.y, total_width, total_height);
 
     /* Complete the columns and rows */
     for (i = 0; i < ncols; ++i)
@@ -495,17 +495,17 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
 
     for (j = 0; j < nrows; ++j)
         row[j].rect.size.width = total_width - mleft - mright;
-
+    
     /* Compute the vertical rectangles */
-    layout->rect_left = r2df(origin.x, origin.y, mleft, total_height);
-    x = origin.x + mleft;
+    layout->rect_left = r2df(lorigin.x, lorigin.y, mleft, total_height);
+    x = lorigin.x + mleft;
     for (i = 0; i < ncols; ++i)
     {
         x += col[i].width;
         if (i < ncols - 1)
         {
             real32_t cmright = layout_get_hmargin(glayout, i);
-            col[i].margin_rect = r2df(x, origin.y, cmright, total_height);
+            col[i].margin_rect = r2df(x, lorigin.y, cmright, total_height);
             x += cmright;
         }
         else
@@ -513,18 +513,18 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
             col[i].margin_rect = kR2D_ZEROf;
         }
     }
-    layout->rect_right = r2df(x, origin.y, mright, total_height);
+    layout->rect_right = r2df(x, lorigin.y, mright, total_height);
 
     /* Compute the horizontal rectangles */
-    layout->rect_top = r2df(origin.x, origin.y, total_width, mtop);
-    y = origin.y + mtop;
+    layout->rect_top = r2df(lorigin.x, lorigin.y, total_width, mtop);
+    y = lorigin.y + mtop;
     for (j = 0; j < nrows; ++j)
     {
         y += row[j].height;
         if (j < nrows - 1)
         {
             real32_t cmbottom = layout_get_vmargin(glayout, j);
-            row[j].margin_rect = r2df(origin.x, y, total_width, cmbottom);
+            row[j].margin_rect = r2df(lorigin.x, y, total_width, cmbottom);
             y += cmbottom;
         }
         else
@@ -532,71 +532,33 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df o
             row[j].margin_rect = kR2D_ZEROf;
         }
     }
-    layout->rect_bottom = r2df(origin.x, y, total_width, mbottom);
+    layout->rect_bottom = r2df(lorigin.x, y, total_width, mbottom);
 
-    /* Compute the cells rectangles */
+    /* 
+     * Compute the cells rectangles. 
+     * Important! Cell origins come from NAppGUI in global coordinates (no sublayout coordinates) 
+     */
     {
         DCell *dcell = cell;
-        y = origin.y + mtop;
+        y = lorigin.y + mtop;
 
         for (j = 0; j < nrows; ++j)
         {
-            x = origin.x + mleft;
+            x = lorigin.x + mleft;
             for (i = 0; i < ncols; ++i)
             {
                 const Cell *gcell = layout_cell(cast(glayout, Layout), i, j);
                 real32_t hsize = cell_get_hsize(gcell);
                 real32_t vsize = cell_get_vsize(gcell);
-                align_t halign = cell_get_halign(gcell);
-                align_t valign = cell_get_valign(gcell);
-                real32_t cellx = 0;
-                real32_t celly = 0;
-                cassert_no_null(gcell);
+                real32_t cellx = gorigin.x + cell_get_origin_x(gcell);
+                real32_t celly = gorigin.y + cell_get_origin_y(gcell);
                 cassert(bmath_floorf(hsize) <= col[i].width);
                 cassert(bmath_floorf(vsize) <= row[j].height);
-
-                switch (halign)
-                {
-                case ekLEFT:
-                    cellx = x;
-                    break;
-                case ekCENTER:
-                    cellx = x + (col[i].width - hsize) / 2;
-                    break;
-                case ekRIGHT:
-                    cellx = x + (col[i].width - hsize);
-                    break;
-                case ekJUSTIFY:
-                    cellx = x;
-                    break;
-                default:
-                    cellx = x;
-                    break;
-                }
-
-                switch (valign)
-                {
-                case ekTOP:
-                    celly = y;
-                    break;
-                case ekCENTER:
-                    celly = y + (row[j].height - vsize) / 2;
-                    break;
-                case ekBOTTOM:
-                    celly = y + (row[j].height - vsize);
-                    break;
-                case ekJUSTIFY:
-                    celly = y;
-                    break;
-                default:
-                    celly = y;
-                    break;
-                }
 
                 if (dcell->sublayout != NULL)
                 {
                     Layout *subglayout = layout_get_layout(cast(glayout, Layout), i, j);
-                    dlayout_synchro_visual(dcell->sublayout, subglayout, v2df(cellx, celly));
+                    dlayout_synchro_visual(dcell->sublayout, subglayout, gorigin, v2df(cellx, celly));
                 }
 
                 dcell->rect = r2df(x, y, col[i].width, row[j].height);

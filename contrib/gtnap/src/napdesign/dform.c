@@ -331,7 +331,7 @@ void dform_compose(DForm *form)
     }
 
     window_update(form->window);
-    dlayout_synchro_visual(form->dlayout, form->glayout, form->origin);
+    dlayout_synchro_visual(form->dlayout, form->glayout, form->origin, form->origin);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1706,7 +1706,7 @@ void dform_origin(DForm *form, const V2Df origin)
 {
     cassert_no_null(form);
     form->origin = origin;
-    dlayout_synchro_visual(form->dlayout, form->glayout, form->origin);
+    dlayout_synchro_visual(form->dlayout, form->glayout, form->origin, form->origin);
 }
 
 /*---------------------------------------------------------------------------*/
