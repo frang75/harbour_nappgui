@@ -115,7 +115,7 @@ TEXT_RESIZABLE      Resizable
 TEXT_TABSTOP        Tabstop
 TEXT_TABORDER       Taborder
 
-TEXT_TEXT_ALIGN     Text align
+TEXT_TEXT_ALIGN     TAlign
 TEXT_MIN_WIDTH      Min width
 TEXT_MAX_WIDTH      Max width
 TEXT_MIN_HEIGHT     Min height

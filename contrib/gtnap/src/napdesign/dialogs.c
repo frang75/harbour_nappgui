@@ -964,8 +964,8 @@ FListBox *dialog_new_listbox(Window *parent, const Font *font, const DSelect *se
         Label *label2 = label_create();
         Layout *layout2 = i_value_updown_layout();
         Layout *layout3 = i_value_updown_layout();
-        label_text(label1, gui_text(TEXT_MIN_WIDTH));
-        label_text(label2, gui_text(TEXT_MIN_HEIGHT));
+        label_text(label1, gui_text(TEXT_WIDTH));
+        label_text(label2, gui_text(TEXT_HEIGHT));
         layout_label(layout1, label1, 0, 0);
         layout_label(layout1, label2, 0, 1);
         layout_layout(layout1, layout2, 1, 0);
@@ -1004,7 +1004,7 @@ FSlider *dialog_new_slider(Window *parent, const Font *font, const DSelect *sel)
     {
         Label *label1 = label_create();
         Layout *layout2 = i_value_updown_layout();
-        label_text(label1, gui_text(TEXT_MIN_WIDTH));
+        label_text(label1, gui_text(TEXT_WIDTH));
         layout_label(layout1, label1, 0, 0);
         layout_layout(layout1, layout2, 1, 0);
         layout_hmargin(layout1, 0, 5);
@@ -1040,7 +1040,7 @@ FVSlider *dialog_new_vslider(Window *parent, const Font *font, const DSelect *se
     {
         Label *label1 = label_create();
         Layout *layout2 = i_value_updown_layout();
-        label_text(label1, gui_text(TEXT_MIN_HEIGHT));
+        label_text(label1, gui_text(TEXT_HEIGHT));
         layout_label(layout1, label1, 0, 0);
         layout_layout(layout1, layout2, 1, 0);
         layout_hmargin(layout1, 0, 5);
@@ -1076,7 +1076,7 @@ FProgress *dialog_new_progress(Window *parent, const Font *font, const DSelect *
     {
         Label *label1 = label_create();
         Layout *layout2 = i_value_updown_layout();
-        label_text(label1, gui_text(TEXT_MIN_WIDTH));
+        label_text(label1, gui_text(TEXT_WIDTH));
         layout_label(layout1, label1, 0, 0);
         layout_layout(layout1, layout2, 1, 0);
         layout_hmargin(layout1, 0, 5);
@@ -1114,8 +1114,8 @@ FView *dialog_new_view(Window *parent, const Font *font, const DSelect *sel)
         Label *label2 = label_create();
         Layout *layout2 = i_value_updown_layout();
         Layout *layout3 = i_value_updown_layout();
-        label_text(label1, gui_text(TEXT_MIN_WIDTH));
-        label_text(label2, gui_text(TEXT_MIN_HEIGHT));
+        label_text(label1, gui_text(TEXT_WIDTH));
+        label_text(label2, gui_text(TEXT_HEIGHT));
         layout_label(layout1, label1, 0, 0);
         layout_label(layout1, label2, 0, 1);
         layout_layout(layout1, layout2, 1, 0);
@@ -1156,8 +1156,8 @@ FSView *dialog_new_sview(Window *parent, const Font *font, const DSelect *sel)
         Label *label2 = label_create();
         Layout *layout2 = i_value_updown_layout();
         Layout *layout3 = i_value_updown_layout();
-        label_text(label1, gui_text(TEXT_MIN_WIDTH));
-        label_text(label2, gui_text(TEXT_MIN_HEIGHT));
+        label_text(label1, gui_text(TEXT_WIDTH));
+        label_text(label2, gui_text(TEXT_HEIGHT));
         layout_label(layout1, label1, 0, 0);
         layout_label(layout1, label2, 0, 1);
         layout_layout(layout1, layout2, 1, 0);
@@ -1198,8 +1198,8 @@ FText *dialog_new_text(Window *parent, const Font *font, const DSelect *sel)
         Label *label2 = label_create();
         Layout *layout2 = i_value_updown_layout();
         Layout *layout3 = i_value_updown_layout();
-        label_text(label1, gui_text(TEXT_MIN_WIDTH));
-        label_text(label2, gui_text(TEXT_MIN_HEIGHT));
+        label_text(label1, gui_text(TEXT_WIDTH));
+        label_text(label2, gui_text(TEXT_HEIGHT));
         layout_label(layout1, label1, 0, 0);
         layout_label(layout1, label2, 0, 1);
         layout_layout(layout1, layout2, 1, 0);
@@ -1249,8 +1249,8 @@ FImage *dialog_new_image(Window *parent, const Font *font, const DSelect *sel, c
         Button *button = button_push();
         ImageView *view = imageview_create();
         const Image *image = nflib_default_image();
-        label_text(label1, gui_text(TEXT_MIN_WIDTH));
-        label_text(label2, gui_text(TEXT_MIN_HEIGHT));
+        label_text(label1, gui_text(TEXT_WIDTH));
+        label_text(label2, gui_text(TEXT_HEIGHT));
         label_text(label3, gui_text(TEXT_PREV_IMAGE));
         label_text(label4, gui_text(TEXT_IMAGE_PATH));
         label_text(label5, gui_text(TEXT_DEFAULT));

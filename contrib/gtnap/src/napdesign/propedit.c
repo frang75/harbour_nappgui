@@ -1348,7 +1348,7 @@ static Layout *i_edit_layout(PropData *data)
     Button *check2 = button_check();
     cassert_no_null(data);
     label_text(label1, gui_text(TEXT_TEXT_ALIGN));
-    label_text(label2, gui_text(TEXT_MIN_WIDTH));
+    label_text(label2, gui_text(TEXT_WIDTH));
     label_text(label3, gui_text(TEXT_PASSMODE));
     label_text(label4, gui_text(TEXT_AUTOSELECT));
     popup_tooltip(popup, gui_text(TIP_EDIT_ALIGN));
@@ -1450,8 +1450,8 @@ static Layout *i_listbox_layout(PropData *data)
     Label *label1 = label_create();
     Label *label2 = label_create();
     cassert_no_null(data);
-    label_text(label1, gui_text(TEXT_MIN_WIDTH));
-    label_text(label2, gui_text(TEXT_MIN_HEIGHT));
+    label_text(label1, gui_text(TEXT_WIDTH));
+    label_text(label2, gui_text(TEXT_HEIGHT));
     layout_label(layout2, label1, 0, 0);
     layout_label(layout2, label2, 0, 1);
     layout_layout(layout2, layout4, 1, 0);
@@ -1487,7 +1487,7 @@ static Layout *i_slider_layout(PropData *data)
     Layout *layout2 = i_value_updown_layout(gui_text(TIP_SLIDER_MWIDTH));
     Label *label1 = label_create();
     cassert_no_null(data);
-    label_text(label1, gui_text(TEXT_MIN_WIDTH));
+    label_text(label1, gui_text(TEXT_WIDTH));
     layout_label(layout1, label1, 0, 0);
     layout_layout(layout1, layout2, 1, 0);
     layout_hexpand(layout1, 1);
@@ -1517,7 +1517,7 @@ static Layout *i_vslider_layout(PropData *data)
     Layout *layout2 = i_value_updown_layout(gui_text(TIP_SLIDER_MHEIGHT));
     Label *label1 = label_create();
     cassert_no_null(data);
-    label_text(label1, gui_text(TEXT_MIN_HEIGHT));
+    label_text(label1, gui_text(TEXT_HEIGHT));
     layout_label(layout1, label1, 0, 0);
     layout_layout(layout1, layout2, 1, 0);
     layout_hexpand(layout1, 1);
@@ -1547,7 +1547,7 @@ static Layout *i_progress_layout(PropData *data)
     Layout *layout2 = i_value_updown_layout(gui_text(TIP_PROGRESS_MWIDTH));
     Label *label1 = label_create();
     cassert_no_null(data);
-    label_text(label1, gui_text(TEXT_MIN_WIDTH));
+    label_text(label1, gui_text(TEXT_WIDTH));
     layout_label(layout1, label1, 0, 0);
     layout_layout(layout1, layout2, 1, 0);
     layout_hexpand(layout1, 1);
@@ -1579,8 +1579,8 @@ static Layout *i_view_layout(PropData *data)
     Label *label1 = label_create();
     Label *label2 = label_create();
     cassert_no_null(data);
-    label_text(label1, gui_text(TEXT_MIN_WIDTH));
-    label_text(label2, gui_text(TEXT_MIN_HEIGHT));
+    label_text(label1, gui_text(TEXT_WIDTH));
+    label_text(label2, gui_text(TEXT_HEIGHT));
     layout_label(layout1, label1, 0, 0);
     layout_label(layout1, label2, 0, 1);
     layout_layout(layout1, layout2, 1, 0);
@@ -1615,8 +1615,8 @@ static Layout *i_sview_layout(PropData *data)
     Label *label1 = label_create();
     Label *label2 = label_create();
     cassert_no_null(data);
-    label_text(label1, gui_text(TEXT_MIN_WIDTH));
-    label_text(label2, gui_text(TEXT_MIN_HEIGHT));
+    label_text(label1, gui_text(TEXT_WIDTH));
+    label_text(label2, gui_text(TEXT_HEIGHT));
     layout_label(layout1, label1, 0, 0);
     layout_label(layout1, label2, 0, 1);
     layout_layout(layout1, layout2, 1, 0);
@@ -1653,8 +1653,8 @@ static Layout *i_text_layout(PropData *data)
     Label *label3 = label_create();
     Button *check = button_check();
     cassert_no_null(data);
-    label_text(label1, gui_text(TEXT_MIN_WIDTH));
-    label_text(label2, gui_text(TEXT_MIN_HEIGHT));
+    label_text(label1, gui_text(TEXT_WIDTH));
+    label_text(label2, gui_text(TEXT_HEIGHT));
     label_text(label3, gui_text(TEXT_READ_ONLY));
     layout_label(layout1, label1, 0, 0);
     layout_label(layout1, label2, 0, 1);
@@ -1700,8 +1700,8 @@ static Layout *i_image_layout(PropData *data)
     Label *label4 = label_create();
     PopUp *popup = popup_create();
     cassert_no_null(data);
-    label_text(label1, gui_text(TEXT_MIN_WIDTH));
-    label_text(label2, gui_text(TEXT_MIN_HEIGHT));
+    label_text(label1, gui_text(TEXT_WIDTH));
+    label_text(label2, gui_text(TEXT_HEIGHT));
     label_text(label3, gui_text(TEXT_SCALE));
     label_text(label4, gui_text(TEXT_IMAGE));
     popup_tooltip(popup, gui_text(TIP_IMAGE_SCALE));

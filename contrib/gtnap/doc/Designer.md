@@ -285,9 +285,13 @@ While our form is fully functional, it is not very aesthetic. Let's give it some
 
 ## Simulate Forms
 
-* Press the icon (ðŸ”�) _Simulate current form_ to check the final result.
+* As we have already seen in previous steps, we can interact with the form under construction, at any time, using the `Simulate Form` (🔍) button or menu option.
 
-    ![simulate2](./images/simulate2.png)
+    ![simulate1](./images/simulate1.png)
+
+## Add/remove columns and rows
+
+## Promote layouts
 
 ## Cut, Copy, Paste
 
@@ -373,42 +377,101 @@ For each interior element of a layout (cell), a series of properties are defined
 
 More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/button.html).
 
+- **Text:** Text that will be displayed on the button.
+
+- **Tooltip:** Text that will be displayed above the button when the mouse cursor is over it.
+
+- **Width:** Forced button width. If `0` (default), the button will be automatically sized based on the text. It is not recommended to change this value.
+
+- **HorzPad:** Inner separation between the horizontal border of the button and the text. If `-1` the default padding of each window manager will be left (recommended).
+
+- **VertPad:** Inner separation between the vertical edge of the button and the text. If `-1` the default padding of each window manager will be left (recommended).
+
 ### Check Box properties
 
 More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/button.html).
+
+- **Text:** Text that will be displayed to the right of the check box.
 
 ### Radio Button properties
 
 More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/button.html).
 
+- **Text:** Text that will be displayed to the right of the radio.
+
 ### Tool Button properties
 
 More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/button.html).
+
+- **Tooltip:** Text that will be displayed above the button when the mouse cursor is over it.
+
+- **HorzPad:** Inner separation between the horizontal border of the button and the image. If `-1` the default padding of each window manager will be left (recommended).
+
+- **VertPad:** Inner separation between the vertical edge of the button and the image. If `-1` the default padding of each window manager will be left (recommended).
+
+- **Icon:** Relative path between the form location and the icon location. It cannot be changed directly, it is calculated based on the selected icon file. If we put the mouse over the button [...] we will see the complete relative path.
 
 ### Label properties
 
 More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/label.html).
 
+- **Text:** Text displayed on the label.
+
+- **Width:** Maximum width of the control. If it is `0` (default) the width of the control will be automatically calculated based on the text it contains.
+
+- **Multiline:** If checked (true) the text will expand into several lines when reaching the maximum width (Width). Otherwise, the text will be cut off showing ellipses (...).
+
+- **Align:** Horizontal interior alignment of the text, in case the Label control is wider than the text itself.
+
 ### Edit Box properties
 
 More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/edit.html).
+
+- **TAlign:** Inside text alignment.
+
+- **Width:** Default width of the text control. The height will be calculated automatically based on the window manager standards.
+
+- **Passmode:** Indicates whether the control contains sensitive information. In this case it will not show the text but `(*****)`.
+
+- **Autoselect:** Indicates whether the text will be automatically selected each time the control gains keyboard focus.
 
 ### Combo Box properties
 
 More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/combo.html).
 
+- **TAlign:** Inside text alignment.
+
+- **Width:** Default width of the text control. The height will be calculated automatically based on the window manager standards.
+
+- **Passmode:** Indicates whether the control contains sensitive information. In this case it will not show the text but `(*****)`.
+
+- **Autoselect:** Indicates whether the text will be automatically selected each time the control gains keyboard focus.
+
 ### Text View properties
 
 More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/textview.html).
+
+- **Width:** Default width of the text control.
+
+- **Height:** Default height of the text control.
+
+- **Read only:** If it is checked (true) the text cannot be edited.
 
 ### List Box properties
 
 More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/listbox.html).
 
+- **Width:** Default width of the list control.
+
+- **Height:** Default height of the list control.
+
+- **Elements:** List of items inside the listbox (text + optional icon). We can add/remove elements using the buttons ![add](./images/plus16.png) ![remove](./images/error16.png) ![retry](./images/retry16.png).
 
 ### PopUp Button properties
 
 More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/popup.html).
+
+- **Elements:** List of items inside the popup (text + optional icon). We can add/remove elements using the buttons ![add](./images/plus16.png) ![remove](./images/error16.png) ![retry](./images/retry16.png).
 
 ### Table View properties
 
@@ -418,22 +481,56 @@ More information in the [official NAppGUI documentation](https://nappgui.com/en/
 
 More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/imageview.html).
 
+- **Width:** Default width of the image control.
+
+- **Height:** Default height of the image control.
+
+- **Scale:** Type of image scaling within the control:
+
+    - **None:** No scaling. The image will be displayed centered at its original resolution. If it does not fit within the control limits, it will be clipped.
+
+    - **Auto:** The image will be scaled to fit the dimensions of the control. Aspect ratio deformations may occur.
+
+    - **Aspect:** The image will be scaled, but maintaining the original aspect ratio. That dimension (horz/vert) that does not match with the control dimension will be centered.
+
+    - **Fit:** The size of the control will be automatically sized to the original size of the image, ignoring the Width/Height parameters.
+
+- **Image:** Relative path between the form location and the icon location. It cannot be changed directly, it is calculated based on the selected icon file. If we put the mouse over the button [...] we will see the complete relative path.
+
 ### Custom View properties
 
 More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/view.html).
+
+- **Width:** Default width of the custom control.
+
+- **Height:** Default height of the custom control.
+
+> **Important:** Custom Views allow you to create custom drawings/scenes and interact with them. This must be done at runtime by the application, remaining outside the scope of the Designer.
 
 ### Scroll View properties
 
 More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/view.html).
 
+- **Width:** Default width of the custom control.
+
+- **Height:** Default height of the custom control.
+
+> **Important:** Like Custom Views, the drawing and management of Scrollbars must be done at runtime by the application.
+
 ### Horizontal Slider properties
 
 More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/slider.html).
+
+- **Width:** Default width of the slider.
 
 ### Vertical Slider properties
 
 More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/slider.html).
 
+- **Height:** Default height of the slider.
+
 ### Progress Bar properties
 
 More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/progress.html).
+
+- **Width:** Default width of the progress bar.
