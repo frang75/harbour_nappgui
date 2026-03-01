@@ -1,6 +1,9 @@
-#INCLUDE "gtnap.ch"
+//
+// Important!!
+// HBNAP uses UTF-8. Save file in UTF8 format
+//
+
 #INCLUDE "hbnap.ch"
-#INCLUDE "cua.ch"
 
 ********************************
 STAT PROC ITEM_CLICKED(O_FORM, O_ITEM)
@@ -127,29 +130,26 @@ HBNAP_FORMS_ONCLICK(O_FORM, "button_cancel", {|| HBNAP_FORMS_STOP_MODAL(O_FORM, 
 // Launch the form
 N_RES := HBNAP_FORMS_MODAL(O_FORM, O_PARENT_FORM)
 
-IF N_RES == NAP_MODAL_ENTER
-    MOSTRAR("M?????","Pressionado [Enter], dados aceitos.")
+IF N_RES == HBNAP_CLOSED_BY_RETURN
+    INFO_MESSAGE_BOX("Pressionado [Enter], dados aceitos.", O_PARENT_FORM)
 ELSEIF N_RES == 1000
-    MOSTRAR("M?????","Botão [OK] pressionado, dados aceitos.")
-ELSEIF N_RES == NAP_MODAL_ESC
-    MOSTRAR("M?????","ESC pressionado, dados cancelados.")
-ELSEIF N_RES == NAP_MODAL_X_BUTTON
-    MOSTRAR("M?????","Formulário fechado com [X], dados cancelados.")
+    INFO_MESSAGE_BOX("Botão [OK] pressionado, dados aceitos.", O_PARENT_FORM)
+ELSEIF N_RES == HBNAP_CLOSED_BY_ESC
+    INFO_MESSAGE_BOX("ESC pressionado, dados cancelados.", O_PARENT_FORM)
+ELSEIF N_RES == HBNAP_CLOSED_BY_BUTTON
+    INFO_MESSAGE_BOX("Formulário fechado com [X], dados cancelados.", O_PARENT_FORM)
 ELSEIF N_RES == 1001
-    MOSTRAR("M?????","Botão [Cancelar] pressionado, dados cancelados.")
+    INFO_MESSAGE_BOX("Botão [Cancelar] pressionado, dados cancelados.", O_PARENT_FORM)
 ELSE
-    MOSTRAR("M?????","Valor de retorno desconhecido.")
+    INFO_MESSAGE_BOX("Valor de retorno desconhecido.", O_PARENT_FORM)
 ENDIF
 
-IF N_RES == NAP_MODAL_ENTER .OR. N_RES == 1000
+IF N_RES == HBNAP_CLOSED_BY_RETURN .OR. N_RES == 1000
 
     // Write the values from the GUI controls to Harbour variables
     HBNAP_FORMS_BIND_STORE(O_FORM)
-
-    C_MESSAGE := "C_NAME: " + C_NAME + ";" + ;
-                 "N_ITEMS: " + hb_ntos(N_ITEMS)
-
-    MOSTRAR("M?????",C_Message)
+    C_MESSAGE := "C_NAME: " + C_NAME + hb_eol() + "N_ITEMS: " + hb_ntos(N_ITEMS)
+    INFO_MESSAGE_BOX(C_Message, O_PARENT_FORM)
     L_OK := .T.
 
 ENDIF
@@ -227,19 +227,19 @@ HBNAP_FORMS_ONCLICK(O_FORM, "button_remove0", {|| REMOVE_MENUITEM(O_MENU, O_FORM
 // Launch the form
 N_RES := HBNAP_FORMS_MODAL(O_FORM, O_PARENT_FORM)
 
-IF N_RES == NAP_MODAL_ENTER
-    MOSTRAR("M?????","Pressionado [Enter], dados aceitos.")
+IF N_RES == HBNAP_CLOSED_BY_RETURN
+    INFO_MESSAGE_BOX("Pressionado [Enter], dados aceitos.", O_PARENT_FORM)
 ELSEIF N_RES == 1000
-    MOSTRAR("M?????","Botão [OK] pressionado, dados aceitos.")
-ELSEIF N_RES == NAP_MODAL_ESC
-    MOSTRAR("M?????","ESC pressionado, dados cancelados.")
-ELSEIF N_RES == NAP_MODAL_X_BUTTON
-    MOSTRAR("M?????","Formulário fechado com [X], dados cancelados.")
+    INFO_MESSAGE_BOX("Botão [OK] pressionado, dados aceitos.", O_PARENT_FORM)
+ELSEIF N_RES == HBNAP_CLOSED_BY_ESC
+    INFO_MESSAGE_BOX("ESC pressionado, dados cancelados.", O_PARENT_FORM)
+ELSEIF N_RES == HBNAP_CLOSED_BY_BUTTON
+    INFO_MESSAGE_BOX("Formulário fechado com [X], dados cancelados.", O_PARENT_FORM)
 ELSE
-    MOSTRAR("M?????","Valor de retorno desconhecido.")
+    INFO_MESSAGE_BOX("Valor de retorno desconhecido.", O_PARENT_FORM)
 ENDIF
 
-IF N_RES == NAP_MODAL_ENTER .OR. N_RES == 1000
+IF N_RES == HBNAP_CLOSED_BY_RETURN .OR. N_RES == 1000
 
 ENDIF
 
