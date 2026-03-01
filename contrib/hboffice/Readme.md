@@ -15,13 +15,15 @@
 
 * [hboffice examples](#hboffice-examples)
 
+* [hboffice API](./ReadmeAPI.md)
+
 ## Introduction
 
 **hboffice** is a project to use the LibreOffice-SDK in Harbour projects. It is an incomplete API, since the LibreOffice SDK is very extensive. It provides high-level functions in C that hide the complexity of using the SDK directly in C++. This C API is easily portable to Harbour.
 
 Compiling the project generates two or three binaries.
 
-* **officesdk.dll**/**libofficesdk.so**/**libofficesdk.dylib**: Dynamic library that contains the C API and the linkage to LibreOffice. In this way the links with LibreOffice-SDK are not propagated. On Windows, it must be compiled with Visual Studio (MinGW is not supported).
+* **officesdk.dll**/**libofficesdk.so**/**libofficesdk.dylib**: Dynamic library that contains the C API and the linkage to LibreOffice. In this way the LibreOffice-SDK symbols are not propagated. On Windows, it must be compiled with Visual Studio (MinGW is not supported).
 
 * **officesdk.lib**: (Only in Windows) Static library with the .dll exported symbols.
 
@@ -161,13 +163,13 @@ build.bat -dll -b [Release|Debug]
 Then, generate the **hboffice.lib**:
 
 ```
-build.bat -lib -comp mingw64 -b Release
-
-:: Full command
-build.bat -lib -comp [mingw64|clang|msvc64] -b [Release|Debug]
-
 :: Required for VisualStudio
 "%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
+
+build.bat -lib -comp [mingw64|clang|msvc64] -b [Release|Debug]
+
+:: Example
+build.bat -lib -comp mingw64 -b Release
 ```
 
 After these two steps, you will have:
@@ -182,6 +184,7 @@ To build `hboffice.lib` you can use Visual Studio, MinGW or Clang, depending on 
 
 If you have installed other Visual Studio version change the `CMAKE_GENERATOR` value:
 ```
+set CMAKE_GENERATOR=Visual Studio 18 2026
 set CMAKE_GENERATOR=Visual Studio 17 2022
 set CMAKE_GENERATOR=Visual Studio 16 2019
 set CMAKE_GENERATOR=Visual Studio 15 2017
@@ -196,7 +199,7 @@ set CMAKE_GENERATOR=Visual Studio 11 2012
 ```
 :: Setup Visual Studio accesible by Harbour
 :: This command depends on Visual Studio specific version/installation.
-"%ProgramFiles(x86)%\Microsoft Visual Studio 11.0\VC\vcvarsall.bat" x64
+"%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 ```
 
 ### Build hboffice in Linux
@@ -259,7 +262,6 @@ After these two steps, you will have:
 * `libofficesdk.dylib` in `/build/Release/bin` folder.
 * `libhboffice.a` in `/build/Release/lib` folder.
 
-
 ## hboffice examples
 
 In the `/hboffice/tests` folder there are different examples of use. To run them:
@@ -275,6 +277,10 @@ In the `/hboffice/tests` folder there are different examples of use. To run them
 cd \contrib\hboffice\tests
 copy ..\build\Release\bin\officesdk.dll
 ..\..\..\bin\win\mingw64\hbmk2 sheet1.prg hboffice.hbc -comp=mingw64
+
+..\..\..\bin\win\clang\hbmk2 sheet1.prg hboffice.hbc -comp=clang
+
+..\..\..\bin\win\msvc64\hbmk2 sheet1.prg hboffice.hbc -comp=msvc64
 
 :: Just run
 sheet1.exe

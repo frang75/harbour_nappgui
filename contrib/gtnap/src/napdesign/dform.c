@@ -54,6 +54,7 @@
 #include <core/heap.h>
 #include <core/stream.h>
 #include <core/strings.h>
+#include <sewer/bmem.h>
 #include <sewer/bstd.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
@@ -331,7 +332,7 @@ void dform_compose(DForm *form)
     }
 
     window_update(form->window);
-    dlayout_synchro_visual(form->dlayout, form->glayout, form->origin);
+    dlayout_synchro_visual(form->dlayout, form->glayout, form->origin, form->origin);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -387,7 +388,7 @@ static bool_t i_sel_equ(const DSelect *sel1, const DSelect *sel2)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_path_at_mouse(DLayout *dlayout, FLayout *flayout, Layout *glayout, const real32_t mouse_x, const real32_t mouse_y, ArrSt(DSelect) *selpath, DSelect *sel)
+static bool_t i_path_at_mouse(DLayout *dlayout, FLayout *flayout, Layout *glayout, const real32_t mouse_x, const real32_t mouse_y, ArrSt(DSelect) *selpath, DSelect *sel)
 {
     cassert_no_null(sel);
     arrst_clear(selpath, NULL, DSelect);
@@ -395,6 +396,7 @@ static void i_path_at_mouse(DLayout *dlayout, FLayout *flayout, Layout *glayout,
     if (arrst_size(selpath, DSelect) > 0)
     {
         *sel = *arrst_last(selpath, DSelect);
+        return TRUE;
     }
     else
     {
@@ -404,6 +406,7 @@ static void i_path_at_mouse(DLayout *dlayout, FLayout *flayout, Layout *glayout,
         sel->elem = ENUM_MAX(layelem_t);
         sel->col = UINT32_MAX;
         sel->row = UINT32_MAX;
+        return FALSE;
     }
 }
 
@@ -776,6 +779,18 @@ static void i_new_sublayout(FLayout *fsublayout, const DSelect *sel, const char_
 
 /*---------------------------------------------------------------------------*/
 
+static void i_sel_copy_path(ArrSt(DSelect) *dest, const ArrSt(DSelect) *src)
+{
+    const DSelect *all = arrst_all_const(src, DSelect);
+    uint32_t n = arrst_size(src, DSelect);
+    DSelect *ins = NULL;
+    arrst_clear(dest, NULL, DSelect);
+    ins = arrst_insert_n(dest, 0, n, DSelect);
+    bmem_copy_n(ins, all, n, DSelect);
+}
+
+/*---------------------------------------------------------------------------*/
+
 bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedit, const Font *font, const widget_t widget, const real32_t mouse_x, const real32_t mouse_y, const gui_mouse_t mbutton)
 {
     cassert_no_null(form);
@@ -783,315 +798,317 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
     if (mbutton == ekGUI_MOUSE_LEFT)
     {
         DSelect sel;
-        i_path_at_mouse(form->dlayout, form->fform->layout, form->glayout, mouse_x, mouse_y, form->sel_path, &sel);
-        inspect_set(inspect, form);
-        if (i_sel_empty_cell(&sel) == TRUE)
+        if (i_path_at_mouse(form->dlayout, form->fform->layout, form->glayout, mouse_x, mouse_y, form->temp_path, &sel) == TRUE)
         {
-            const char_t *folder_path = designer_folder_path(form->app);
-            const DColors *colors = designer_colors(form->app);
-            cassert_no_null(form->dlayout);
-
-            switch(widget) {
-            case ekWIDGET_SELECT:
-                break;
-
-            case ekWIDGET_LABEL:
+            i_sel_copy_path(form->sel_path, form->temp_path);
+            inspect_set(inspect, form);
+            if (i_sel_empty_cell(&sel) == TRUE)
             {
-                FLabel *flabel = dialog_new_label(window, font, &sel);
-                if (flabel != NULL)
+                const char_t *folder_path = designer_folder_path(form->app);
+                const DColors *colors = designer_colors(form->app);
+                cassert_no_null(form->dlayout);
+
+                switch (widget)
                 {
-                    i_new_label(flabel, &sel);
-                    i_after_new_widget(form, inspect, propedit, &sel);
-                    return TRUE;
+                case ekWIDGET_SELECT:
+                    break;
+
+                case ekWIDGET_LABEL:
+                {
+                    FLabel *flabel = dialog_new_label(window, font, &sel);
+                    if (flabel != NULL)
+                    {
+                        i_new_label(flabel, &sel);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
                 }
-                else
+
+                case ekWIDGET_PUSH_BUTTON:
                 {
-                    return FALSE;
+                    FButton *fbutton = dialog_new_button(window, font, &sel);
+                    if (fbutton != NULL)
+                    {
+                        i_new_button(fbutton, &sel);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
+                case ekWIDGET_CHECK_BUTTON:
+                {
+                    FCheck *fcheck = dialog_new_check(window, font, &sel);
+                    if (fcheck != NULL)
+                    {
+                        i_new_check(fcheck, &sel);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
+                case ekWIDGET_RADIO_BUTTON:
+                {
+                    FRadio *fradio = dialog_new_radio(window, font, &sel);
+                    if (fradio != NULL)
+                    {
+                        i_new_radio(fradio, &sel);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
+                case ekWIDGET_TOOL_BUTTON:
+                {
+                    FTool *ftool = dialog_new_tool(window, font, &sel, folder_path);
+                    if (ftool != NULL)
+                    {
+                        i_new_tool(ftool, &sel, folder_path, colors);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
+                case ekWIDGET_POPUP:
+                {
+                    FPopUp *fpopup = dialog_new_popup(window, font, &sel);
+                    if (fpopup != NULL)
+                    {
+                        i_new_popup(fpopup, &sel, folder_path, colors);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
+                case ekWIDGET_EDITBOX:
+                {
+                    FEdit *fedit = dialog_new_edit(window, font, &sel);
+                    if (fedit != NULL)
+                    {
+                        i_new_edit(fedit, &sel);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
+                case ekWIDGET_COMBOBOX:
+                {
+                    FCombo *fcombo = dialog_new_combo(window, font, &sel);
+                    if (fcombo != NULL)
+                    {
+                        i_new_combo(fcombo, &sel);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
+                case ekWIDGET_LISTBOX:
+                {
+                    FListBox *flistbox = dialog_new_listbox(window, font, &sel);
+                    if (flistbox != NULL)
+                    {
+                        i_new_listbox(flistbox, &sel, folder_path, colors);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
+                case ekWIDGET_HORZ_SLIDER:
+                {
+                    FSlider *fslider = dialog_new_slider(window, font, &sel);
+                    if (fslider != NULL)
+                    {
+                        i_new_slider(fslider, &sel);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
+                case ekWIDGET_VERT_SLIDER:
+                {
+                    FVSlider *fvslider = dialog_new_vslider(window, font, &sel);
+                    if (fvslider != NULL)
+                    {
+                        i_new_vslider(fvslider, &sel);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
+                case ekWIDGET_PROGRESS:
+                {
+                    FProgress *fprogress = dialog_new_progress(window, font, &sel);
+                    if (fprogress != NULL)
+                    {
+                        i_new_progress(fprogress, &sel);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
+                case ekWIDGET_CUSTOMVIEW:
+                {
+                    FView *fview = dialog_new_view(window, font, &sel);
+                    if (fview != NULL)
+                    {
+                        i_new_view(fview, &sel, colors);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
+                case ekWIDGET_SCROLLVIEW:
+                {
+                    FSView *fsview = dialog_new_sview(window, font, &sel);
+                    if (fsview != NULL)
+                    {
+                        i_new_sview(fsview, &sel, colors);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
+                case ekWIDGET_TEXTVIEW:
+                {
+                    FText *ftext = dialog_new_text(window, font, &sel);
+                    if (ftext != NULL)
+                    {
+                        i_new_text(ftext, &sel);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
+                case ekWIDGET_IMAGEVIEW:
+                {
+                    FImage *fimage = dialog_new_image(window, font, &sel, folder_path);
+                    if (fimage != NULL)
+                    {
+                        i_new_image(fimage, &sel, folder_path, colors);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
+                case ekWIDGET_TABLEVIEW:
+                {
+                    FTable *ftable = dialog_new_table(window, font, &sel);
+                    if (ftable != NULL)
+                    {
+                        i_new_table(ftable, &sel);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
+                case ekWIDGET_VERT_LAYOUT:
+                case ekWIDGET_HORZ_LAYOUT:
+                case ekWIDGET_GRID_LAYOUT:
+                {
+                    FLayout *fsublayout = NULL;
+                    if (widget == ekWIDGET_VERT_LAYOUT)
+                        fsublayout = dialog_vertical_layout(window, font, &sel);
+                    else if (widget == ekWIDGET_HORZ_LAYOUT)
+                        fsublayout = dialog_horizontal_layout(window, font, &sel);
+                    else
+                        fsublayout = dialog_grid_layout(window, font, &sel);
+
+                    if (fsublayout != NULL)
+                    {
+                        i_layout_obj_names(form, fsublayout);
+                        i_new_sublayout(fsublayout, &sel, folder_path, colors);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
+                default:
+                    break;
                 }
             }
 
-            case ekWIDGET_PUSH_BUTTON:
+            /* No new component added, just select */
             {
-                FButton *fbutton = dialog_new_button(window, font, &sel);
-                if (fbutton != NULL)
-                {
-                    i_new_button(fbutton, &sel);
-                    i_after_new_widget(form, inspect, propedit, &sel);
-                    return TRUE;
-                }
-                else
-                {
-                    return FALSE;
-                }
-            }
-
-            case ekWIDGET_CHECK_BUTTON:
-            {
-                FCheck *fcheck = dialog_new_check(window, font, &sel);
-                if (fcheck != NULL)
-                {
-                    i_new_check(fcheck, &sel);
-                    i_after_new_widget(form, inspect, propedit, &sel);
-                    return TRUE;
-                }
-                else
-                {
-                    return FALSE;
-                }
-            }
-
-            case ekWIDGET_RADIO_BUTTON:
-            {
-                FRadio *fradio = dialog_new_radio(window, font, &sel);
-                if (fradio != NULL)
-                {
-                    i_new_radio(fradio, &sel);
-                    i_after_new_widget(form, inspect, propedit, &sel);
-                    return TRUE;
-                }
-                else
-                {
-                    return FALSE;
-                }
-            }
-
-            case ekWIDGET_TOOL_BUTTON:
-            {
-                FTool *ftool = dialog_new_tool(window, font, &sel, folder_path);
-                if (ftool != NULL)
-                {
-                    i_new_tool(ftool, &sel, folder_path, colors);
-                    i_after_new_widget(form, inspect, propedit, &sel);
-                    return TRUE;
-                }
-                else
-                {
-                    return FALSE;
-                }
-            }
-
-            case ekWIDGET_POPUP:
-            {
-                FPopUp *fpopup = dialog_new_popup(window, font, &sel);
-                if (fpopup != NULL)
-                {
-                    i_new_popup(fpopup, &sel, folder_path, colors);
-                    i_after_new_widget(form, inspect, propedit, &sel);
-                    return TRUE;
-                }
-                else
-                {
-                    return FALSE;
-                }
-            }
-
-            case ekWIDGET_EDITBOX:
-            {
-                FEdit *fedit = dialog_new_edit(window, font, &sel);
-                if (fedit != NULL)
-                {
-                    i_new_edit(fedit, &sel);
-                    i_after_new_widget(form, inspect, propedit, &sel);
-                    return TRUE;
-                }
-                else
-                {
-                    return FALSE;
-                }
-            }
-
-            case ekWIDGET_COMBOBOX:
-            {
-                FCombo *fcombo = dialog_new_combo(window, font, &sel);
-                if (fcombo != NULL)
-                {
-                    i_new_combo(fcombo, &sel);
-                    i_after_new_widget(form, inspect, propedit, &sel);
-                    return TRUE;
-                }
-                else
-                {
-                    return FALSE;
-                }
-            }
-
-            case ekWIDGET_LISTBOX:
-            {
-                FListBox *flistbox = dialog_new_listbox(window, font, &sel);
-                if (flistbox != NULL)
-                {
-                    i_new_listbox(flistbox, &sel, folder_path, colors);
-                    i_after_new_widget(form, inspect, propedit, &sel);
-                    return TRUE;
-                }
-                else
-                {
-                    return FALSE;
-                }
-            }
-
-            case ekWIDGET_HORZ_SLIDER:
-            {
-                FSlider *fslider = dialog_new_slider(window, font, &sel);
-                if (fslider != NULL)
-                {
-                    i_new_slider(fslider, &sel);
-                    i_after_new_widget(form, inspect, propedit, &sel);
-                    return TRUE;
-                }
-                else
-                {
-                    return FALSE;
-                }
-            }
-
-            case ekWIDGET_VERT_SLIDER:
-            {
-                FVSlider *fvslider = dialog_new_vslider(window, font, &sel);
-                if (fvslider != NULL)
-                {
-                    i_new_vslider(fvslider, &sel);
-                    i_after_new_widget(form, inspect, propedit, &sel);
-                    return TRUE;
-                }
-                else
-                {
-                    return FALSE;
-                }
-            }
-
-            case ekWIDGET_PROGRESS:
-            {
-                FProgress *fprogress = dialog_new_progress(window, font, &sel);
-                if (fprogress != NULL)
-                {
-                    i_new_progress(fprogress, &sel);
-                    i_after_new_widget(form, inspect, propedit, &sel);
-                    return TRUE;
-                }
-                else
-                {
-                    return FALSE;
-                }
-            }
-
-            case ekWIDGET_CUSTOMVIEW:
-            {
-                FView *fview = dialog_new_view(window, font, &sel);
-                if (fview != NULL)
-                {
-                    i_new_view(fview, &sel, colors);
-                    i_after_new_widget(form, inspect, propedit, &sel);
-                    return TRUE;
-                }
-                else
-                {
-                    return FALSE;
-                }
-            }
-
-            case ekWIDGET_SCROLLVIEW:
-            {
-                FSView *fsview = dialog_new_sview(window, font, &sel);
-                if (fsview != NULL)
-                {
-                    i_new_sview(fsview, &sel, colors);
-                    i_after_new_widget(form, inspect, propedit, &sel);
-                    return TRUE;
-                }
-                else
-                {
-                    return FALSE;
-                }
-            }
-
-            case ekWIDGET_TEXTVIEW:
-            {
-                FText *ftext = dialog_new_text(window, font, &sel);
-                if (ftext != NULL)
-                {
-                    i_new_text(ftext, &sel);
-                    i_after_new_widget(form, inspect, propedit, &sel);
-                    return TRUE;
-                }
-                else
-                {
-                    return FALSE;
-                }
-            }
-
-			case ekWIDGET_IMAGEVIEW:
-			{
-				FImage *fimage = dialog_new_image(window, font, &sel, folder_path);
-                if (fimage != NULL)
-                {
-                    i_new_image(fimage, &sel, folder_path, colors);
-                    i_after_new_widget(form, inspect, propedit, &sel);
-                    return TRUE;
-                }
-                else
-                {
-                    return FALSE;
-                }
-			}
-
-            case ekWIDGET_TABLEVIEW:
-            {
-                FTable *ftable = dialog_new_table(window, font, &sel);
-                if (ftable != NULL)
-                {
-                    i_new_table(ftable, &sel);
-                    i_after_new_widget(form, inspect, propedit, &sel);
-                    return TRUE;
-                }
-                else
-                {
-                    return FALSE;
-                }
-            }
-    
-            case ekWIDGET_VERT_LAYOUT:
-            case ekWIDGET_HORZ_LAYOUT:
-            case ekWIDGET_GRID_LAYOUT:
-            {
-                FLayout *fsublayout = NULL;
-                if (widget == ekWIDGET_VERT_LAYOUT)
-                    fsublayout = dialog_vertical_layout(window, font, &sel);
-                else if (widget == ekWIDGET_HORZ_LAYOUT)
-                    fsublayout = dialog_horizontal_layout(window, font, &sel);
-                else
-                    fsublayout = dialog_grid_layout(window, font, &sel);
-
-                if (fsublayout != NULL)
-                {
-                    i_layout_obj_names(form, fsublayout);
-                    i_new_sublayout(fsublayout, &sel, folder_path, colors);
-                    i_after_new_widget(form, inspect, propedit, &sel);
-                    return TRUE;
-                }
-                else
-                {
-                    return FALSE;
-                }
-            }
-
-            default:
-                break;
+                bool_t equ = i_sel_equ(&form->sel, &sel);
+                propedit_set(propedit, form, &sel);
+                form->sel = sel;
+                return !equ;
             }
         }
+    }
 
-        /* No new component added, just select */
-        {
-            bool_t equ = i_sel_equ(&form->sel, &sel);
-            propedit_set(propedit, form, &sel);
-            form->sel = sel;
-            return !equ;
-        }
-    }
-    else
-    {
-        return FALSE;
-    }
+    return FALSE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1706,7 +1723,7 @@ void dform_origin(DForm *form, const V2Df origin)
 {
     cassert_no_null(form);
     form->origin = origin;
-    dlayout_synchro_visual(form->dlayout, form->glayout, form->origin);
+    dlayout_synchro_visual(form->dlayout, form->glayout, form->origin, form->origin);
 }
 
 /*---------------------------------------------------------------------------*/

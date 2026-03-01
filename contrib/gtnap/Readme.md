@@ -1,16 +1,17 @@
 # GTNap
 
-Harbour cross-platform video subsystem using NAppGUI-SDK
+Harbour cross-platform GUI subsystem using NAppGUI-SDK
 https://github.com/frang75/nappgui_src
 
-* [Installing CMake](#installing-cmake)
-* [Installing Visual Studio](#installing-visual-studio)
-* [Installing MinGW GCC](#installing-mingw-gcc)
-* [Installing MinGW CLANG](#installing-mingw-clang)
-* [Installing GCC in Linux](#installing-gcc-in-linux)
-* [Installing CLANG in Linux](#installing-clang-in-linux)
-
-* [Installing Xcode in macOS](#installing-xcode-in-macos)
+* [Introduction](#introduction)
+* [Prerequisites](#installing-cmake)
+    - [Installing CMake](#installing-cmake)
+    - [Installing Visual Studio](#installing-visual-studio)
+    - [Installing MinGW GCC](#installing-mingw-gcc)
+    - [Installing MinGW CLANG](#installing-mingw-clang)
+    - [Installing GCC in Linux](#installing-gcc-in-linux)
+    - [Installing CLANG in Linux](#installing-clang-in-linux)
+    - [Installing Xcode in macOS](#installing-xcode-in-macos)
 * [Build Harbour](#build-harbour)
     - [Build Harbour in Windows Visual Studio](#build-harbour-in-windows-visual-studio)
     - [Build Harbour in Windows MinGW](#build-harbour-in-windows-mingw)
@@ -26,7 +27,7 @@ https://github.com/frang75/nappgui_src
     - [In Linux with Clang](#in-linux-with-clang)
     - [In macOS with Xcode](#in-macos-with-xcode)
 * [Using GTNap](#using-gtnap)
-* [Compile and run CUADEMO example](#compile-and-run-cuademo-example)
+* [Compile and run CUADEMO example](#compile-and-run-cualib-example)
 * [Harbour debugging](#harbour-debugging)
 * [Application ICON](#application-icon)
    - [Icon in Windows (and manifest)](#icon-in-windows-and-manifest)
@@ -36,7 +37,22 @@ https://github.com/frang75/nappgui_src
    - [Linux developer mode](#linux-developer-mode)
    - [macOS developer mode](#macos-developer-mode)
 
-* [GTNap design](#gtnap-design)
+## Introduction
+
+GTNAP is a library for creating cross-platform desktop applications (Windows/Linux/macOS) from Harbour. It integrates two APIs that can be used within the same application:
+
+* **GTNAP**: Provides direct support for Harbour commands, in order to port applications written in text mode (General Terminal) to graphical windows. It also provides support for the CUA library (Common User Access), a set of rules and guidelines that help to guide the development of user interfaces. Windows are sized in character coordinates with monospaced fonts, simulating text consoles, and graphical expressiveness is very limited.
+
+* **HBNAP**: API, within GTNAP, that allows creating windows without the limitations imposed in text mode. It uses pixel coordinates, supports a multitude of widgets and custom drawing views (including OpenGL support). Windows are designed through the NAppGUI Designer tool and imported at runtime using `.nfm` files. Windows/forms can be resizable, something impossible to do in semi-graphic mode.
+
+    - Documentation on [NAppGUI Designer](./doc/Designer.md).
+
+    - Documentation on [HBNAP Api](./doc/HBNAP.md).
+
+    ![gtnap](doc/images/gtnap.png)
+
+
+## Prerequisites
 
 ## Installing CMake
 
@@ -47,17 +63,22 @@ For building GTNap CMake tool is necessary:
 * Download from https://cmake.org/download/
 
 * Select **Add CMake to the system PATH for all users** when installing.
-    ![cmake_win](https://user-images.githubusercontent.com/42999199/235419286-0a6101f4-b43b-4e40-a3cb-c585fe908185.png)
+
+    ![cmake_win](doc/images/cmake_win.png)
+
+* ```
+    C:\> cmake --version
+    cmake version 4.2.1
+    ```
 
 ### CMake in Linux
 
-   * `sudo apt-get install cmake cmake-gui`
+* `sudo apt-get install cmake cmake-gui`
 
-   * Open a terminal/cmd and check if cmake works:
-      ```
-      :~/$ cmake --version
-      cmake version 3.10.2
-      ```
+* ```
+    :~/$ cmake --version
+    cmake version 3.10.2
+    ```
 
 ### CMake in macOS
 
@@ -66,10 +87,10 @@ For building GTNap CMake tool is necessary:
 * Move `CMake.app` to `/Applications` folder.
 
 * By default, CMake does not configure command line access on macOS. You can create symbolic links with `sudo "/Applications/CMake.app/Contents/bin/cmake-gui" --install`.
-    ![cmake_macos](https://github.com/frang75/harbour_nappgui/assets/42999199/0c25cc32-faf9-4e81-a949-6c5ac1b67bb5)
 
-* Open a terminal/cmd and check if cmake works:
-    ```
+    ![cmake_macos](doc/images/cmake_macos.png)
+
+* ```
     % cmake --version
     cmake version 3.21.4
     ```
@@ -78,11 +99,11 @@ For building GTNap CMake tool is necessary:
 
 To use the `msvc`/`msvc64` compilers we need to install Visual Studio environment. Microsoft offers the free [Community](https://visualstudio.microsoft.com/vs/) version since VS2017.
 
-Once installed, `msvc` compilers are not directly accesible by command line. We need to run `vcvarsall.bat` script, installed in different locations depending on each version. For example, in Visual Studio 2012.
+Once installed, `msvc` compilers are not directly accesible by command line. We need to run `vcvarsall.bat` script, installed in different locations depending on each version. For example, in Visual Studio 2026.
 
 ```
 :: Set the Visual Studio 64bit compiler
-"%ProgramFiles(x86)%\Microsoft Visual Studio 11.0\VC\vcvarsall.bat" x64
+"%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 
 :: Check compiler is working
 C:>cl
@@ -102,7 +123,11 @@ MinGW is a project that provides a native Windows version of the GCC compiler. T
 
 * Download and install MSYS2 from [here](https://www.msys2.org). By default, is installed in `C:\msys64`.
 
-* Open a MSYS2 terminal and write `pacman -S --needed base-devel mingw-w64-ucrt-x86_64-toolchain` to install the MinGW/GCC compiler.
+* In a MSYS2 terminal:
+  ```
+  :: Install the MinGW/GCC compiler.
+  pacman -S --needed base-devel mingw-w64-ucrt-x86_64-toolchain
+  ```
 
 * Open the **Environment Variables** editor and add: `C:\msys64\mingw64\bin` and `\msys64\ucrt64\bin` folders to PATH environment variable.
 
@@ -117,22 +142,23 @@ MinGW is a project that provides a native Windows version of the GCC compiler. T
     C:>gcc --version
     gcc (Rev6, Built by MSYS2 project) 13.2.0
     Copyright (C) 2023 Free Software Foundation, Inc.
-    This is free software; see the source for copying conditions.  There is NO
-    warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.```
+    This is free software; see the source for copying conditions.
     ```
 
 ## Installing MinGW CLANG
 
-Using MSYS2, you can also install the Clang compiler using `pacman -S mingw-w64-x86_64-clang`. If everything went well, open a `cmd` and check the compiler is working.
+Using MSYS2, you can also install the Clang compiler:
 
-    ```
-    :: Clang compiler is working in Windows
-    C:>clang --version
-    clang version 18.1.4
-    Target: x86_64-w64-windows-gnu
-    Thread model: posix
-    InstalledDir: C:/msys64/mingw64/bin
-    ```
+```
+:: Install clang compiler in Windows
+pacman -S mingw-w64-x86_64-clang
+
+C:>clang --version
+clang version 18.1.4
+Target: x86_64-w64-windows-gnu
+Thread model: posix
+InstalledDir: C:/msys64/mingw64/bin
+```
 
 ## Installing GCC in Linux
 
@@ -168,7 +194,8 @@ InstalledDir: /usr/bin
 ## Installing Xcode in macOS
 
 Xcode provides the `AppleClang` compiler and build tools for macOS. Download and install it from Apple website [here](https://developer.apple.com/xcode/).
-![xcode_macos](https://github.com/frang75/harbour_nappgui/assets/42999199/cf140563-49df-4c3f-acef-24149fda9382)
+
+![xcode_macos](doc/images/macos_xcode.png)
 
 ```
 # Check build tools is working
@@ -184,22 +211,17 @@ Target: x86_64-apple-darwin20.6.0
 
 ## Build Harbour
 
-```
-:: Remove the /bin/win folder
-:: Remove the /lib/win folder
-```
-
 ### Build Harbour in Windows Visual Studio
 
 ```
 :: Important: Use cmd and not PowerShell
-:: Set Visual Studio 2017 64bit compiler for hbmk2 (msvc64)
-"%ProgramFiles(x86)%\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
+:: Set Visual Studio 2026 64bit compiler for hbmk2 (msvc64)
+"%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 
 :: Go to main folder of harbour working copy
 cd harbour_nappgui
 
-win-make HB_COMPILER=msvc64
+win-make HB_CPU=x86_64 HB_COMPILER=msvc64
 
 ! Building Harbour 3.2.0dev from source - https://harbour.github.io
 ! MAKE: win-make 4.1 sh.exe
@@ -318,62 +340,25 @@ make
 The `/contrib/gtnap` project consists of several files and folders:
 
 ```
+/doc                Additional documentation.
 /prj                NAppGUI CMake-based build system.
-/resources          Files used in development debug.
 /src                Source code.
 /src/gtnap          GTNAP terminal source.
 /src/**             NAppGUI libraries source.
 /tests              Testing and examples.
-/tests/cuademo      Cuademo example application.
+/tests/cuademo      CUALIB example application.
 /tools              Build tools required by NAppGUI.
 build.bat           GTNap build script for Windows.
 build.sh            GTNap build script for Linux/macOS.
 CMakeLists.txt      Main script for CMake build system.
 CMakeTargets.cmake  NAppGUI/GTNap build targets for CMake.
-gtnap.ch            Predefined constants for GTNAp.
+gtnap.ch            Predefined constants for GTNAP.
+hbnap.ch            Predefined constants for HBNAP API.
 gtnap.hbc           Options for projects that use GTNap.
 gtnap.hbp           GTNap project for hbmk2.
 gtnap.hbx           GTNap symbol file, autogenerated by hbmk2.
 Readme.md           This documentation.
 ```
-
-### In Windows with MinGW
-
-`build.bat` script allows to compile GTNAP using VisualStudio `msvc64` compiler, MinGW `mingw64` compiler or `clang` compiler.
-
-```
-:: Goto gtnap folder
-cd contrib\gtnap
-
-:: Just build
-build.bat -b [Debug|Release] -comp mingw64
-```
-
-This will generate several static libraries:
-
-* The GT library: `libgtnap.a` in `build/[Debug|Release]/lib` folder.
-* The NAppGUI libraries: `libsewer.a`, `libosbs.a`, `libcore.a`, `libgeom2d.a`, `libdraw2d.a`, `libosgui.a`, `libgui.a`, `libosapp.a`, `libinet.a` in `build/[Debug|Release]/lib` folder.
-* The GTNAP Debugger lib: `libdeblib.a` in `build/[Debug|Release]/lib` folder.
-* The GTNAP Forms libs: `libnflib.a`, `libnforms.a` in `build/[Debug|Release]/lib` folder.
-* The GTNAP utilities executables: `gtnapdeb`, `napdesign` in `build/[Debug|Release]/bin` folder.
-
-### In Windows with Clang
-
-```
-:: Goto gtnap folder
-cd contrib\gtnap
-
-:: Just build
-build.bat -b [Debug|Release] -comp clang
-```
-
-This will generate several static libraries:
-
-* The GT library: `libgtnap.a` in `build/[Debug|Release]/lib` folder.
-* The NAppGUI libraries: `libsewer.a`, `libosbs.a`, `libcore.a`, `libgeom2d.a`, `libdraw2d.a`, `libosgui.a`, `libgui.a`, `libosapp.a`, `libinet.a` in `build/[Debug|Release]/lib` folder.
-* The GTNAP Debugger lib: `libdeblib.a` in `build/[Debug|Release]/lib` folder.
-* The GTNAP Forms libs: `libnflib.a`, `libnforms.a` in `build/[Debug|Release]/lib` folder.
-* The GTNAP utilities executables: `gtnapdeb`, `napdesign` in `build/[Debug|Release]/bin` folder.
 
 ### In Windows with VisualStudio
 
@@ -405,13 +390,26 @@ set CMAKE_GENERATOR=Visual Studio 18 2026
 :: Just build
 build.bat -b [Debug|Release] -comp msvc64
 ```
-This will generate several static libraries:
 
-* The GT library: `gtnap.lib` in `build/[Debug|Release]/lib` folder.
-* The NAppGUI libraries: `sewer.lib`, `osbs.lib`, `core.lib`, `geom2d.lib`, `draw2d.lib`, `osgui.lib`, `gui.lib`, `osapp.lib`, `inet.lib` in `build/[Debug|Release]/lib` folder.
-* The GTNAP Debugger lib: `deblib.lib` in `build/[Debug|Release]/lib` folder.
-* The GTNAP Forms libs: `nflib.lib`, `nforms.lib` in `build/[Debug|Release]/lib` folder.
-* The GTNAP utilities executables: `gtnapdeb`, `napdesign` in `build/[Debug|Release]/bin` folder.
+### In Windows with MinGW
+
+```
+:: Goto gtnap folder
+cd contrib\gtnap
+
+:: Just build
+build.bat -b [Debug|Release] -comp mingw64
+```
+
+### In Windows with Clang
+
+```
+:: Goto gtnap folder
+cd contrib\gtnap
+
+:: Just build
+build.bat -b [Debug|Release] -comp clang
+```
 
 ### In Linux with GCC
 
@@ -432,14 +430,6 @@ cd contrib/gtnap
 bash ./build.sh -comp gcc -b [Debug|Release]
 ```
 
-This will generate several static libraries:
-
-* The GT library: `libgtnap.a` in `build/[Debug|Release]/lib` folder.
-* The NAppGUI libraries: `libsewer.a`, `libosbs.a`, `libcore.a`, `libgeom2d.a`, `libdraw2d.a`, `libosgui.a`, `libgui.a`, `libosapp.a`, `libinet.a` in `build/[Debug|Release]/lib` folder.
-* The GTNAP Debugger lib: `deblib.lib` in `build/[Debug|Release]/lib` folder.
-* The GTNAP Forms libs: `nflib.lib`, `nforms.lib` in `build/[Debug|Release]/lib` folder.
-* The GTNAP utilities executables: `gtnapdeb`, `napdesign` in `build/[Debug|Release]/bin` folder.
-
 ### In Linux with CLANG
 
 ```
@@ -450,38 +440,17 @@ cd contrib/gtnap
 bash ./build.sh -comp clang -b [Debug|Release]
 ```
 
-This will generate several static libraries:
-
-* The GT library: `libgtnap.a` in `build/[Debug|Release]/lib` folder.
-* The NAppGUI libraries: `libsewer.a`, `libosbs.a`, `libcore.a`, `libgeom2d.a`, `libdraw2d.a`, `libosgui.a`, `libgui.a`, `libosapp.a`, `libinet.a` in `build/[Debug|Release]/lib` folder.
-* The GTNAP Debugger lib: `deblib.lib` in `build/[Debug|Release]/lib` folder.
-* The GTNAP Forms libs: `nflib.lib`, `nforms.lib` in `build/[Debug|Release]/lib` folder.
-* The GTNAP utilities executables: `gtnapdeb`, `napdesign` in `build/[Debug|Release]/bin` folder.
-
 ### In macOS with Xcode
 
 > **Important:** On macOS, before compile Harbour and GTNap, **we must** set the `MACOSX_DEPLOYMENT_TARGET` environment variable, in order to establish the minimum version of macOS where our GTNAP applications will run.
 
 ```
+export MACOSX_DEPLOYMENT_TARGET=26.0      # Tahoe
+export MACOSX_DEPLOYMENT_TARGET=15.0      # Sequoia
 export MACOSX_DEPLOYMENT_TARGET=14.0      # Sonoma
 export MACOSX_DEPLOYMENT_TARGET=13.6      # Ventura
-export MACOSX_DEPLOYMENT_TARGET=13.5
-export MACOSX_DEPLOYMENT_TARGET=13.4
-export MACOSX_DEPLOYMENT_TARGET=13.3
-export MACOSX_DEPLOYMENT_TARGET=13.2
-export MACOSX_DEPLOYMENT_TARGET=13.1
-export MACOSX_DEPLOYMENT_TARGET=13.0
 export MACOSX_DEPLOYMENT_TARGET=12.4      # Monterey
-export MACOSX_DEPLOYMENT_TARGET=12.3
-export MACOSX_DEPLOYMENT_TARGET=12.2
-export MACOSX_DEPLOYMENT_TARGET=12.1
-export MACOSX_DEPLOYMENT_TARGET=12.0
 export MACOSX_DEPLOYMENT_TARGET=11.5      # Big Sur
-export MACOSX_DEPLOYMENT_TARGET=11.4
-export MACOSX_DEPLOYMENT_TARGET=11.3
-export MACOSX_DEPLOYMENT_TARGET=11.2
-export MACOSX_DEPLOYMENT_TARGET=11.1
-export MACOSX_DEPLOYMENT_TARGET=11.0
 export MACOSX_DEPLOYMENT_TARGET=10.15     # Catalina
 export MACOSX_DEPLOYMENT_TARGET=10.14     # Mojave
 export MACOSX_DEPLOYMENT_TARGET=10.13     # High Sierra
@@ -504,30 +473,27 @@ cd contrib/gtnap
 bash ./build.sh -b [Debug|Release]
 ```
 
-This will generate several static libraries:
+### Build results
 
-* The GT library: `libgtnap.a` in `/build` folder.
-* The NAppGUI libraries: `libsewer.a`, `libosbs.a`, `libcore.a`, `libgeom2d.a`, `libdraw2d.a`, `libosgui.a`, `libgui.a`, `libosapp.a`, `libinet.a` in `build/[Debug|Release]/lib` folder.
-* The GTNAP Debugger lib: `deblib.lib` in `build/[Debug|Release]/lib` folder.
-* The GTNAP Forms libs: `nflib.lib`, `nforms.lib` in `build/[Debug|Release]/lib` folder.
-* The GTNAP utilities executables: `gtnapdeb`, `napdesign` in `build/[Debug|Release]/bin` folder.
+After compiling GTNap we will obtain a series of static and executable libraries:
+
+* In `build/[Debug|Release]/lib` folder:
+    - The GT library: `gtnap.lib (libgtnap.a)`.
+    - The NAppGUI libraries: `sewer.lib`, `osbs.lib`, `core.lib`, `geom2d.lib`, `draw2d.lib`, `osgui.lib`, `gui.lib`, `osapp.lib`, `inet.lib`, `encode.lib`.
+    - The GTNAP Debugger library: `deblib.lib`.
+    - The HBNAP Forms libs: `nflib.lib`, `nforms.lib`.
+
+* In `build/[Debug|Release]/bin` folder:
+    - The GTNAP Debugger: `gtnapdeb`.
+    - The NAppGUI Designer: `napdesign`.
 
 ## Using GTNap
 
 Just adding `-gtnap` flag into your `.hbp` project file.
 
-## Compile and run CUADEMO example
+## Compile and run CUALIB Example
 
-- To compile in Windows with MinGW:
-   ```
-   :: Use -debug option or omit for release version
-   cd contrib\gtnap\tests\cuademo\gtnap_cualib
-    set CMAKE_GENERATOR=Visual Studio 18 2026
-    "%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
-   ..\..\..\..\..\bin\win\mingw64\hbmk2.exe [-debug] -comp=mingw64 exemplo.hbp
-   exemplo --hb:gtnap
-   exemplo --hb:gtwin
-   ```
+Example is the reference application for using GTNAP. Combines windows created in semi-graphics mode (CUALIB/GTNAP) with full-graphics windows using the HBNAP API.
 
 - To compile in Windows with VisualStudio:
    ```
@@ -537,6 +503,20 @@ Just adding `-gtnap` flag into your `.hbp` project file.
    :: Use -debug option or omit for release version
    cd contrib\gtnap\tests\cuademo\gtnap_cualib
    ..\..\..\..\..\bin\win\msvc64\hbmk2.exe [-debug] -comp=msvc64 exemplo.hbp
+   exemplo --hb:gtnap
+   exemplo --hb:gtwin
+   ```
+
+- To compile in Windows with MinGW:
+   ```
+   ..\..\..\..\..\bin\win\mingw64\hbmk2.exe [-debug] -comp=mingw64 exemplo.hbp
+   exemplo --hb:gtnap
+   exemplo --hb:gtwin
+   ```
+
+- To compile in Windows with Clang:
+   ```
+   ..\..\..\..\..\bin\win\mingw64\hbmk2.exe [-debug] -comp=clang exemplo.hbp
    exemplo --hb:gtnap
    exemplo --hb:gtwin
    ```
@@ -558,9 +538,9 @@ Just adding `-gtnap` flag into your `.hbp` project file.
    ./exemplo --hb:gttrm
    ```
 
-![gtnap_win](https://user-images.githubusercontent.com/42999199/235419502-456ce304-62cf-4559-b84f-964e20a763d3.png)
-![gtnap_linux](https://user-images.githubusercontent.com/42999199/235419548-0ef049d8-6c51-45e2-be4d-393a58c1f07a.png)
-![gtnap_macos](https://github.com/frang75/harbour_nappgui/assets/42999199/99a37caf-4167-4b75-87c5-8c5ca4756e5a)
+![gtnap_win](doc/images/gtnap_win.png)
+![gtnap_linux](doc/images/gtnap_lin.png)
+![gtnap_macos](doc/images/gtnap_macos.png)
 
 ## Harbour debugging
 
@@ -583,23 +563,23 @@ CUA20 @ 18,40,26,90 JANELA V_JANELA ;
 *
 AltD()
 ESPECIALIZE V_JANELA MENU ROLAVERTICAL
-ADDOPCAO V_JANELA TEXTO "#Opção 1" ;
-    ACAO MOSTRAR("M?????","Foi escolhida a opção 1") AJUDA "P06723"
-ADDOPCAO V_JANELA TEXTO "Opção #2" ;
-    ACAO MOSTRAR("M?????","Foi escolhida a opção 2") AJUDA "P06725"
+ADDOPCAO V_JANELA TEXTO "#Option 1" ;
+    ACAO MOSTRAR("M?????","Option 1 selected") AJUDA "P06723"
+ADDOPCAO V_JANELA TEXTO "Option #2" ;
+    ACAO MOSTRAR("M?????","Option 2 selected") AJUDA "P06725"
 ```
 
 GTNap will stop the execution at this point and launch the Debugger. Because GTNap provides a bypass to the built-in debugger, the debugging commands will be the same as in text mode.
 
-![debugger](https://github.com/frang75/harbour_nappgui/assets/42999199/3c080fd6-4e71-4c02-b02b-31e79d490ef1)
+![debugger](doc/images/gtnap_debugger.png)
 
-![debugger_process](https://github.com/frang75/harbour_nappgui/assets/42999199/6718de3b-1b14-48cc-b22c-715fdb2104e7)
+![debugger_process](doc/images/gtnap_deb_operaton.png)
 
 ## Application ICON
 
 Create two `.ico` files with transparent backgrounds. One of 48x48 (Linux) and another 256x256 (Windows). You can refer to the files in `/contrib/gtnap/tests/cuademo`.
 
-![image](https://github.com/frang75/harbour_nappgui/assets/42999199/bbe22a2f-6c86-43fc-9bca-64ddf6ee2532)
+![image](doc/images/app_icon_files.png)
 
 ### Icon in Windows (and manifest)
 
@@ -641,21 +621,21 @@ texto.prg
 # Icon
 {allmsvc|allmingw}exemplo.rc
 ```
-![application_icon_win](https://github.com/frang75/harbour_nappgui/assets/42999199/7455ccb8-08f9-4e59-93cc-d1fca0806ea5)
+![app_icon_windows](doc/images/app_icon_windows.png)
 
 ### Icon in Linux
 
 Copy `icon48.ico` to the same directory as the executable and rename it the same as the executable (`example.ico`). NAppGUI looks for this file at runtime and will pass it to the GTK toolkit. No action is required at compile time.
 
-![image](https://github.com/frang75/harbour_nappgui/assets/42999199/d136e7d4-072c-45c9-af02-49a112fb7ed2)
+![image](doc/images/app_icon_linux.png)
 
-![application_icon_xfce](https://github.com/frang75/harbour_nappgui/assets/42999199/af3528c8-b232-437c-b307-cae9b401815c)
+![application_icon_xfce](doc/images/app_icon_linux.gif)
 
 ## GTNap developer mode
 
 **(Only if you are working on gtnap development)**. Otherwise, you can skip this section.
 
-Using the NAppGUI build system, based on CMake, it is possible to create a single Visual Studio/VSCode solution containing the source code and internal dependencies of: NAppGUI, GTNap, HBOffice and cuademo-example. Thanks to this, it is extremely easy to debug the entire stack and develop a use case that requires all the technologies.
+Using the NAppGUI build system, based on CMake, it is possible to create a single Visual Studio/VSCode solution containing the source code and internal dependencies of: NAppGUI, GTNap, Debugger, Designer, HBOffice, HBAWS and cualib-example. Thanks to this, it is extremely easy to debug the entire stack and develop a use case that requires all the technologies.
 
 A `CMakeLists.txt` and `nap-dev` folder have been provided to generate the debugging solution. Just go to Harbour root path and write:
 
@@ -663,7 +643,7 @@ A `CMakeLists.txt` and `nap-dev` folder have been provided to generate the debug
 
 ```
 # In /harbour_nappgui
-set CMAKE_GENERATOR=Visual Studio 15 2017
+set CMAKE_GENERATOR=Visual Studio 18 2026
 cmake -S . -B build -A x64
 ```
 
@@ -672,6 +652,7 @@ cmake -S . -B build -A x64
 * Go to `exemplo` project, right click Properties. In `Debugging`:
     * Command arguments: `--hb:gtnap`
     * Working directory: `..\..\..\..\..\contrib\gtnap\tests\cuademo\gtnap_cualib`
+    * Environment: `PATH=%PATH%;%AWS_SDK_ROOT%\msvc64\Release\bin`
 
 * Right click in `exemplo` project: `Set as startup project`.
 
@@ -679,7 +660,7 @@ cmake -S . -B build -A x64
 
 * `Debug->Start Debugging`.
 
-   ![debug_visual_studio](https://user-images.githubusercontent.com/42999199/235441869-da3fd867-8a35-4554-a526-4775c0b84f0b.png)
+   ![debug_visual_studio](doc/images/gtnap_debug_vs.png)
 
 
 ### Linux developer mode
@@ -694,7 +675,7 @@ cmake --build build
 
 * Go to `Run and Debug` and select `Exemplo`:
 
-    ![debug_vscode_linux](https://github.com/frang75/harbour_nappgui/assets/42999199/20c7ce47-a6eb-4132-8c45-be8c2b9543a2)
+    ![debug_vscode_linux](doc/images/gtnap_debug_vscode.png)
 
 
 ### macOS developer mode
@@ -708,7 +689,7 @@ cmake -G Xcode -S . -B build
 
 * Select `exemplo` project.
 
-  ![xcode_select_project](https://github.com/frang75/harbour_nappgui/assets/42999199/63df349c-3c17-402f-ad26-27e1c943cb44)
+  ![xcode_select_project](doc/images/gtnap_xcode_run.png)
 
 * Then `Product->Scheme->Edit Scheme`. In `Debugging`:
     * Arguments Passed On Launch: `--hb:gtnap`
@@ -717,21 +698,10 @@ cmake -G Xcode -S . -B build
        - `DYLD_LIBRARY_PATH` --> `/Applications/LibreOffice.app/Contents/Frameworks` (or the path of your LibreOffice installation).
     * Options, Working Directory: `/Users/fran/harbour_nappgui/contrib/gtnap/tests/cuademo/gtnap_cualib` (the full path of `gtnap_cualib` in your system).
 
-      ![xcode_scheme](https://github.com/frang75/harbour_nappgui/assets/42999199/fe244c0c-d95e-4df6-b20a-8080a37757c1)
+      ![xcode_scheme](doc/images/gtnap_xcode_args.png)
 
-      ![xcode_scheme_2](https://github.com/frang75/harbour_nappgui/assets/42999199/3e962c68-9532-4749-9235-0aeeb4c37c72)
+      ![xcode_scheme_2](doc/images/gtnap_xcode_opts.png)
 
 * Press `[PLAY]` button or `Product->Run`.
 
-  ![xcode_debugging](https://github.com/frang75/harbour_nappgui/assets/42999199/f0f4af86-5241-44bf-8ad7-711e47deb541)
-
-## GTNap design
-
-GTNAP has been designed with two modes of operation in mind:
-   * **Full-Graphic:** Cross-platform "modern" look&feel applications. Not compatible with Harbour/Clipper text command neither CUALIB.
-   * **Semi-Graphic:** Cross-platform "cualib-compatible" graphics layer. Improve the appearance of GTWVW solution and runs in Windows/Linux.
-
-![GTNAP_Full_graphic](https://user-images.githubusercontent.com/42999199/202912012-ecc6d479-7455-4cca-85f6-05cd57730407.png)
-
-![GTNAP_Semil_graphic](https://user-images.githubusercontent.com/42999199/202912021-e6ffcd8b-08b5-494f-ae1a-f78b6403bddb.png)
-
+  ![xcode_debugging](doc/images/gtnap_xcode_debug.png)

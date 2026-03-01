@@ -1,8 +1,8 @@
 # hbaws options for projects that use it
 
 incpaths=.
-{allmingw&!debug}libpaths=build/Release/lib ${AWS_SDK_ROOT}/mingw64/Release/bin
-{allmingw&debug}libpaths=build/Debug/lib ${AWS_SDK_ROOT}/mingw64/Debug/bin
+{allmingw&!debug}libpaths=build/Release/lib ${AWS_SDK_ROOT}/mingw64/Release/bin ${AWS_SDK_ROOT}/mingw64/Release/lib
+{allmingw&debug}libpaths=build/Debug/lib ${AWS_SDK_ROOT}/mingw64/Debug/bin ${AWS_SDK_ROOT}/mingw64/Debug/lib
 {clang&!debug}libpaths=build/Release/lib ${AWS_SDK_ROOT}/clang/Release/bin ${AWS_SDK_ROOT}/clang/Release/lib
 {clang&debug}libpaths=build/Debug/lib ${AWS_SDK_ROOT}/clang/Debug/bin ${AWS_SDK_ROOT}/clang/Debug/lib
 {allmsvc&!debug}libpaths=build/Release/lib ${AWS_SDK_ROOT}/msvc64/Release/bin
@@ -10,7 +10,7 @@ incpaths=.
 {allgcc&!debug}libpaths=build/Release/lib ${AWS_SDK_ROOT}/gcc/Release/lib ${AWS_SDK_ROOT}/gcc/Release/bin
 {allgcc&debug}libpaths=build/Debug/lib ${AWS_SDK_ROOT}/gcc/Debug/lib ${AWS_SDK_ROOT}/gcc/Debug/bin
 libs=hbaws aws-cpp-sdk-core aws-cpp-sdk-s3
-
+{allmingw|allgcc}libs=aws-crt-cpp
 {allmsvc}cflags=/MD
 {allmsvc}ldflags=/NODEFAULTLIB:LIBCMT.lib
-{allmingw|bsd|darwin}libs=stdc++
+{allmingw|allgcc}libs=stdc++

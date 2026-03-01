@@ -38,7 +38,7 @@ void dlayout_clear_images(DLayout *layout, const uint32_t col, const uint32_t ro
 
 void dlayout_synchro_elems(DLayout *layout, const uint32_t col, const uint32_t row, const ArrSt(FElem) *elems, const char_t *resource_path, const DColors *colors);
 
-void dlayout_synchro_visual(DLayout *dlayout, const Layout *glayout, const V2Df origin);
+void dlayout_synchro_visual(DLayout *dlayout, const Layout *glayout, const V2Df gorigin, const V2Df lorigin);
 
 void dlayout_path_at_pos(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const real32_t x, const real32_t y, ArrSt(DSelect) *path);
 

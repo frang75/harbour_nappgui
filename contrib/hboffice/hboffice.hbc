@@ -6,3 +6,5 @@ incpaths=.
 {clang}libs=hboffice officesdk
 {!clang}libs=officesdk hboffice
 cpp=yes
+
+cflags={clang}-Wno-deprecated

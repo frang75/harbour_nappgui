@@ -1,4 +1,4 @@
-# HBOFFICE User Guide
+# HBOFFICE API User Guide
 
 * [Initialize](#initialize)
 * [Errors](#errors)

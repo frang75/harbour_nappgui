@@ -64,8 +64,8 @@ echo ----------------------------------------
 # Compile Harbour with gcc or clang
 if [[ "$BUILD_HARBOUR" == "yes" ]]; then
     # Remove previous compilations
-    rm -rf bin/$PLATFORM
-    rm -rf lib/$PLATFORM
+    rm -rf bin/$PLATFORM/$ALL_BUILD_COMPILER
+    rm -rf lib/$PLATFORM/$ALL_BUILD_COMPILER
     make clean
     make -j4 HB_CPU=x86_64 HB_COMPILER=$ALL_BUILD_COMPILER
     echo ----------------------------------------
@@ -86,7 +86,7 @@ echo --------------------------------
 # Then, the LibreOffice lib
 bash build.sh -lib -comp $ALL_BUILD_COMPILER -b $BUILD || { echo "Error building HBOffice LIB" ; exit 1; }
 echo --------------------------------
-echo hboffice lib build successfully
+echo hboffice $ALL_BUILD_COMPILER lib build successfully
 echo --------------------------------
 
 # Return to harbour main path after hboffice
@@ -98,7 +98,7 @@ cd contrib/hbaws
 rm -rf build
 bash build.sh -comp $ALL_BUILD_COMPILER -b $BUILD || { echo "Error building HBAWS" ; exit 1; }
 echo -------------------------
-echo hbaws build successfully
+echo hbaws $ALL_BUILD_COMPILER build successfully
 echo -------------------------
 
 # Return to harbour main path after hbaws
@@ -110,7 +110,7 @@ cd contrib/gtnap
 rm -rf build
 bash build.sh -comp $ALL_BUILD_COMPILER -b $BUILD || { echo "Error building GTNAP" ; exit 1; }
 echo -------------------------
-echo gtnap build successfully
+echo gtnap $ALL_BUILD_COMPILER build successfully
 echo -------------------------
 
 cd tests/cuademo/gtnap_cualib
@@ -125,7 +125,8 @@ if [ "$(uname)" == "Darwin" ]; then
     export DYLD_LIBRARY_PATH=.:$LIBREOFFICE_HOME/Contents/Frameworks
 else
     export LIBREOFFICE_HOME=/usr/lib/libreoffice
-    export LD_LIBRARY_PATH=.:/usr/lib/libreoffice/program
+    export LD_LIBRARY_PATH=.:/usr/lib/libreoffice/program:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=$AWS_SDK_ROOT/%ALL_BUILD_COMPILER/Release/bin:$LD_LIBRARY_PATH
 fi
 
 ./exemplo --hb:gtnap
@@ -142,3 +143,4 @@ cd ..
 echo ---------------------------------------
 echo All build jobs generated successfully
 echo ---------------------------------------
+echo ../contrib/gtnap/tests/cuademo/gtnap_cualib/exemplo --hb:gtnap

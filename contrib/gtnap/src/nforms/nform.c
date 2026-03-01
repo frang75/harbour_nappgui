@@ -281,10 +281,13 @@ void nform_add_control_item(NForm *form, const char_t *cell_name, const char_t *
     {
         PopUp *popup = guicontrol_popup(control);
         Combo *combo = guicontrol_combo(control);
+        ListBox *list = guicontrol_listbox(control);
         if (popup != NULL)
             popup_add_elem(popup, value, NULL);
         else if (combo != NULL)
             combo_add_elem(combo, value, NULL);
+        else if (list != NULL)
+            listbox_add_elem(list, value, NULL);
     }
 }
 

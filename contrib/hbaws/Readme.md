@@ -143,7 +143,7 @@ If the `awssdk` script runs successfully, you will have the AWS-SDK headers and 
 
 ## Build HBAWS
 
-To build the `hbaws` library, just run the `build.bat` or `build.sh` scripts.
+To build the `hbaws` library, just run the `build.bat` or `build.sh` scripts. This library will be statically linked to applications and contains the Harbour binding.
 
 ### Build HBAWS with MinGW
 
@@ -222,6 +222,9 @@ Some examples have been provided in `contrib/hbaws/tests/harbour`.
     # Windows MinGW
     set PATH=%AWS_SDK_ROOT%\mingw64\Release\bin;%PATH%
 
+    # Windows Clang
+    set PATH=%AWS_SDK_ROOT%\mingw64\Release\bin;%PATH%
+
     # Windows MSVC
     set PATH=%AWS_SDK_ROOT%\msvc64\Release\bin;%PATH%
 
@@ -235,6 +238,7 @@ Some examples have been provided in `contrib/hbaws/tests/harbour`.
     ```
     cd contrib\hbaws\tests\harbour
     ..\..\..\..\bin\win\mingw64\hbmk2 listall.prg credentials.prg hbaws.hbc -comp=mingw64
+    ..\..\..\..\bin\win\clang\hbmk2 listall.prg credentials.prg hbaws.hbc -comp=clang
     ..\..\..\..\bin\win\msvc64\hbmk2 listall.prg credentials.prg hbaws.hbc -comp=msvc64
     ../../../../bin/linux/gcc/hbmk2 listall.prg credentials.prg hbaws.hbc
     ../../../../bin/darwin/clang/hbmk2 listall.prg credentials.prg hbaws.hbc
@@ -244,6 +248,7 @@ Some examples have been provided in `contrib/hbaws/tests/harbour`.
     ```
     cd contrib\hbaws\tests\harbour
     ..\..\..\..\bin\win\mingw64\hbmk2 listpage.prg credentials.prg hbaws.hbc -comp=mingw64
+    ..\..\..\..\bin\win\clang\hbmk2 listpage.prg credentials.prg hbaws.hbc -comp=clang
     ..\..\..\..\bin\win\msvc64\hbmk2 listpage.prg credentials.prg hbaws.hbc -comp=msvc64
     ../../../../bin/linux/gcc/hbmk2 listpage.prg credentials.prg hbaws.hbc
     ../../../../bin/darwin/clang/hbmk2 listpage.prg credentials.prg hbaws.hbc
@@ -253,6 +258,7 @@ Some examples have been provided in `contrib/hbaws/tests/harbour`.
     ```
     cd contrib\hbaws\tests\harbour
     ..\..\..\..\bin\win\mingw64\hbmk2 upload.prg credentials.prg hbaws.hbc -comp=mingw64
+    ..\..\..\..\bin\win\clang\hbmk2 upload.prg credentials.prg hbaws.hbc -comp=clang
     ..\..\..\..\bin\win\msvc64\hbmk2 upload.prg credentials.prg hbaws.hbc -comp=msvc64
     ../../../../bin/linux/gcc/hbmk2 upload.prg credentials.prg hbaws.hbc
     ../../../../bin/darwin/clang/hbmk2 upload.prg credentials.prg hbaws.hbc
@@ -262,6 +268,7 @@ Some examples have been provided in `contrib/hbaws/tests/harbour`.
     ```
     cd contrib\hbaws\tests\harbour
     ..\..\..\..\bin\win\mingw64\hbmk2 uploadm.prg credentials.prg hbaws.hbc -comp=mingw64
+    ..\..\..\..\bin\win\clang\hbmk2 uploadm.prg credentials.prg hbaws.hbc -comp=clang
     ..\..\..\..\bin\win\msvc64\hbmk2 uploadm.prg credentials.prg hbaws.hbc -comp=msvc64
     ../../../../bin/linux/gcc/hbmk2 uploadm.prg credentials.prg hbaws.hbc
     ../../../../bin/darwin/clang/hbmk2 uploadm.prg credentials.prg hbaws.hbc
@@ -271,6 +278,7 @@ Some examples have been provided in `contrib/hbaws/tests/harbour`.
     ```
     cd contrib\hbaws\tests\harbour
     ..\..\..\..\bin\win\mingw64\hbmk2 copy.prg credentials.prg hbaws.hbc -comp=mingw64
+    ..\..\..\..\bin\win\clang\hbmk2 copy.prg credentials.prg hbaws.hbc -comp=clang
     ..\..\..\..\bin\win\msvc64\hbmk2 copy.prg credentials.prg hbaws.hbc -comp=msvc64
     ../../../../bin/linux/gcc/hbmk2 copy.prg credentials.prg hbaws.hbc
     ../../../../bin/darwin/clang/hbmk2 copy.prg credentials.prg hbaws.hbc
@@ -280,6 +288,7 @@ Some examples have been provided in `contrib/hbaws/tests/harbour`.
     ```
     cd contrib\hbaws\tests\harbour
     ..\..\..\..\bin\win\mingw64\hbmk2 copym.prg credentials.prg hbaws.hbc -comp=mingw64
+    ..\..\..\..\bin\win\clang\hbmk2 copym.prg credentials.prg hbaws.hbc -comp=clang
     ..\..\..\..\bin\win\msvc64\hbmk2 copym.prg credentials.prg hbaws.hbc -comp=msvc64
     ../../../../bin/linux/gcc/hbmk2 copym.prg credentials.prg hbaws.hbc
     ../../../../bin/darwin/clang/hbmk2 copym.prg credentials.prg hbaws.hbc
@@ -289,6 +298,7 @@ Some examples have been provided in `contrib/hbaws/tests/harbour`.
     ```
     cd contrib\hbaws\tests\harbour
     ..\..\..\..\bin\win\mingw64\hbmk2 download.prg credentials.prg hbaws.hbc -comp=mingw64
+    ..\..\..\..\bin\win\clang\hbmk2 download.prg credentials.prg hbaws.hbc -comp=clang
     ..\..\..\..\bin\win\msvc64\hbmk2 download.prg credentials.prg hbaws.hbc -comp=msvc64
     ../../../../bin/linux/gcc/hbmk2 download.prg credentials.prg hbaws.hbc
     ../../../../bin/darwin/clang/hbmk2 download.prg credentials.prg hbaws.hbc
@@ -298,6 +308,7 @@ Some examples have been provided in `contrib/hbaws/tests/harbour`.
     ```
     cd contrib\hbaws\tests\harbour
     ..\..\..\..\bin\win\mingw64\hbmk2 delete.prg credentials.prg hbaws.hbc -comp=mingw64
+    ..\..\..\..\bin\win\clang\hbmk2 delete.prg credentials.prg hbaws.hbc -comp=clang
     ..\..\..\..\bin\win\msvc64\hbmk2 delete.prg credentials.prg hbaws.hbc -comp=msvc64
     ../../../../bin/linux/gcc/hbmk2 delete.prg credentials.prg hbaws.hbc
     ../../../../bin/darwin/clang/hbmk2 delete.prg credentials.prg hbaws.hbc
@@ -307,6 +318,7 @@ Some examples have been provided in `contrib/hbaws/tests/harbour`.
     ```
     cd contrib\hbaws\tests\harbour
     ..\..\..\..\bin\win\mingw64\hbmk2 restore.prg credentials.prg hbaws.hbc -comp=mingw64
+    ..\..\..\..\bin\win\clang\hbmk2 restore.prg credentials.prg hbaws.hbc -comp=clang
     ..\..\..\..\bin\win\msvc64\hbmk2 restore.prg credentials.prg hbaws.hbc -comp=msvc64
     ../../../../bin/linux/gcc/hbmk2 restore.prg credentials.prg hbaws.hbc
     ../../../../bin/darwin/clang/hbmk2 restore.prg credentials.prg hbaws.hbc
@@ -522,84 +534,3 @@ The Tier values are defined in 'hbaws.ch'
 #define TIER_STANDARD 1
 #define TIER_BULK 2
 #define TIER_EXPEDITED 3
-
-# Legacy DOCU (To be removed)
-
-## Download AWS-SDK repo
-
-git clone --recurse-submodules https://github.com/aws/aws-sdk-cpp
-
-## Build AWS-SDK with VisualStudio
-
-cmake -G "Visual Studio 16 2019" -S . -B build -DCMAKE_INSTALL_PREFIX="C:\Users\Fran\Desktop\aws-install" -DBUILD_ONLY="s3" -DENABLE_TESTING=OFF -DENABLE_ZLIB_REQUEST_COMPRESSION=OFF -DAWS_SDK_WARNINGS_ARE_ERRORS=OFF -A x64
-
-cmake -G "Visual Studio 15 2017" -S . -B build -DCMAKE_INSTALL_PREFIX="C:\Users\Fran\Desktop\aws-install" -DBUILD_ONLY="s3" -DENABLE_TESTING=OFF -DENABLE_ZLIB_REQUEST_COMPRESSION=OFF -DAWS_SDK_WARNINGS_ARE_ERRORS=OFF -A x64
-
-cmake -G "Visual Studio 14 2015" -S . -B build -DCMAKE_INSTALL_PREFIX="C:\Users\Fran\Desktop\aws-install" -DBUILD_ONLY="s3" -DENABLE_TESTING=OFF -DENABLE_ZLIB_REQUEST_COMPRESSION=OFF -DAWS_SDK_WARNINGS_ARE_ERRORS=OFF -A x64
-
-cmake --build build --config=Release
-
-cmake --install build --config=Release
-
-## Build AWS-SDK with MinGW
-
-**Compilation fails with MinGW**
-
-cmake -G "MinGW Makefiles" -S . -B ../build -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="C:\aws-sdk" -DBUILD_ONLY="s3" -DENABLE_ZLIB_REQUEST_COMPRESSION=OFF -DENABLE_TESTING=OFF -DAWS_SDK_WARNINGS_ARE_ERRORS=OFF -DBUILD_SHARED_LIBS=OFF
-
-cmake --build ../build
-
-cmake --install ../build --config Release
-
-
-  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
-    ${MINGW_PREFIX}/bin/cmake.exe \
-      -G "Ninja" \
-      "${_extra_config[@]}" \
-      -DBUILD_SHARED_LIBS=OFF \
-      -DCMAKE_INSTALL_PREFIX="${MINGW_PREFIX}" \
-      -DCMAKE_PREFIX_PATH="${MINGW_PREFIX}" \
-      -DCMAKE_MODULE_PATH="${MINGW_PREFIX}"/lib/cmake \
-      -DAWS_SDK_WARNINGS_ARE_ERRORS=OFF \
-      -DBUILD_ONLY="config;identity-management;lambda;s3;sts;transfer" \
-      -DENABLE_UNITY_BUILD=ON \
-      -DENABLE_TESTING=OFF \
-      -DBUILD_DEPS=OFF \
-      -DPYTHON_EXECUTABLE=${MINGW_PREFIX}/bin/python \
-      ../${_realname}-${pkgver}
-
-
-
-
-
-
-## Build AWS-SDK with GCC Linux
-
-**libcurl is required**
-
-sudo apt-get install libcurl-dev
-sudo apt-get install libssl-dev
-
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="/home/fran/Desktop/aws-install" -DBUILD_ONLY="s3" -DENABLE_ZLIB_REQUEST_COMPRESSION=OFF -DENABLE_TESTING=OFF -DAWS_SDK_WARNINGS_ARE_ERRORS=OFF
-
-cmake --build build
-
-cmake --install build --config Release
-
-## AWS hello with Visual Studio
-
-cmake -G "Visual Studio 15 2017" -S . -B build -A x64
-
-## AWS hello with MinGW
-
-cmake -G "MinGW Makefiles" -S . -B build -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Release
-
-## AWS hello with GCC Linux
-
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build
-
-### Some errors
-- The AWS Access Key Id you provided does not exist in our records.
-- The request signature we calculated does not match the signature you provided. Check your key and signing method.
-

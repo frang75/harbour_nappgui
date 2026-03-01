@@ -22,8 +22,7 @@
 -cflag={clang&debug}-g
 -cflag={debug}-DCMAKE_DEBUG
 -cflag={nodebug}-DCMAKE_RELEASE
-#-cflag={allgcc}-std=c++98
-#-cflag=-DGTNAP_DIR=${hb_dir}
+-cflag={clang}-Wno-deprecated
 
 # Output
 {debug}-obuild/Debug/lib/${hb_name}
@@ -41,7 +40,6 @@ src/gtnap/nap_button.c
 src/gtnap/nap_color.c
 src/gtnap/nap_cualib.c
 src/gtnap/nap_debugger.c
-src/gtnap/nap_dmenu.c
 src/gtnap/nap_edit.c
 src/gtnap/nap_global.c
 src/gtnap/nap_image.c
@@ -53,3 +51,4 @@ src/gtnap/nap_window.c
 
 # New HBNAP Api
 src/gtnap/hbnap_forms.c
+src/gtnap/hbnap_menu.c

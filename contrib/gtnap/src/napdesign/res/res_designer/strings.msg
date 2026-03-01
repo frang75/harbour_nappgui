@@ -115,7 +115,7 @@ TEXT_RESIZABLE      Resizable
 TEXT_TABSTOP        Tabstop
 TEXT_TABORDER       Taborder
 
-TEXT_TEXT_ALIGN     Text align
+TEXT_TEXT_ALIGN     TAlign
 TEXT_MIN_WIDTH      Min width
 TEXT_MAX_WIDTH      Max width
 TEXT_MIN_HEIGHT     Min height
@@ -195,6 +195,10 @@ TEXT_PROMOTE        Promote
 TIP_LAYOUT_NAME     Layout name. It will be useful to locate the layout at runtime.
 TIP_CELL_NAME       Cell name. It will be useful to locate the cell at runtime.
 TIP_CELL_TABSTOP    If uncheck, this cell cannot be selected using the [TAB] key.
+TIP_TOP_PADDING     Padding at top of cell (in px).
+TIP_LEFT_PADDING    Padding at left of cell (in px).
+TIP_BOTTOM_PADDING  Padding at bottom of cell (in px).
+TIP_RIGHT_PADDING   Padding at right of cell (in px).
 TIP_TOP_MARGIN      Margin at top of layout (in px).
 TIP_LEFT_MARGIN     Margin at left of layout (in px).
 TIP_BOTTOM_MARGIN   Margin at bottom of layout (in px).

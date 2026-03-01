@@ -48,7 +48,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-static uint16_t i_VERSION = 8;
+static uint16_t i_VERSION = 9;
 static void i_write_layout(Stream *stm, const FLayout *layout);
 
 /*---------------------------------------------------------------------------*/
@@ -500,6 +500,22 @@ static void i_read_cell(Stream *stm, FCell *cell, const uint16_t *vers)
     cell->type = stm_read_enum(stm, celltype_t);
     cell->halign = stm_read_enum(stm, halign_t);
     cell->valign = stm_read_enum(stm, valign_t);
+
+    if (*vers >= 9)
+    {
+        cell->padding_left = stm_read_r32(stm);
+        cell->padding_top = stm_read_r32(stm);
+        cell->padding_right = stm_read_r32(stm);
+        cell->padding_bottom = stm_read_r32(stm);
+    }
+    else
+    {
+        cell->padding_left = 0;
+        cell->padding_top = 0;
+        cell->padding_right = 0;
+        cell->padding_bottom = 0;
+    }
+
     switch (cell->type)
     {
     case ekCELL_TYPE_EMPTY:
@@ -833,6 +849,11 @@ static void i_write_cell(Stream *stm, const FCell *cell)
     stm_write_enum(stm, cell->type, celltype_t);
     stm_write_enum(stm, cell->halign, halign_t);
     stm_write_enum(stm, cell->valign, valign_t);
+    stm_write_r32(stm, cell->padding_left);
+    stm_write_r32(stm, cell->padding_top);
+    stm_write_r32(stm, cell->padding_right);
+    stm_write_r32(stm, cell->padding_bottom);
+
     switch (cell->type)
     {
     case ekCELL_TYPE_EMPTY:
@@ -1467,14 +1488,17 @@ void flayout_rows_expand(const FLayout *layout, Layout *glayout)
 void flayout_cell_synchro(const FLayout *layout, Layout *glayout, const uint32_t col, const uint32_t row)
 {
     const FCell *fcell = NULL;
+    Cell *cell = NULL;
     align_t halign, valign;
     cassert_no_null(layout);
     fcell = flayout_ccell(layout, col, row);
+    cell = layout_cell(glayout, col, row);
     halign = _nflib_halign(fcell->halign);
     valign = _nflib_valign(fcell->valign);
     layout_halign(glayout, col, row, halign);
     layout_valign(glayout, col, row, valign);
     layout_tabstop(glayout, col, row, fcell->tabstop);
+    cell_padding4(cell, fcell->padding_top, fcell->padding_left, fcell->padding_bottom, fcell->padding_left);
 }
 
 /*---------------------------------------------------------------------------*/
