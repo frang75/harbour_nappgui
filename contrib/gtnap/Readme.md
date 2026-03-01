@@ -3,6 +3,7 @@
 Harbour cross-platform GUI subsystem using NAppGUI-SDK
 https://github.com/frang75/nappgui_src
 
+* [Introduction](#introduction)
 * [Prerequisites](#installing-cmake)
     - [Installing CMake](#installing-cmake)
     - [Installing Visual Studio](#installing-visual-studio)
@@ -11,7 +12,6 @@ https://github.com/frang75/nappgui_src
     - [Installing GCC in Linux](#installing-gcc-in-linux)
     - [Installing CLANG in Linux](#installing-clang-in-linux)
     - [Installing Xcode in macOS](#installing-xcode-in-macos)
-
 * [Build Harbour](#build-harbour)
     - [Build Harbour in Windows Visual Studio](#build-harbour-in-windows-visual-studio)
     - [Build Harbour in Windows MinGW](#build-harbour-in-windows-mingw)
@@ -37,13 +37,19 @@ https://github.com/frang75/nappgui_src
    - [Linux developer mode](#linux-developer-mode)
    - [macOS developer mode](#macos-developer-mode)
 
+## Introduction
+
 GTNAP is a library for creating cross-platform desktop applications (Windows/Linux/macOS) from Harbour. It integrates two APIs that can be used within the same application:
 
 * **GTNAP**: Provides direct support for Harbour commands, in order to port applications written in text mode (General Terminal) to graphical windows. It also provides support for the CUA library (Common User Access), a set of rules and guidelines that help to guide the development of user interfaces. Windows are sized in character coordinates with monospaced fonts, simulating text consoles, and graphical expressiveness is very limited.
 
 * **HBNAP**: API, within GTNAP, that allows creating windows without the limitations imposed in text mode. It uses pixel coordinates, supports a multitude of widgets and custom drawing views (including OpenGL support). Windows are designed through the NAppGUI Designer tool and imported at runtime using `.nfm` files. Windows/forms can be resizable, something impossible to do in semi-graphic mode.
 
-![gtnap](doc/images/gtnap.png)
+    - Documentation on [NAppGUI Designer](./doc/Designer.md).
+
+    - Documentation on [HBNAP Api](./doc/HBNAP.md).
+
+    ![gtnap](doc/images/gtnap.png)
 
 
 ## Prerequisites

@@ -1,10 +1,10 @@
-# GTNAP-Forms
+# HBNAP API
 
-GTNAP-Forms is a set of Harbour functions, integrated into GTNAP, that allow us to load and run forms created with [NapDesigner](./Readme.md).
+HBNAP is an API that will allow us to create cross-platform desktop applications (Windows/macOS/Linux) using Harbour. Windows/forms are designed using the [NappGUI Designer](./Designer.md) utility. The HBNAP functions are integrated into the [GTNAP](../Readme.md#introduction) library.
 
-## Build GTNAP-Forms
+## Build HBNAP
 
-GTNAP-Forms is built into GTNAP, extending its API, so we don't have to do anything special to compile it. Just run the build script in `contrib\gtnap`. More information at [Build GTNAP](../Readme.md#build-gtnap).
+HBNAP is built into GTNAP, extending its API, so we don't have to do anything special to compile it. Just run the build script in `contrib\gtnap`. More information at [Build GTNAP](../Readme.md#build-gtnap).
 
 ```
 cd contrib/gtnap
@@ -15,34 +15,110 @@ build.bat -b [Debug|Release] -comp mingw64
 :: Linux/macOS
 bash ./build.sh -b [Debug|Release]
 ```
-## Load a form
 
-NapDesigner creates `*.nfm` (NAppGUI forms) files that can be loaded at runtime. In [exemploforms.prg](../tests/cuademo/gtnap_cualib/exemploforms.prg) you have the complete example.
+## HBNAP Examples
 
-### NAP_FORM_LOAD
+Examples in Harbour on the use of the HBNAP API can be found in [exemplohbnap.prg](../tests/cuademo/gtnap_cualib/exemplohbnap.prg) and [exemplohbnap_company.prg](../tests/cuademo/gtnap_cualib/exemplohbnap_company.prg).
 
-Load a form from a file on disk.
+![hbnap1](./images/hbnap1.png)
+
+## UTF8 based
+
+HBNAP uses the **UTF8 format** throughout its API. We must be careful to save all source code files that contain texts in this format. NAppGUI Designer also uses UTF8 internally.
+
+![hbnap2](./images/hbnap2.png)
+
+## Runtime connection
+
+The runtime interaction between the form, loaded via a `*.nfm` file, and the Harbour code will be done through the widget cell name. For example, to change the text of a `Label` widget:
 
 ```
-LOCAL V_FORM := NAP_FORM_LOAD(DIRET_FORMS() + "Customer.nfm")
+HBNAP_FORMS_SET_TEXT(O_MAINWINDOW, "version", "New Vers„o 28.1h(b765)-S09999")
+```
+
+![hbnap3](./images/hbnap3.png)
+
+![hbnap4](./images/hbnap4.png)
+
+## HBNAP API Reference
+
+### HBNAP_FORMS_LOAD
+
+Loads a form from a `*.nfm` file on disk. These types of files are created using NAppGUI Designer.
+
+
+```
+LOCAL O_FORM := HBNAP_FORMS_LOAD(DIRET_FORMS() + "Company_detail.nfm", DIRET_FORMS(), hb_bitOr(HBNAP_FORMS_RESIZABLE, HBNAP_FORMS_CLOSE_ON_ESC, HBNAP_FORMS_CLOSE_ON_RETURN))
 
 PAR1: Path to the file containing the form.
+PAR2: Base path for the form resources.
+PAR3: hb_bitOr() with form creation flags.
 RET: Form object.
+
+# Creation flags (in hbnap.ch)
+HBNAP_FORMS_RESIZABLE       The form will be resizable
+HBNAP_FORMS_CLOSE_ON_ESC    The form can be closed with [ESC] key.
+HBNAP_FORMS_CLOSE_ON_RETURN The form can be closed with [RETURN] key.
 ```
 
-### NAP_FORM_TITLE
+### HBNAP_FORMS_DESTROY
+
+Destroys a form, when it is no longer needed. All associated resources and memory will be freed.
+
+```
+HBNAP_FORMS_DESTROY(O_FORM)
+
+PAR1: Form object.
+```
+
+### HBNAP_FORMS_TITLE
 
 Set a title for the form window.
 
 ```
-NAP_FORM_TITLE(V_FORM, "Primeiro exemplo de formul√°rio GTNAP")
+HBNAP_FORMS_TITLE(O_FORM, "Inclus„o de empresa")
 
 PAR1: Form object.
-PAR2: Text string with the title.
+PAR2: Text string in UTF8 with the title.
 ```
-### NAP_FORM_MODAL
 
-Launch the form in modal mode.
+### HBNAP_FORMS_SET_TEXT
+
+Sets the text for a widget within the form. Access to the widget is done using the cell identifier. The widgets that respond to this function are:
+
+- Push Button
+- Check Box
+- Radio Button
+- Label
+- Edit Box
+- Combo Box
+- Text View
+
+```
+HBNAP_FORMS_SET_TEXT(O_MAINWINDOW, "version", "Vers„o 25.1h(b426)-S07688")
+
+PAR1: Form object.
+PAR2: Cell name.
+PAR3: Text string in UTF8.
+```
+
+### HBNAP_FORMS_INSERT_TEXT
+
+Add text to the end of a widget, without deleting previous text. Access to the widget is done using the cell identifier. The widgets that respond to this function are:
+
+- Text View
+
+```
+HBNAP_FORMS_INSERT_TEXT(O_FORM, "textview", "And this text will be added at the end")
+
+PAR1: Form object.
+PAR2: Cell name.
+PAR3: Text string in UTF8.
+```
+
+
+
+### NAP_FORM_MODAL
 
 ```
 N_RES := NAP_FORM_MODAL(V_FORM)
