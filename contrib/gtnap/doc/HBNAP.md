@@ -1,5 +1,34 @@
 # HBNAP API
 
+* [Introduction](#introduction)
+* [Build HBNAP](#build-hbnap)
+* [HBNAP Examples](#hbnap-api)
+* [UTF8 based](#utf8-based)
+* [Runtime connection](#runtime-connection)
+* [Data binding](#data-binding)
+* [Area binding (TableView)](#area-binding-tableview)
+* [HBNAP API Reference](#hbnap-api-reference)
+    - [HBNAP_FORMS_LOAD](#hbnap_forms_load)
+    - [HBNAP_FORMS_DESTROY](#hbnap_forms_destroy)
+    - [HBNAP_FORMS_TITLE](#hbnap_forms_title)
+    - [HBNAP_FORMS_SET_TEXT](#hbnap_forms_set_text)
+    - [HBNAP_FORMS_INSERT_TEXT](#hbnap_forms_insert_text)
+    - [HBNAP_FORMS_BIND](#hbnap_forms_bind)
+    - [HBNAP_FORMS_BIND_STORE](#hbnap_forms_bind_store)
+    - [HBNAP_FORMS_AREA_BIND](#hbnap_forms_area_bind)
+    - [HBNAP_FORMS_AREA_REFRESH](#hbnap_forms_area_refresh)
+    - [HBNAP_FORMS_AREA_RECNO](#hbnap_forms_area_recno)
+    - [HBNAP_FORMS_ITEM_LIST](#hbnap_forms_item_list)
+    - [HBNAP_FORMS_ONCLICK](#hbnap_forms_onclick)
+    - [HBNAP_FORMS_MAXIMIZE](#hbnap_forms_maximize)
+    - [HBNAP_FORMS_SHOW](#hbnap_forms_show)
+    - [HBNAP_FORMS_MODAL](#hbnap_forms_modal)
+    - [HBNAP_FORMS_MODAL_GTNAP](#hbnap_forms_modal_gtnap)
+    - [HBNAP_FORMS_STOP_MODAL](#hbnap_forms_stop_modal)
+    - [HBNAP_FORMS_MAIN_COVER](#hbnap_forms_main_cover)
+
+## Introduction
+
 HBNAP is an API that will allow us to create cross-platform desktop applications (Windows/macOS/Linux) using Harbour. Windows/forms are designed using the [NappGUI Designer](./Designer.md) utility. The HBNAP functions are integrated into the [GTNAP](../Readme.md#introduction) library.
 
 ## Build HBNAP
@@ -145,7 +174,7 @@ Sets the text for a widget within the form. Access to the widget is done using t
 HBNAP_FORMS_SET_TEXT(O_MAINWINDOW, "version", "Versão 25.1h(b426)-S07688")
 
 PAR1: Form object.
-PAR2: Cell name.
+PAR2: Widget cell name.
 PAR3: Text string in UTF8.
 ```
 
@@ -159,7 +188,7 @@ Add text to the end of a widget, without deleting previous text. Access to the w
 HBNAP_FORMS_INSERT_TEXT(O_FORM, "textview", "And this text will be added at the end")
 
 PAR1: Form object.
-PAR2: Cell name.
+PAR2: Widget cell name.
 PAR3: Text string in UTF8.
 ```
 
@@ -241,135 +270,162 @@ PAR1: Form object.
 RET: The current selected recno.
 ```
 
+### HBNAP_FORMS_ITEM_LIST
 
+Sets a list of values ??in those widgets that support lists of items. These are:
 
-
-
-
-
-When the form is launched with `NAP_FORM_MODAL()`, the value of the variables will be automatically mapped to the widgets. If the user changes any value, it will NOT be written back until we call `NAP_FORM_DBIND_STORE()`.
-
-
-### NAP_FORM_MODAL
+- Pop Up
+- Combo Box
+- List Box
 
 ```
-N_RES := NAP_FORM_MODAL(V_FORM)
+LOCAL C_CIDADE := { ;
+                    "São Paulo", ;
+                    "Rio de Janeiro", ;
+                    "Brasília", ;
+                    "Salvador", ;
+                    "Fortaleza", ;
+                    "Belo Horizonte", ;
+                    "Manaus", ;
+                    "Curitiba", ;
+                    "Recife", ;
+                    "Porto Alegre", ;
+                    "Goiânia", ;
+                    "Belém", ;
+                    "Guarulhos", ;
+                    "Campinas", ;
+                    "São Luís" ;
+              }
+
+HBNAP_FORMS_ITEM_LIST(O_FORM, "cidade_combo", C_CIDADE)
 
 PAR1: Form object.
-RET: Numeric value with the result at the close of the form. These values â€‹â€‹can be:
-    - NAP_MODAL_ENTER (2). The form has been closed by pressing the [RETURN] key.
-    - NAP_MODAL_ESC (1). The form has been closed by pressing the [ESC] key.
-    - NAP_MODAL_X_BUTTON (3). The form has been closed by clicking the [X] icon in the window.
-    - OTHER. The form has been closed by NAP_FORM_STOP_MODAL()
+PAR2: Widget cell name.
+PAR3: Vector with the list of values ??(in UTF8).
 ```
+![hbnap8](./images/hbnap8.png)
 
-### NAP_STOP_MODAL
+### HBNAP_FORMS_ONCLICK
 
-Forces a form launched via `NAP_FORM_MODAL()` to close. This function must be invoked by some callback function, in response to any GUI event (for example, pressing a button).
+Establece un manejador de evento, en el caso de que se pulse un botón del formulario.
 
 ```
-NAP_FORM_ONCLICK(V_FORM, "button_ok", {|| NAP_FORM_STOP_MODAL(V_FORM, 1000) })
+HBNAP_FORMS_ONCLICK(O_FORM, "add_button", {|| ADD_EMPRESA(O_FORM) })
 
 PAR1: Form object.
-PAR2: Numeric value to return as a response in NAP_FORM_MODAL().
-```
-## Data binding
-
-To make the form really practical, we need to be able to connect variables in the Harbour part to the GUI controls (widgets). The first thing is to give a unique and recognizable **ID** in NapDesign to the cells that contain the widgets that we are interested in connecting. For example, the _Editbox_ with the user's name (`edit_first_name`).
-
-![control_id](./images/control_id.png)
-
-In the Harbour part, we need to create a vector of pairs (ID-variable). The `ID` is the name of the widget previously assigned in NApDesign, which will be in charge of editing the value of the `variable`.
-
-```
-LOCAL C_NAME := "Francisco"
-LOCAL C_LAST := "GarcÃ­a Collado"
-LOCAL C_ADDRESS := "Calle de la Cueva, 23"
-LOCAL C_CITY := "Alicante"
-LOCAL C_PHONE := "+34 600111777"
-LOCAL C_USER := "fran75"
-LOCAL C_PASS := "pass5566"
-LOCAL C_BANK := {"WE0012", "556431", "887652", "223477"}
-LOCAL C_CARD := {"5678", "9900", "1122", "3344", "5566"}
-LOCAL L_MAIL_LIST := .T.
-LOCAL L_SECURE_PASS := .F.
-LOCAL L_SHOW_ALERTS := .T.
-LOCAL L_CONNECT_BANK := .F.
-// Mapping between Harbour variables and form control names
-LOCAL V_BIND := { ;
-                    {"edit_first_name", @C_NAME }, ;
-                    {"edit_last_name", @C_LAST }, ;
-                    {"edit_address", @C_ADDRESS }, ;
-                    {"edit_city", @C_CITY }, ;
-                    {"edit_phone", @C_PHONE }, ;
-                    {"edit_user", @C_USER }, ;
-                    {"edit_pass", @C_PASS }, ;
-                    {"edit_bank1", @C_BANK[1] }, ;
-                    {"edit_bank1", @C_BANK[1] }, ;
-                    {"edit_bank2", @C_BANK[2] }, ;
-                    {"edit_bank3", @C_BANK[3] }, ;
-                    {"edit_bank4", @C_BANK[4] }, ;
-                    {"edit_credit1", @C_CARD[1] }, ;
-                    {"edit_credit2", @C_CARD[2] }, ;
-                    {"edit_credit3", @C_CARD[3] }, ;
-                    {"edit_credit4", @C_CARD[4] }, ;
-                    {"edit_credit5", @C_CARD[5] }, ;
-                    {"check_mail_list", @L_MAIL_LIST }, ;
-                    {"check_secure_pass", @L_SECURE_PASS }, ;
-                    {"check_show_alerts", @L_SHOW_ALERTS }, ;
-                    {"check_connect_bank", @L_CONNECT_BANK } ;
-                }
+PAR2: Widget (button) cell name.
+PAR3: Code block to execute when the button is pressed.
 ```
 
-**Form running from Harbour**
-![form_running](./images/form_harbour.png)
+### HBNAP_FORMS_MAXIMIZE
 
-If the variable is provided by value it will be read-only. We will see its value in the widget, but the value assigned by the user cannot be recorded. To do this, pass the variable by reference.
-
-### NAP_FORM_DBIND
-
-Binds a vector of pairs (id-variable) to the form.
+Maximizes a form so that it fills the entire screen area. It is only applicable to those forms created with the `HBNAP_FORMS_RESIZABLE` flag. If the form is not already visible, it will be displayed maximized when activated.
 
 ```
-NAP_FORM_DBIND(V_FORM, V_BIND)
-
-PAR1: Form object.
-PAR2: Pair vector (id-variable)
-```
-
-When the form is launched with `NAP_FORM_MODAL()`, the value of the variables will be automatically mapped to the widgets. If the user changes any value, it will NOT be written back until we call `NAP_FORM_DBIND_STORE()`.
-
-### NAP_FORM_DBIND_STORE
-
-Writes content of form widgets in variables provided by `NAP_FORM_DBIND()`
-
-```
-IF N_RES == NAP_MODAL_ENTER .OR. N_RES == 1000
-    // Write the values from the GUI controls to Harbour variables
-    NAP_FORM_DBIND_STORE(V_FORM)
+HBNAP_FORMS_MAXIMIZE(O_MAINWINDOW)
 
 PAR1: Form object.
 ```
 
-If the variable was passed by value, it will be impossible to record the changes. Pass a reference to the variable to make it read/write.
+### HBNAP_FORMS_SHOW
 
-## Button events
-
-If the Harbor part wants to perform some action if a button is pressed, it will need to associate a block of code with the component.
-
-### NAP_FORM_ONCLICK
-
-Sets the block of code that will be executed when a button is pressed on the form.
+Activate the form as the main application window. It is not recommended to use this function if there are already open windows. For those cases use `HBNAP_FORMS_MODAL()`.
 
 ```
-NAP_FORM_ONCLICK(V_FORM, "button_ok", {|| NAP_FORM_STOP_MODAL(V_FORM, 1000) })
+HBNAP_FORMS_SHOW(O_MAINWINDOW, {|| MAIN_WINDOW_CLOSE() })
 
 PAR1: Form object.
-PAR2: Button ID.
-PAR3: Block of code to be executed in the Harbor part.
+PAR2: Code block to be executed when the window close button [X] is pressed.
 ```
 
-In this example, clicking the button is associated with closing the form with the return code `1000`.
+### HBNAP_FORMS_MODAL
+
+Run a form in modal mode. The previous form (parent) will be locked until this form is closed.
+
+```
+N_RES := HBNAP_FORMS_MODAL(O_FORM, O_PARENT_FORM)
+
+IF N_RES == HBNAP_CLOSED_BY_ESC
+ELSEIF N_RES == HBNAP_CLOSED_BY_RETURN
+ELSEIF N_RES == HBNAP_CLOSED_BY_BUTTON
+ELSE
+ENDIF
+
+PAR1: Form object.
+PAR2: Parent form object.
+RET: Integer with the modal execution result.
+
+# Return values (in hbnap.ch)
+HBNAP_CLOSED_BY_ESC     Form closed by [ESC] key.
+HBNAP_CLOSED_BY_RETURN  Form closed by [RETURN] key.
+HBNAP_CLOSED_BY_BUTTON  Form closed by [X] button in title bar.
+..OTHER..               Form close programmatically by HBNAP_FORMS_STOP_MODAL()
+```
+
+### HBNAP_FORMS_MODAL_GTNAP
+
+Same as `HBNAP_FORMS_MODAL()` but considering that the parent window is a GTNAP window (semigraphic mode). These windows are controlled internally by GTNAP and do not have an object accessible from Harbour.
+
+```
+N_RES := HBNAP_FORMS_MODAL_GTNAP(O_MAINWINDOW)
+
+PAR1: Form object.
+RET: Integer with the modal execution result. Same as HBNAP_FORMS_MODAL().
+```
+
+### HBNAP_FORMS_STOP_MODAL
+
+Detiene el ciclo modal de un formulario lanzado previamente con `HBNAP_FORMS_MODAL()` o `HBNAP_FORMS_MODAL_GTNAP()`. Se pasará el valor entero a devolver por estas funciones.
+
+> **Important:** Stopping a modal form does not mean destroying it. We can launch it several times and we will have to call `HBNAP_FORMS_DESTROY()` when it is no longer necessary.
+
+```
+// Stop the form when press a form button
+HBNAP_FORMS_ONCLICK(O_MESSAGE, "button", {|| HBNAP_FORMS_STOP_MODAL(O_MESSAGE, 100)})
+
+PAR1: Form object.
+PAR2: Integer value that will be returned by HBNAP_FORMS_MODAL().
+```
+
+### HBNAP_FORMS_MAIN_COVER
+
+High-level function that displays an interactive options menu, within a `Scroll View` widget.
+
+For each item we will provide this data:
+- Title (in UTF8).
+- Path to the icon.
+- Background color (in HTML format).
+- Subtitle (in UTF8).
+- New? .T. or .F.
+- Code block to be executed if the option is pressed.
+
+```
+LOCAL V_COVER := { ;
+    { "Orçamento", DIRET_FORMS() + "images/main/grid.png", "#20B2AA", "", .F., { || BUDGET_START() }}, ;
+    { "Contábil SIAFIC", DIRET_FORMS() + "images/main/calc.png", "#1E90FF", "", .F., { || ACCOUNTING_START() }}, ;
+    { "Licitaçao", DIRET_FORMS() + "images/main/auction.png", "#DAA520", "Lei 8.666/1993", .F., { || BIDDING_START() }}, ;
+    { "Licitaçao", DIRET_FORMS() + "images/main/auction.png", "#DAA520", "Lei 14.133/2021", .T., { || BIDDING_NEW_START() }}, ;
+    { "PPA", DIRET_FORMS() + "images/main/trend.png", "#FF6347", "", .F., { || TREND_START() }}, ;
+    { "Patrimonial", DIRET_FORMS() + "images/main/skyline.png", "#CD853F", "", .F., { || ASSETS_START() }}, ;
+    { "Almoxarifado", DIRET_FORMS() + "images/main/cubes.png", "#6A5ACD", "", .F., { || WAREHOUSE_START() }}, ;
+    { "Frota", DIRET_FORMS() + "images/main/fleet.png", "#5B5784", "", .F., { || FLEET_START() }}, ;
+    { "Doações", DIRET_FORMS() + "images/main/carry.png", "#8FBC8F", "", .F., { || DONATIONS_START() }}, ;
+    { "Backup", DIRET_FORMS() + "images/main/backup.png", "#C0C0C0", "", .F., { || BACKUP_START() }} ;
+}
+
+HBNAP_FORMS_MAIN_COVER(O_MAINWINDOW, "canvas", "Sistema de Gestão Pública", DIRET_FORMS() + "images/logo_aspec.png", V_COVER)
+
+PAR1: Form object.
+PAR2: Scroll View cell name.
+PAR3: Main menu title.
+PAR4: Menu main image.
+PAR5: Item list.
+```
+
+![hbnap9](./images/hbnap9.png)
+
+![hbnap10](./images/hbnap10.png)
+
 
 # Menu API
 
