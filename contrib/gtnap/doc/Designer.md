@@ -427,6 +427,44 @@ When editing any form just read from disk, a check will appear in the _Forms lis
 
 ## Resizable Forms
 
+NAppGUI is prepared to support resizing of forms and windows. All calculation is done within the `layout.c` module of the SDK. If we want to see the behavior of our design in resizable windows, click the (![resize](./images/resize16.png)) `Simulate resizable form` icon. In our example case, we can see that the form does not behave as we would expect. By default, NAppGUI distributes the excess space proportionally between rows and columns.
+
+![resize1](./images/resize1.png)
+
+Although this form is not intended to be sizable, we are going to look for a better effect. In the vertical, we want it to only expand the button area, leaving the toolbar area and the data area fixed.
+
+* We select _Vertical Layout_ in the _Object Inspector_.
+
+* We go to `Row 2` and press the ![rowexp](./images/rowexp16.png) `Mark/unmark this row as expandable` button. What this causes is that only the third vertical cell (the one containing the button) expands horizontally.
+
+* Finally we select the `F2 = Save` button and in `Cell properties` we mark `VAlign: Top`. With this we force the button to always be aligned to the top edge of the 3rd vertical cell.
+
+* The behavior in the vertical has improved, but we would have a better effect if there was some type of view: TextView, ImageView, TableView, etc.
+
+    ![resize2](./images/resize2.png)
+
+    ![resize3](./images/resize3.png)
+
+    ![resize4](./images/resize4.png)
+
+* In the case of horizontal, we select _Grid Layout_ 2x6 in the _Object Inspector_.
+
+* In `Column 1`, we mark the ![colexp](./images/colexp16.png) button to indicate that only column 1 will be dimensionable, leaving column 0 (the one with the texts) fixed.
+
+* Finally we select the Edit Box and Combo Box next to the labels `Nombre da cidade` and `Unidade gestora centralizadora`.
+
+* In `Cell properties`, `HAling: Justify`. This will cause these edit boxes to no longer remain stuck to the left, but will expand to fill the entire width.
+
+    ![resize5](./images/resize5.png)
+
+    ![resize6](./images/resize6.png)
+
+    ![resize7](./images/resize7.png)
+
+Finally, an example of a form that is designed to be resizable.
+
+![resize8](./images/resize8.png)
+
 ## Property full list
 
 In the _Property Editor_ panel we can change the value of the element properties. Any changes will automatically be reflected in the canvas and simulation.
