@@ -25,6 +25,8 @@
     - [HBNAP_FORMS_MODAL](#hbnap_forms_modal)
     - [HBNAP_FORMS_MODAL_GTNAP](#hbnap_forms_modal_gtnap)
     - [HBNAP_FORMS_STOP_MODAL](#hbnap_forms_stop_modal)
+    - [HBNAP_FORMS_CONTROL_FRAME](#hbnap_forms_control_frame)
+    - [HBNAP_FORMS_UPDATE](#hbnap_forms_update)
     - [HBNAP_FORMS_MAIN_COVER](#hbnap_forms_main_cover)
 
 ## Introduction
@@ -385,6 +387,33 @@ HBNAP_FORMS_ONCLICK(O_MESSAGE, "button", {|| HBNAP_FORMS_STOP_MODAL(O_MESSAGE, 1
 
 PAR1: Form object.
 PAR2: Integer value that will be returned by HBNAP_FORMS_MODAL().
+```
+
+### HBNAP_FORMS_CONTROL_FRAME
+
+Returns the frame (position and size) of a form widget.
+
+```
+// Get the button frame in screen coordinates {x, y, width, height}
+LOCAL V_FRAME := HBNAP_FORMS_CONTROL_FRAME(O_FORM, "button_launchpopup")
+
+PAR1: Form object.
+PAR2: Widget cell name.
+RET: Widget frame
+    - RET[1] X pos in screen coordinates.
+    - RET[2] Y pos in screen coordinates.
+    - RET[3] Widget width.
+    - RET[4] Widget height.
+```
+
+### HBNAP_FORMS_UPDATE
+
+Actualiza la composición del formulario, en caso de que se haya realizado alguna opción que modifique su estructura. Por ejemplo, añadir una barra de menú.
+
+```
+HBNAP_FORMS_UPDATE(O_FORM)
+
+PAR1: Form object.
 ```
 
 ### HBNAP_FORMS_MAIN_COVER

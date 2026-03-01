@@ -5704,6 +5704,22 @@ void hbnap_forms_stop_modal(GtNapForm *form, const uint32_t value)
 
 /*---------------------------------------------------------------------------*/
 
+R2Df hbnap_forms_control_frame(GtNapForm *form, const char_t *cell)
+{
+    cassert_no_null(form);
+    return nform_get_control_frame(form->form, cell, form->window);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_update(GtNapForm *form)
+{
+    cassert_no_null(form);
+    window_update(form->window);
+}
+
+/*---------------------------------------------------------------------------*/
+
 typedef struct i_mainitem_t MainItem;
 typedef struct i_maindata_t MainData;
 

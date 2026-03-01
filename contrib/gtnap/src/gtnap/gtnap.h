@@ -225,6 +225,10 @@ extern uint32_t hbnap_forms_modal_gtnap(GtNapForm *form);
 
 extern void hbnap_forms_stop_modal(GtNapForm *form, const uint32_t value);
 
+R2Df hbnap_forms_control_frame(GtNapForm *form, const char_t *cell);
+
+extern void hbnap_forms_update(GtNapForm *form);
+
 extern void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const char_t *title, const char_t *logo_path, HB_ITEM *cover_items);
 
 /* --------------------------- */

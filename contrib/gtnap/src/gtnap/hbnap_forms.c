@@ -179,6 +179,28 @@ HB_FUNC(HBNAP_FORMS_STOP_MODAL)
 
 /*---------------------------------------------------------------------------*/
 
+HB_FUNC(HBNAP_FORMS_CONTROL_FRAME)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    const char_t *cell_name = hb_parcx(2);
+    R2Df frame = hbnap_forms_control_frame(form, cell_name);
+    hb_reta(4);
+    hb_storvnl((int32_t)frame.pos.x, -1, 1);
+    hb_storvnl((int32_t)frame.pos.y, -1, 2);
+    hb_storvnl((int32_t)frame.size.width, -1, 3);
+    hb_storvnl((int32_t)frame.size.height, -1, 4);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(HBNAP_FORMS_UPDATE)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    hbnap_forms_update(form);
+}
+
+/*---------------------------------------------------------------------------*/
+
 HB_FUNC(HBNAP_FORMS_MAIN_COVER)
 {
     GtNapForm *form = cast(hb_parptr(1), GtNapForm);

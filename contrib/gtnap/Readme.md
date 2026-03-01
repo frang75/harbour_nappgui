@@ -27,7 +27,7 @@ https://github.com/frang75/nappgui_src
     - [In Linux with Clang](#in-linux-with-clang)
     - [In macOS with Xcode](#in-macos-with-xcode)
 * [Using GTNap](#using-gtnap)
-* [Compile and run CUADEMO example](#compile-and-run-cuademo-example)
+* [Compile and run CUADEMO example](#compile-and-run-cualib-example)
 * [Harbour debugging](#harbour-debugging)
 * [Application ICON](#application-icon)
    - [Icon in Windows (and manifest)](#icon-in-windows-and-manifest)
