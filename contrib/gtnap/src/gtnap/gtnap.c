@@ -6058,7 +6058,7 @@ void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const ch
 
 /*---------------------------------------------------------------------------*/
 
-GtNapMenu *hb_gtnap_menu_create(void)
+GtNapMenu *hbnap_menu_create(void)
 {
     Menu *menu = menu_create();
     return cast(menu, GtNapMenu);
@@ -6104,7 +6104,7 @@ static void i_remove_menu_callbacks(Menu *menu)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_menu_destroy(GtNapMenu *menu)
+void hbnap_menu_destroy(GtNapMenu *menu)
 {
     i_remove_menu_callbacks(cast(menu, Menu));
     menu_destroy(dcast(&menu, Menu));
@@ -6112,21 +6112,21 @@ void hb_gtnap_menu_destroy(GtNapMenu *menu)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_menu_add_item(GtNapMenu *menu, GtNapMenuItem *item)
+void hbnap_menu_add_item(GtNapMenu *menu, GtNapMenuItem *item)
 {
     menu_add_item(cast(menu, Menu), cast(item, MenuItem));
 }
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_menu_ins_item(GtNapMenu *menu, const uint32_t pos, GtNapMenuItem *item)
+void hbnap_menu_ins_item(GtNapMenu *menu, const uint32_t pos, GtNapMenuItem *item)
 {
     menu_ins_item(cast(menu, Menu), pos, cast(item, MenuItem));
 }
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_menu_del_item(GtNapMenu *menu, const uint32_t pos)
+void hbnap_menu_del_item(GtNapMenu *menu, const uint32_t pos)
 {
     MenuItem *item = menu_get_item(cast(menu, Menu), pos);
     i_remove_item_callbacks(item);
@@ -6135,14 +6135,14 @@ void hb_gtnap_menu_del_item(GtNapMenu *menu, const uint32_t pos)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_menu_count(const GtNapMenu *menu)
+uint32_t hbnap_menu_count(const GtNapMenu *menu)
 {
     return menu_count(cast(menu, Menu));
 }
 
 /*---------------------------------------------------------------------------*/
 
-GtNapMenuItem *hb_gtnap_menu_get_item(GtNapMenu *menu, const uint32_t index)
+GtNapMenuItem *hbnap_menu_get_item(GtNapMenu *menu, const uint32_t index)
 {
     MenuItem *item = menu_get_item(cast(menu, Menu), index);
     return cast(item, GtNapMenuItem);
@@ -6150,7 +6150,7 @@ GtNapMenuItem *hb_gtnap_menu_get_item(GtNapMenu *menu, const uint32_t index)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_menubar(GtNapMenu *menu, GtNapForm *form)
+void hbnap_menubar(GtNapMenu *menu, GtNapForm *form)
 {
     cassert_no_null(form);
     osapp_menubar(cast(menu, Menu), form->window);
@@ -6158,14 +6158,14 @@ void hb_gtnap_menubar(GtNapMenu *menu, GtNapForm *form)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t hb_gtnap_is_menubar(const GtNapMenu *menu)
+bool_t hbnap_is_menubar(const GtNapMenu *menu)
 {
     return menu_is_menubar(cast_const(menu, Menu));
 }
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_menu_popup(GtNapMenu *menu, GtNapForm *form, const int32_t x, const int32_t y)
+void hbnap_menu_popup(GtNapMenu *menu, GtNapForm *form, const int32_t x, const int32_t y)
 {
     cassert_no_null(form);
     menu_launch(cast(menu, Menu), form->window, v2df((real32_t)x, (real32_t)y));
@@ -6203,7 +6203,7 @@ static Listener *i_gtnap_menu_listener(HB_ITEM *block, GtNapMenuItem *item)
 
 /*---------------------------------------------------------------------------*/
 
-GtNapMenuItem *hb_gtnap_menuitem_create(HB_ITEM *text_block, const char_t *icon_path, HB_ITEM *click_block)
+GtNapMenuItem *hbnap_menuitem_create(HB_ITEM *text_block, const char_t *icon_path, HB_ITEM *click_block)
 {
     MenuItem *item = menuitem_create();
     String *text = hb_block_to_utf8(text_block);
@@ -6230,7 +6230,7 @@ GtNapMenuItem *hb_gtnap_menuitem_create(HB_ITEM *text_block, const char_t *icon_
 
 /*---------------------------------------------------------------------------*/
 
-GtNapMenuItem *hb_gtnap_menuitem_separator(void)
+GtNapMenuItem *hbnap_menuitem_separator(void)
 {
     MenuItem *item = menuitem_separator();
     return cast(item, GtNapMenuItem);
@@ -6238,14 +6238,14 @@ GtNapMenuItem *hb_gtnap_menuitem_separator(void)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_menuitem_submenu(GtNapMenuItem *item, GtNapMenu *submenu)
+void hbnap_menuitem_submenu(GtNapMenuItem *item, GtNapMenu *submenu)
 {
     menuitem_submenu(cast(item, MenuItem), dcast(&submenu, Menu));
 }
 
 /*---------------------------------------------------------------------------*/
 
-String *hb_gtnap_menuitem_get_text(const GtNapMenuItem *item)
+String *hbnap_menuitem_get_text(const GtNapMenuItem *item)
 {
     const char_t *text = menuitem_get_text(cast_const(item, MenuItem));
     return i_utf8_to_cp_string(text);
@@ -6253,7 +6253,7 @@ String *hb_gtnap_menuitem_get_text(const GtNapMenuItem *item)
 
 /*---------------------------------------------------------------------------*/
 
-GtNapMenu *hb_gtnap_menuitem_get_submenu(GtNapMenuItem *item)
+GtNapMenu *hbnap_menuitem_get_submenu(GtNapMenuItem *item)
 {
     Menu *menu = menuitem_get_submenu(cast(item, MenuItem));
     return cast(menu, GtNapMenu);
