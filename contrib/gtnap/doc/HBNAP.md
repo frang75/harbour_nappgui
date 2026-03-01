@@ -3,6 +3,7 @@
 * [Introduction](#introduction)
 * [Build HBNAP](#build-hbnap)
 * [HBNAP Examples](#hbnap-api)
+* [HBNAP Menu](#hbnap-menu)
 * [UTF8 based](#utf8-based)
 * [Runtime connection](#runtime-connection)
 * [Data binding](#data-binding)
@@ -28,6 +29,22 @@
     - [HBNAP_FORMS_CONTROL_FRAME](#hbnap_forms_control_frame)
     - [HBNAP_FORMS_UPDATE](#hbnap_forms_update)
     - [HBNAP_FORMS_MAIN_COVER](#hbnap_forms_main_cover)
+* [HBNAP Menu API Reference](#hbnap-menu-api-reference)
+    - [HBNAP_MENU_CREATE](#hbnap_menu_create)
+    - [HBNAP_MENU_DESTROY](#hbnap_menu_destroy)
+    - [HBNAP_MENU_ADD_ITEM](#hbnap_menu_add_item)
+    - [HBNAP_MENU_INS_ITEM](#hbnap_menu_ins_item)
+    - [HBNAP_MENU_DEL_ITEM](#hbnap_menu_del_item)
+    - [HBNAP_MENU_COUNT](#hbnap_menu_count)
+    - [HBNAP_MENU_GET_ITEM](#hbnap_menu_get_item)
+    - [HBNAP_MENU_BAR](#hbnap_menu_bar)
+    - [HBNAP_MENU_IS_MENUBAR](#hbnap_menu_is_menubar)
+    - [HBNAP_MENU_POPUP](#hbnap_menu_popup)
+    - [HBNAP_MENUITEM_CREATE](#hbnap_menuitem_create)
+    - [HBNAP_MENUITEM_SEPARATOR](#hbnap_menuitem_separator)
+    - [HBNAP_MENUITEM_SUBMENU](#hbnap_menuitem_submenu)
+    - [HBNAP_MENUITEM_GET_TEXT](#hbnap_menuitem_get_text)
+    - [HBNAP_MENUITEM_GET_SUBMENU](#hbnap_menuitem_get_submenu)
 
 ## Introduction
 
@@ -51,7 +68,43 @@ bash ./build.sh -b [Debug|Release]
 
 Examples in Harbour on the use of the HBNAP API can be found in [exemplohbnap.prg](../tests/cuademo/gtnap_cualib/exemplohbnap.prg) and [exemplohbnap_company.prg](../tests/cuademo/gtnap_cualib/exemplohbnap_company.prg).
 
+To see the running examples, launch the application [Example](../Readme.md#compile-and-run-cualib-example). Then press the `HBNAP support` option and in the interactive menu press `Orçamento`. This will launch the forms implemented in the files cited above.
+
 ![hbnap1](./images/hbnap1.png)
+
+## HBNAP Menu
+
+HBNAP provides an API to create dynamic menus and submenus at runtime. In the [Example](../Readme.md#compile-and-run-cualib-example) application, press the `HBNAP support` option and in the interactive menu press `Contábil SIAFIC (Check Menus)`. This will display an HBNAP form where you can interact with the HBNAP Menu API. You have the implementation of this example in [exemplohbnap_menu.prg](../tests/cuademo/gtnap_cualib/exemplohbnap_menu.prg).
+
+![hbnapmenu1](./images/hbnap_menu1.png)
+
+![hbnapmenu2](./images/hbnap_menu2.png)
+
+A menu can take the role of the HBNAP forms main menu (menubar) or be launched as a context menu (popup-menu). A menu is made up of several options (MenuItems). A MenuItem, in turn, can contain a submenu, forming a tree-like hierarchy. The API is quite intuitive and is based on four functions that allow you to create menu trees recursively.
+
+```
+// Create the menu containers
+LOCAL O_MAINMENU := HBNAP_MENU_CREATE()
+LOCAL O_FILEMENU := HBNAP_MENU_CREATE()
+
+// Create the menu items
+LOCAL O_MAINITEM1 := HBNAP_MENUITEM_CREATE("File", NIL, NIL)
+LOCAL O_FILEITEM1 := HBNAP_MENUITEM_CREATE("Open", DIRET_FORMS() + "icons/open.png", {| O_ITEM | ITEM_CLICKED(O_FORM, O_ITEM)})
+LOCAL O_FILEITEM2 := HBNAP_MENUITEM_CREATE("Save", DIRET_FORMS() + "icons/save.png", {| O_ITEM | ITEM_CLICKED(O_FORM, O_ITEM)})
+LOCAL O_FILEITEM3 := HBNAP_MENUITEM_CREATE("Exit", DIRET_FORMS() + "icons/exit.png", {| O_ITEM | ITEM_CLICKED(O_FORM, O_ITEM)})
+
+// Add items to menu
+HBNAP_MENU_ADD_ITEM(O_FILEMENU, O_FILEITEM1)
+HBNAP_MENU_ADD_ITEM(O_FILEMENU, O_FILEITEM2)
+HBNAP_MENU_ADD_ITEM(O_FILEMENU, HBNAP_MENUITEM_SEPARATOR())
+HBNAP_MENU_ADD_ITEM(O_FILEMENU, O_FILEITEM3)
+
+// Recursion: Add a submenu to an item
+HBNAP_MENUITEM_SUBMENU(O_MAINITEM1, O_FILEMENU)
+
+// Add a item with submenu to a main menu
+HBNAP_MENU_ADD_ITEM(O_MAINMENU, O_MAINITEM1)
+```
 
 ## UTF8 based
 
@@ -455,202 +508,112 @@ PAR5: Item list.
 
 ![hbnap10](./images/hbnap10.png)
 
+## HBNAP Menu API Reference
 
-# Menu API
-
-GTNAP-FORMS includes an API for creating and modifying menus at runtime. A menu can take the role of the application's main menu (menubar) or be launched as a context menu (popup-menu). A menu is made up of several options (MenuItems). A MenuItem, in turn, can contain a submenu, forming a tree-like hierarchy.
-
-## Menu example
-
-![example_menu](https://github.com/user-attachments/assets/e96be2ae-435d-4607-b340-0a235383e24d)
-
-```
-*******************************************
-STAT FUNCTION EXAMPLE_APP_DYN_MENU(V_FORM)
-*******************************************
-// Main menu
-LOCAL O_MAINMENU := NAP_DMENU_CREATE()
-// Submenus
-LOCAL O_FILEMENU := NAP_DMENU_CREATE()
-LOCAL O_NAVMENU := NAP_DMENU_CREATE()
-LOCAL O_SERVMENU := NAP_DMENU_CREATE()
-LOCAL O_LANGMENU := NAP_DMENU_CREATE()
-LOCAL O_HELPMENU := NAP_DMENU_CREATE()
-// Items (clickable)
-LOCAL O_MAINITEM1 := NAP_DMENUITEM_CREATE("File", NIL, NIL)
-LOCAL O_MAINITEM2 := NAP_DMENUITEM_CREATE("Navigate", NIL, NIL)
-LOCAL O_MAINITEM3 := NAP_DMENUITEM_CREATE("Server", NIL, NIL)
-LOCAL O_MAINITEM4 := NAP_DMENUITEM_CREATE("Language", NIL, NIL)
-LOCAL O_MAINITEM5 := NAP_DMENUITEM_CREATE("Help", NIL, NIL)
-LOCAL O_FILEITEM1 := NAP_DMENUITEM_CREATE("Open", DIRET_FORMS() + "icons/open.png", {| O_ITEM | ITEM_CLICKED(V_FORM, O_ITEM)})
-LOCAL O_FILEITEM2 := NAP_DMENUITEM_CREATE("Save", DIRET_FORMS() + "icons/save.png", {| O_ITEM | ITEM_CLICKED(V_FORM, O_ITEM)})
-LOCAL O_FILEITEM3 := NAP_DMENUITEM_CREATE("Exit", DIRET_FORMS() + "icons/exit.png", {| O_ITEM | ITEM_CLICKED(V_FORM, O_ITEM)})
-LOCAL O_NAVITEM1 := NAP_DMENUITEM_CREATE("First", DIRET_FORMS() + "icons/first.png", {| O_ITEM | ITEM_CLICKED(V_FORM, O_ITEM)})
-LOCAL O_NAVITEM2 := NAP_DMENUITEM_CREATE("Back", DIRET_FORMS() + "icons/back.png", {| O_ITEM | ITEM_CLICKED(V_FORM, O_ITEM)})
-LOCAL O_NAVITEM3 := NAP_DMENUITEM_CREATE("Next", DIRET_FORMS() + "icons/next.png", {| O_ITEM | ITEM_CLICKED(V_FORM, O_ITEM)})
-LOCAL O_NAVITEM4 := NAP_DMENUITEM_CREATE("Last", DIRET_FORMS() + "icons/last.png", {| O_ITEM | ITEM_CLICKED(V_FORM, O_ITEM)})
-LOCAL O_SERVITEM1 := NAP_DMENUITEM_CREATE("Login", DIRET_FORMS() + "icons/login.png", {| O_ITEM | ITEM_CLICKED(V_FORM, O_ITEM)})
-LOCAL O_SERVITEM2 := NAP_DMENUITEM_CREATE("Logout", DIRET_FORMS() + "icons/logout.png", {| O_ITEM | ITEM_CLICKED(V_FORM, O_ITEM)})
-LOCAL O_SERVITEM3 := NAP_DMENUITEM_CREATE("Settings", DIRET_FORMS() + "icons/settings.png", {| O_ITEM | ITEM_CLICKED(V_FORM, O_ITEM)})
-LOCAL O_LANGITEM1 := NAP_DMENUITEM_CREATE("English", DIRET_FORMS() + "icons/usa.png", {| O_ITEM | ITEM_CLICKED(V_FORM, O_ITEM)})
-LOCAL O_LANGITEM2 := NAP_DMENUITEM_CREATE("Portuguese", DIRET_FORMS() + "icons/portugal.png", {| O_ITEM | ITEM_CLICKED(V_FORM, O_ITEM)})
-LOCAL O_LANGITEM3 := NAP_DMENUITEM_CREATE("Spanish", DIRET_FORMS() + "icons/spain.png", {| O_ITEM | ITEM_CLICKED(V_FORM, O_ITEM)})
-LOCAL O_LANGITEM4 := NAP_DMENUITEM_CREATE("Italian", DIRET_FORMS() + "icons/italy.png", {| O_ITEM | ITEM_CLICKED(V_FORM, O_ITEM)})
-LOCAL O_LANGITEM5 := NAP_DMENUITEM_CREATE("Japanese", DIRET_FORMS() + "icons/japan.png", {| O_ITEM | ITEM_CLICKED(V_FORM, O_ITEM)})
-LOCAL O_LANGITEM6 := NAP_DMENUITEM_CREATE("Russian", DIRET_FORMS() + "icons/russia.png", {| O_ITEM | ITEM_CLICKED(V_FORM, O_ITEM)})
-LOCAL O_LANGITEM7 := NAP_DMENUITEM_CREATE("Vietnamese", DIRET_FORMS() + "icons/vietnam.png", {| O_ITEM | ITEM_CLICKED(V_FORM, O_ITEM)})
-LOCAL O_HELPITEM1 := NAP_DMENUITEM_CREATE("About", DIRET_FORMS() + "icons/about.png", {| O_ITEM | ITEM_CLICKED(V_FORM, O_ITEM)})
-
-// Add items to each menu
-NAP_DMENU_ADD_ITEM(O_FILEMENU, O_FILEITEM1)
-NAP_DMENU_ADD_ITEM(O_FILEMENU, O_FILEITEM2)
-NAP_DMENU_ADD_ITEM(O_FILEMENU, NAP_DMENUITEM_SEPARATOR())
-NAP_DMENU_ADD_ITEM(O_FILEMENU, O_FILEITEM3)
-
-NAP_DMENU_ADD_ITEM(O_NAVMENU, O_NAVITEM1)
-NAP_DMENU_ADD_ITEM(O_NAVMENU, O_NAVITEM2)
-NAP_DMENU_ADD_ITEM(O_NAVMENU, O_NAVITEM3)
-NAP_DMENU_ADD_ITEM(O_NAVMENU, O_NAVITEM4)
-
-NAP_DMENU_ADD_ITEM(O_SERVMENU, O_SERVITEM1)
-NAP_DMENU_ADD_ITEM(O_SERVMENU, O_SERVITEM2)
-NAP_DMENU_ADD_ITEM(O_SERVMENU, NAP_DMENUITEM_SEPARATOR())
-NAP_DMENU_ADD_ITEM(O_SERVMENU, O_SERVITEM3)
-
-NAP_DMENU_ADD_ITEM(O_LANGMENU, O_LANGITEM1)
-NAP_DMENU_ADD_ITEM(O_LANGMENU, O_LANGITEM2)
-NAP_DMENU_ADD_ITEM(O_LANGMENU, NAP_DMENUITEM_SEPARATOR())
-NAP_DMENU_ADD_ITEM(O_LANGMENU, O_LANGITEM3)
-NAP_DMENU_ADD_ITEM(O_LANGMENU, O_LANGITEM4)
-NAP_DMENU_ADD_ITEM(O_LANGMENU, O_LANGITEM5)
-NAP_DMENU_ADD_ITEM(O_LANGMENU, O_LANGITEM6)
-NAP_DMENU_ADD_ITEM(O_LANGMENU, O_LANGITEM7)
-
-NAP_DMENU_ADD_ITEM(O_HELPMENU, O_HELPITEM1)
-
-// Link submenus with main menu items
-NAP_DMENUITEM_SUBMENU(O_MAINITEM1, O_FILEMENU)
-NAP_DMENUITEM_SUBMENU(O_MAINITEM2, O_NAVMENU)
-NAP_DMENUITEM_SUBMENU(O_MAINITEM3, O_SERVMENU)
-NAP_DMENUITEM_SUBMENU(O_MAINITEM4, O_LANGMENU)
-NAP_DMENUITEM_SUBMENU(O_MAINITEM5, O_HELPMENU)
-
-// Add main menu items to main menu
-NAP_DMENU_ADD_ITEM(O_MAINMENU, O_MAINITEM1)
-NAP_DMENU_ADD_ITEM(O_MAINMENU, O_MAINITEM2)
-NAP_DMENU_ADD_ITEM(O_MAINMENU, O_MAINITEM3)
-NAP_DMENU_ADD_ITEM(O_MAINMENU, O_MAINITEM4)
-NAP_DMENU_ADD_ITEM(O_MAINMENU, O_MAINITEM5)
-
-RETURN O_MAINMENU
-```
-
-## Function description
-
-### NAP_DMENU_CREATE
+### HBNAP_MENU_CREATE
 
 Create a new empty menu.
 
 ```
-LOCAL O_MENU := NAP_DMENU_CREATE()
+LOCAL O_MENU := HBNAP_MENU_CREATE()
 
 RET: The menu object.
 ```
 
-### NAP_DMENU_DESTROY
+### HBNAP_MENU_DESTROY
 
 Destroy the menu. All items and submenus will be recursively destroyed. The destructor only needs to be called with the main menu.
 
 ```
-NAP_DMENU_DESTROY(O_MENU)
+HBNAP_MENU_DESTROY(O_MENU)
 
 PAR1: Menu object to destroy.
 ```
 
-### NAP_DMENU_ADD_ITEM
+### HBNAP_MENU_ADD_ITEM
 
 Adds a new MenuItem at the end of menu.
 
 ```
-NAP_DMENU_ADD_ITEM(O_MENU, O_ITEM)
+HBNAP_MENU_ADD_ITEM(O_MENU, O_ITEM)
 
 PAR1: Menu object.
 PAR2: Item object.
 ```
 
-### NAP_DMENU_INS_ITEM
+### HBNAP_MENU_INS_ITEM
 
 Inserts a new MenuItem at an arbitrary position in the menu.
 
 ```
-NAP_DMENU_INS_ITEM(O_MENU, 2, O_ITEM)
+HBNAP_MENU_INS_ITEM(O_MENU, 2, O_ITEM)
 
 PAR1: Menu object.
 PAR2: Position (1 = First).
 PAR3: Item object.
 ```
 
-### NAP_DMENU_DEL_ITEM
+### HBNAP_MENU_DEL_ITEM
 
 Removes a MenuItem from its position. The item and all associated submenus will be destroyed.
 
 ```
-NAP_DMENU_DEL_ITEM(O_MENU, 2)
+HBNAP_MENU_DEL_ITEM(O_MENU, 2)
 
 PAR1: Menu object.
 PAR2: Position (1 = First).
 ```
 
-### NAP_DMENU_COUNT
+### HBNAP_MENU_COUNT
 
 Returns the number of menu items.
 
 ```
-LOCAL N_Size := NAP_DMENU_COUNT(O_MENU)
+LOCAL N_Size := HBNAP_MENU_COUNT(O_MENU)
 
 PAR1: Menu object.
 RET: The number of menu items.
 ```
 
-### NAP_DMENU_GET_ITEM
+### HBNAP_MENU_GET_ITEM
 
 Gets a menuitem from its position.
 
 ```
-LOCAL O_ITEM := NAP_DMENU_GET_ITEM(O_MENU, 2)
+LOCAL O_ITEM := HBNAP_MENU_GET_ITEM(O_MENU, 2)
 
 PAR1: Menu object.
 PAR2: Position (1 = First).
 RET: The MenuItem object.
 ```
 
-### NAP_DMENU_BAR
+### HBNAP_MENU_BAR
 
 Sets a menu as the main menu bar. An active form must be passed, since in Windows and Linux the menubars are linked to a window.
 
 ```
-NAP_DMENU_BAR(O_MENU, V_FORM)
+HBNAP_MENU_BAR(O_MENU, O_FORM)
 
 PAR1: Menu object. If NIL, any previous menubar will be unlinked from the form.
-PAR2: Parent GTNAP-Form.
+PAR2: Parent HBNAP-Form.
 ```
 
-### NAP_DMENU_IS_MENUBAR
+### HBNAP_MENU_IS_MENUBAR
 
 Returns .T. if the menu is currently set as the main menu bar.
 
 ```
-LOCAL L_ISBAR := NAP_DMENU_IS_MENUBAR(O_MENU)
+LOCAL L_ISBAR := HBNAP_MENU_IS_MENUBAR(O_MENU)
 
-PAR1: Menu object. If NIL, any previous menubar will be unlinked from the form.
+PAR1: Menu object.
 ```
 
-### NAP_DMENU_POPUP
+### HBNAP_MENU_POPUP
 
 Launches a menu as a pop-up (contextual menu). The menu must NOT have the role of menubar.
 
 ```
-NAP_DMENU_POPUP(O_MENU, V_FORM, 200, 100)
+HBNAP_MENU_POPUP(O_MENU, V_FORM, 200, 100)
 
 PAR1: Menu object.
 PAR2: Parent form.
@@ -658,57 +621,57 @@ PAR3: X coordinate of left-top corner in screen space.
 PAR4: Y coordinate of left-top corner in screen space.
 ```
 
-### NAP_DMENUITEM_CREATE
+### HBNAP_MENUITEM_CREATE
 
 Create a new MenuItem.
 
 ```
-LOCAL O_OPENITEM := NAP_DMENUITEM_CREATE("Open", "open.png", {| O_ITEM | ITEM_CLICKED(V_FORM, O_ITEM)})
+LOCAL O_OPENITEM := HBNAP_MENUITEM_CREATE("Open", "open.png", {| O_ITEM | ITEM_CLICKED(V_FORM, O_ITEM)})
 
-PAR1: Item text.
+PAR1: Item text in UTF8.
 PAR2: Icon path. If NIL no icon will shown.
 PAR3: Code block for click action. A reference to clicked item will always send to the callback.
 RET: The MenuItem
 ```
 
-### NAP_DMENUITEM_SEPARATOR
+### HBNAP_MENUITEM_SEPARATOR
 
 Create a new separator item.
 
 ```
-LOCAL O_SEPITEM := NAP_DMENUITEM_SEPARATOR()
+LOCAL O_SEPITEM := HBNAP_MENUITEM_SEPARATOR()
 
 RET: The separator MenuItem
 ```
 
-### NAP_DMENUITEM_SUBMENU
+### HBNAP_MENUITEM_SUBMENU
 
 Adds a submenu to a MenuItem
 
 ```
-NAP_DMENUITEM_SUBMENU(O_ITEM, O_SUBMENU)
+HBNAP_MENUITEM_SUBMENU(O_ITEM, O_SUBMENU)
 
 PAR1: The MenuItem
 PAR2: The submenu to add.
 ```
 
-### NAP_DMENUITEM_GET_TEXT
+### HBNAP_MENUITEM_GET_TEXT
 
 Gets the current text of a menu item.
 
 ```
-LOCAL C_TEXT := NAP_DMENUITEM_GET_TEXT(O_ITEM)
+LOCAL C_TEXT := HBNAP_MENUITEM_GET_TEXT(O_ITEM)
 
 PAR1: The MenuItem
 RET: The current text.
 ```
 
-### NAP_DMENUITEM_GET_SUBMENU
+### HBNAP_MENUITEM_GET_SUBMENU
 
 Gets the current submenu of a menu item.
 
 ```
-LOCAL O_SUBMENU := NAP_DMENUITEM_GET_SUBMENU(O_ITEM)
+LOCAL O_SUBMENU := HBNAP_MENUITEM_GET_SUBMENU(O_ITEM)
 
 PAR1: The MenuItem
 RET: The current submenu.
