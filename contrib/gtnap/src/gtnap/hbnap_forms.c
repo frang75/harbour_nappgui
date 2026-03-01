@@ -1,7 +1,6 @@
 /*
-* GTNAP Forms API. Support for new full graphics applications.
-* New API, not valid for semi-graphic applications
-*/
+ * HBNAP Forms API. Support for new full graphics applications.
+ */
 
 #include "gtnap.h"
 #include "gtnap.inl"

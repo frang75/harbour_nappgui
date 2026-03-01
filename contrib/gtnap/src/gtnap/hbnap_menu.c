@@ -1,8 +1,6 @@
 /*
-    This is part of gtnap
-    TODO: More info
-*/
-/* Dynamic menus support for GTNAP-Forms */
+ * HBNAP Forms API. Dynamic menus support
+ */
 
 #include "gtnap.h"
 #include "gtnap.inl"
@@ -12,7 +10,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-HB_FUNC(NAP_DMENU_CREATE)
+HB_FUNC(HBNAP_MENU_CREATE)
 {
     GtNapMenu *menu = hbnap_menu_create();
     hb_retptr(menu);
@@ -20,7 +18,7 @@ HB_FUNC(NAP_DMENU_CREATE)
 
 /*---------------------------------------------------------------------------*/
 
-HB_FUNC(NAP_DMENU_DESTROY)
+HB_FUNC(HBNAP_MENU_DESTROY)
 {
     GtNapMenu *menu = cast(hb_parptr(1), GtNapMenu);
     hbnap_menu_destroy(menu);
@@ -28,7 +26,7 @@ HB_FUNC(NAP_DMENU_DESTROY)
 
 /*---------------------------------------------------------------------------*/
 
-HB_FUNC(NAP_DMENU_ADD_ITEM)
+HB_FUNC(HBNAP_MENU_ADD_ITEM)
 {
     GtNapMenu *menu = cast(hb_parptr(1), GtNapMenu);
     GtNapMenuItem *item = cast(hb_parptr(2), GtNapMenuItem);
@@ -37,7 +35,7 @@ HB_FUNC(NAP_DMENU_ADD_ITEM)
 
 /*---------------------------------------------------------------------------*/
 
-HB_FUNC(NAP_DMENU_INS_ITEM)
+HB_FUNC(HBNAP_MENU_INS_ITEM)
 {
     GtNapMenu *menu = cast(hb_parptr(1), GtNapMenu);
     uint32_t pos = (uint32_t)hb_parni(2);
@@ -47,7 +45,7 @@ HB_FUNC(NAP_DMENU_INS_ITEM)
 
 /*---------------------------------------------------------------------------*/
 
-HB_FUNC(NAP_DMENU_DEL_ITEM)
+HB_FUNC(HBNAP_MENU_DEL_ITEM)
 {
     GtNapMenu *menu = cast(hb_parptr(1), GtNapMenu);
     uint32_t pos = (uint32_t)hb_parni(2);
@@ -56,7 +54,7 @@ HB_FUNC(NAP_DMENU_DEL_ITEM)
 
 /*---------------------------------------------------------------------------*/
 
-HB_FUNC(NAP_DMENU_COUNT)
+HB_FUNC(HBNAP_MENU_COUNT)
 {
     GtNapMenu *menu = cast(hb_parptr(1), GtNapMenu);
     uint32_t n = hbnap_menu_count(menu);
@@ -65,7 +63,7 @@ HB_FUNC(NAP_DMENU_COUNT)
 
 /*---------------------------------------------------------------------------*/
 
-HB_FUNC(NAP_DMENU_GET_ITEM)
+HB_FUNC(HBNAP_MENU_GET_ITEM)
 {
     GtNapMenu *menu = cast(hb_parptr(1), GtNapMenu);
     uint32_t index = (uint32_t)hb_parni(2);
@@ -75,7 +73,7 @@ HB_FUNC(NAP_DMENU_GET_ITEM)
 
 /*---------------------------------------------------------------------------*/
 
-HB_FUNC(NAP_DMENU_BAR)
+HB_FUNC(HBNAP_MENU_BAR)
 {
     GtNapMenu *menu = cast(hb_parptr(1), GtNapMenu);
     GtNapForm *form = cast(hb_parptr(2), GtNapForm);
@@ -84,7 +82,7 @@ HB_FUNC(NAP_DMENU_BAR)
 
 /*---------------------------------------------------------------------------*/
 
-HB_FUNC(NAP_DMENU_IS_MENUBAR)
+HB_FUNC(HBNAP_MENU_IS_MENUBAR)
 {
     GtNapMenu *menu = cast(hb_parptr(1), GtNapMenu);
     bool_t isbar = hbnap_is_menubar(menu);
@@ -93,7 +91,7 @@ HB_FUNC(NAP_DMENU_IS_MENUBAR)
 
 /*---------------------------------------------------------------------------*/
 
-HB_FUNC(NAP_DMENU_POPUP)
+HB_FUNC(HBNAP_MENU_POPUP)
 {
     GtNapMenu *menu = cast(hb_parptr(1), GtNapMenu);
     GtNapForm *form = cast(hb_parptr(2), GtNapForm);
@@ -104,7 +102,7 @@ HB_FUNC(NAP_DMENU_POPUP)
 
 /*---------------------------------------------------------------------------*/
 
-HB_FUNC(NAP_DMENUITEM_CREATE)
+HB_FUNC(HBNAP_MENUITEM_CREATE)
 {
     HB_ITEM *text_block = hb_param(1, HB_IT_BLOCK | HB_IT_STRING);
     const char_t *icon_path = hb_parcx(2);
@@ -115,7 +113,7 @@ HB_FUNC(NAP_DMENUITEM_CREATE)
 
 /*---------------------------------------------------------------------------*/
 
-HB_FUNC(NAP_DMENUITEM_SEPARATOR)
+HB_FUNC(HBNAP_MENUITEM_SEPARATOR)
 {
     GtNapMenuItem *item = hbnap_menuitem_separator();
     hb_retptr(item);
@@ -123,7 +121,7 @@ HB_FUNC(NAP_DMENUITEM_SEPARATOR)
 
 /*---------------------------------------------------------------------------*/
 
-HB_FUNC(NAP_DMENUITEM_SUBMENU)
+HB_FUNC(HBNAP_MENUITEM_SUBMENU)
 {
     GtNapMenuItem *item = cast(hb_parptr(1), GtNapMenuItem);
     GtNapMenu *submenu = cast(hb_parptr(2), GtNapMenu);
@@ -132,7 +130,7 @@ HB_FUNC(NAP_DMENUITEM_SUBMENU)
 
 /*---------------------------------------------------------------------------*/
 
-HB_FUNC(NAP_DMENUITEM_GET_TEXT)
+HB_FUNC(HBNAP_MENUITEM_GET_TEXT)
 {
     GtNapMenuItem *item = cast(hb_parptr(1), GtNapMenuItem);
     String *text = hbnap_menuitem_get_text(item);
@@ -142,7 +140,7 @@ HB_FUNC(NAP_DMENUITEM_GET_TEXT)
 
 /*---------------------------------------------------------------------------*/
 
-HB_FUNC(NAP_DMENUITEM_GET_SUBMENU)
+HB_FUNC(HBNAP_MENUITEM_GET_SUBMENU)
 {
     GtNapMenuItem *item = cast(hb_parptr(1), GtNapMenuItem);
     GtNapMenu *menu = hbnap_menuitem_get_submenu(item);
