@@ -104,10 +104,10 @@ HB_FUNC(HBNAP_MENU_POPUP)
 
 HB_FUNC(HBNAP_MENUITEM_CREATE)
 {
-    HB_ITEM *text_block = hb_param(1, HB_IT_BLOCK | HB_IT_STRING);
+    const char_t *text = hb_parcx(1);
     const char_t *icon_path = hb_parcx(2);
     HB_ITEM *click_block = hb_param(3, HB_IT_BLOCK);
-    GtNapMenuItem *item = hbnap_menuitem_create(text_block, icon_path, click_block);
+    GtNapMenuItem *item = hbnap_menuitem_create(text, icon_path, click_block);
     hb_retptr(item);
 }
 
@@ -133,9 +133,8 @@ HB_FUNC(HBNAP_MENUITEM_SUBMENU)
 HB_FUNC(HBNAP_MENUITEM_GET_TEXT)
 {
     GtNapMenuItem *item = cast(hb_parptr(1), GtNapMenuItem);
-    String *text = hbnap_menuitem_get_text(item);
-    hb_retc(tc(text));
-    str_destroy(&text);
+    const char_t *text = hbnap_menuitem_get_text(item);
+    hb_retc(text);
 }
 
 /*---------------------------------------------------------------------------*/

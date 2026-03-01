@@ -6219,11 +6219,10 @@ static Listener *i_gtnap_menu_listener(HB_ITEM *block, GtNapMenuItem *item)
 
 /*---------------------------------------------------------------------------*/
 
-GtNapMenuItem *hbnap_menuitem_create(HB_ITEM *text_block, const char_t *icon_path, HB_ITEM *click_block)
+GtNapMenuItem *hbnap_menuitem_create(const char_t *text, const char_t *icon_path, HB_ITEM *click_block)
 {
     MenuItem *item = menuitem_create();
-    String *text = hb_block_to_utf8(text_block);
-    menuitem_text(item, tc(text));
+    menuitem_text(item, text);
 
     if (str_empty_c(icon_path) == FALSE)
     {
@@ -6240,7 +6239,6 @@ GtNapMenuItem *hbnap_menuitem_create(HB_ITEM *text_block, const char_t *icon_pat
         menuitem_OnClick(item, listener);
     }
 
-    str_destroy(&text);
     return cast(item, GtNapMenuItem);
 }
 
@@ -6261,10 +6259,9 @@ void hbnap_menuitem_submenu(GtNapMenuItem *item, GtNapMenu *submenu)
 
 /*---------------------------------------------------------------------------*/
 
-String *hbnap_menuitem_get_text(const GtNapMenuItem *item)
+const char_t *hbnap_menuitem_get_text(const GtNapMenuItem *item)
 {
-    const char_t *text = menuitem_get_text(cast_const(item, MenuItem));
-    return i_utf8_to_cp_string(text);
+    return menuitem_get_text(cast_const(item, MenuItem));
 }
 
 /*---------------------------------------------------------------------------*/

@@ -254,13 +254,13 @@ extern bool_t hbnap_is_menubar(const GtNapMenu *menu);
 
 extern void hbnap_menu_popup(GtNapMenu *menu, GtNapForm *form, const int32_t x, const int32_t y);
 
-extern GtNapMenuItem *hbnap_menuitem_create(HB_ITEM *text_block, const char_t *icon_path, HB_ITEM *click_block);
+extern GtNapMenuItem *hbnap_menuitem_create(const char_t *text, const char_t *icon_path, HB_ITEM *click_block);
 
 extern GtNapMenuItem *hbnap_menuitem_separator(void);
 
 extern void hbnap_menuitem_submenu(GtNapMenuItem *item, GtNapMenu *submenu);
 
-extern String *hbnap_menuitem_get_text(const GtNapMenuItem *item);
+extern const char_t *hbnap_menuitem_get_text(const GtNapMenuItem *item);
 
 extern GtNapMenu *hbnap_menuitem_get_submenu(GtNapMenuItem *item);
 
