@@ -40,12 +40,59 @@ HBNAP_FORMS_SET_TEXT(O_MAINWINDOW, "version", "New Versão 28.1h(b765)-S09999")
 
 ![hbnap4](./images/hbnap4.png)
 
+## Data binding
+
+For the form to be truly practical, we must be able to "map" variables in Harbour with widgets within the form (for example EditBox). As we have already indicated, this binding will be done through the cell identifiers (Cell Name) and the `HBNAP_FORMS_BIND()` function
+
+```
+LOCAL O_EMPRESA := { empresas->uf, empresas->codcid, empresas->cidade, empresas->codent, empresas->gestora }
+LOCAL V_BIND := { ;
+                    {"uf_combo", @O_EMPRESA[1] }, ;
+                    {"codcid_edit", @O_EMPRESA[2] }, ;
+                    {"cidade_combo", @O_EMPRESA[3] }, ;
+                    {"codent_edit", @O_EMPRESA[4] }, ;
+                    {"gestora_edit", @O_EMPRESA[5] } ;
+
+// Maps O_EMPRESA vector to form widgets
+HBNAP_FORMS_BIND(O_FORM, V_BIND)
+...
+// Recovery data from form to O_EMPRESA vector
+HBNAP_FORMS_BIND_STORE(O_FORM)
+```
+
+![hbnap5](./images/hbnap5.png)
+
+## Area binding (TableView)
+
+In addition to binding widgets with variables, we can bind a database with a data view (TableView). To do this we will use the `HBNAP_FORMS_AREA_BIND()` function.
+
+```
+LOCAL V_DBBIND := { ;
+    "table", ;
+     { {|| empresas->uf} }, ;
+     { {|| empresas->codcid} }, ;
+     { {|| empresas->cidade} }, ;
+     { {|| empresas->gestora} }, ;
+     { {|| "Principal"} } ;
+}
+
+USE ../dados/empresas NEW SHARED
+GOTO TOP
+
+HBNAP_FORMS_AREA_BIND(O_FORM, V_DBBIND)
+```
+
+The first value of the `V_DBBIND` vector will be the `cellName` that contains the `TableView` control. The subsequent values ??will correspond to the code blocks that will be executed for each column of the table, for each record in the database.
+
+![hbnap6](./images/hbnap6.png)
+
+![hbnap7](./images/hbnap7.png)
+
 ## HBNAP API Reference
 
 ### HBNAP_FORMS_LOAD
 
 Loads a form from a `*.nfm` file on disk. These types of files are created using NAppGUI Designer.
-
 
 ```
 LOCAL O_FORM := HBNAP_FORMS_LOAD(DIRET_FORMS() + "Company_detail.nfm", DIRET_FORMS(), hb_bitOr(HBNAP_FORMS_RESIZABLE, HBNAP_FORMS_CLOSE_ON_ESC, HBNAP_FORMS_CLOSE_ON_RETURN))
@@ -116,6 +163,91 @@ PAR2: Cell name.
 PAR3: Text string in UTF8.
 ```
 
+### HBNAP_FORMS_BIND
+
+Binds a vector of pairs (id-variable) to the form. See [Data Binding](#data-binding).
+
+```
+LOCAL O_EMPRESA := { empresas->uf, empresas->codcid, empresas->cidade, empresas->codent, empresas->gestora }
+LOCAL V_BIND := { ;
+                    {"uf_combo", @O_EMPRESA[1] }, ;
+                    {"codcid_edit", @O_EMPRESA[2] }, ;
+                    {"cidade_combo", @O_EMPRESA[3] }, ;
+                    {"codent_edit", @O_EMPRESA[4] }, ;
+                    {"gestora_edit", @O_EMPRESA[5] } ;
+
+HBNAP_FORMS_BIND(O_FORM, V_BIND)
+
+PAR1: Form object.
+PAR2: Pair vector (cellId-variable)
+```
+
+### HBNAP_FORMS_BIND_STORE
+
+For those variables passed by reference to `HBNAP_FORMS_BIND()`, this function updates the value of the variable with the contents of the widget.
+
+```
+HBNAP_FORMS_BIND_STORE(O_FORM)
+
+PAR1: Form object.
+```
+
+### HBNAP_FORMS_AREA_BIND
+
+Links a `TableView` control on the form to a Harbour database. See [Area Binding](#area-binding-tableview).
+
+```
+LOCAL V_DBBIND := { ;
+    "table", ;
+     { {|| empresas->uf} }, ;
+     { {|| empresas->codcid} }, ;
+     { {|| empresas->cidade} }, ;
+     { {|| empresas->gestora} }, ;
+     { {|| "Principal"} } ;
+}
+
+USE ../dados/empresas NEW SHARED
+GOTO TOP
+
+HBNAP_FORMS_AREA_BIND(O_FORM, V_DBBIND)
+
+PAR1: Form object.
+PAR2: Vector. First element is the TableView cellName. The other elements will contain the code block to execute on each column of the table.
+```
+
+### HBNAP_FORMS_AREA_REFRESH
+
+Refreshes the `TableView` control linked to a database in Harbour. This function must be called after having made changes from Harbour code, so that these are reflected in the table.
+
+```
+HBNAP_FORMS_AREA_REFRESH(O_FORM)
+
+PAR1: Form object.
+```
+
+### HBNAP_FORMS_AREA_RECNO
+
+Gets the record number (`recno`) currently selected in a `TableView` linked to a database.
+
+```
+LOCAL SRECNO := HBNAP_FORMS_AREA_RECNO(O_PARENT_FORM)
+IF SRECNO != -1
+    GO SRECNO
+    FORM_EMPRESA_DETAIL("Alterar de empresa", O_PARENT_FORM)
+    HBNAP_FORMS_AREA_REFRESH(O_PARENT_FORM)
+ENDIF
+
+PAR1: Form object.
+RET: The current selected recno.
+```
+
+
+
+
+
+
+
+When the form is launched with `NAP_FORM_MODAL()`, the value of the variables will be automatically mapped to the widgets. If the user changes any value, it will NOT be written back until we call `NAP_FORM_DBIND_STORE()`.
 
 
 ### NAP_FORM_MODAL
