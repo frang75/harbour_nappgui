@@ -17,7 +17,7 @@ PROC EXEMPLO_HBNAP
 *********************
     LOCAL V_COVER := { ;
         { "Orçamento", DIRET_FORMS() + "images/main/grid.png", "#20B2AA", "", .F., { || BUDGET_START() }}, ;
-        { "Contábil SIAFIC", DIRET_FORMS() + "images/main/calc.png", "#1E90FF", "", .F., { || ACCOUNTING_START() }}, ;
+        { "Contábil SIAFIC", DIRET_FORMS() + "images/main/calc.png", "#1E90FF", "Check Menus", .F., { || ACCOUNTING_START() }}, ;
         { "Licitaçao", DIRET_FORMS() + "images/main/auction.png", "#DAA520", "Lei 8.666/1993", .F., { || BIDDING_START() }}, ;
         { "Licitaçao", DIRET_FORMS() + "images/main/auction.png", "#DAA520", "Lei 14.133/2021", .T., { || BIDDING_NEW_START() }}, ;
         { "PPA", DIRET_FORMS() + "images/main/trend.png", "#FF6347", "", .F., { || TREND_START() }}, ;
@@ -51,10 +51,10 @@ FUNCTION INFO_MESSAGE_BOX(C_TEXT, O_PARENT_WINDOW)
 FUNCTION BUDGET_START()
     TST_FORM_EMPRESAS(O_MAINWINDOW)
     RETURN .T.
-    //RETURN INFO_MESSAGE_BOX("Aqui será implementado o código dedicado à gestão orçamentária.")
 
 FUNCTION ACCOUNTING_START()
-    RETURN INFO_MESSAGE_BOX("Accounting", O_MAINWINDOW)
+    TST_FORM_DYNMENU(O_MAINWINDOW)
+    RETURN .T.
 
 FUNCTION BIDDING_START()
     RETURN INFO_MESSAGE_BOX("Bidding", O_MAINWINDOW)
