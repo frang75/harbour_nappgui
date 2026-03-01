@@ -62,7 +62,7 @@ The application executable can be found at `build/[Debug|Release]/bin/napdesign`
 
 ## Inspect the demo forms
 
-The first time the application starts we will have a blank drawing area and all the buttons are off. To make a first contact, it is recommended to open the example forms. Designer loads all existing ones in the same folder. Click `Open Forms` button (📁) and select `/contrib/gtnap/tests/cuademo/forms`. We can see the current folder path by placing the mouse over the icon. By clicking on any file, we will select it and see it in the drawing area.
+The first time the application starts we will have a blank drawing area and all the buttons are off. To make a first contact, it is recommended to open the example forms. Designer loads all existing ones in the same folder. Click `Open Forms` button (📝) and select `/contrib/gtnap/tests/cuademo/forms`. We can see the current folder path by placing the mouse over the icon. By clicking on any file, we will select it and see it in the drawing area.
 
 ![openfolder](./images/openfolder.png)
 
@@ -200,7 +200,7 @@ Once we have the structure of the form, we are going to add the widgets, startin
 
 > **Important:** Buttons (and other text-based controls, such as _Label_) are automatically sized based on the text they contain. However, Push Button cells also expand automatically.
 
-* We have already completed the basic layout of the form. If we press the button (🔍) `Simulate Form` we can launch the form.
+* We have already completed the basic layout of the form. If we press the button (🔝) `Simulate Form` we can launch the form.
 
     ![widget15](./images/widgets15.png)
 
@@ -288,7 +288,7 @@ While our form is fully functional, it is not very aesthetic. Let's give it some
 
 ## Simulate Forms
 
-* As we have already seen in previous steps, we can interact with the form under construction, at any time, using the `Simulate Form` (🔍) button or menu option.
+* As we have already seen in previous steps, we can interact with the form under construction, at any time, using the `Simulate Form` (🔝) button or menu option.
 
     ![simulate1](./images/simulate1.png)
 
@@ -356,7 +356,7 @@ More information in the [official NAppGUI documentation](https://nappgui.com/en/
 
 * Don't worry about the format/margins. It is only as an example.
 
-* If we press `Simulate Form` (🔍) you will see that the 8 radios belong to the same group, being in the same layout.
+* If we press `Simulate Form` (🔝) you will see that the 8 radios belong to the same group, being in the same layout.
 
     ![radio1](./images/radiogroup1.png)
 
@@ -409,7 +409,21 @@ Let's see this working with an example:
 
 ## Undo, Redo
 
+Each editing operation performed on a form is stored in an undo stack. We can reverse any action by pressing `[Ctrl+Z]` (Undo) or redo it `[Ctrl+Y]`(Redo). We also have buttons available in the toolbar or options in the Edit menu.
+
+![undo1](./images/undo1.png)
+
+> **Important:** Each form manages its own Undo/Redo stack. We can change the form in the editor, go back to the original form and perform Undo/Redo.
+
+> **Important:** The moment we edit any property from the editor, we will lose the Redo stack. We will only be able to perform Undo operations.
+
 ## Save, Export
+
+When editing any form just read from disk, a check will appear in the _Forms list_ indicating that there are unsaved changes. If we try to close the application with changes to any form, we will be notified through a dialog box. We can save the changes using the `File->Save all forms` menu or with the corresponding button in the toolbar.
+
+![save1](./images/save1.png)
+
+![save2](./images/save2.png)
 
 ## Resizable Forms
 
