@@ -53,6 +53,14 @@ execute_process(
                 OUTPUT_VARIABLE HBMKOutput
                 ERROR_VARIABLE HBMKError)
 
+# Only for debug purposes
+# message(STATUS "${HBMK2_COMMAND}")
+# message(STATUS "-comp=${HBMK2_COMPILER}")
+# message(STATUS "-workdir=${destCPath}")
+# message(STATUS "Harbour compile for ${prjName} Result: ${HBMKResult}")
+# message(STATUS "Harbour compile for ${prjName} STDOUT: ${HBMKOutput}")
+# message(STATUS "Harbour compile for ${prjName} STDERR: ${HBMKError}")
+
 # Copy the CMakeLists.txt for the generated C project
 file(COPY "${HARBOUR_ROOT_PATH}/nap-dev/CMakeLists.txt" DESTINATION "${destCPath}")
 

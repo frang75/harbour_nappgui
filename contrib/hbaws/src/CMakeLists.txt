@@ -1,6 +1,8 @@
 # Only for debug purposes. Not required in production
 set(TARGET_NAME hbaws)
 nap_library(${TARGET_NAME} "" NO NRC_NONE)
+nap_target_c_standard(${TARGET_NAME} 99)
+nap_target_cxx_standard(${TARGET_NAME} 11)
 
 set(AWSROOT "$ENV{AWS_SDK_ROOT}")
 
@@ -12,6 +14,10 @@ endif()
 
 if (CMAKE_GENERATOR MATCHES "Visual Studio")
     set(AWSROOT ${AWSROOT}/msvc64/Release)
+elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+    set(AWSROOT ${AWSROOT}/gcc/Release)
+else()
+    message(FATAL_ERROR "Unknown HBAWS compiler")
 endif()
 
 set(CMAKE_PREFIX_PATH "${AWSROOT}" ${CMAKE_PREFIX_PATH})
