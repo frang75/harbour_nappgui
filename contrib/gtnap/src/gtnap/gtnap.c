@@ -43,6 +43,7 @@
 #include <geom2d/v2d.h>
 #include <core/arrst.h>
 #include <core/arrpt.h>
+#include <core/setst.h>
 #include <core/event.h>
 #include <core/heap.h>
 #include <core/strings.h>
@@ -75,6 +76,7 @@ typedef struct _gtnap_window_t GtNapWindow;
 typedef struct _gtnap_bind_t GtNapBind;
 typedef struct _gtnap_fcolumn_t GtNapFColumn;
 typedef struct _gtnap_farea_t GtNapFArea;
+typedef struct _gtnap_prop_t GtNapProp;
 typedef struct _gtnap_t GtNap;
 
 typedef void (*FPtr_gtnap_callback)(GtNapCallback *callback, Event *event);
@@ -249,6 +251,12 @@ struct _gtnap_form_t
     ArrPt(GtNapCallback) *callbacks;
 };
 
+struct _gtnap_prop_t 
+{
+    String *key;
+    String *value;
+};
+
 struct _gtnap_t
 {
     Font *global_font;
@@ -273,6 +281,7 @@ struct _gtnap_t
     String *debugger_path;
     bool_t debugger_visible;
     GtNapDebugger *debugger;
+    SetSt(GtNapProp) *properties;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -285,6 +294,7 @@ DeclPt(GtNapObject);
 DeclSt(GtNapBind);
 DeclPt(GtNapWindow);
 DeclPt(GuiComponent);
+DeclSt(GtNapProp);
 
 /*---------------------------------------------------------------------------*/
 
@@ -603,6 +613,15 @@ static void i_destroy_gtwin(GtNapWindow **dgtwin)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_remove_property(GtNapProp *prop)
+{
+    cassert_no_null(prop);
+    str_destroy(&prop->key);
+    str_destroy(&prop->value);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_gtnap_destroy(GtNap **gtnap)
 {
     cassert_no_null(gtnap);
@@ -621,6 +640,8 @@ static void i_gtnap_destroy(GtNap **gtnap)
     if ((*gtnap)->debugger != NULL)
         nap_debugger_destroy(&(*gtnap)->debugger);
 
+
+    setst_destroy(&(*gtnap)->properties, i_remove_property, GtNapProp);
     nforms_finish();
     heap_delete(&(*gtnap), GtNap);
 }
@@ -1204,6 +1225,14 @@ static S2Df i_resolution(void)
 
 /*---------------------------------------------------------------------------*/
 
+static int i_prop_cmp(const GtNapProp *prop, const char_t *key)
+{
+    cassert_no_null(prop);
+    return str_cmp(prop->key, key);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static GtNap *i_gtnap_create(void)
 {
     S2Df screen;
@@ -1240,6 +1269,7 @@ static GtNap *i_gtnap_create(void)
         GTNAP_GLOBAL->debugger = NULL;
     }
 
+    GTNAP_GLOBAL->properties = setst_create(i_prop_cmp, GtNapProp, char_t);
     screen = i_resolution();
     if (i_compute_font_size(screen.width, screen.height, GTNAP_GLOBAL) == TRUE)
     {
