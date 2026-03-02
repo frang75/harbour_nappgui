@@ -46,7 +46,9 @@
 #include <core/setst.h>
 #include <core/event.h>
 #include <core/heap.h>
+#include <core/hfile.h>
 #include <core/strings.h>
+#include <core/stream.h>
 #include <osbs/bfile.h>
 #include <osbs/btime.h>
 #include <osbs/log.h>
@@ -622,6 +624,65 @@ static void i_remove_property(GtNapProp *prop)
 
 /*---------------------------------------------------------------------------*/
 
+static int i_prop_cmp(const GtNapProp *prop, const char_t *key)
+{
+    cassert_no_null(prop);
+    return str_cmp(prop->key, key);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_save_properties(const SetSt(GtNapProp) *properties)
+{
+    String *cfile = hfile_appdata("config.bin");
+    Stream *stm = stm_to_file(tc(cfile), NULL);
+    if (stm != NULL)
+    {
+        setst_foreach_const(prop, properties, GtNapProp)
+            stm_writef(stm, tc(prop->key));
+            stm_writef(stm, ":");
+            stm_writef(stm, tc(prop->value));
+        setst_fornext_const(prop, properties, GtNapProp)
+        stm_close(&stm);
+    }
+
+    str_destroy(&cfile);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_load_properties(SetSt(GtNapProp) *properties)
+{
+    String *cfile = hfile_appdata("config.bin");
+    Stream *stm = stm_from_file(tc(cfile), NULL);
+    if (stm != NULL)
+    {
+        stm_lines(line, stm)
+            String *key = NULL;
+            String *value = NULL;
+            GtNapProp *prop = NULL;
+            str_split_trim(line, ":", &key, &value);
+            prop = setst_insert(properties, tc(key), GtNapProp, char_t);
+            if (prop != NULL)
+            {
+                prop->key = key;
+                prop->value = value;                     
+            }
+            else
+            {
+                /* Duplicated property ¿? */
+                str_destroy(&key);
+                str_destroy(&value);
+            }
+        stm_next(line, stm)
+        stm_close(&stm);
+    }
+
+    str_destroy(&cfile);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_gtnap_destroy(GtNap **gtnap)
 {
     cassert_no_null(gtnap);
@@ -640,7 +701,7 @@ static void i_gtnap_destroy(GtNap **gtnap)
     if ((*gtnap)->debugger != NULL)
         nap_debugger_destroy(&(*gtnap)->debugger);
 
-
+    i_save_properties((*gtnap)->properties);
     setst_destroy(&(*gtnap)->properties, i_remove_property, GtNapProp);
     nforms_finish();
     heap_delete(&(*gtnap), GtNap);
@@ -1225,14 +1286,6 @@ static S2Df i_resolution(void)
 
 /*---------------------------------------------------------------------------*/
 
-static int i_prop_cmp(const GtNapProp *prop, const char_t *key)
-{
-    cassert_no_null(prop);
-    return str_cmp(prop->key, key);
-}
-
-/*---------------------------------------------------------------------------*/
-
 static GtNap *i_gtnap_create(void)
 {
     S2Df screen;
@@ -1270,6 +1323,7 @@ static GtNap *i_gtnap_create(void)
     }
 
     GTNAP_GLOBAL->properties = setst_create(i_prop_cmp, GtNapProp, char_t);
+    i_load_properties(GTNAP_GLOBAL->properties);
     screen = i_resolution();
     if (i_compute_font_size(screen.width, screen.height, GTNAP_GLOBAL) == TRUE)
     {
