@@ -634,7 +634,7 @@ static int i_prop_cmp(const GtNapProp *prop, const char_t *key)
 
 static void i_save_properties(const SetSt(GtNapProp) *properties)
 {
-    String *cfile = hfile_appdata("config.bin");
+    String *cfile = hfile_appdata("config.txt");
     Stream *stm = stm_to_file(tc(cfile), NULL);
     if (stm != NULL)
     {
@@ -653,7 +653,7 @@ static void i_save_properties(const SetSt(GtNapProp) *properties)
 
 static void i_load_properties(SetSt(GtNapProp) *properties)
 {
-    String *cfile = hfile_appdata("config.bin");
+    String *cfile = hfile_appdata("config.txt");
     Stream *stm = stm_from_file(tc(cfile), NULL);
     if (stm != NULL)
     {
