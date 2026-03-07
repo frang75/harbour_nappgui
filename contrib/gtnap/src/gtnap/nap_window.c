@@ -13,12 +13,13 @@ HB_FUNC(NAP_WINDOW)
     int32_t left = hb_parni(2);
     int32_t bottom = hb_parni(3);
     int32_t right = hb_parni(4);
-    const char_t *title = hb_parcx(5);
-    bool_t close_return = (bool_t)hb_parl(6);
-    bool_t close_esc = (bool_t)hb_parl(7);
-    bool_t minimize_button = (bool_t)hb_parl(8);
-    bool_t buttons_navigation = (bool_t)hb_parl(9);
-    uint32_t id = hb_gtnap_window(top, left, bottom, right, title, close_return, close_esc, minimize_button, buttons_navigation);
+    const char_t *nameid = hb_parcx(5);
+    const char_t *title = hb_parcx(6);
+    bool_t close_return = (bool_t)hb_parl(7);
+    bool_t close_esc = (bool_t)hb_parl(8);
+    bool_t minimize_button = (bool_t)hb_parl(9);
+    bool_t buttons_navigation = (bool_t)hb_parl(10);
+    uint32_t id = hb_gtnap_window(top, left, bottom, right, nameid, title, close_return, close_esc, minimize_button, buttons_navigation);
     hb_retni(id);
 }
 
@@ -31,8 +32,9 @@ HB_FUNC(NAP_WINDOW_EMBEDDED)
     int32_t left = hb_parni(3);
     int32_t bottom = hb_parni(4);
     int32_t right = hb_parni(5);
-    bool_t border = (bool_t)hb_parl(6);
-    uint32_t id = hb_gtnap_window_embedded(wid, top, left, bottom, right, border);
+    const char_t *nameid = hb_parcx(6);
+    bool_t border = (bool_t)hb_parl(7);
+    uint32_t id = hb_gtnap_window_embedded(wid, top, left, bottom, right, nameid, border);
     hb_retni(id);
 }
 

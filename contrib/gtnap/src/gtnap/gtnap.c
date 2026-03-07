@@ -188,6 +188,7 @@ struct _gtnap_window_t
     int32_t scroll_left;
     int32_t scroll_bottom;
     int32_t scroll_right;
+    String *nameid;
     HB_ITEM *is_editable_block;
     HB_ITEM *confirm_block;
     HB_ITEM *desist_block;
@@ -253,7 +254,7 @@ struct _gtnap_form_t
     ArrPt(GtNapCallback) *callbacks;
 };
 
-struct _gtnap_prop_t 
+struct _gtnap_prop_t
 {
     String *key;
     String *value;
@@ -594,6 +595,7 @@ static void i_destroy_gtwin(GtNapWindow **dgtwin)
     if (gtwin->error_date_block != NULL)
         hb_itemRelease(gtwin->error_date_block);
 
+    str_destroy(&gtwin->nameid);
     cassert(arrpt_size(gtwin->objects, GtNapObject) == 0);
     arrpt_destroy(&gtwin->tabstops, NULL, GuiComponent);
     arrpt_destroy(&gtwin->objects, NULL, GtNapObject);
@@ -666,11 +668,11 @@ static void i_load_properties(SetSt(GtNapProp) *properties)
             if (prop != NULL)
             {
                 prop->key = key;
-                prop->value = value;                     
+                prop->value = value;
             }
             else
             {
-                /* Duplicated property ¿? */
+                /* Duplicated property */
                 str_destroy(&key);
                 str_destroy(&value);
             }
@@ -2854,7 +2856,7 @@ void hb_gtnap_terminal(void)
     GtNap *gtnap = GTNAP_GLOBAL;
     GtNapWindow *gtwin = NULL;
     cassert(arrpt_size(gtnap->windows, GtNapWindow) == 0);
-    hb_gtnap_window(0, 0, gtnap->rows - 1, gtnap->cols - 1, tc(gtnap->title), FALSE, TRUE, TRUE, FALSE);
+    hb_gtnap_window(0, 0, gtnap->rows - 1, gtnap->cols - 1, "wid", tc(gtnap->title), FALSE, TRUE, TRUE, FALSE);
     gtwin = i_current_gtwin(gtnap);
     i_gtwin_configure(gtnap, gtwin, gtwin);
     window_OnClose(gtwin->window, listener(gtwin, i_OnTerminalClose, GtNapWindow));
@@ -2939,7 +2941,7 @@ static uint32_t i_get_window_id(GtNap *gtnap)
 
 /*---------------------------------------------------------------------------*/
 
-static GtNapWindow *i_new_window(GtNap *gtnap, uint32_t parent_id, const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, const bool_t border)
+static GtNapWindow *i_new_window(GtNap *gtnap, uint32_t parent_id, const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, const char_t *nameid, const bool_t border)
 {
     GtNapWindow *gtwin = NULL;
     cassert_no_null(gtnap);
@@ -2955,6 +2957,7 @@ static GtNapWindow *i_new_window(GtNap *gtnap, uint32_t parent_id, const int32_t
     gtwin->scroll_left = INT32_MIN;
     gtwin->scroll_bottom = INT32_MIN;
     gtwin->scroll_right = INT32_MIN;
+    gtwin->nameid = str_c(nameid);
     gtwin->message_label_id = UINT32_MAX;
     gtwin->default_button = UINT32_MAX;
     gtwin->tabstops = arrpt_create(GuiComponent);
@@ -3104,9 +3107,9 @@ color_t hb_gtnap_color_bright_white(void)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_window(const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, const char_t *title, const bool_t close_return, const bool_t close_esc, const bool_t minimize_button, const bool_t buttons_navigation)
+uint32_t hb_gtnap_window(const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, const char_t *nameid, const char_t *title, const bool_t close_return, const bool_t close_esc, const bool_t minimize_button, const bool_t buttons_navigation)
 {
-    GtNapWindow *gtwin = i_new_window(GTNAP_GLOBAL, UINT32_MAX, top, left, bottom, right, FALSE);
+    GtNapWindow *gtwin = i_new_window(GTNAP_GLOBAL, UINT32_MAX, top, left, bottom, right, nameid, FALSE);
     uint32_t flags = i_window_flags(close_return, close_esc, minimize_button);
     gtwin->window = window_create(flags);
     gtwin->buttons_navigation = buttons_navigation;
@@ -3129,9 +3132,9 @@ uint32_t hb_gtnap_window(const int32_t top, const int32_t left, const int32_t bo
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_window_embedded(const uint32_t wid, const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, const bool_t border)
+uint32_t hb_gtnap_window_embedded(const uint32_t wid, const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, const char_t *nameid, const bool_t border)
 {
-    GtNapWindow *gtwin = i_new_window(GTNAP_GLOBAL, wid, top, left, bottom, right, border);
+    GtNapWindow *gtwin = i_new_window(GTNAP_GLOBAL, wid, top, left, bottom, right, nameid, border);
     return gtwin->id;
 }
 
@@ -5661,7 +5664,7 @@ void hbnap_forms_item_list(GtNapForm *form, const char_t *cell, HB_ITEM *items)
         cassert(HB_ITEM_TYPE(hitem) == HB_IT_STRING);
         text = hb_itemGetCPtr(hitem);
         nform_add_control_item(form->form, cell, text);
-    }         
+    }
 }
 
 /*---------------------------------------------------------------------------*/
