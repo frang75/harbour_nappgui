@@ -648,6 +648,7 @@ static void i_save_properties(const SetSt(GtNapProp) *properties)
             stm_writef(stm, tc(prop->key));
             stm_writef(stm, ":");
             stm_writef(stm, tc(prop->value));
+            stm_writef(stm, "\n");
         setst_fornext_const(prop, properties, GtNapProp)
         stm_close(&stm);
     }
@@ -707,6 +708,7 @@ static void i_write_property(SetSt(GtNapProp) *properties, const char_t *wnameid
 
     str_upd(&prop->value, value);
     str_destopt(&propname);
+    i_save_properties(properties);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -767,7 +769,6 @@ static void i_gtnap_destroy(GtNap **gtnap)
     if ((*gtnap)->debugger != NULL)
         nap_debugger_destroy(&(*gtnap)->debugger);
 
-    i_save_properties((*gtnap)->properties);
     setst_destroy(&(*gtnap)->properties, i_remove_property, GtNapProp);
     nforms_finish();
     heap_delete(&(*gtnap), GtNap);
@@ -3171,6 +3172,16 @@ color_t hb_gtnap_color_bright_white(void)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnWindowMoved(GtNapWindow *gtwin, Event *e)
+{
+    const EvPos *p = event_params(e, EvPos);
+    cassert_no_null(gtwin);
+    i_write_prop_r32(tc(gtwin->nameid), i_XPOS_PROP, p->x);
+    i_write_prop_r32(tc(gtwin->nameid), i_YPOS_PROP, p->y);
+}
+
+/*---------------------------------------------------------------------------*/
+
 uint32_t hb_gtnap_window(const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, const char_t *nameid, const char_t *title, const bool_t close_return, const bool_t close_esc, const bool_t minimize_button, const bool_t buttons_navigation)
 {
     GtNapWindow *gtwin = i_new_window(GTNAP_GLOBAL, UINT32_MAX, top, left, bottom, right, nameid, FALSE);
@@ -3191,6 +3202,7 @@ uint32_t hb_gtnap_window(const int32_t top, const int32_t left, const int32_t bo
 
     window_cycle_tabstop(gtwin->window, FALSE);
     window_OnClose(gtwin->window, listener(gtwin, i_OnWindowClose, GtNapWindow));
+    window_OnMoved(gtwin->window, listener(gtwin, i_OnWindowMoved, GtNapWindow));
     return gtwin->id;
 }
 
@@ -3243,11 +3255,7 @@ void hb_gtnap_window_destroy(const uint32_t wid)
 {
     uint32_t id = i_gtwin_index(GTNAP_GLOBAL, wid);
     GtNapWindow *gtwin = arrpt_get(GTNAP_GLOBAL->windows, id, GtNapWindow);
-    V2Df pos;
     cassert_no_null(gtwin);
-    pos = window_get_origin(gtwin->window);
-    i_write_prop_r32(tc(gtwin->nameid), i_XPOS_PROP, pos.x);
-    i_write_prop_r32(tc(gtwin->nameid), i_YPOS_PROP, pos.y);
     /* Before destroy we have to dettach the possible parent-embedded connections */
     i_dettach_embedded(GTNAP_GLOBAL, gtwin);
     arrpt_delete(GTNAP_GLOBAL->windows, id, i_destroy_gtwin, GtNapWindow);
