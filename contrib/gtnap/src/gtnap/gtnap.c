@@ -247,6 +247,7 @@ struct _gtnap_form_t
 {
     NForm *form;
     Window *window;
+    String *nameid;
     uint32_t modal_ret;
     GtNapFArea *area;
     HB_ITEM *OnClose_block;
@@ -5112,6 +5113,7 @@ GtNapForm *hbnap_forms_load(const char_t *pathname, const char_t *resource_path,
     {
         GtNapForm *gtform = heap_new0(GtNapForm);
         uint32_t nflags = 0;
+        str_split_pathext(pathname, NULL, &gtform->nameid, NULL);
         gtform->form = form;
         gtform->binds = arrst_create(GtNapBind);
         gtform->callbacks = arrpt_create(GtNapCallback);
@@ -5179,6 +5181,7 @@ void hbnap_forms_destroy(GtNapForm **form)
 {
     cassert_no_null(form);
     cassert_no_null(*form);
+    str_destroy(&(*form)->nameid);
     ptr_destopt(window_destroy, &(*form)->window, Window);
 
     if ((*form)->OnClose_block != NULL)
