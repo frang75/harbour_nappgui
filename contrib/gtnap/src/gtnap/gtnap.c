@@ -396,6 +396,9 @@ static const bool_t i_FULL_HBFUNCS = FALSE;
 static color_t i_COLORS[16];
 static const real32_t i_MINIMAL_FONT_SIZE = 5;
 static const real32_t i_MAX_SCREEN_HEIGHT_TOLERANCE_PX = 30;
+static const real32_t i_UNDEF_R32 = REAL32_MAX;
+static const char_t *i_XPOS_PROP = "XPOS";
+static const char_t *i_YPOS_PROP = "YPOS";
 static const char_t *i_FONT_REF_TEXT = "exibicao/edicao de texto em memoria";
 
 /*---------------------------------------------------------------------------*/
@@ -682,6 +685,66 @@ static void i_load_properties(SetSt(GtNapProp) *properties)
     }
 
     str_destroy(&cfile);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_write_property(SetSt(GtNapProp) *properties, const char_t *wnameid, const char_t *propid, const char_t *value)
+{
+    String *propname = str_printf("%s-%s", wnameid, propid);
+    GtNapProp *prop = setst_get(properties, tc(propname), GtNapProp, char_t);
+    if (prop == NULL)
+    {
+        prop = setst_insert(properties, tc(propname), GtNapProp, char_t);
+        prop->key = propname;
+        prop->value = NULL;
+        propname = NULL;
+    }
+    else
+    {
+        cassert_no_null(prop->value);
+    }
+
+    str_upd(&prop->value, value);
+    str_destopt(&propname);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static const char_t *i_read_property(const SetSt(GtNapProp) *properties, const char_t *wnameid, const char_t *propid)
+{
+    String *propname = str_printf("%s-%s", wnameid, propid);
+    const GtNapProp *prop = setst_get_const(properties, tc(propname), GtNapProp, char_t);
+    const char_t *ret = NULL;
+    if (prop != NULL)
+        ret = tc(prop->value);
+    str_destroy(&propname);
+    return ret;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_write_prop_r32(const char_t *wnameid, const char_t *propid, const real32_t value)
+{
+    char_t svalue[64];
+    bstd_sprintf(svalue, sizeof(svalue), "%g", value);
+    i_write_property(GTNAP_GLOBAL->properties, wnameid, propid, svalue);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static real32_t i_read_prop_r32(const char_t *wnameid, const char_t *propid)
+{
+    const char_t *value = i_read_property(GTNAP_GLOBAL->properties, wnameid, propid);
+    if (value != NULL)
+    {
+        bool_t err = FALSE;
+        real32_t val32 = str_to_r32(value, &err);
+        if (err == FALSE)
+            return val32;
+    }
+
+    return i_UNDEF_R32;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -3180,6 +3243,11 @@ void hb_gtnap_window_destroy(const uint32_t wid)
 {
     uint32_t id = i_gtwin_index(GTNAP_GLOBAL, wid);
     GtNapWindow *gtwin = arrpt_get(GTNAP_GLOBAL->windows, id, GtNapWindow);
+    V2Df pos;
+    cassert_no_null(gtwin);
+    pos = window_get_origin(gtwin->window);
+    i_write_prop_r32(tc(gtwin->nameid), i_XPOS_PROP, pos.x);
+    i_write_prop_r32(tc(gtwin->nameid), i_YPOS_PROP, pos.y);
     /* Before destroy we have to dettach the possible parent-embedded connections */
     i_dettach_embedded(GTNAP_GLOBAL, gtwin);
     arrpt_delete(GTNAP_GLOBAL->windows, id, i_destroy_gtwin, GtNapWindow);
@@ -3444,6 +3512,20 @@ uint32_t hb_gtnap_window_modal(const uint32_t wid, const uint32_t pwid, const ui
             window_hotkey(gtwin->window, ekKEY_DOWN, 0, listener(gtwin, i_OnNextTabstop, GtNapWindow));
             window_hotkey(gtwin->window, ekKEY_RETURN, 0, listener(gtwin, i_OnNextTabstop, GtNapWindow));
             window_hotkey(gtwin->window, ekKEY_NUMRET, 0, listener(gtwin, i_OnNextTabstop, GtNapWindow));
+        }
+
+        /* 
+         * At this point, we have a precomputed window position, based on window (left, top) 
+         * and parent position. Its can be overwritten by a previous stored user position.
+         */
+        {
+            real32_t x = i_read_prop_r32(tc(gtwin->nameid), i_XPOS_PROP);
+            real32_t y = i_read_prop_r32(tc(gtwin->nameid), i_YPOS_PROP);
+            if (x != i_UNDEF_R32 && y != i_UNDEF_R32)
+            {
+                pos.x = x;
+                pos.y = y;
+            }
         }
 
         window_origin(gtwin->window, pos);
