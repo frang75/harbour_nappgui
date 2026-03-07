@@ -251,6 +251,7 @@ struct _gtnap_form_t
     uint32_t modal_ret;
     GtNapFArea *area;
     HB_ITEM *OnClose_block;
+    bool_t is_resizable;
     ArrSt(GtNapBind) *binds;
     ArrPt(GtNapCallback) *callbacks;
 };
@@ -397,8 +398,11 @@ static color_t i_COLORS[16];
 static const real32_t i_MINIMAL_FONT_SIZE = 5;
 static const real32_t i_MAX_SCREEN_HEIGHT_TOLERANCE_PX = 30;
 static const real32_t i_UNDEF_R32 = REAL32_MAX;
+static const real32_t i_MAXIMIZED_SIZE = 1e10f;
 static const char_t *i_XPOS_PROP = "XPOS";
 static const char_t *i_YPOS_PROP = "YPOS";
+static const char_t *i_WIDTH_PROP = "WIDTH";
+static const char_t *i_HEIGHT_PROP = "HEIGHT";
 static const char_t *i_FONT_REF_TEXT = "exibicao/edicao de texto em memoria";
 
 /*---------------------------------------------------------------------------*/
@@ -5196,6 +5200,35 @@ void hbnap_forms_exit_app(void)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnFormMoved(GtNapForm *form, Event *e)
+{
+    const EvPos *p = event_params(e, EvPos);
+    cassert_no_null(form);
+    i_write_prop_r32(tc(form->nameid), i_XPOS_PROP, p->x);
+    i_write_prop_r32(tc(form->nameid), i_YPOS_PROP, p->y);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnFormResize(GtNapForm *form, Event *e)
+{
+    const EvSize *p = event_params(e, EvSize);
+    Window *window = event_sender(e, Window);
+    cassert_no_null(form);
+    if (window_get_maximize(window) == TRUE)
+    {
+        i_write_prop_r32(tc(form->nameid), i_WIDTH_PROP, i_MAXIMIZED_SIZE);
+        i_write_prop_r32(tc(form->nameid), i_HEIGHT_PROP, i_MAXIMIZED_SIZE);
+    }
+    else
+    {
+        i_write_prop_r32(tc(form->nameid), i_WIDTH_PROP, p->width);
+        i_write_prop_r32(tc(form->nameid), i_HEIGHT_PROP, p->height);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 GtNapForm *hbnap_forms_load(const char_t *pathname, const char_t *resource_path, const uint32_t flags)
 {
     NForm *form = nform_from_file(pathname, NULL);
@@ -5209,9 +5242,14 @@ GtNapForm *hbnap_forms_load(const char_t *pathname, const char_t *resource_path,
         gtform->callbacks = arrpt_create(GtNapCallback);
 
         if (flags & HBNAP_FORMS_RESIZABLE)
+        {
             nflags |= ekWINDOW_STDRES;
+            gtform->is_resizable = TRUE;
+        }
         else
+        {
             nflags |= ekWINDOW_STD;
+        }
 
         if (flags & HBNAP_FORMS_CLOSE_ON_ESC)
             nflags |= ekWINDOW_ESC;
@@ -5220,8 +5258,15 @@ GtNapForm *hbnap_forms_load(const char_t *pathname, const char_t *resource_path,
             nflags |= ekWINDOW_RETURN;
 
         gtform->window = nform_window(gtform->form, nflags, resource_path);
-        if (gtform->window == NULL)
+        if (gtform->window != NULL)
+        {
+            window_OnMoved(gtform->window, listener(gtform, i_OnFormMoved, GtNapForm));
+            window_OnResize(gtform->window, listener(gtform, i_OnFormResize, GtNapForm));
+        }
+        else
+        {
             hbnap_forms_destroy(&gtform);
+        }
 
         return gtform;
     }
@@ -5807,19 +5852,6 @@ void hbnap_forms_maximize(GtNapForm *form)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_center_window(const Window *parent, Window *window)
-{
-    V2Df p1 = window_get_origin(parent);
-    S2Df s1 = window_get_size(parent);
-    S2Df s2 = window_get_size(window);
-    V2Df p2;
-    p2.x = p1.x + (s1.width - s2.width) / 2;
-    p2.y = p1.y + (s1.height - s2.height) / 2;
-    window_origin(window, p2);
-}
-
-/*---------------------------------------------------------------------------*/
-
 static void i_OnFormClose(GtNapForm *form, Event *e)
 {
     cassert_no_null(form);
@@ -5837,6 +5869,47 @@ static void i_OnFormClose(GtNapForm *form, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static V2Df i_center_window(const Window *parent, Window *window)
+{
+    V2Df p1 = window_get_origin(parent);
+    S2Df s1 = window_get_size(parent);
+    S2Df s2 = window_get_size(window);
+    V2Df p2;
+    p2.x = p1.x + (s1.width - s2.width) / 2;
+    p2.y = p1.y + (s1.height - s2.height) / 2;
+    return p2;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_form_frame(GtNapForm *form, Window *parent)
+{
+    S2Df size;
+    cassert_no_null(form);
+    size.width = i_read_prop_r32(tc(form->nameid), i_WIDTH_PROP);
+    size.height = i_read_prop_r32(tc(form->nameid), i_HEIGHT_PROP);
+    if ((size.width == i_MAXIMIZED_SIZE || size.height == i_MAXIMIZED_SIZE) && form->is_resizable == TRUE)
+    {
+        window_maximize(form->window);
+    }
+    else
+    {
+        V2Df pos;
+        pos.x = i_read_prop_r32(tc(form->nameid), i_XPOS_PROP);
+        pos.y = i_read_prop_r32(tc(form->nameid), i_YPOS_PROP);
+
+        if ((pos.x == i_UNDEF_R32 || pos.y == i_UNDEF_R32) && parent != NULL)
+            pos = i_center_window(parent, form->window);
+
+        if ((size.width != i_UNDEF_R32 && size.height != i_UNDEF_R32) && form->is_resizable == TRUE)
+            window_client_size(form->window, size);
+
+        window_origin(form->window, pos);
+    }       
+}
+
+/*---------------------------------------------------------------------------*/
+
 void hbnap_forms_show(GtNapForm *form, HB_ITEM *onclose_block)
 {
     cassert_no_null(form);
@@ -5846,19 +5919,27 @@ void hbnap_forms_show(GtNapForm *form, HB_ITEM *onclose_block)
     form->OnClose_block = hb_itemNew(onclose_block);
     window_OnClose(form->window, listener(form, i_OnFormClose, GtNapForm));
     window_update(form->window);
+    i_form_frame(form, NULL);
     window_show(form->window);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static uint32_t i_forms_modal(GtNapForm *form, Window *parent)
+{
+    cassert_no_null(form);
+    window_update(form->window);
+    i_form_frame(form, parent);
+    form->modal_ret = window_modal(form->window, parent);
+    return form->modal_ret;
 }
 
 /*---------------------------------------------------------------------------*/
 
 uint32_t hbnap_forms_modal(GtNapForm *form, GtNapForm *parent)
 {
-    cassert_no_null(form);
     cassert_no_null(parent);
-    window_update(form->window);
-    i_center_window(parent->window, form->window);
-    form->modal_ret = window_modal(form->window, parent->window);
-    return form->modal_ret;
+    return i_forms_modal(form, parent->window);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -5866,12 +5947,8 @@ uint32_t hbnap_forms_modal(GtNapForm *form, GtNapForm *parent)
 uint32_t hbnap_forms_modal_gtnap(GtNapForm *form)
 {
     GtNapWindow *gtwin = i_current_gtwin(GTNAP_GLOBAL);
-    cassert_no_null(form);
     cassert_no_null(gtwin);
-    window_update(form->window);
-    i_center_window(gtwin->window, form->window);
-    form->modal_ret = window_modal(form->window, gtwin->window);
-    return form->modal_ret;
+    return i_forms_modal(form, gtwin->window);
 }
 
 /*---------------------------------------------------------------------------*/
