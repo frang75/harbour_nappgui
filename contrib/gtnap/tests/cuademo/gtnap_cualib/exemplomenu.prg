@@ -9,7 +9,7 @@ LOCAL V_JANELA
 *
 CUA20 @ 15,20,25,70 JANELA V_JANELA ;
      TITULO "Escolha o tipo de menu" SUBTITULO "%T";
-     AJUDA "T?????"
+     AJUDA "T00013"
 *
 ESPECIALIZE V_JANELA MENU
 ADDOPCAO V_JANELA TEXTO "Menu com #rolamento" ;
@@ -29,7 +29,7 @@ LOCAL V_JANELA
 *
 CUA20 @ 18,40,26,90 JANELA V_JANELA ;
      TITULO "Menu com rolamento" SUBTITULO "%T";
-     AJUDA "T?????"
+     AJUDA "T00014"
 *
 // AltD()
 
@@ -56,7 +56,7 @@ LOCAL V_JANELA
 *
 CUA20 @ 17,40,26,90 JANELA V_JANELA ;
      TITULO "Menu sem botão ESC" SUBTITULO "%T";
-     AJUDA "T?????"
+     AJUDA "T00015"
 *
 ADDBOTAO V_Janela TEXTO "F9=botão adicional" ;
    ACAO (MOSTRAR("M?????","Foi selecionado botão F9"),.T.) AUTOCLOSE AJUDA "B19263"
@@ -83,7 +83,7 @@ LOCAL V_JANELA
 *
 CUA20 @ 14,40,26,90 JANELA V_JANELA ;
      TITULO "Menu com AutoClose" SUBTITULO "%T";
-     AJUDA "T?????"
+     AJUDA "T00016"
 *
 ESPECIALIZE V_JANELA MENU AUTOCLOSE
 ADDOPCAO V_JANELA TEXTO "Procedure sem retorno" ;

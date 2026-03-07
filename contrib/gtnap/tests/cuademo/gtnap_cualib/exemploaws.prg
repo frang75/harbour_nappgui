@@ -10,7 +10,7 @@ LOCAL V_Janela
 *
 CUA20 @ 10,20,26,80 JANELA V_Janela ;
      TITULO "Escolha o exemplo HBAWS" SUBTITULO "%T";
-     AJUDA "T?????"
+     AJUDA "T00005"
 
 ESPECIALIZE V_Janela MENU
 

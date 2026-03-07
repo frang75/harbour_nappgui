@@ -10,7 +10,7 @@ LOCAL V_Janela
 
 CUA20 @ 15,20,30,70 JANELA V_Janela ;
      TITULO "Escolha o tipo de operação" SUBTITULO "%T";
-     AJUDA "T?????"
+     AJUDA "T00017"
 
 ESPECIALIZE V_Janela MENU
 ADDOPCAO V_Janela TEXTO "Adicione células à planilha" ;

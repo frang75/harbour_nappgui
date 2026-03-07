@@ -9,7 +9,7 @@ LOCAL V_Janela
 
 CUA20 @ 15,20,30,70 JANELA V_Janela ;
      TITULO "Escolha o tipo de janela auxiliar" SUBTITULO "%T";
-     AJUDA "T?????"
+     AJUDA "T00003"
 
 ESPECIALIZE V_Janela MENU
 ADDOPCAO V_Janela TEXTO "janela de #informação (com parada)" ;
@@ -86,7 +86,7 @@ LOCAL V_Janela
 CUA20 @ 10,35,MAXROW()-5,MAXCOL()-10 JANELA V_Janela ;
     TITU "Janela sem especialização" ;
     SUBTITULO "%T" ;
-    AJUDA "T?????"
+    AJUDA "T00004"
 ADDBOTAO V_Janela TEXTO "1=exibe o número 1 na tela" ;
    ACAO MOSTRAR("M24826","O usuário digitou '1'") AJUDA "B19265"
 ADDBOTAO V_Janela TEXTO "2=exibe o número 2 na tela e fecha janela" ;
