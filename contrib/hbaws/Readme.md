@@ -112,9 +112,10 @@ cd contrib/hbaws
 ### AWS-SDK with CLANG macOS
 
 ```
-AWS_SDK_ROOT=/Users/user/aws-sdk
+export AWS_SDK_ROOT=/Users/user/aws-sdk
+export MACOSX_DEPLOYMENT_TARGET=13.0  # Ventura
 cd contrib/hbaws
-./awssdk -comp clang -b [Debug|Release]
+./awssdk.sh -comp clang -b [Debug|Release]
 ```
 
 ### AWS-SDK result
@@ -206,7 +207,8 @@ The `libhbaws.a` will be generated in `hbaws/build/[Debug|Release]/lib`.
 ```
 cd contrib/hbaws
 export AWS_SDK_ROOT=/Users/user/aws-sdk
-build -comp clang -b [Debug|Release]
+export MACOSX_DEPLOYMENT_TARGET=13.0  # Ventura
+./build.sh -comp clang -b [Debug|Release]
 ```
 
 The `libhbaws.a` will be generated in `hbaws/build/[Debug|Release]/lib`.
