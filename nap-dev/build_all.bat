@@ -144,9 +144,8 @@ echo -------------------------
 :gtnap_exemplo_test
 cd tests/cuademo/gtnap_cualib
 del /q *.exe
-del /q *.dll
-copy ..\..\..\..\hboffice\build\%BUILD%\bin\officesdk.dll
 ..\..\..\..\..\bin\win\%ALL_BUILD_COMPILER%\hbmk2.exe %HBMK_FLAGS% -comp=%ALL_BUILD_COMPILER% exemplo.hbp
+set PATH=%PATH%;%HARBOUR_HOME%\contrib\hboffice\build\%BUILD%\bin
 exemplo --hb:gtnap
 
 :: Return to gtnap path
