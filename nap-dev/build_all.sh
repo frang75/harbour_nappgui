@@ -11,6 +11,7 @@
 #
 # bash build_all.sh -comp gcc -b Release
 # bash build_all.sh -comp gcc -b Release &> full_build_log.txt
+# bash build_all.sh -comp clang -b Release &> full_build_log.txt
 # bash build_all.sh -noharbour -comp gcc -b Release &> noharbour_build_log.txt
 #
 BUILD_HARBOUR=yes
@@ -115,18 +116,15 @@ echo -------------------------
 
 cd tests/cuademo/gtnap_cualib
 rm exemplo
-rm *.so
-cp ../../../../hboffice/build/$BUILD/bin/libofficesdk.* .
 ../../../../../bin/$PLATFORM/$ALL_BUILD_COMPILER/hbmk2 -comp=$ALL_BUILD_COMPILER exemplo.hbp
 
 if [ "$(uname)" == "Darwin" ]; then
-    export LIBREOFFICE_HOME=/Applications/LibreOffice.app
     export PATH=$PATH:/Applications/LibreOffice.app/Contents/MacOS
-    export DYLD_LIBRARY_PATH=.:$LIBREOFFICE_HOME/Contents/Frameworks
+    export DYLD_LIBRARY_PATH=$AWS_SDK_ROOT/$ALL_BUILD_COMPILER/Release/lib:$LIBREOFFICE_HOME/Contents/Frameworks:$HARBOUR_HOME/contrib/hboffice/build/Release/bin
 else
     export LIBREOFFICE_HOME=/usr/lib/libreoffice
     export LD_LIBRARY_PATH=.:/usr/lib/libreoffice/program:$LD_LIBRARY_PATH
-    export LD_LIBRARY_PATH=$AWS_SDK_ROOT/%ALL_BUILD_COMPILER/Release/bin:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=$AWS_SDK_ROOT/$ALL_BUILD_COMPILER/Release/bin:$LD_LIBRARY_PATH
 fi
 
 ./exemplo --hb:gtnap
