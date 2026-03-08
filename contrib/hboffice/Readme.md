@@ -242,7 +242,7 @@ First step generate **libofficesdk.dylib**:
 
 ```
 cd contrib/hboffice
-export MACOSX_DEPLOYMENT_TARGET=10.13
+export MACOSX_DEPLOYMENT_TARGET=13.0
 ./build.sh -dll -b Release
 
 :: Full command
@@ -277,9 +277,7 @@ In the `/hboffice/tests` folder there are different examples of use. To run them
 cd \contrib\hboffice\tests
 copy ..\build\Release\bin\officesdk.dll
 ..\..\..\bin\win\mingw64\hbmk2 sheet1.prg hboffice.hbc -comp=mingw64
-
 ..\..\..\bin\win\clang\hbmk2 sheet1.prg hboffice.hbc -comp=clang
-
 ..\..\..\bin\win\msvc64\hbmk2 sheet1.prg hboffice.hbc -comp=msvc64
 
 :: Just run
