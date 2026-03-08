@@ -140,7 +140,7 @@ If the `awssdk` script runs successfully, you will have the AWS-SDK headers and 
 
 **macOS redistributables .dylib** in `/lib` folder.
 
-![macos_aws_dylib](https://github.com/user-attachments/assets/d8529946-c9a0-4ee1-b576-fa05a26c6514)
+![macos_aws_dylib](https://github.com/user-attachments/assets/bc42e9b1-422f-4b74-88c7-a65ac998b44d)
 
 ## Build HBAWS
 
