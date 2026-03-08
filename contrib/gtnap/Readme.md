@@ -504,6 +504,8 @@ Example is the reference application for using GTNAP. Combines windows created i
 
    :: Use -debug option or omit for release version
    cd contrib\gtnap\tests\cuademo\gtnap_cualib
+
+   set PATH=%PATH%;%AWS_SDK_ROOT%\msvc64\Release\bin;%HARBOUR_HOME%\contrib\hboffice\build\Release\bin
    ..\..\..\..\..\bin\win\msvc64\hbmk2.exe [-debug] -comp=msvc64 exemplo.hbp
    exemplo --hb:gtnap
    exemplo --hb:gtwin
@@ -511,6 +513,7 @@ Example is the reference application for using GTNAP. Combines windows created i
 
 - To compile in Windows with MinGW:
    ```
+   set PATH=%PATH%;%AWS_SDK_ROOT%\mingw64\Release\bin;%HARBOUR_HOME%\contrib\hboffice\build\Release\bin
    ..\..\..\..\..\bin\win\mingw64\hbmk2.exe [-debug] -comp=mingw64 exemplo.hbp
    exemplo --hb:gtnap
    exemplo --hb:gtwin
@@ -518,7 +521,8 @@ Example is the reference application for using GTNAP. Combines windows created i
 
 - To compile in Windows with Clang:
    ```
-   ..\..\..\..\..\bin\win\mingw64\hbmk2.exe [-debug] -comp=clang exemplo.hbp
+   set PATH=%PATH%;%AWS_SDK_ROOT%\clang\Release\bin;%HARBOUR_HOME%\contrib\hboffice\build\Release\bin
+   ..\..\..\..\..\bin\win\clang\hbmk2.exe [-debug] -comp=clang exemplo.hbp
    exemplo --hb:gtnap
    exemplo --hb:gtwin
    ```
