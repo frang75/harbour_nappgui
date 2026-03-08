@@ -526,6 +526,8 @@ Example is the reference application for using GTNAP. Combines windows created i
 - To compile in Linux:
    ```
    cd contrib/gtnap/tests/cuademo/gtnap_cualib
+   export LD_LIBRARY_PATH=$AWS_SDK_ROOT/gcc/Release/lib:$LIBREOFFICE_HOME/program:$HARBOUR_HOME/contrib/hboffice/build/Release/bin
+
    # Use -debug option or omit for release version
    ../../../../../bin/linux/gcc/hbmk2 [-debug] exemplo.hbp
    ./exemplo --hb:gtnap
@@ -535,8 +537,8 @@ Example is the reference application for using GTNAP. Combines windows created i
 - To compile in macOS:
    ```
    cd contrib/gtnap/tests/cuademo/gtnap_cualib
-   ../../../../../bin/darwin/clang/hbmk2 exemplo.hbp
    export DYLD_LIBRARY_PATH=$LIBREOFFICE_HOME/Contents/Frameworks:$AWS_SDK_ROOT/clang/Release/lib:$HARBOUR_HOME/contrib/hboffice/build/Release/bin
+   ../../../../../bin/darwin/clang/hbmk2 exemplo.hbp
 
    ./exemplo --hb:gtnap
    ./exemplo --hb:gttrm

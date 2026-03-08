@@ -116,17 +116,15 @@ echo -------------------------
 
 cd tests/cuademo/gtnap_cualib
 rm exemplo
-../../../../../bin/$PLATFORM/$ALL_BUILD_COMPILER/hbmk2 -comp=$ALL_BUILD_COMPILER exemplo.hbp
 
 if [ "$(uname)" == "Darwin" ]; then
     export PATH=$PATH:/Applications/LibreOffice.app/Contents/MacOS
     export DYLD_LIBRARY_PATH=$AWS_SDK_ROOT/$ALL_BUILD_COMPILER/Release/lib:$LIBREOFFICE_HOME/Contents/Frameworks:$HARBOUR_HOME/contrib/hboffice/build/Release/bin
 else
-    export LIBREOFFICE_HOME=/usr/lib/libreoffice
-    export LD_LIBRARY_PATH=.:/usr/lib/libreoffice/program:$LD_LIBRARY_PATH
-    export LD_LIBRARY_PATH=$AWS_SDK_ROOT/$ALL_BUILD_COMPILER/Release/bin:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=$AWS_SDK_ROOT/$ALL_BUILD_COMPILER/Release/lib:$LIBREOFFICE_HOME/program:$HARBOUR_HOME/contrib/hboffice/build/Release/bin
 fi
 
+../../../../../bin/$PLATFORM/$ALL_BUILD_COMPILER/hbmk2 -comp=$ALL_BUILD_COMPILER exemplo.hbp
 ./exemplo --hb:gtnap
 
 # Return to gtnap path
