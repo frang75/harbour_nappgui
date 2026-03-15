@@ -99,7 +99,7 @@ static void i_remove_undo_frame(UndoFrame *frame)
 {
     dbind_destroy(&frame->fform, FForm);
 }
-    
+
 /*---------------------------------------------------------------------------*/
 
 static void i_cell_obj_name(DForm *form, FLayout *flayout, const uint32_t col, const uint32_t row)
@@ -145,7 +145,7 @@ static void i_update_undo_stack(DForm *form)
     arrst_end()
     designer_undo_stack(form->app, size);
 }
-    
+
 /*---------------------------------------------------------------------------*/
 
 static void i_undo_add_frame(DForm *form)
@@ -187,7 +187,7 @@ static void i_undo_add_frame(DForm *form)
 
     i_update_undo_stack(form);
 }
-    
+
 /*---------------------------------------------------------------------------*/
 
 static void i_need_save(DForm *form, const bool_t undo)
@@ -1277,7 +1277,7 @@ bool_t dform_OnCursorNav(DForm *form, const vkey_t key, Panel *inspect, Panel *p
     if (dcell != NULL)
     {
         DCell *ccell = NULL;
-        
+
         if (form->sel.elem == ekLAYELEM_CELL)
             ccell = dlayout_cell(form->sel.dlayout, form->sel.col, form->sel.row);
 
@@ -1514,6 +1514,18 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
                 break;
             }
 
+            case ekCELL_TYPE_HLINE:
+            {
+                cassert(FALSE);
+                break;
+            }
+    
+            case ekCELL_TYPE_VLINE:
+            {
+                cassert(FALSE);
+                break;
+            }
+
             case ekCELL_TYPE_LAYOUT:
             {
                 FLayout *fsublayout = dbind_copy(clipboard->fcell->widget.layout, FLayout);
@@ -1527,14 +1539,14 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
 
             i_copy_cell_props(clipboard->fcell, &form->sel);
             i_after_new_widget(form, inspect, propedit, &form->sel);
-            return TRUE;            
+            return TRUE;
         }
         else if (clipboard->flayout != NULL)
         {
             FLayout *fsublayout = dbind_copy(clipboard->flayout, FLayout);
             i_new_sublayout(fsublayout, &form->sel, folder_path, colors);
             i_after_new_widget(form, inspect, propedit, &form->sel);
-            return TRUE;            
+            return TRUE;
         }
     }
 
@@ -1638,7 +1650,7 @@ static bool_t i_promote(DForm *form, FLayout *top_layout, const uint32_t col, co
         cassert(pcell->type == ekCELL_TYPE_LAYOUT);
         cassert(pcell->widget.layout == sel->flayout);
         flayout_add_layout(top_layout, sel->flayout, col, row);
-        pcell->widget.layout = top_layout;        
+        pcell->widget.layout = top_layout;
     }
 
     /* Update and synchro dlayout and glayout */
@@ -2127,6 +2139,9 @@ void dform_synchro_table(DForm *form, const DSelect *sel)
     ftable_synchro(cell->widget.table, view);
 }
 
+/* ekCELL_TYPE_HLINE */
+/* ekCELL_TYPE_VLINE */
+
 /*---------------------------------------------------------------------------*/
 
 void dform_synchro_layout(DForm *form, const DSelect *sel)
@@ -2245,7 +2260,7 @@ const char_t* dform_cell_type(const celltype_t type)
     case ekCELL_TYPE_RADIO:
         return gui_text(TEXT_CELL_RADIO);
     case ekCELL_TYPE_TOOL:
-        return gui_text(TEXT_CELL_TOOL);        
+        return gui_text(TEXT_CELL_TOOL);
     case ekCELL_TYPE_POPUP:
         return gui_text(TEXT_CELL_POPUP);
     case ekCELL_TYPE_EDIT:
@@ -2270,6 +2285,10 @@ const char_t* dform_cell_type(const celltype_t type)
         return gui_text(TEXT_CELL_IMAGE);
     case ekCELL_TYPE_TABLEVIEW:
         return gui_text(TEXT_CELL_TABLE);
+    case ekCELL_TYPE_HLINE:
+        return gui_text(TEXT_CELL_HLINE);
+    case ekCELL_TYPE_VLINE:
+        return gui_text(TEXT_CELL_VLINE);
     case ekCELL_TYPE_LAYOUT:
         return gui_text(TEXT_CELL_LAYOUT);
     default:
@@ -2296,7 +2315,7 @@ const Image *dform_cell_icon(const celltype_t type)
     case ekCELL_TYPE_RADIO:
         return gui_image(RADBUT16_PNG);
     case ekCELL_TYPE_TOOL:
-        return gui_image(TOOLBUT16_PNG);        
+        return gui_image(TOOLBUT16_PNG);
     case ekCELL_TYPE_POPUP:
         return gui_image(POPUP16_PNG);
     case ekCELL_TYPE_EDIT:
@@ -2321,6 +2340,10 @@ const Image *dform_cell_icon(const celltype_t type)
         return gui_image(IMAGEVIEW16_PNG);
     case ekCELL_TYPE_TABLEVIEW:
         return gui_image(TABLEVIEW16_PNG);
+    case ekCELL_TYPE_HLINE:
+        return gui_image(HLINE16_PNG);
+    case ekCELL_TYPE_VLINE:
+        return gui_image(VLINE16_PNG);
     case ekCELL_TYPE_LAYOUT:
         return gui_image(LCELL16_PNG);
     default:

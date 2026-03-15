@@ -58,6 +58,10 @@ _nflib_api void flayout_add_image(FLayout *layout, FImage *image, const uint32_t
 
 _nflib_api void flayout_add_table(FLayout *layout, FTable *table, const uint32_t col, const uint32_t row);
 
+_nflib_api void flayout_add_hline(FLayout *layout, FHline *hline, const uint32_t col, const uint32_t row);
+
+_nflib_api void flayout_add_vline(FLayout *layout, FVline *vline, const uint32_t col, const uint32_t row);
+
 _nflib_api void flayout_add_layout(FLayout *layout, FLayout *sublayout, const uint32_t col, const uint32_t row);
 
 _nflib_api uint32_t flayout_ncols(const FLayout *layout);

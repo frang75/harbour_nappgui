@@ -431,7 +431,7 @@ static void i_OnColumnRight(PropData *data, Event *e)
 static void i_remove_column(PropData *data, const uint32_t col_id)
 {
     Window *parent = NULL;
-    const Font *font = NULL;    
+    const Font *font = NULL;
     cassert_no_null(data);
     cassert_no_null(data->sel.dlayout);
     parent = designer_main_window(data->app);
@@ -561,7 +561,7 @@ static void i_OnRowBottom(PropData *data, Event *e)
 static void i_remove_row(PropData *data, const uint32_t row_id)
 {
     Window *parent = NULL;
-    const Font *font = NULL;    
+    const Font *font = NULL;
     cassert_no_null(data);
     cassert_no_null(data->sel.dlayout);
     parent = designer_main_window(data->app);
@@ -660,9 +660,9 @@ static void i_OnLayoutNotify(PropData *data, Event *e)
     {
         designer_inspect_update(data->app);
     }
-    else if (evbind_modify(e, FLayout, real32_t, margin_left) == TRUE 
-        || evbind_modify(e, FLayout, real32_t, margin_top) == TRUE 
-        || evbind_modify(e, FLayout, real32_t, margin_right) == TRUE 
+    else if (evbind_modify(e, FLayout, real32_t, margin_left) == TRUE
+        || evbind_modify(e, FLayout, real32_t, margin_top) == TRUE
+        || evbind_modify(e, FLayout, real32_t, margin_right) == TRUE
         || evbind_modify(e, FLayout, real32_t, margin_bottom) == TRUE
         || evbind_modify(e, FLayout, bool_t, row_tabstop) == TRUE)
     {
@@ -2390,6 +2390,8 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
             i_update_header_list(cell->widget.table->headers, data->table_list, data->header_layout);
             panel_visible_layout(data->cell_panel, 18);
         }
+        /* ekCELL_TYPE_HLINE */
+        /* ekCELL_TYPE_VLINE */
         else
         {
             cassert(FALSE);
