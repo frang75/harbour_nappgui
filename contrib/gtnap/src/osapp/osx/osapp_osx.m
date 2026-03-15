@@ -251,8 +251,6 @@ OSApp *_osapp_init_imp(
     unref(with_run_loop);
     app = [NSApplication sharedApplication];
     cassert(app == NSApp);
-    [app setActivationPolicy:NSApplicationActivationPolicyRegular];
-    [app activateIgnoringOtherApps:YES];
     delegate = [OSXAppDelegate alloc];
     delegate->argc = argc;
     delegate->argv = argv;

@@ -16,7 +16,6 @@
 #include "../ospanel.inl"
 #include "../oscontrol.inl"
 #include "../osgui.inl"
-#include "../osscrolls.inl"
 #include <core/arrst.h>
 #include <core/heap.h>
 #include <sewer/cassert.h>
@@ -36,73 +35,22 @@ struct _area_t
 
 DeclSt(Area);
 
-/*---------------------------------------------------------------------------*/
+#if (defined MAC_OS_X_VERSION_10_12 && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12)
+static NSEventMask kWHEEL_EVENT = NSEventMaskScrollWheel;
+#else
+static NSEventMask kWHEEL_EVENT = NSScrollWheelMask;
+#endif
 
-@interface OSXContentView : NSView
-{
-  @public
-}
-@end
+/*---------------------------------------------------------------------------*/
 
 @interface OSXPanel : NSView
 {
   @public
-    OSScrolls *scroll;
-    NSView *content;
+    NSScrollView *scroll;
+    CGSize content_size;
     id evmonitor;
     ArrSt(Area) *areas;
 }
-@end
-
-/*---------------------------------------------------------------------------*/
-
-static void i_draw_areas(OSXPanel *panel, NSPoint borigin)
-{
-    NSRect bounds;
-    bounds.origin = borigin;
-    bounds.size = [panel frame].size;
-    cassert_no_null(panel);
-    if (panel->areas != NULL)
-    {
-        arrst_foreach(area, panel->areas, Area)
-            /* In scroll panels, avoid draw non visible areas */
-            if (NSIntersectsRect(area->rect, bounds) == YES)
-            {
-                if (area->bgcolor != nil)
-                {
-                    [area->bgcolor set];
-                    NSRectFill(area->rect);
-                }
-
-                if (area->skcolor != NULL)
-                {
-                    [area->skcolor set];
-                    NSFrameRect(area->rect);
-                }
-            }
-        arrst_end()
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-@implementation OSXContentView
-
-- (BOOL)isFlipped
-{
-    return YES;
-}
-
-/*---------------------------------------------------------------------------*/
-
-- (void)drawRect:(NSRect)rect
-{
-    NSView *parent = [self superview];
-    cassert([parent isKindOfClass:[OSXPanel class]]);
-    [super drawRect:rect];
-    i_draw_areas(cast(parent, OSXPanel), [self bounds].origin);
-}
-
 @end
 
 /*---------------------------------------------------------------------------*/
@@ -122,8 +70,21 @@ static void i_draw_areas(OSXPanel *panel, NSPoint borigin)
 - (void)drawRect:(NSRect)rect
 {
     [super drawRect:rect];
-    if (self->content == nil)
-        i_draw_areas(self, NSZeroPoint);
+    if (self->areas != NULL)
+    {
+        arrst_foreach(area, self->areas, Area)
+            if (area->bgcolor != nil)
+            {
+                [area->bgcolor set];
+                NSRectFill(area->rect);
+            }
+            if (area->skcolor != NULL)
+            {
+                [area->skcolor set];
+                NSFrameRect(area->rect);
+            }
+        arrst_end()
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -145,9 +106,7 @@ static void i_draw_areas(OSXPanel *panel, NSPoint borigin)
 
 - (void)handleScroll:(NSEvent *)theEvent
 {
-    gui_scroll_t ev = _osscroll_wheel_event(theEvent);
-    if (ev != ENUM_MAX(gui_scroll_t))
-        _ospanel_scroll_event(self, ekGUI_VERTICAL, ev);
+    [self->scroll scrollWheel:theEvent];
 }
 
 @end
@@ -160,44 +119,39 @@ OSPanel *ospanel_create(const uint32_t flags)
     heap_auditor_add("OSXPanel");
     panel = [[OSXPanel alloc] initWithFrame:NSZeroRect];
     panel->areas = NULL;
+    panel->content_size = CGSizeMake(-1, -1);
     [panel setAutoresizesSubviews:NO];
-
-    /* https://developer.apple.com/documentation/macos-release-notes/appkit-release-notes-for-macos-14#NSView */
-#if defined(MAC_OS_VERSION_14_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_14
-    [panel setClipsToBounds:YES];
-#endif
 
     if (flags & ekVIEW_HSCROLL || flags & ekVIEW_VSCROLL)
     {
-        panel->content = [[OSXContentView alloc] init];
-        [panel addSubview:panel->content];
+        NSScrollView *scroll = [[NSScrollView alloc] initWithFrame:NSZeroRect];
+        [scroll setDrawsBackground:NO];
+        [scroll setDocumentView:panel];
+        [scroll setHasHorizontalScroller:(flags & ekVIEW_HSCROLL) ? YES : NO];
+        [scroll setHasVerticalScroller:(flags & ekVIEW_VSCROLL) ? YES : NO];
+        [scroll setAutohidesScrollers:YES];
+        [scroll setBorderType:(flags & ekVIEW_BORDER) ? NSGrooveBorder : NSNoBorder];
+        panel->scroll = scroll;
 
-        panel->scroll = _osscrolls_create(cast(panel, OSControl), (bool_t)(flags & ekVIEW_HSCROLL) != 0, (bool_t)(flags & ekVIEW_VSCROLL) != 0);
-
-        panel->evmonitor = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskScrollWheel
-                                                                 handler:^NSEvent *_Nullable(NSEvent *_Nonnull event) {
+        panel->evmonitor = [NSEvent addLocalMonitorForEventsMatchingMask:kWHEEL_EVENT
+                                                                 handler:^NSEvent *(NSEvent *event) {
                                                                    if ([panel eventIsInside:event])
                                                                    {
                                                                        [panel handleScroll:event];
                                                                        return nil;
                                                                    }
 
-                                                                   return event;
+                                                                   return cast(event, void);
                                                                  }];
+
+        return cast(scroll, OSPanel);
     }
     else
     {
-        panel->content = nil;
         panel->scroll = nil;
         panel->evmonitor = nil;
+        return cast(panel, OSPanel);
     }
-
-    if (flags & ekVIEW_BORDER)
-        [panel setFocusRingType:NSFocusRingTypeExterior];
-    else
-        [panel setFocusRingType:NSFocusRingTypeNone];
-
-    return cast(panel, OSPanel);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -215,8 +169,16 @@ static void i_remove_area(Area *area)
 static OSXPanel *i_get_panel(const OSPanel *panel)
 {
     cassert_no_null(panel);
-    cassert([cast(panel, NSView) isKindOfClass:[OSXPanel class]]);
-    return cast(panel, OSXPanel);
+    if ([cast(panel, NSView) isKindOfClass:[OSXPanel class]])
+    {
+        return cast(panel, OSXPanel);
+    }
+    else
+    {
+        NSScrollView *scroll = cast(panel, NSScrollView);
+        cassert([[scroll documentView] isKindOfClass:[OSXPanel class]]);
+        return [scroll documentView];
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -224,19 +186,11 @@ static OSXPanel *i_get_panel(const OSPanel *panel)
 void ospanel_destroy(OSPanel **panel)
 {
     OSXPanel *lpanel = nil;
+    NSScrollView *scroll = nil;
     cassert_no_null(panel);
     lpanel = i_get_panel(*panel);
     cassert_no_null(lpanel);
-
-    if (lpanel->scroll != NULL)
-        _osscrolls_destroy(&lpanel->scroll);
-
-    if (lpanel->content != nil)
-    {
-        [lpanel->content removeFromSuperview];
-        [lpanel->content release];
-        lpanel->content = nil;
-    }
+    cassert([[lpanel subviews] count] == 0);
 
     if (lpanel->evmonitor != nil)
     {
@@ -244,12 +198,15 @@ void ospanel_destroy(OSPanel **panel)
         lpanel->evmonitor = nil;
     }
 
-    cassert([[lpanel subviews] count] == 0);
-
     if (lpanel->areas != NULL)
         arrst_destroy(&lpanel->areas, i_remove_area, Area);
 
+    scroll = lpanel->scroll;
     [lpanel release];
+
+    if (scroll != nil)
+        [scroll release];
+
     *panel = NULL;
 }
 
@@ -257,14 +214,7 @@ void ospanel_destroy(OSPanel **panel)
 
 BOOL _ospanel_is(NSView *view)
 {
-    return ([view isKindOfClass:[OSXPanel class]]);
-}
-
-/*---------------------------------------------------------------------------*/
-
-BOOL _ospanel_is_content(NSView *view)
-{
-    return ([view isKindOfClass:[OSXContentView class]]);
+    return [view isKindOfClass:[OSXPanel class]];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -273,17 +223,17 @@ void _ospanel_destroy(OSPanel **panel)
 {
     OSXPanel *lpanel = nil;
     NSArray *subviews;
-    NSUInteger i, n;
+    NSUInteger i, num_elems;
     cassert_no_null(panel);
     lpanel = i_get_panel(*panel);
     cassert_no_null(lpanel);
     subviews = [lpanel subviews];
-    n = [subviews count];
-    for (i = 0; i < n; ++i)
+    num_elems = [subviews count];
+    for (i = 0; i < num_elems; ++i)
     {
         NSView *child = [subviews objectAtIndex:0];
         _oscontrol_detach_and_destroy(dcast(&child, OSControl), *panel);
-        cassert([subviews count] == n - i - 1);
+        cassert([subviews count] == num_elems - i - 1);
     }
 
     ospanel_destroy(panel);
@@ -352,36 +302,55 @@ void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_
 
 void ospanel_scroller_size(const OSPanel *panel, real32_t *width, real32_t *height)
 {
-    OSXPanel *lpanel = i_get_panel(panel);
-    cassert_no_null(lpanel);
+    if ([cast(panel, NSView) isKindOfClass:[NSScrollView class]])
+    {
+        NSScrollView *scroll = cast(panel, NSScrollView);
 
-    if (width != NULL)
-        *width = (real32_t)_osscrolls_bar_width(lpanel->scroll, FALSE);
+        if (width)
+        {
+            NSScroller *scroller = [scroll verticalScroller];
+            *width = 0;
+            if (scroller != nil)
+                *width = (real32_t)[scroller frame].size.width;
+        }
 
-    if (height != NULL)
-        *height = (real32_t)_osscrolls_bar_height(lpanel->scroll, FALSE);
+        if (height)
+        {
+            NSScroller *scroller = [scroll horizontalScroller];
+            *height = 0;
+            if (scroller != nil)
+                *height = (real32_t)[scroller frame].size.height;
+        }
+    }
+    else
+    {
+        if (width)
+            *width = 16;
+
+        if (height)
+            *height = 16;
+    }
 }
 
-//*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
-static void i_update_scroll_bounds(OSXPanel *panel)
+static void i_OnUpdateSize(OSPanel *panel)
 {
-    NSPoint origin;
-    OSScroll *hscroll = NULL;
-    OSScroll *vscroll = NULL;
-    cassert_no_null(panel);
-    cassert_no_null(panel->content);
-    origin = [panel->content bounds].origin;
-    hscroll = _osscrolls_horizontal(panel->scroll);
-    vscroll = _osscrolls_vertical(panel->scroll);
+    OSXPanel *lpanel = i_get_panel(panel);
+    if ([cast(panel, NSView) isKindOfClass:[NSScrollView class]])
+    {
+        CGFloat diff = 0;
+        NSScroller *scroller = [cast(panel, NSScrollView) verticalScroller];
+        if (scroller != nil && [scroller isHidden] == NO)
+            diff = [scroller frame].size.width;
 
-    if (hscroll != NULL)
-        origin.x = _osscroll_pos(hscroll);
-
-    if (vscroll != NULL)
-        origin.y = _osscroll_pos(vscroll);
-
-    [panel->content setBoundsOrigin:origin];
+        [lpanel setFrame:NSMakeRect(0, 0, lpanel->content_size.width - diff, lpanel->content_size.height)];
+    }
+    else
+    {
+        cassert(lpanel->content_size.width == -1);
+        cassert(lpanel->content_size.height == -1);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -389,11 +358,13 @@ static void i_update_scroll_bounds(OSXPanel *panel)
 void ospanel_content_size(OSPanel *panel, const real32_t width, const real32_t height, const real32_t line_width, const real32_t line_height)
 {
     OSXPanel *lpanel = i_get_panel(panel);
-    cassert_no_null(lpanel);
-    cassert_no_null(lpanel->content);
-    _osscrolls_content_size(lpanel->scroll, (uint32_t)width, (uint32_t)height, (uint32_t)line_width, (uint32_t)line_height);
-    [lpanel->content setFrameSize:NSMakeSize((CGFloat)width, (CGFloat)height)];
-    i_update_scroll_bounds(lpanel);
+    cassert([cast(panel, NSView) isKindOfClass:[NSScrollView class]]);
+    cassert(lpanel == [cast(panel, NSScrollView) documentView]);
+    unref(line_width);
+    unref(line_height);
+    lpanel->content_size.width = (CGFloat)width;
+    lpanel->content_size.height = (CGFloat)height;
+    i_OnUpdateSize(panel);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -401,7 +372,6 @@ void ospanel_content_size(OSPanel *panel, const real32_t width, const real32_t h
 void ospanel_display(OSPanel *panel)
 {
     OSXPanel *lpanel = i_get_panel(panel);
-    cassert_no_null(lpanel);
     [lpanel setNeedsDisplay:YES];
 }
 
@@ -410,11 +380,7 @@ void ospanel_display(OSPanel *panel)
 void ospanel_attach(OSPanel *panel, OSPanel *parent_panel)
 {
     OSXPanel *lparent = i_get_panel(parent_panel);
-    cassert_no_null(lparent);
-    if (lparent->content != nil)
-        _oscontrol_attach_to_parent(cast(panel, NSView), lparent->content);
-    else
-        _oscontrol_attach_to_parent(cast(panel, NSView), cast(parent_panel, NSView));
+    _oscontrol_attach_to_parent(cast(panel, NSView), lparent);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -422,11 +388,7 @@ void ospanel_attach(OSPanel *panel, OSPanel *parent_panel)
 void ospanel_detach(OSPanel *panel, OSPanel *parent_panel)
 {
     OSXPanel *lparent = i_get_panel(parent_panel);
-    cassert_no_null(lparent);
-    if (lparent->content != nil)
-        _oscontrol_detach_from_parent(cast(panel, NSView), lparent->content);
-    else
-        _oscontrol_detach_from_parent(cast(panel, NSView), cast(parent_panel, NSView));
+    _oscontrol_detach_from_parent(cast(panel, NSView), lparent);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -462,14 +424,8 @@ void ospanel_origin(const OSPanel *panel, real32_t *x, real32_t *y)
 
 void ospanel_frame(OSPanel *panel, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    OSXPanel *lpanel = i_get_panel(panel);
     _oscontrol_set_frame(cast(panel, NSView), x, y, width, height);
-    cassert_no_null(lpanel);
-    if (lpanel->scroll != nil)
-    {
-        _osscrolls_control_size(lpanel->scroll, (uint32_t)width, (uint32_t)height);
-        i_update_scroll_bounds(lpanel);
-    }
+    i_OnUpdateSize(panel);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -477,10 +433,7 @@ void ospanel_frame(OSPanel *panel, const real32_t x, const real32_t y, const rea
 void _ospanel_attach_control(OSPanel *panel, NSView *control)
 {
     OSXPanel *lpanel = i_get_panel(panel);
-    if (lpanel->content != nil)
-        _oscontrol_attach_to_parent(control, lpanel->content);
-    else
-        _oscontrol_attach_to_parent(control, cast(lpanel, NSView));
+    _oscontrol_attach_to_parent(control, cast(lpanel, NSView));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -488,36 +441,7 @@ void _ospanel_attach_control(OSPanel *panel, NSView *control)
 void _ospanel_detach_control(OSPanel *panel, NSView *control)
 {
     OSXPanel *lpanel = i_get_panel(panel);
-    if (lpanel->content != nil)
-        _oscontrol_detach_from_parent(control, lpanel->content);
-    else
-        _oscontrol_detach_from_parent(control, cast(lpanel, NSView));
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _ospanel_scroll_event(NSView *view, const gui_orient_t orient, const gui_scroll_t event)
-{
-    OSXPanel *lpanel = cast(view, OSXPanel);
-    cassert_no_null(lpanel);
-    cassert_no_null(lpanel->scroll);
-    cassert([lpanel isKindOfClass:[OSXPanel class]]);
-    if (_osscrolls_event(lpanel->scroll, orient, event, TRUE) == TRUE)
-        [lpanel setNeedsDisplay:YES];
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _ospanel_incr_scroll(NSView *view, const int32_t incr_x, const int32_t incr_y)
-{
-    if (incr_x != 0 || incr_y != 0)
-    {
-        OSXPanel *lpanel = cast(view, OSXPanel);
-        cassert_no_null(lpanel);
-        cassert_no_null(lpanel->scroll);
-        cassert([lpanel isKindOfClass:[OSXPanel class]]);
-        i_update_scroll_bounds(lpanel);
-    }
+    _oscontrol_detach_from_parent(control, cast(lpanel, NSView));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -525,7 +449,6 @@ void _ospanel_incr_scroll(NSView *view, const int32_t incr_x, const int32_t incr
 bool_t _ospanel_with_scroll(const OSPanel *panel)
 {
     OSXPanel *lpanel = i_get_panel(panel);
-    cassert_no_null(lpanel);
     return (bool_t)(lpanel->scroll != nil);
 }
 
@@ -533,40 +456,31 @@ bool_t _ospanel_with_scroll(const OSPanel *panel)
 
 void _ospanel_scroll(OSPanel *panel, const int32_t x, const int32_t y)
 {
+    NSPoint origin;
     OSXPanel *lpanel = i_get_panel(panel);
-    cassert_no_null(lpanel);
     cassert_no_null(lpanel->scroll);
-
+    origin = [lpanel->scroll documentVisibleRect].origin;
     if (x != INT32_MAX)
-    {
-        OSScroll *scroll = _osscrolls_horizontal(lpanel->scroll);
-        _osscroll_set_pos(scroll, (uint32_t)(x < 0 ? 0 : x));
-    }
-
+        origin.x = (CGFloat)x;
     if (y != INT32_MAX)
-    {
-        OSScroll *scroll = _osscrolls_vertical(lpanel->scroll);
-        _osscroll_set_pos(scroll, (uint32_t)(y < 0 ? 0 : y));
-    }
+        origin.y = (CGFloat)y;
 
-    if (x != INT32_MAX || y != INT32_MAX)
-        i_update_scroll_bounds(lpanel);
+    /* https://stackoverflow.com/questions/5834056/how-i-set-the-default-position-of-a-nsscroll-view */
+    [[lpanel->scroll contentView] scrollToPoint:origin];
+    [lpanel->scroll reflectScrolledClipView:[lpanel->scroll contentView]];
 }
 
 /*---------------------------------------------------------------------------*/
 
 void _ospanel_scroll_frame(const OSPanel *panel, OSFrame *rect)
 {
-    NSPoint origin;
-    NSSize size;
+    NSRect frame;
     OSXPanel *lpanel = i_get_panel(panel);
     cassert_no_null(rect);
-    cassert_no_null(lpanel);
-    cassert_no_null(lpanel->content);
-    origin = [lpanel->content bounds].origin;
-    size = [lpanel frame].size;
-    rect->left = (int32_t)origin.x;
-    rect->top = (int32_t)origin.y;
-    rect->right = rect->left + (int32_t)size.width;
-    rect->bottom = rect->top + (int32_t)size.height;
+    cassert_no_null(lpanel->scroll);
+    frame = [lpanel->scroll documentVisibleRect];
+    rect->left = (int32_t)frame.origin.x;
+    rect->top = (int32_t)frame.origin.y;
+    rect->right = rect->left + (int32_t)frame.size.width;
+    rect->bottom = rect->top + (int32_t)frame.size.height;
 }

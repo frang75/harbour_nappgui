@@ -18,7 +18,6 @@
 #include <gui/button.h>
 #include <gui/drawctrl.inl>
 #include <gui/edit.h>
-#include <gui/globals.h>
 #include <gui/gui.h>
 #include <gui/imageview.h>
 #include <gui/label.h>
@@ -1350,7 +1349,10 @@ static S2Df i_resolution(void)
 
     /* Minimum resolution accepted */
     if (screen.width < 800 || screen.height < 600)
-        globals_resolution(&screen);
+    {
+        R2Df warea = gui_workarea();
+        screen = warea.size;
+    }
 
     return screen;
 }

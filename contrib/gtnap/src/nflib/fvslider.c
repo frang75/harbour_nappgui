@@ -24,6 +24,6 @@ void fvslider_destroy(FVSlider **slider)
 void fvslider_synchro(const FVSlider *fslider, Slider *slider)
 {
     cassert_no_null(slider);
-    slider_min_width(slider, fslider->min_height);
+    slider_length(slider, fslider->min_height);
     slider_value(slider, .5f);
 }

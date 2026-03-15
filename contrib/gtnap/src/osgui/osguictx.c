@@ -15,6 +15,7 @@
 #include "ospopup.h"
 #include "osedit.h"
 #include "oscombo.h"
+#include "osline.h"
 #include "osupdown.h"
 #include "osslider.h"
 #include "osprogress.h"
@@ -317,6 +318,20 @@ GuiCtx *osguictx(void)
         ospanel_frame,
         OSPanel);
 
+    guictx_append_line_manager(
+        context,
+        osline_create,
+        osline_destroy,
+        osline_bounds,
+        osline_attach,
+        osline_detach,
+        osline_visible,
+        osline_enabled,
+        osline_size,
+        osline_origin,
+        osline_frame,
+        OSLine, OSPanel);
+
     guictx_append_window_manager(
         context,
         oswindow_create,
@@ -397,6 +412,7 @@ GuiCtx *osguictx(void)
         osglobals_device,
         osglobals_color,
         osglobals_resolution,
+        osglobals_workarea,
         osglobals_mouse_position,
         osglobals_cursor,
         osglobals_cursor_destroy,

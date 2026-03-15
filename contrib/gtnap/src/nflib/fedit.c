@@ -28,6 +28,6 @@ void fedit_synchro(const FEdit *fedit, Edit *edit)
     edit_passmode(edit, fedit->passmode);
     edit_autoselect(edit, fedit->autosel);
     edit_align(edit, _nflib_halign(fedit->text_align));
-    edit_min_width(edit, fedit->min_width);
+    edit_width(edit, fedit->min_width);
 }
 

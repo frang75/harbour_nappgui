@@ -29,5 +29,5 @@ void fcombo_synchro(const FCombo *fcombo, Combo *combo)
     combo_passmode(combo, fcombo->passmode);
     combo_autoselect(combo, fcombo->autosel);
     combo_align(combo, _nflib_halign(fcombo->text_align));
-    combo_min_width(combo, fcombo->min_width);
+    combo_width(combo, fcombo->min_width);
 }

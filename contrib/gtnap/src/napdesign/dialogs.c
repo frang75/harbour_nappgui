@@ -271,7 +271,7 @@ static uint32_t i_modal_launch(Window *parent, DialogData *data, Layout *inner_l
     imageview_image(icon, gui_image(icon_id));
     label_text(label, caption);
     label_multiline(label, TRUE);
-    label_min_width(label, 200);
+    label_width(label, 200);
     layout_imageview(layout2, icon, 0, 0);
     layout_label(layout2, label, 1, 0);
     layout_view(layout1, header, 0, 0);
@@ -353,8 +353,8 @@ static bool_t i_form_dialog(Window *parent, const Font *font, const char_t *capt
         Edit *edit2 = edit_multiline();
         label_text(label1, gui_text(TEXT_FILENAME));
         label_text(label2, gui_text(TEXT_DESCRIPTION));
-        edit_min_width(edit2, 200);
-        edit_min_height(edit2, 100);
+        edit_width(edit2, 200);
+        edit_height(edit2, 100);
         layout_label(layout, label1, 0, 0);
         layout_label(layout, label2, 0, 1);
         layout_edit(layout, edit1, 1, 0);
@@ -707,7 +707,7 @@ FTool *dialog_new_tool(Window *parent, const Font *font, const DSelect *sel, con
         label_text(label2, gui_text(TEXT_ICON_PATH));
         label_text(label3, gui_text(TEXT_DEFAULT));
         /* label_ellipsis(label3, ekELLIPBEGIN); When NAppGUI supports */
-        label_min_width(label3, 150);
+        label_width(label3, 150);
         button_image(button1, image);
         button_text(button2, "...");
         button_tooltip(button2, gui_text(TEXT_LOAD_ICON));
@@ -766,7 +766,7 @@ FElem *dialog_new_elem(Window *parent, const Font *font, const char_t *caption, 
         label_text(label3, gui_text(TEXT_ICON_PATH));
         label_text(label4, gui_text(TEXT_DEFAULT));
         /* label_ellipsis(label3, ekELLIPBEGIN); When NAppGUI supports */
-        label_min_width(label4, 150);
+        label_width(label4, 150);
         button_image(button1, image);
         button_text(button2, "...");
         button_tooltip(button2, gui_text(TEXT_LOAD_ICON));
@@ -1255,7 +1255,7 @@ FImage *dialog_new_image(Window *parent, const Font *font, const DSelect *sel, c
         label_text(label4, gui_text(TEXT_IMAGE_PATH));
         label_text(label5, gui_text(TEXT_DEFAULT));
         /* label_ellipsis(label5, ekELLIPBEGIN); When NAppGUI supports */
-        label_min_width(label5, 150);
+        label_width(label5, 150);
         button_text(button, "...");
         button_tooltip(button, gui_text(TEXT_LOAD_IMAGE));
         button_hpadding(button, 20);

@@ -24,6 +24,6 @@ void fprogress_destroy(FProgress **fprogress)
 void fprogress_synchro(const FProgress *fprogress, Progress *progress)
 {
     cassert_no_null(fprogress);
-    progress_min_width(progress, fprogress->min_width);
+    progress_width(progress, fprogress->min_width);
     progress_value(progress, .5f);
 }

@@ -20,9 +20,12 @@
 #include "stream.h"
 #include "strings.h"
 #include <osbs/bfile.h>
-#include <sewer/bstd.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
+
+#if defined(__ASSERTS__)
+#include <sewer/bstd.h>
+#endif
 
 typedef struct i_resource_t i_Resource;
 
@@ -429,9 +432,9 @@ void *respack_aobj_imp(const ArrPt(ResPack) *packs, const ResId id, FPtr_from_da
             cassert_no_nullf(func_create);
             cassert_no_nullf(func_destroy);
             cassert(resource->func_destroy == NULL);
-            #if defined(__ASSERTS__)
+#if defined(__ASSERTS__)
             resource->id = id;
-            #endif
+#endif
             resource->object = func_create(resource->data, resource->size);
             resource->func_destroy = func_destroy;
         }
