@@ -22,6 +22,8 @@ TEXT_NEW_SCROLLVIEW A new scroll view will be placed in cell (%d, %d) of '%s' la
 TEXT_NEW_TEXTVIEW   A new textview will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_IMAGEVIEW  A new imageview will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_TABLEVIEW  A new tableview will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_HLINE      A new horizontal separator will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_VLINE      A new vertical separator will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SUBLAYOUT  A new sublayout will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_FORM       A new form will be created with this filename and properties
 TEXT_PROPS_FORM     Change the filename and forms properties
@@ -73,6 +75,8 @@ TEXT_LIST_BOX       List Box
 TEXT_HORZ_SLIDER    Horizontal Slider
 TEXT_VERT_SLIDER    Vertical Slider
 TEXT_PROGRESS_BAR   Progress Bar
+TEXT_HORZ_LINE      Horizontal Line
+TEXT_VERT_LINE      Vertical Line
 TEXT_CUSTOM_VIEW    Custom View
 TEXT_SCROLL_VIEW    Scroll View
 TEXT_TEXT_VIEW      Text View
@@ -95,6 +99,7 @@ TEXT_LEFT           Left
 TEXT_BOTTOM         Bottom
 TEXT_RIGHT          Right
 TEXT_WIDTH          Width
+TEXT_LENGTH         Length
 TEXT_HPADDING       HorzPad
 TEXT_VPADDING       VertPad
 TEXT_HEIGHT         Height

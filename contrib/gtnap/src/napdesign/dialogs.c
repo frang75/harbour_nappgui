@@ -22,6 +22,8 @@
 #include <nflib/ftext.h>
 #include <nflib/fview.h>
 #include <nflib/fsview.h>
+#include <nflib/fhline.h>
+#include <nflib/fvline.h>
 #include <gui/button.h>
 #include <gui/cell.h>
 #include <gui/comwin.h>
@@ -1338,6 +1340,76 @@ FTable *dialog_new_table(Window *parent, const Font *font, const DSelect *sel)
     str_destroy(&caption);
     i_remove_dialog_data(&data);
     return ftable;
+}
+
+/*---------------------------------------------------------------------------*/
+
+FHline *dialog_new_hline(Window *parent, const Font *font, const DSelect *sel)
+{
+    DialogData data = i_dialog_data();
+    Layout *layout1 = layout_create(2, 1);
+    FHline *fhline = fhline_create();    
+    String *caption = NULL;
+    uint32_t ret = 0;
+    cassert_no_null(sel);
+    cassert_no_null(sel->flayout);
+
+    /* Widget layout */
+    {
+        Label *label1 = label_create();
+        Layout *layout2 = i_value_updown_layout();
+        label_text(label1, gui_text(TEXT_LENGTH));
+        layout_label(layout1, label1, 0, 0);
+        layout_layout(layout1, layout2, 1, 0);
+        cell_dbind(layout_cell(layout1, 1, 0), FHline, real32_t, length);
+        layout_dbind(layout1, NULL, FHline);
+        layout_dbind_obj(layout1, fhline, FHline);
+    }
+
+    caption = str_printf(gui_text(TEXT_NEW_HLINE), sel->col, sel->row, tc(sel->flayout->name));
+    ret = i_modal_launch(parent, &data, layout1, font, HLINE_PNG, TEXT_HORZ_LINE, tc(caption), ekDBUT_OK_CANCEL_DEF_OK);
+
+    if (ret != BUTTON_OK)
+        fhline_destroy(&fhline);
+
+    str_destroy(&caption);
+    i_remove_dialog_data(&data);
+    return fhline;
+}
+
+/*---------------------------------------------------------------------------*/
+
+FVline *dialog_new_vline(Window *parent, const Font *font, const DSelect *sel)
+{
+    DialogData data = i_dialog_data();
+    Layout *layout1 = layout_create(2, 1);
+    FVline *fvline = fvline_create();    
+    String *caption = NULL;
+    uint32_t ret = 0;
+    cassert_no_null(sel);
+    cassert_no_null(sel->flayout);
+
+    /* Widget layout */
+    {
+        Label *label1 = label_create();
+        Layout *layout2 = i_value_updown_layout();
+        label_text(label1, gui_text(TEXT_LENGTH));
+        layout_label(layout1, label1, 0, 0);
+        layout_layout(layout1, layout2, 1, 0);
+        cell_dbind(layout_cell(layout1, 1, 0), FVline, real32_t, length);
+        layout_dbind(layout1, NULL, FVline);
+        layout_dbind_obj(layout1, fvline, FVline);
+    }
+
+    caption = str_printf(gui_text(TEXT_NEW_VLINE), sel->col, sel->row, tc(sel->flayout->name));
+    ret = i_modal_launch(parent, &data, layout1, font, VLINE_PNG, TEXT_VERT_LINE, tc(caption), ekDBUT_OK_CANCEL_DEF_OK);
+
+    if (ret != BUTTON_OK)
+        fvline_destroy(&fvline);
+
+    str_destroy(&caption);
+    i_remove_dialog_data(&data);
+    return fvline;
 }
 
 /*---------------------------------------------------------------------------*/

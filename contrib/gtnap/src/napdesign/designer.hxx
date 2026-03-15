@@ -37,7 +37,9 @@ typedef enum _widget_t
     ekWIDGET_IMAGEVIEW,
     ekWIDGET_HORZ_SLIDER,
     ekWIDGET_VERT_SLIDER,
-    ekWIDGET_PROGRESS
+    ekWIDGET_PROGRESS,
+    ekWIDGET_HORZ_LINE,
+    ekWIDGET_VERT_LINE
 } widget_t;
 
 typedef enum _drawer_t
@@ -65,6 +67,8 @@ typedef enum _drawer_t
     ekDRAWER_HSLIDER_PROPS,
     ekDRAWER_VSLIDER_PROPS,
     ekDRAWER_PROGRESS_PROPS,
+    ekDRAWER_HLINE_PROPS,
+    ekDRAWER_VLINE_PROPS,
     ekDRAWER_VIEW_PROPS,
     ekDRAWER_SVIEW_PROPS,
     ekDRAWER_TEXT_PROPS,

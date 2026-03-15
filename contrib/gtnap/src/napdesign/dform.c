@@ -27,6 +27,8 @@
 #include <nflib/ftool.h>
 #include <nflib/fview.h>
 #include <nflib/fsview.h>
+#include <nflib/fhline.h>
+#include <nflib/fvline.h>
 #include <gui/guicontrol.h>
 #include <gui/button.h>
 #include <gui/edit.h>
@@ -40,6 +42,7 @@
 #include <gui/textview.h>
 #include <gui/layout.h>
 #include <gui/layouth.h>
+#include <gui/line.h>
 #include <gui/panel.h>
 #include <gui/panel.inl>
 #include <gui/slider.h>
@@ -767,6 +770,28 @@ static void i_new_table(FTable *ftable, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_new_hline(FHline *fhline, const DSelect *sel)
+{
+    Line *line = line_horizontal();
+    cassert_no_null(sel);
+    fhline_synchro(fhline, line);
+    flayout_add_hline(sel->flayout, fhline, sel->col, sel->row);
+    layout_line(sel->glayout, line, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_vline(FVline *fvline, const DSelect *sel)
+{
+    Line *line = line_vertical();
+    cassert_no_null(sel);
+    fvline_synchro(fvline, line);
+    flayout_add_vline(sel->flayout, fvline, sel->col, sel->row);
+    layout_line(sel->glayout, line, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_new_sublayout(FLayout *fsublayout, const DSelect *sel, const char_t *folder_path, const DColors *colors)
 {
     DLayout *dsublayout = dlayout_from_flayout(fsublayout, folder_path, colors);
@@ -1059,6 +1084,36 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     if (ftable != NULL)
                     {
                         i_new_table(ftable, &sel);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
+                case ekWIDGET_HORZ_LINE:
+                {
+                    FHline *fhline = dialog_new_hline(window, font, &sel);
+                    if (fhline != NULL)
+                    {
+                        i_new_hline(fhline, &sel);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
+                case ekWIDGET_VERT_LINE:
+                {
+                    FVline *fvline = dialog_new_vline(window, font, &sel);
+                    if (fvline != NULL)
+                    {
+                        i_new_vline(fvline, &sel);
                         i_after_new_widget(form, inspect, propedit, &sel);
                         return TRUE;
                     }
@@ -1516,13 +1571,15 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
 
             case ekCELL_TYPE_HLINE:
             {
-                cassert(FALSE);
+                FHline *fhline = dbind_copy(clipboard->fcell->widget.hline, FHline);
+                i_new_hline(fhline, &form->sel);
                 break;
             }
     
             case ekCELL_TYPE_VLINE:
             {
-                cassert(FALSE);
+                FVline *fvline = dbind_copy(clipboard->fcell->widget.vline, FVline);
+                i_new_vline(fvline, &form->sel);
                 break;
             }
 

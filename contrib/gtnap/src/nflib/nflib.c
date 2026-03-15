@@ -333,6 +333,8 @@ static void i_dbind(void)
     dbind(FWidget, FText *, text);
     dbind(FWidget, FImage *, image);
     dbind(FWidget, FTable*, table);
+    dbind(FWidget, FHline*, hline);
+    dbind(FWidget, FVline*, vline);
     dbind(FWidget, FLayout *, layout);
     dbind(FCell, FWidget, widget);
 
