@@ -714,13 +714,13 @@ IF C_TelaCoberta == NIL    // se janela ainda não foi aberta, abrí-la
                 L_MINIMIZE_BUTTON := .F.
             ENDIF
 
-            N_WindowNum := NAP_WINDOW(N_LinIni, N_ColIni, N_LinFin, N_ColFin, C_Cabec_Aux, L_CLOSE_WITH_RETURN, L_CLOSE_WITH_ESC, L_MINIMIZE_BUTTON, L_BUTTONS_NAVIGATION)
+            N_WindowNum := NAP_WINDOW(N_LinIni, N_ColIni, N_LinFin, N_ColFin, C_CdTela, C_Cabec_Aux, L_CLOSE_WITH_RETURN, L_CLOSE_WITH_ESC, L_MINIMIZE_BUTTON, L_BUTTONS_NAVIGATION)
             NAP_WINDOW_HOTKEY(N_WindowNum, K_F1,{||NAP_HELP(VX_Janela)}, .F.)
 
             AADD(V_PilhaJanelas,{N_WindowNum,VX_Janela})
 
         ELSE // L_Embutida
-            N_WindowNum := NAP_WINDOW_EMBEDDED(N_PaiWindowNum, N_LinIni, N_ColIni, N_LinFin, N_ColFin, .T.)
+            N_WindowNum := NAP_WINDOW_EMBEDDED(N_PaiWindowNum, N_LinIni, N_ColIni, N_LinFin, N_ColFin, C_CdTela, .T.)
 
         ENDIF // .NOT. L_Embutida
 

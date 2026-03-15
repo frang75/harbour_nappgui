@@ -20,12 +20,15 @@
 #include "ftool.h"
 #include "fview.h"
 #include "fsview.h"
+#include "fhline.h"
+#include "fvline.h"
 #include <gui/button.h>
 #include <gui/cell.h>
 #include <gui/combo.h>
 #include <gui/label.h>
 #include <gui/layout.h>
 #include <gui/layouth.h>
+#include <gui/line.h>
 #include <gui/listbox.h>
 #include <gui/edit.h>
 #include <gui/textview.h>
@@ -145,6 +148,14 @@ static void i_remove_cell(FCell *cell)
         ftable_destroy(&cell->widget.table);
         break;
 
+    case ekCELL_TYPE_HLINE:
+        fhline_destroy(&cell->widget.hline);
+        break;
+
+    case ekCELL_TYPE_VLINE:
+        fvline_destroy(&cell->widget.vline);
+        break;
+
     case ekCELL_TYPE_LAYOUT:
         flayout_destroy(&cell->widget.layout);
         break;
@@ -168,6 +179,8 @@ static void i_remove_cell(FCell *cell)
     cassert(cell->widget.text == NULL);
     cassert(cell->widget.image == NULL);
     cassert(cell->widget.table == NULL);
+    cassert(cell->widget.hline == NULL);
+    cassert(cell->widget.vline == NULL);
     cassert(cell->widget.layout == NULL);
 }
 
@@ -321,7 +334,7 @@ static FRadio *i_read_radio(Stream *stm)
 static FTool *i_read_tool(Stream *stm, const uint16_t vers)
 {
     FTool *tool = heap_new0(FTool);
-    tool->path = str_read(stm);    
+    tool->path = str_read(stm);
     if (vers >= 6)
         tool->tooltip = str_read(stm);
     else
@@ -485,6 +498,24 @@ static FTable *i_read_table(Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
+static FHline *i_read_hline(Stream *stm)
+{
+    FHline *line = heap_new0(FHline);
+    line->length = stm_read_r32(stm);
+    return line;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static FVline *i_read_vline(Stream *stm)
+{
+    FVline *line = heap_new0(FVline);
+    line->length = stm_read_r32(stm);
+    return line;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_read_cell(Stream *stm, FCell *cell, const uint16_t *vers)
 {
     cassert_no_null(cell);
@@ -570,6 +601,12 @@ static void i_read_cell(Stream *stm, FCell *cell, const uint16_t *vers)
         break;
     case ekCELL_TYPE_TABLEVIEW:
         cell->widget.table = i_read_table(stm);
+        break;
+    case ekCELL_TYPE_HLINE:
+        cell->widget.hline = i_read_hline(stm);
+        break;
+    case ekCELL_TYPE_VLINE:
+        cell->widget.vline = i_read_vline(stm);
         break;
     case ekCELL_TYPE_LAYOUT:
         if (*vers >= 8)
@@ -841,6 +878,22 @@ static void i_write_table(Stream *stm, const FTable *table)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_write_hline(Stream *stm, const FHline *hline)
+{
+    cassert_no_null(hline);
+    stm_write_r32(stm, hline->length);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_write_vline(Stream *stm, const FVline *vline)
+{
+    cassert_no_null(vline);
+    stm_write_r32(stm, vline->length);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_write_cell(Stream *stm, const FCell *cell)
 {
     cassert_no_null(cell);
@@ -908,6 +961,12 @@ static void i_write_cell(Stream *stm, const FCell *cell)
         break;
     case ekCELL_TYPE_TABLEVIEW:
         i_write_table(stm, cell->widget.table);
+        break;
+    case ekCELL_TYPE_HLINE:
+        i_write_hline(stm, cell->widget.hline);
+        break;
+    case ekCELL_TYPE_VLINE:
+        i_write_vline(stm, cell->widget.vline);
         break;
     case ekCELL_TYPE_LAYOUT:
         i_write_layout(stm, cell->widget.layout);
@@ -1301,6 +1360,34 @@ void flayout_add_table(FLayout *layout, FTable *table, const uint32_t col, const
 
 /*---------------------------------------------------------------------------*/
 
+void flayout_add_hline(FLayout *layout, FHline *hline, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(hline);
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_HLINE;
+    cell->halign = ekHALIGN_JUSTIFY;
+    cell->valign = ekVALIGN_CENTER;
+    cell->widget.hline = hline;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_add_vline(FLayout *layout, FVline *vline, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(vline);
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_VLINE;
+    cell->halign = ekHALIGN_CENTER;
+    cell->valign = ekVALIGN_JUSTIFY;
+    cell->widget.vline = vline;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void flayout_add_layout(FLayout *layout, FLayout *sublayout, const uint32_t col, const uint32_t row)
 {
     FCell *cell = i_cell(layout, col, row);
@@ -1687,6 +1774,22 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     break;
                 }
 
+                case ekCELL_TYPE_HLINE:
+                {
+                    Line *line = line_horizontal();
+                    fhline_synchro(cells->widget.hline, line);
+                    layout_line(glayout, line, i, j);
+                    break;
+                }
+
+                case ekCELL_TYPE_VLINE:
+                {
+                    Line *line = line_vertical();
+                    fvline_synchro(cells->widget.vline, line);
+                    layout_line(glayout, line, i, j);
+                    break;
+                }
+
                 case ekCELL_TYPE_LAYOUT:
                 {
                     Layout *gsublayout = flayout_to_gui(cells->widget.layout, resource_path, empty_width, empty_height);
@@ -1742,6 +1845,8 @@ GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout
                 case ekCELL_TYPE_TEXT:
                 case ekCELL_TYPE_IMAGE:
                 case ekCELL_TYPE_TABLEVIEW:
+                case ekCELL_TYPE_HLINE:
+                case ekCELL_TYPE_VLINE:
                 {
                     Cell *gcell = layout_cell(gui_layout, i, j);
                     return cell_control(gcell);

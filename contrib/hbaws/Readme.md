@@ -112,9 +112,10 @@ cd contrib/hbaws
 ### AWS-SDK with CLANG macOS
 
 ```
-AWS_SDK_ROOT=/Users/user/aws-sdk
+export AWS_SDK_ROOT=/Users/user/aws-sdk
+export MACOSX_DEPLOYMENT_TARGET=13.0  # Ventura
 cd contrib/hbaws
-./awssdk -comp clang -b [Debug|Release]
+./awssdk.sh -comp clang -b [Debug|Release]
 ```
 
 ### AWS-SDK result
@@ -139,7 +140,7 @@ If the `awssdk` script runs successfully, you will have the AWS-SDK headers and 
 
 **macOS redistributables .dylib** in `/lib` folder.
 
-![macos_aws_dylib](https://github.com/user-attachments/assets/d8529946-c9a0-4ee1-b576-fa05a26c6514)
+![macos_aws_dylib](https://github.com/user-attachments/assets/bc42e9b1-422f-4b74-88c7-a65ac998b44d)
 
 ## Build HBAWS
 
@@ -206,7 +207,8 @@ The `libhbaws.a` will be generated in `hbaws/build/[Debug|Release]/lib`.
 ```
 cd contrib/hbaws
 export AWS_SDK_ROOT=/Users/user/aws-sdk
-build -comp clang -b [Debug|Release]
+export MACOSX_DEPLOYMENT_TARGET=13.0  # Ventura
+./build.sh -comp clang -b [Debug|Release]
 ```
 
 The `libhbaws.a` will be generated in `hbaws/build/[Debug|Release]/lib`.

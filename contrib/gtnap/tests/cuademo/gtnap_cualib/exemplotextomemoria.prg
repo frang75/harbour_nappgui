@@ -9,7 +9,7 @@ LOCAL V_Janela
 *
 CUA20 @ 13,20,25,80 JANELA V_Janela ;
      TITULO "Escolha o tipo de janela" SUBTITULO "%T;exibição/edição de texto em memória";
-     AJUDA "T?????"
+     AJUDA "T00019"
 *
 ESPECIALIZE V_Janela MENU
 ADDOPCAO V_Janela TEXTO"exibição de #texto em memória (read-only)" ;

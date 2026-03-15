@@ -125,8 +125,8 @@ static void i_OnDraw(Panel *panel, Event *e)
         draw_text_color(p->ctx, kCOLOR_DEFAULT);
         if (opt_i == menu->selected)
         {
-            drawctrl_fill(p->ctx, (int32_t)xpos, (int32_t)ypos, (uint32_t)menu->control_widthf, (uint32_t)menu->row_heightf, ekCTRL_STATE_PRESSED);
-            drawctrl_focus(p->ctx, (int32_t)xpos, (int32_t)ypos, (uint32_t)menu->control_widthf, (uint32_t)menu->row_heightf, ekCTRL_STATE_PRESSED);
+            drawctrl_fill(p->ctx, (int32_t)xpos, (int32_t)ypos, (uint32_t)menu->control_widthf - 1, (uint32_t)menu->row_heightf, ekCTRL_STATE_PRESSED);
+            drawctrl_focus(p->ctx, (int32_t)xpos, (int32_t)ypos, (uint32_t)menu->control_widthf - 1, (uint32_t)menu->row_heightf, ekCTRL_STATE_PRESSED);
             drawctrl_text(p->ctx, tc(opt->text), (int32_t)(xpos + menu->cell_x_sizef), (int32_t)(ypos + yoffset), ekCTRL_STATE_PRESSED);
         }
         else

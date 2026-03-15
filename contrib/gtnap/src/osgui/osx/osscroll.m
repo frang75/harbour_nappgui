@@ -13,7 +13,6 @@
 #include "osscroll_osx.inl"
 #include "oscontrol_osx.inl"
 #include "osview_osx.inl"
-#include "ospanel_osx.inl"
 #include "../osscroll.inl"
 #include <core/heap.h>
 #include <sewer/cassert.h>
@@ -67,10 +66,6 @@ static void i_scroller_event(OSXScroller *scroller)
     if (_osview_is(parent) == YES)
     {
         _osview_scroll_event(parent, scroller->orient, ekGUI_SCROLL_THUMB);
-    }
-    else if (_ospanel_is(parent) == YES)
-    {
-        _ospanel_scroll_event(parent, scroller->orient, ekGUI_SCROLL_THUMB);
     }
     else
     {
@@ -203,10 +198,6 @@ static NSScrollerPart i_hit_pos(const OSXScroller *scroller, uint32_t pos, doubl
         if (_osview_is(parent) == YES)
         {
             _osview_scroll_event(parent, self->orient, ev);
-        }
-        else if (_ospanel_is(parent) == YES)
-        {
-            _ospanel_scroll_event(parent, self->orient, ev);
         }
         else
         {
@@ -397,14 +388,10 @@ void _osscroll_frame(OSScroll *scroll, const uint32_t x, const uint32_t y, const
 
 void _osscroll_control_scroll(OSControl *control, const int32_t incr_x, const int32_t incr_y)
 {
-    if (_ospanel_is(cast(control, NSView)) == YES)
-    {
-        _ospanel_incr_scroll(cast(control, NSView), incr_x, incr_y);
-    }
-    else
-    {
-        cassert(FALSE);
-    }
+    unref(control);
+    unref(incr_x);
+    unref(incr_y);
+    cassert(FALSE);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -27,6 +27,8 @@
 #include <nflib/ftool.h>
 #include <nflib/fview.h>
 #include <nflib/fsview.h>
+#include <nflib/fhline.h>
+#include <nflib/fvline.h>
 #include <gui/guicontrol.h>
 #include <gui/button.h>
 #include <gui/edit.h>
@@ -40,6 +42,7 @@
 #include <gui/textview.h>
 #include <gui/layout.h>
 #include <gui/layouth.h>
+#include <gui/line.h>
 #include <gui/panel.h>
 #include <gui/panel.inl>
 #include <gui/slider.h>
@@ -99,7 +102,7 @@ static void i_remove_undo_frame(UndoFrame *frame)
 {
     dbind_destroy(&frame->fform, FForm);
 }
-    
+
 /*---------------------------------------------------------------------------*/
 
 static void i_cell_obj_name(DForm *form, FLayout *flayout, const uint32_t col, const uint32_t row)
@@ -145,7 +148,7 @@ static void i_update_undo_stack(DForm *form)
     arrst_end()
     designer_undo_stack(form->app, size);
 }
-    
+
 /*---------------------------------------------------------------------------*/
 
 static void i_undo_add_frame(DForm *form)
@@ -187,7 +190,7 @@ static void i_undo_add_frame(DForm *form)
 
     i_update_undo_stack(form);
 }
-    
+
 /*---------------------------------------------------------------------------*/
 
 static void i_need_save(DForm *form, const bool_t undo)
@@ -767,6 +770,28 @@ static void i_new_table(FTable *ftable, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_new_hline(FHline *fhline, const DSelect *sel)
+{
+    Line *line = line_horizontal();
+    cassert_no_null(sel);
+    fhline_synchro(fhline, line);
+    flayout_add_hline(sel->flayout, fhline, sel->col, sel->row);
+    layout_line(sel->glayout, line, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_vline(FVline *fvline, const DSelect *sel)
+{
+    Line *line = line_vertical();
+    cassert_no_null(sel);
+    fvline_synchro(fvline, line);
+    flayout_add_vline(sel->flayout, fvline, sel->col, sel->row);
+    layout_line(sel->glayout, line, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_new_sublayout(FLayout *fsublayout, const DSelect *sel, const char_t *folder_path, const DColors *colors)
 {
     DLayout *dsublayout = dlayout_from_flayout(fsublayout, folder_path, colors);
@@ -1068,6 +1093,36 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     }
                 }
 
+                case ekWIDGET_HORZ_LINE:
+                {
+                    FHline *fhline = dialog_new_hline(window, font, &sel);
+                    if (fhline != NULL)
+                    {
+                        i_new_hline(fhline, &sel);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
+                case ekWIDGET_VERT_LINE:
+                {
+                    FVline *fvline = dialog_new_vline(window, font, &sel);
+                    if (fvline != NULL)
+                    {
+                        i_new_vline(fvline, &sel);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
                 case ekWIDGET_VERT_LAYOUT:
                 case ekWIDGET_HORZ_LAYOUT:
                 case ekWIDGET_GRID_LAYOUT:
@@ -1277,7 +1332,7 @@ bool_t dform_OnCursorNav(DForm *form, const vkey_t key, Panel *inspect, Panel *p
     if (dcell != NULL)
     {
         DCell *ccell = NULL;
-        
+
         if (form->sel.elem == ekLAYELEM_CELL)
             ccell = dlayout_cell(form->sel.dlayout, form->sel.col, form->sel.row);
 
@@ -1514,6 +1569,20 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
                 break;
             }
 
+            case ekCELL_TYPE_HLINE:
+            {
+                FHline *fhline = dbind_copy(clipboard->fcell->widget.hline, FHline);
+                i_new_hline(fhline, &form->sel);
+                break;
+            }
+    
+            case ekCELL_TYPE_VLINE:
+            {
+                FVline *fvline = dbind_copy(clipboard->fcell->widget.vline, FVline);
+                i_new_vline(fvline, &form->sel);
+                break;
+            }
+
             case ekCELL_TYPE_LAYOUT:
             {
                 FLayout *fsublayout = dbind_copy(clipboard->fcell->widget.layout, FLayout);
@@ -1527,14 +1596,14 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
 
             i_copy_cell_props(clipboard->fcell, &form->sel);
             i_after_new_widget(form, inspect, propedit, &form->sel);
-            return TRUE;            
+            return TRUE;
         }
         else if (clipboard->flayout != NULL)
         {
             FLayout *fsublayout = dbind_copy(clipboard->flayout, FLayout);
             i_new_sublayout(fsublayout, &form->sel, folder_path, colors);
             i_after_new_widget(form, inspect, propedit, &form->sel);
-            return TRUE;            
+            return TRUE;
         }
     }
 
@@ -1638,7 +1707,7 @@ static bool_t i_promote(DForm *form, FLayout *top_layout, const uint32_t col, co
         cassert(pcell->type == ekCELL_TYPE_LAYOUT);
         cassert(pcell->widget.layout == sel->flayout);
         flayout_add_layout(top_layout, sel->flayout, col, row);
-        pcell->widget.layout = top_layout;        
+        pcell->widget.layout = top_layout;
     }
 
     /* Update and synchro dlayout and glayout */
@@ -2129,6 +2198,36 @@ void dform_synchro_table(DForm *form, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+void dform_synchro_hline(DForm *form, const DSelect *sel)
+{
+    FCell *cell = i_sel_fcell(sel);
+    Line *line = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_HLINE);
+    i_need_save(form, TRUE);
+    line = layout_get_line(sel->glayout, sel->col, sel->row);
+    fhline_synchro(cell->widget.hline, line);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dform_synchro_vline(DForm *form, const DSelect *sel)
+{
+    FCell *cell = i_sel_fcell(sel);
+    Line *line = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_VLINE);
+    i_need_save(form, TRUE);
+    line = layout_get_line(sel->glayout, sel->col, sel->row);
+    fvline_synchro(cell->widget.vline, line);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dform_synchro_layout(DForm *form, const DSelect *sel)
 {
     cassert_no_null(form);
@@ -2245,7 +2344,7 @@ const char_t* dform_cell_type(const celltype_t type)
     case ekCELL_TYPE_RADIO:
         return gui_text(TEXT_CELL_RADIO);
     case ekCELL_TYPE_TOOL:
-        return gui_text(TEXT_CELL_TOOL);        
+        return gui_text(TEXT_CELL_TOOL);
     case ekCELL_TYPE_POPUP:
         return gui_text(TEXT_CELL_POPUP);
     case ekCELL_TYPE_EDIT:
@@ -2270,6 +2369,10 @@ const char_t* dform_cell_type(const celltype_t type)
         return gui_text(TEXT_CELL_IMAGE);
     case ekCELL_TYPE_TABLEVIEW:
         return gui_text(TEXT_CELL_TABLE);
+    case ekCELL_TYPE_HLINE:
+        return gui_text(TEXT_CELL_HLINE);
+    case ekCELL_TYPE_VLINE:
+        return gui_text(TEXT_CELL_VLINE);
     case ekCELL_TYPE_LAYOUT:
         return gui_text(TEXT_CELL_LAYOUT);
     default:
@@ -2296,7 +2399,7 @@ const Image *dform_cell_icon(const celltype_t type)
     case ekCELL_TYPE_RADIO:
         return gui_image(RADBUT16_PNG);
     case ekCELL_TYPE_TOOL:
-        return gui_image(TOOLBUT16_PNG);        
+        return gui_image(TOOLBUT16_PNG);
     case ekCELL_TYPE_POPUP:
         return gui_image(POPUP16_PNG);
     case ekCELL_TYPE_EDIT:
@@ -2321,6 +2424,10 @@ const Image *dform_cell_icon(const celltype_t type)
         return gui_image(IMAGEVIEW16_PNG);
     case ekCELL_TYPE_TABLEVIEW:
         return gui_image(TABLEVIEW16_PNG);
+    case ekCELL_TYPE_HLINE:
+        return gui_image(HLINE16_PNG);
+    case ekCELL_TYPE_VLINE:
+        return gui_image(VLINE16_PNG);
     case ekCELL_TYPE_LAYOUT:
         return gui_image(LCELL16_PNG);
     default:

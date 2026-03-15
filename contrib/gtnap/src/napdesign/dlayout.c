@@ -495,7 +495,7 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df g
 
     for (j = 0; j < nrows; ++j)
         row[j].rect.size.width = total_width - mleft - mright;
-    
+
     /* Compute the vertical rectangles */
     layout->rect_left = r2df(lorigin.x, lorigin.y, mleft, total_height);
     x = lorigin.x + mleft;
@@ -534,9 +534,9 @@ void dlayout_synchro_visual(DLayout *layout, const Layout *glayout, const V2Df g
     }
     layout->rect_bottom = r2df(lorigin.x, y, total_width, mbottom);
 
-    /* 
-     * Compute the cells rectangles. 
-     * Important! Cell origins come from NAppGUI in global coordinates (no sublayout coordinates) 
+    /*
+     * Compute the cells rectangles.
+     * Important! Cell origins come from NAppGUI in global coordinates (no sublayout coordinates)
      */
     {
         DCell *dcell = cell;
@@ -1223,7 +1223,7 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                     draw_image(ctx, image, 0, 0);
                     draw_matrixf(ctx, kT2D_IDENTf);
                 }
-                
+
                 /* Draw scrollbars*/
                 if (fcell->type == ekCELL_TYPE_SCROLL_VIEW)
                 {
@@ -1385,6 +1385,12 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                 draw_line_color(ctx, colors->main);
                 break;
             }
+
+            case ekCELL_TYPE_HLINE:
+            case ekCELL_TYPE_VLINE:
+                draw_fill_color(ctx, wcolor);
+                draw_rect(ctx, ekFILL, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
+                break;
 
             case ekCELL_TYPE_LAYOUT:
             {

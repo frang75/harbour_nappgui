@@ -16,6 +16,7 @@
 #include "osbutton_osx.inl"
 #include "oscombo_osx.inl"
 #include "osedit_osx.inl"
+#include "osline_osx.inl"
 #include "ospanel_osx.inl"
 #include "ospopup_osx.inl"
 #include "osprogress_osx.inl"
@@ -559,6 +560,9 @@ static gui_type_t i_oscontrol_type(NSView *object)
     if (_ospanel_is(object) == YES)
         return ekGUI_TYPE_PANEL;
 
+    if (_osline_is(object) == YES)
+        return ekGUI_TYPE_LINE;
+
     /* Unknown control type */
     return ENUM_MAX(gui_type_t);
 }
@@ -594,12 +598,6 @@ OSControl *_oscontrol_parent(const OSControl *control)
     cassert([cast(control, NSObject) isKindOfClass:[NSView class]] == YES);
     cassert(i_oscontrol_type(cast(control, NSView)) != ENUM_MAX(gui_type_t));
     parent = [cast(control, NSView) superview];
-    if (_ospanel_is_content(parent) == YES)
-    {
-        parent = [parent superview];
-        cassert(_ospanel_is(parent) == YES);
-    }
-
     return cast(parent, OSControl);
 }
 

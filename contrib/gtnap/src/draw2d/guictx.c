@@ -1083,6 +1083,54 @@ void guictx_append_panel_manager_imp(
 
 /*---------------------------------------------------------------------------*/
 
+void guictx_append_line_manager_imp(
+    GuiCtx *context,
+    FPtr_gctx_create func_line_create,
+    FPtr_gctx_destroy func_line_destroy,
+    FPtr_gctx_bounds5 func_line_bounds,
+    FPtr_gctx_set_ptr func_attach_line_to_panel,
+    FPtr_gctx_set_ptr func_detach_line_from_panel,
+    FPtr_gctx_set_bool func_line_set_visible,
+    FPtr_gctx_set_bool func_line_set_enabled,
+    FPtr_gctx_get2_real32 func_line_get_size,
+    FPtr_gctx_get2_real32 func_line_get_origin,
+    FPtr_gctx_set4_real32 func_line_set_frame)
+{
+    cassert_no_null(context);
+    cassert(context->func_create[ekGUI_TYPE_LINE] == NULL);
+    cassert(context->func_destroy[ekGUI_TYPE_LINE] == NULL);
+    cassert(context->func_line_bounds == NULL);
+    cassert(context->func_attach_to_panel[ekGUI_TYPE_LINE] == NULL);
+    cassert(context->func_detach_from_panel[ekGUI_TYPE_LINE] == NULL);
+    cassert(context->func_set_visible[ekGUI_TYPE_LINE] == NULL);
+    cassert(context->func_set_enabled[ekGUI_TYPE_LINE] == NULL);
+    cassert(context->func_get_size[ekGUI_TYPE_LINE] == NULL);
+    cassert(context->func_get_origin[ekGUI_TYPE_LINE] == NULL);
+    cassert(context->func_set_frame[ekGUI_TYPE_LINE] == NULL);
+    cassert_no_nullf(func_line_create);
+    cassert_no_nullf(func_line_destroy);
+    cassert_no_nullf(func_line_bounds);
+    cassert_no_nullf(func_attach_line_to_panel);
+    cassert_no_nullf(func_detach_line_from_panel);
+    cassert_no_nullf(func_line_set_visible);
+    cassert_no_nullf(func_line_set_enabled);
+    cassert_no_nullf(func_line_get_size);
+    cassert_no_nullf(func_line_get_origin);
+    cassert_no_nullf(func_line_set_frame);
+    context->func_create[ekGUI_TYPE_LINE] = func_line_create;
+    context->func_destroy[ekGUI_TYPE_LINE] = func_line_destroy;
+    context->func_line_bounds = func_line_bounds;
+    context->func_attach_to_panel[ekGUI_TYPE_LINE] = func_attach_line_to_panel;
+    context->func_detach_from_panel[ekGUI_TYPE_LINE] = func_detach_line_from_panel;
+    context->func_set_visible[ekGUI_TYPE_LINE] = func_line_set_visible;
+    context->func_set_enabled[ekGUI_TYPE_LINE] = func_line_set_enabled;
+    context->func_get_size[ekGUI_TYPE_LINE] = func_line_get_size;
+    context->func_get_origin[ekGUI_TYPE_LINE] = func_line_get_origin;
+    context->func_set_frame[ekGUI_TYPE_LINE] = func_line_set_frame;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void guictx_append_menu_manager_imp(
     GuiCtx *context,
     FPtr_gctx_create func_menu_create,
@@ -1356,6 +1404,7 @@ void guictx_append_globals_manager_imp(
     FPtr_gctx_get_enum func_globals_device,
     FPtr_gctx_get_enum func_globals_color,
     FPtr_gctx_get2_real32 func_globals_resolution,
+    FPtr_gctx_get4_real32 func_globals_workarea,
     FPtr_gctx_get2_real32 func_globals_mouse_position,
     FPtr_gctx_cursor func_globals_cursor,
     FPtr_gctx_destroy func_globals_cursor_destroy,
@@ -1367,6 +1416,7 @@ void guictx_append_globals_manager_imp(
     cassert(context->func_globals_device == NULL);
     cassert(context->func_globals_color == NULL);
     cassert(context->func_globals_resolution == NULL);
+    cassert(context->func_globals_workarea == NULL);
     cassert(context->func_globals_mouse_position == NULL);
     cassert(context->func_globals_cursor == NULL);
     cassert(context->func_globals_cursor_destroy == NULL);
@@ -1376,6 +1426,7 @@ void guictx_append_globals_manager_imp(
     cassert_no_nullf(func_globals_device);
     cassert_no_nullf(func_globals_color);
     cassert_no_nullf(func_globals_resolution);
+    cassert_no_nullf(func_globals_workarea);
     cassert_no_nullf(func_globals_mouse_position);
     cassert_no_nullf(func_globals_cursor);
     cassert_no_nullf(func_globals_cursor_destroy);
@@ -1385,6 +1436,7 @@ void guictx_append_globals_manager_imp(
     context->func_globals_device = func_globals_device;
     context->func_globals_color = func_globals_color;
     context->func_globals_resolution = func_globals_resolution;
+    context->func_globals_workarea = func_globals_workarea;
     context->func_globals_mouse_position = func_globals_mouse_position;
     context->func_globals_cursor = func_globals_cursor;
     context->func_globals_cursor_destroy = func_globals_cursor_destroy;

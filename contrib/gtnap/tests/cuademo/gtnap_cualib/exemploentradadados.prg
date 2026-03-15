@@ -11,7 +11,7 @@ LOCAL V_Janela
 
 CUA20 @ 08,20,25,80 JANELA V_Janela ;
      TITULO "Escolha o tipo de janela" SUBTITULO "%T;entrada de dados";
-     AJUDA "T?????"
+     AJUDA "T00011"
 
 ESPECIALIZE V_Janela MENU
 ADDOPCAO V_Janela TEXTO "entrada de dados (read-only)" ;
@@ -312,7 +312,7 @@ LOCAL V_Janela, N_Opcao, C_Retorno
 LOCAL V_Vetor := {"Retornar texto A",;
                   "Retornar texto B"}
 
-CUA20 @ 15,80,25,105 JANELA V_Janela TITULO "'Drop-down'" SUBTITULO "%T" AJUDA "T?????"
+CUA20 @ 15,80,25,105 JANELA V_Janela TITULO "'Drop-down'" SUBTITULO "%T" AJUDA "T00012"
 *
 CUA20 ESPECIALIZE V_Janela SELECAO SIMPLES VETOR V_Vetor ;
    NAOROLAVERTICAL NAOROLAHORIZONTAL SEMGRADE SEMTOOLBAR AUTOCLOSE

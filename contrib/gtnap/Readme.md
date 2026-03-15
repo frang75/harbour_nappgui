@@ -312,7 +312,7 @@ make -j4 HB_CPU=x86_64 HB_COMPILER=clang
 cd harbour_nappgui
 
 # Set the minimum macOS version
-export MACOSX_DEPLOYMENT_TARGET=10.13
+export MACOSX_DEPLOYMENT_TARGET=13.0
 
 make
 
@@ -448,9 +448,9 @@ bash ./build.sh -comp clang -b [Debug|Release]
 export MACOSX_DEPLOYMENT_TARGET=26.0      # Tahoe
 export MACOSX_DEPLOYMENT_TARGET=15.0      # Sequoia
 export MACOSX_DEPLOYMENT_TARGET=14.0      # Sonoma
-export MACOSX_DEPLOYMENT_TARGET=13.6      # Ventura
-export MACOSX_DEPLOYMENT_TARGET=12.4      # Monterey
-export MACOSX_DEPLOYMENT_TARGET=11.5      # Big Sur
+export MACOSX_DEPLOYMENT_TARGET=13.0      # Ventura
+export MACOSX_DEPLOYMENT_TARGET=12.0      # Monterey
+export MACOSX_DEPLOYMENT_TARGET=11.0      # Big Sur
 export MACOSX_DEPLOYMENT_TARGET=10.15     # Catalina
 export MACOSX_DEPLOYMENT_TARGET=10.14     # Mojave
 export MACOSX_DEPLOYMENT_TARGET=10.13     # High Sierra
@@ -459,18 +459,18 @@ export MACOSX_DEPLOYMENT_TARGET=10.12     # Sierra
 It is not recommended to compile for lower systems.
 ```
 
-> **Important:** GTNap, has been tested with `MACOSX_DEPLOYMENT_TARGET=10.13`.
+> **Important:** GTNap, has been tested with `MACOSX_DEPLOYMENT_TARGET=13.0`.
 
 Then, compile Harbour and gtnap
 ```
 # Set the minimum macOS
-export MACOSX_DEPLOYMENT_TARGET=10.13
+export MACOSX_DEPLOYMENT_TARGET=13.0
 
 # Goto gtnap folder
 cd contrib/gtnap
 
 # Just build
-bash ./build.sh -b [Debug|Release]
+./build.sh -comp clang -b [Debug|Release]
 ```
 
 ### Build results
@@ -495,6 +495,8 @@ Just adding `-gtnap` flag into your `.hbp` project file.
 
 Example is the reference application for using GTNAP. Combines windows created in semi-graphics mode (CUALIB/GTNAP) with full-graphics windows using the HBNAP API.
 
+> **Important:** All dependencies (.dll, .so, .dylib) must be accessible through the appropriate `PATH` variables for each system.
+
 - To compile in Windows with VisualStudio:
    ```
    :: Set 64bit compiler
@@ -502,6 +504,8 @@ Example is the reference application for using GTNAP. Combines windows created i
 
    :: Use -debug option or omit for release version
    cd contrib\gtnap\tests\cuademo\gtnap_cualib
+
+   set PATH=%PATH%;%AWS_SDK_ROOT%\msvc64\Release\bin;%HARBOUR_HOME%\contrib\hboffice\build\Release\bin
    ..\..\..\..\..\bin\win\msvc64\hbmk2.exe [-debug] -comp=msvc64 exemplo.hbp
    exemplo --hb:gtnap
    exemplo --hb:gtwin
@@ -509,6 +513,7 @@ Example is the reference application for using GTNAP. Combines windows created i
 
 - To compile in Windows with MinGW:
    ```
+   set PATH=%PATH%;%AWS_SDK_ROOT%\mingw64\Release\bin;%HARBOUR_HOME%\contrib\hboffice\build\Release\bin
    ..\..\..\..\..\bin\win\mingw64\hbmk2.exe [-debug] -comp=mingw64 exemplo.hbp
    exemplo --hb:gtnap
    exemplo --hb:gtwin
@@ -516,7 +521,8 @@ Example is the reference application for using GTNAP. Combines windows created i
 
 - To compile in Windows with Clang:
    ```
-   ..\..\..\..\..\bin\win\mingw64\hbmk2.exe [-debug] -comp=clang exemplo.hbp
+   set PATH=%PATH%;%AWS_SDK_ROOT%\clang\Release\bin;%HARBOUR_HOME%\contrib\hboffice\build\Release\bin
+   ..\..\..\..\..\bin\win\clang\hbmk2.exe [-debug] -comp=clang exemplo.hbp
    exemplo --hb:gtnap
    exemplo --hb:gtwin
    ```
@@ -524,6 +530,8 @@ Example is the reference application for using GTNAP. Combines windows created i
 - To compile in Linux:
    ```
    cd contrib/gtnap/tests/cuademo/gtnap_cualib
+   export LD_LIBRARY_PATH=$AWS_SDK_ROOT/gcc/Release/lib:$LIBREOFFICE_HOME/program:$HARBOUR_HOME/contrib/hboffice/build/Release/bin
+
    # Use -debug option or omit for release version
    ../../../../../bin/linux/gcc/hbmk2 [-debug] exemplo.hbp
    ./exemplo --hb:gtnap
@@ -533,7 +541,9 @@ Example is the reference application for using GTNAP. Combines windows created i
 - To compile in macOS:
    ```
    cd contrib/gtnap/tests/cuademo/gtnap_cualib
+   export DYLD_LIBRARY_PATH=$LIBREOFFICE_HOME/Contents/Frameworks:$AWS_SDK_ROOT/clang/Release/lib:$HARBOUR_HOME/contrib/hboffice/build/Release/bin
    ../../../../../bin/darwin/clang/hbmk2 exemplo.hbp
+
    ./exemplo --hb:gtnap
    ./exemplo --hb:gttrm
    ```

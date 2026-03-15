@@ -21,6 +21,7 @@ CWD=$(pwd)
 if [ "$(uname)" == "Darwin" ]; then
     PLATFORM=darwin
     COMPILER=clang
+    export DYLD_LIBRARY_PATH=$LIBREOFFICE_HOME/Contents/Frameworks
 fi
 
 while [[ $# -gt 0 ]]; do

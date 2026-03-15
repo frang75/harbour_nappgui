@@ -18,7 +18,7 @@ ENDIF
 
 CUA20 @ 15,20,26,80 JANELA V_Janela ;
      TITULO "Escolha o tipo de janela de browse de DBF" SUBTITULO "%T";
-     AJUDA "T?????"
+     AJUDA "T00006"
 
 ESPECIALIZE V_Janela MENU
 ADDOPCAO V_Janela TEXTO "janela seleção simples, com grid, com toolbar" ;
@@ -54,7 +54,7 @@ CUA20 @ 01,41,MAXROW()-2,MAXCOL()-30 JANELA V_Janela ;
     TITU "Browse de arquivo DBF" ;
     SUBTITULO "%T;seleção simples,;com grid e com toolbar,;"+;
               "com opções adicionais" ;
-    AJUDA "T?????"
+    AJUDA "T00007"
 
 ADDBOTAO V_Janela TEXTO "V=incrementar valor corrente" ;
    ACAO INCREMENTA_CORRENTE(V_Janela) AJUDA "B19265"
@@ -96,7 +96,7 @@ GOTO TOP
 CUA20 @ 01,41,MAXROW()-2,MAXCOL()-20 JANELA V_Janela ;
     TITU "Browse de arquivo DBF" ;
     SUBTITULO "%T;seleção múltipla;sem grid e sem toolbar";
-    AJUDA "T?????"
+    AJUDA "T00008"
 ADDBOTAO V_Janela TEXTO "R=incrementar registros selecionados" ;
    ACAO INCREMENTA_SELECIONADOS(V_Janela) AJUDA "B19269"
 
@@ -132,7 +132,7 @@ GOTO TOP
 CUA20 @ 01,41,MAXROW()-2,MAXCOL()-20 JANELA V_Janela ;
     TITU "Browse de arquivo DBF" ;
     SUBTITULO "%T;seleção estendida;com coluna congelada" ;
-    AJUDA "T?????"
+    AJUDA "T00009"
 
 ADDBOTAO V_Janela TEXTO "Enter=contar selecionados e fechar janela" ;
    ACAO (CONTAR_SELECIONADOS(V_Janela),.T.) AUTOCLOSE AJUDA "B19273"
@@ -168,7 +168,7 @@ GOTO TOP
 CUA20 @ 01,41,MAXROW()-2,MAXCOL()-20 JANELA V_Janela ;
     TITU "Browse de arquivo DBF" ;
     SUBTITULO "%T;cláusula WHILE;sem barras de rolagem" ;
-    AJUDA "T?????"
+    AJUDA "T00010"
 
 ADDBOTAO V_Janela TEXTO "Enter=exibir selecionado" ;
    ACAO EXIBIR_SELECIONADO(V_Janela) AJUDA "B19275"

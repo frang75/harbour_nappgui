@@ -74,7 +74,7 @@ PRIVATE INFO_VERSAO := {"99","9","999","999",;
 
 CUA20 @ 00,00,MAXROW(),MAXCOL() JANELA V_Janela ;
      TITULO "Escolha o tipo de janela" SUBTITULO "%T";
-     AJUDA "T?????"
+     AJUDA "T00000"
 
 CUA20 ADDIMAGEM V_Janela ARQUIVO DIRET_BMPS()+"logaspec.bmp"  ;
      COORDENADAS 05,05,10,18 AJUDA "B19127"
@@ -118,7 +118,7 @@ LOCAL V_Janela
 *
 CUA20 @ 10,20,26,80 JANELA V_Janela ;
      TITULO "Escolha o exemplo CUALIB" SUBTITULO "%T";
-     AJUDA "T?????"
+     AJUDA "T00001"
 
 ESPECIALIZE V_Janela MENU
 
@@ -146,7 +146,7 @@ LOCAL V_Janela
 *
 CUA20 @ 10,20,26,80 JANELA V_Janela ;
      TITULO "Escolha o exemplo LIBREOFFICE" SUBTITULO "%T";
-     AJUDA "T?????"
+     AJUDA "T00002"
 
 ESPECIALIZE V_Janela MENU
 

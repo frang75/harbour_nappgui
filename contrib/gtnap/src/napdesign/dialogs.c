@@ -22,6 +22,8 @@
 #include <nflib/ftext.h>
 #include <nflib/fview.h>
 #include <nflib/fsview.h>
+#include <nflib/fhline.h>
+#include <nflib/fvline.h>
 #include <gui/button.h>
 #include <gui/cell.h>
 #include <gui/comwin.h>
@@ -271,7 +273,7 @@ static uint32_t i_modal_launch(Window *parent, DialogData *data, Layout *inner_l
     imageview_image(icon, gui_image(icon_id));
     label_text(label, caption);
     label_multiline(label, TRUE);
-    label_min_width(label, 200);
+    label_width(label, 200);
     layout_imageview(layout2, icon, 0, 0);
     layout_label(layout2, label, 1, 0);
     layout_view(layout1, header, 0, 0);
@@ -353,8 +355,8 @@ static bool_t i_form_dialog(Window *parent, const Font *font, const char_t *capt
         Edit *edit2 = edit_multiline();
         label_text(label1, gui_text(TEXT_FILENAME));
         label_text(label2, gui_text(TEXT_DESCRIPTION));
-        edit_min_width(edit2, 200);
-        edit_min_height(edit2, 100);
+        edit_width(edit2, 200);
+        edit_height(edit2, 100);
         layout_label(layout, label1, 0, 0);
         layout_label(layout, label2, 0, 1);
         layout_edit(layout, edit1, 1, 0);
@@ -707,7 +709,7 @@ FTool *dialog_new_tool(Window *parent, const Font *font, const DSelect *sel, con
         label_text(label2, gui_text(TEXT_ICON_PATH));
         label_text(label3, gui_text(TEXT_DEFAULT));
         /* label_ellipsis(label3, ekELLIPBEGIN); When NAppGUI supports */
-        label_min_width(label3, 150);
+        label_width(label3, 150);
         button_image(button1, image);
         button_text(button2, "...");
         button_tooltip(button2, gui_text(TEXT_LOAD_ICON));
@@ -766,7 +768,7 @@ FElem *dialog_new_elem(Window *parent, const Font *font, const char_t *caption, 
         label_text(label3, gui_text(TEXT_ICON_PATH));
         label_text(label4, gui_text(TEXT_DEFAULT));
         /* label_ellipsis(label3, ekELLIPBEGIN); When NAppGUI supports */
-        label_min_width(label4, 150);
+        label_width(label4, 150);
         button_image(button1, image);
         button_text(button2, "...");
         button_tooltip(button2, gui_text(TEXT_LOAD_ICON));
@@ -1255,7 +1257,7 @@ FImage *dialog_new_image(Window *parent, const Font *font, const DSelect *sel, c
         label_text(label4, gui_text(TEXT_IMAGE_PATH));
         label_text(label5, gui_text(TEXT_DEFAULT));
         /* label_ellipsis(label5, ekELLIPBEGIN); When NAppGUI supports */
-        label_min_width(label5, 150);
+        label_width(label5, 150);
         button_text(button, "...");
         button_tooltip(button, gui_text(TEXT_LOAD_IMAGE));
         button_hpadding(button, 20);
@@ -1338,6 +1340,76 @@ FTable *dialog_new_table(Window *parent, const Font *font, const DSelect *sel)
     str_destroy(&caption);
     i_remove_dialog_data(&data);
     return ftable;
+}
+
+/*---------------------------------------------------------------------------*/
+
+FHline *dialog_new_hline(Window *parent, const Font *font, const DSelect *sel)
+{
+    DialogData data = i_dialog_data();
+    Layout *layout1 = layout_create(2, 1);
+    FHline *fhline = fhline_create();    
+    String *caption = NULL;
+    uint32_t ret = 0;
+    cassert_no_null(sel);
+    cassert_no_null(sel->flayout);
+
+    /* Widget layout */
+    {
+        Label *label1 = label_create();
+        Layout *layout2 = i_value_updown_layout();
+        label_text(label1, gui_text(TEXT_LENGTH));
+        layout_label(layout1, label1, 0, 0);
+        layout_layout(layout1, layout2, 1, 0);
+        cell_dbind(layout_cell(layout1, 1, 0), FHline, real32_t, length);
+        layout_dbind(layout1, NULL, FHline);
+        layout_dbind_obj(layout1, fhline, FHline);
+    }
+
+    caption = str_printf(gui_text(TEXT_NEW_HLINE), sel->col, sel->row, tc(sel->flayout->name));
+    ret = i_modal_launch(parent, &data, layout1, font, HLINE_PNG, TEXT_HORZ_LINE, tc(caption), ekDBUT_OK_CANCEL_DEF_OK);
+
+    if (ret != BUTTON_OK)
+        fhline_destroy(&fhline);
+
+    str_destroy(&caption);
+    i_remove_dialog_data(&data);
+    return fhline;
+}
+
+/*---------------------------------------------------------------------------*/
+
+FVline *dialog_new_vline(Window *parent, const Font *font, const DSelect *sel)
+{
+    DialogData data = i_dialog_data();
+    Layout *layout1 = layout_create(2, 1);
+    FVline *fvline = fvline_create();    
+    String *caption = NULL;
+    uint32_t ret = 0;
+    cassert_no_null(sel);
+    cassert_no_null(sel->flayout);
+
+    /* Widget layout */
+    {
+        Label *label1 = label_create();
+        Layout *layout2 = i_value_updown_layout();
+        label_text(label1, gui_text(TEXT_LENGTH));
+        layout_label(layout1, label1, 0, 0);
+        layout_layout(layout1, layout2, 1, 0);
+        cell_dbind(layout_cell(layout1, 1, 0), FVline, real32_t, length);
+        layout_dbind(layout1, NULL, FVline);
+        layout_dbind_obj(layout1, fvline, FVline);
+    }
+
+    caption = str_printf(gui_text(TEXT_NEW_VLINE), sel->col, sel->row, tc(sel->flayout->name));
+    ret = i_modal_launch(parent, &data, layout1, font, VLINE_PNG, TEXT_VERT_LINE, tc(caption), ekDBUT_OK_CANCEL_DEF_OK);
+
+    if (ret != BUTTON_OK)
+        fvline_destroy(&fvline);
+
+    str_destroy(&caption);
+    i_remove_dialog_data(&data);
+    return fvline;
 }
 
 /*---------------------------------------------------------------------------*/

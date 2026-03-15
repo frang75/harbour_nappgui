@@ -35,7 +35,8 @@
     - [Horizontal Slider properties](#horizontal-slider-properties)
     - [Vertical Slider properties](#vertical-slider-properties)
     - [Progress Bar properties](#progress-bar-properties)
-
+    - [Horizontal Line properties](#horizontal-line-properties)
+    - [Vertical Line properties](#vertical-line-properties)
 
 NAppGUI Designer is a visual tool for creating user interfaces (forms) graphically and interactively. These forms will be saved in files that can be loaded at runtime from Harbour, using HBNAP. It has been developed using NAppGUI-SDK and the forms it generates also use NAppGUI to run within the final application (https://nappgui.com).
 
@@ -718,3 +719,16 @@ More information in the [official NAppGUI documentation](https://nappgui.com/en/
 More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/progress.html).
 
 - **Width:** Default width of the progress bar.
+
+### Horizontal Line properties
+
+More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/line.html).
+
+- **Length:** Default length of separator line.
+
+### Vertical Line properties
+
+More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/line.html).
+
+- **Length:** Default length of separator line.
+

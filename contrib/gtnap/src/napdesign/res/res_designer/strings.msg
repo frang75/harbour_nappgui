@@ -22,6 +22,8 @@ TEXT_NEW_SCROLLVIEW A new scroll view will be placed in cell (%d, %d) of '%s' la
 TEXT_NEW_TEXTVIEW   A new textview will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_IMAGEVIEW  A new imageview will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_TABLEVIEW  A new tableview will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_HLINE      A new horizontal separator will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_VLINE      A new vertical separator will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SUBLAYOUT  A new sublayout will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_FORM       A new form will be created with this filename and properties
 TEXT_PROPS_FORM     Change the filename and forms properties
@@ -47,6 +49,8 @@ TEXT_SVIEW_PROPS    Scroll view properties
 TEXT_TEXT_PROPS     Textview properties
 TEXT_IMAGE_PROPS    Imageview properties
 TEXT_TABLE_PROPS    Tableview properties
+TEXT_HLINE_PROPS    HorzLine properties
+TEXT_VLINE_PROPS    VertLine properties
 TEXT_LAYOUT         Layout
 TEXT_LAYOUTS        Layouts
 TEXT_BUTTONS        Buttons
@@ -73,6 +77,8 @@ TEXT_LIST_BOX       List Box
 TEXT_HORZ_SLIDER    Horizontal Slider
 TEXT_VERT_SLIDER    Vertical Slider
 TEXT_PROGRESS_BAR   Progress Bar
+TEXT_HORZ_LINE      Horizontal Line
+TEXT_VERT_LINE      Vertical Line
 TEXT_CUSTOM_VIEW    Custom View
 TEXT_SCROLL_VIEW    Scroll View
 TEXT_TEXT_VIEW      Text View
@@ -95,6 +101,7 @@ TEXT_LEFT           Left
 TEXT_BOTTOM         Bottom
 TEXT_RIGHT          Right
 TEXT_WIDTH          Width
+TEXT_LENGTH         Length
 TEXT_HPADDING       HorzPad
 TEXT_VPADDING       VertPad
 TEXT_HEIGHT         Height
@@ -151,6 +158,8 @@ TEXT_CELL_SVIEW     ScrollViewCell
 TEXT_CELL_TEXT      TextViewCell
 TEXT_CELL_IMAGE     ImageViewCell
 TEXT_CELL_TABLE     TableCell
+TEXT_CELL_HLINE     HLineCell
+TEXT_CELL_VLINE     VLineCell
 TEXT_CELL_LAYOUT    LayoutCell
 TEXT_FILE           File
 TEXT_FILENAME       Filename
@@ -241,6 +250,9 @@ TIP_LIST_MHEIGHT    Listbox height.
 TIP_SLIDER_MWIDTH   Slider width.
 TIP_SLIDER_MHEIGHT  Slider height.
 TIP_PROGRESS_MWIDTH Progress width.
+TIP_HLINE_LENGTH    Horizontal line length.
+TIP_VLINE_LENGTH    Vertical line length.
+
 TIP_VIEW_MWIDTH     View width.
 TIP_VIEW_MHEIGHT    View height.
 TIP_TEXT_MWIDTH     Textview width.

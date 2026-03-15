@@ -18,7 +18,6 @@
 #include <gui/button.h>
 #include <gui/drawctrl.inl>
 #include <gui/edit.h>
-#include <gui/globals.h>
 #include <gui/gui.h>
 #include <gui/imageview.h>
 #include <gui/label.h>
@@ -43,9 +42,12 @@
 #include <geom2d/v2d.h>
 #include <core/arrst.h>
 #include <core/arrpt.h>
+#include <core/setst.h>
 #include <core/event.h>
 #include <core/heap.h>
+#include <core/hfile.h>
 #include <core/strings.h>
+#include <core/stream.h>
 #include <osbs/bfile.h>
 #include <osbs/btime.h>
 #include <osbs/log.h>
@@ -75,6 +77,7 @@ typedef struct _gtnap_window_t GtNapWindow;
 typedef struct _gtnap_bind_t GtNapBind;
 typedef struct _gtnap_fcolumn_t GtNapFColumn;
 typedef struct _gtnap_farea_t GtNapFArea;
+typedef struct _gtnap_prop_t GtNapProp;
 typedef struct _gtnap_t GtNap;
 
 typedef void (*FPtr_gtnap_callback)(GtNapCallback *callback, Event *event);
@@ -184,6 +187,7 @@ struct _gtnap_window_t
     int32_t scroll_left;
     int32_t scroll_bottom;
     int32_t scroll_right;
+    String *nameid;
     HB_ITEM *is_editable_block;
     HB_ITEM *confirm_block;
     HB_ITEM *desist_block;
@@ -242,11 +246,19 @@ struct _gtnap_form_t
 {
     NForm *form;
     Window *window;
+    String *nameid;
     uint32_t modal_ret;
     GtNapFArea *area;
     HB_ITEM *OnClose_block;
+    bool_t is_resizable;
     ArrSt(GtNapBind) *binds;
     ArrPt(GtNapCallback) *callbacks;
+};
+
+struct _gtnap_prop_t
+{
+    String *key;
+    String *value;
 };
 
 struct _gtnap_t
@@ -273,6 +285,7 @@ struct _gtnap_t
     String *debugger_path;
     bool_t debugger_visible;
     GtNapDebugger *debugger;
+    SetSt(GtNapProp) *properties;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -285,6 +298,7 @@ DeclPt(GtNapObject);
 DeclSt(GtNapBind);
 DeclPt(GtNapWindow);
 DeclPt(GuiComponent);
+DeclSt(GtNapProp);
 
 /*---------------------------------------------------------------------------*/
 
@@ -382,6 +396,12 @@ static const bool_t i_FULL_HBFUNCS = FALSE;
 static color_t i_COLORS[16];
 static const real32_t i_MINIMAL_FONT_SIZE = 5;
 static const real32_t i_MAX_SCREEN_HEIGHT_TOLERANCE_PX = 30;
+static const real32_t i_UNDEF_R32 = REAL32_MAX;
+static const real32_t i_MAXIMIZED_SIZE = 1e10f;
+static const char_t *i_XPOS_PROP = "XPOS";
+static const char_t *i_YPOS_PROP = "YPOS";
+static const char_t *i_WIDTH_PROP = "WIDTH";
+static const char_t *i_HEIGHT_PROP = "HEIGHT";
 static const char_t *i_FONT_REF_TEXT = "exibicao/edicao de texto em memoria";
 
 /*---------------------------------------------------------------------------*/
@@ -582,6 +602,7 @@ static void i_destroy_gtwin(GtNapWindow **dgtwin)
     if (gtwin->error_date_block != NULL)
         hb_itemRelease(gtwin->error_date_block);
 
+    str_destroy(&gtwin->nameid);
     cassert(arrpt_size(gtwin->objects, GtNapObject) == 0);
     arrpt_destroy(&gtwin->tabstops, NULL, GuiComponent);
     arrpt_destroy(&gtwin->objects, NULL, GtNapObject);
@@ -599,6 +620,136 @@ static void i_destroy_gtwin(GtNapWindow **dgtwin)
     }
 
     heap_delete(dgtwin, GtNapWindow);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_remove_property(GtNapProp *prop)
+{
+    cassert_no_null(prop);
+    str_destroy(&prop->key);
+    str_destroy(&prop->value);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static int i_prop_cmp(const GtNapProp *prop, const char_t *key)
+{
+    cassert_no_null(prop);
+    return str_cmp(prop->key, key);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_save_properties(const SetSt(GtNapProp) *properties)
+{
+    String *cfile = hfile_appdata("config.txt");
+    Stream *stm = stm_to_file(tc(cfile), NULL);
+    if (stm != NULL)
+    {
+        setst_foreach_const(prop, properties, GtNapProp)
+            stm_writef(stm, tc(prop->key));
+            stm_writef(stm, ":");
+            stm_writef(stm, tc(prop->value));
+            stm_writef(stm, "\n");
+        setst_fornext_const(prop, properties, GtNapProp)
+        stm_close(&stm);
+    }
+
+    str_destroy(&cfile);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_load_properties(SetSt(GtNapProp) *properties)
+{
+    String *cfile = hfile_appdata("config.txt");
+    Stream *stm = stm_from_file(tc(cfile), NULL);
+    if (stm != NULL)
+    {
+        stm_lines(line, stm)
+            String *key = NULL;
+            String *value = NULL;
+            GtNapProp *prop = NULL;
+            str_split_trim(line, ":", &key, &value);
+            prop = setst_insert(properties, tc(key), GtNapProp, char_t);
+            if (prop != NULL)
+            {
+                prop->key = key;
+                prop->value = value;
+            }
+            else
+            {
+                /* Duplicated property */
+                str_destroy(&key);
+                str_destroy(&value);
+            }
+        stm_next(line, stm)
+        stm_close(&stm);
+    }
+
+    str_destroy(&cfile);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_write_property(SetSt(GtNapProp) *properties, const char_t *wnameid, const char_t *propid, const char_t *value)
+{
+    String *propname = str_printf("%s-%s", wnameid, propid);
+    GtNapProp *prop = setst_get(properties, tc(propname), GtNapProp, char_t);
+    if (prop == NULL)
+    {
+        prop = setst_insert(properties, tc(propname), GtNapProp, char_t);
+        prop->key = propname;
+        prop->value = NULL;
+        propname = NULL;
+    }
+    else
+    {
+        cassert_no_null(prop->value);
+    }
+
+    str_upd(&prop->value, value);
+    str_destopt(&propname);
+    i_save_properties(properties);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static const char_t *i_read_property(const SetSt(GtNapProp) *properties, const char_t *wnameid, const char_t *propid)
+{
+    String *propname = str_printf("%s-%s", wnameid, propid);
+    const GtNapProp *prop = setst_get_const(properties, tc(propname), GtNapProp, char_t);
+    const char_t *ret = NULL;
+    if (prop != NULL)
+        ret = tc(prop->value);
+    str_destroy(&propname);
+    return ret;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_write_prop_r32(const char_t *wnameid, const char_t *propid, const real32_t value)
+{
+    char_t svalue[64];
+    bstd_sprintf(svalue, sizeof(svalue), "%g", value);
+    i_write_property(GTNAP_GLOBAL->properties, wnameid, propid, svalue);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static real32_t i_read_prop_r32(const char_t *wnameid, const char_t *propid)
+{
+    const char_t *value = i_read_property(GTNAP_GLOBAL->properties, wnameid, propid);
+    if (value != NULL)
+    {
+        bool_t err = FALSE;
+        real32_t val32 = str_to_r32(value, &err);
+        if (err == FALSE)
+            return val32;
+    }
+
+    return i_UNDEF_R32;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -621,6 +772,7 @@ static void i_gtnap_destroy(GtNap **gtnap)
     if ((*gtnap)->debugger != NULL)
         nap_debugger_destroy(&(*gtnap)->debugger);
 
+    setst_destroy(&(*gtnap)->properties, i_remove_property, GtNapProp);
     nforms_finish();
     heap_delete(&(*gtnap), GtNap);
 }
@@ -1197,7 +1349,10 @@ static S2Df i_resolution(void)
 
     /* Minimum resolution accepted */
     if (screen.width < 800 || screen.height < 600)
-        globals_resolution(&screen);
+    {
+        R2Df warea = gui_workarea();
+        screen = warea.size;
+    }
 
     return screen;
 }
@@ -1240,6 +1395,8 @@ static GtNap *i_gtnap_create(void)
         GTNAP_GLOBAL->debugger = NULL;
     }
 
+    GTNAP_GLOBAL->properties = setst_create(i_prop_cmp, GtNapProp, char_t);
+    i_load_properties(GTNAP_GLOBAL->properties);
     screen = i_resolution();
     if (i_compute_font_size(screen.width, screen.height, GTNAP_GLOBAL) == TRUE)
     {
@@ -2770,7 +2927,7 @@ void hb_gtnap_terminal(void)
     GtNap *gtnap = GTNAP_GLOBAL;
     GtNapWindow *gtwin = NULL;
     cassert(arrpt_size(gtnap->windows, GtNapWindow) == 0);
-    hb_gtnap_window(0, 0, gtnap->rows - 1, gtnap->cols - 1, tc(gtnap->title), FALSE, TRUE, TRUE, FALSE);
+    hb_gtnap_window(0, 0, gtnap->rows - 1, gtnap->cols - 1, "wid", tc(gtnap->title), FALSE, TRUE, TRUE, FALSE);
     gtwin = i_current_gtwin(gtnap);
     i_gtwin_configure(gtnap, gtwin, gtwin);
     window_OnClose(gtwin->window, listener(gtwin, i_OnTerminalClose, GtNapWindow));
@@ -2855,7 +3012,7 @@ static uint32_t i_get_window_id(GtNap *gtnap)
 
 /*---------------------------------------------------------------------------*/
 
-static GtNapWindow *i_new_window(GtNap *gtnap, uint32_t parent_id, const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, const bool_t border)
+static GtNapWindow *i_new_window(GtNap *gtnap, uint32_t parent_id, const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, const char_t *nameid, const bool_t border)
 {
     GtNapWindow *gtwin = NULL;
     cassert_no_null(gtnap);
@@ -2871,6 +3028,7 @@ static GtNapWindow *i_new_window(GtNap *gtnap, uint32_t parent_id, const int32_t
     gtwin->scroll_left = INT32_MIN;
     gtwin->scroll_bottom = INT32_MIN;
     gtwin->scroll_right = INT32_MIN;
+    gtwin->nameid = str_c(nameid);
     gtwin->message_label_id = UINT32_MAX;
     gtwin->default_button = UINT32_MAX;
     gtwin->tabstops = arrpt_create(GuiComponent);
@@ -3020,9 +3178,19 @@ color_t hb_gtnap_color_bright_white(void)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_window(const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, const char_t *title, const bool_t close_return, const bool_t close_esc, const bool_t minimize_button, const bool_t buttons_navigation)
+static void i_OnWindowMoved(GtNapWindow *gtwin, Event *e)
 {
-    GtNapWindow *gtwin = i_new_window(GTNAP_GLOBAL, UINT32_MAX, top, left, bottom, right, FALSE);
+    const EvPos *p = event_params(e, EvPos);
+    cassert_no_null(gtwin);
+    i_write_prop_r32(tc(gtwin->nameid), i_XPOS_PROP, p->x);
+    i_write_prop_r32(tc(gtwin->nameid), i_YPOS_PROP, p->y);
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t hb_gtnap_window(const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, const char_t *nameid, const char_t *title, const bool_t close_return, const bool_t close_esc, const bool_t minimize_button, const bool_t buttons_navigation)
+{
+    GtNapWindow *gtwin = i_new_window(GTNAP_GLOBAL, UINT32_MAX, top, left, bottom, right, nameid, FALSE);
     uint32_t flags = i_window_flags(close_return, close_esc, minimize_button);
     gtwin->window = window_create(flags);
     gtwin->buttons_navigation = buttons_navigation;
@@ -3040,14 +3208,15 @@ uint32_t hb_gtnap_window(const int32_t top, const int32_t left, const int32_t bo
 
     window_cycle_tabstop(gtwin->window, FALSE);
     window_OnClose(gtwin->window, listener(gtwin, i_OnWindowClose, GtNapWindow));
+    window_OnMoved(gtwin->window, listener(gtwin, i_OnWindowMoved, GtNapWindow));
     return gtwin->id;
 }
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_window_embedded(const uint32_t wid, const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, const bool_t border)
+uint32_t hb_gtnap_window_embedded(const uint32_t wid, const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, const char_t *nameid, const bool_t border)
 {
-    GtNapWindow *gtwin = i_new_window(GTNAP_GLOBAL, wid, top, left, bottom, right, border);
+    GtNapWindow *gtwin = i_new_window(GTNAP_GLOBAL, wid, top, left, bottom, right, nameid, border);
     return gtwin->id;
 }
 
@@ -3092,6 +3261,7 @@ void hb_gtnap_window_destroy(const uint32_t wid)
 {
     uint32_t id = i_gtwin_index(GTNAP_GLOBAL, wid);
     GtNapWindow *gtwin = arrpt_get(GTNAP_GLOBAL->windows, id, GtNapWindow);
+    cassert_no_null(gtwin);
     /* Before destroy we have to dettach the possible parent-embedded connections */
     i_dettach_embedded(GTNAP_GLOBAL, gtwin);
     arrpt_delete(GTNAP_GLOBAL->windows, id, i_destroy_gtwin, GtNapWindow);
@@ -3356,6 +3526,20 @@ uint32_t hb_gtnap_window_modal(const uint32_t wid, const uint32_t pwid, const ui
             window_hotkey(gtwin->window, ekKEY_DOWN, 0, listener(gtwin, i_OnNextTabstop, GtNapWindow));
             window_hotkey(gtwin->window, ekKEY_RETURN, 0, listener(gtwin, i_OnNextTabstop, GtNapWindow));
             window_hotkey(gtwin->window, ekKEY_NUMRET, 0, listener(gtwin, i_OnNextTabstop, GtNapWindow));
+        }
+
+        /* 
+         * At this point, we have a precomputed window position, based on window (left, top) 
+         * and parent position. Its can be overwritten by a previous stored user position.
+         */
+        {
+            real32_t x = i_read_prop_r32(tc(gtwin->nameid), i_XPOS_PROP);
+            real32_t y = i_read_prop_r32(tc(gtwin->nameid), i_YPOS_PROP);
+            if (x != i_UNDEF_R32 && y != i_UNDEF_R32)
+            {
+                pos.x = x;
+                pos.y = y;
+            }
         }
 
         window_origin(gtwin->window, pos);
@@ -5018,6 +5202,35 @@ void hbnap_forms_exit_app(void)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnFormMoved(GtNapForm *form, Event *e)
+{
+    const EvPos *p = event_params(e, EvPos);
+    cassert_no_null(form);
+    i_write_prop_r32(tc(form->nameid), i_XPOS_PROP, p->x);
+    i_write_prop_r32(tc(form->nameid), i_YPOS_PROP, p->y);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnFormResize(GtNapForm *form, Event *e)
+{
+    const EvSize *p = event_params(e, EvSize);
+    Window *window = event_sender(e, Window);
+    cassert_no_null(form);
+    if (window_get_maximize(window) == TRUE)
+    {
+        i_write_prop_r32(tc(form->nameid), i_WIDTH_PROP, i_MAXIMIZED_SIZE);
+        i_write_prop_r32(tc(form->nameid), i_HEIGHT_PROP, i_MAXIMIZED_SIZE);
+    }
+    else
+    {
+        i_write_prop_r32(tc(form->nameid), i_WIDTH_PROP, p->width);
+        i_write_prop_r32(tc(form->nameid), i_HEIGHT_PROP, p->height);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 GtNapForm *hbnap_forms_load(const char_t *pathname, const char_t *resource_path, const uint32_t flags)
 {
     NForm *form = nform_from_file(pathname, NULL);
@@ -5025,14 +5238,20 @@ GtNapForm *hbnap_forms_load(const char_t *pathname, const char_t *resource_path,
     {
         GtNapForm *gtform = heap_new0(GtNapForm);
         uint32_t nflags = 0;
+        str_split_pathext(pathname, NULL, &gtform->nameid, NULL);
         gtform->form = form;
         gtform->binds = arrst_create(GtNapBind);
         gtform->callbacks = arrpt_create(GtNapCallback);
 
         if (flags & HBNAP_FORMS_RESIZABLE)
+        {
             nflags |= ekWINDOW_STDRES;
+            gtform->is_resizable = TRUE;
+        }
         else
+        {
             nflags |= ekWINDOW_STD;
+        }
 
         if (flags & HBNAP_FORMS_CLOSE_ON_ESC)
             nflags |= ekWINDOW_ESC;
@@ -5041,8 +5260,15 @@ GtNapForm *hbnap_forms_load(const char_t *pathname, const char_t *resource_path,
             nflags |= ekWINDOW_RETURN;
 
         gtform->window = nform_window(gtform->form, nflags, resource_path);
-        if (gtform->window == NULL)
+        if (gtform->window != NULL)
+        {
+            window_OnMoved(gtform->window, listener(gtform, i_OnFormMoved, GtNapForm));
+            window_OnResize(gtform->window, listener(gtform, i_OnFormResize, GtNapForm));
+        }
+        else
+        {
             hbnap_forms_destroy(&gtform);
+        }
 
         return gtform;
     }
@@ -5092,6 +5318,7 @@ void hbnap_forms_destroy(GtNapForm **form)
 {
     cassert_no_null(form);
     cassert_no_null(*form);
+    str_destroy(&(*form)->nameid);
     ptr_destopt(window_destroy, &(*form)->window, Window);
 
     if ((*form)->OnClose_block != NULL)
@@ -5577,7 +5804,7 @@ void hbnap_forms_item_list(GtNapForm *form, const char_t *cell, HB_ITEM *items)
         cassert(HB_ITEM_TYPE(hitem) == HB_IT_STRING);
         text = hb_itemGetCPtr(hitem);
         nform_add_control_item(form->form, cell, text);
-    }         
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -5627,19 +5854,6 @@ void hbnap_forms_maximize(GtNapForm *form)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_center_window(const Window *parent, Window *window)
-{
-    V2Df p1 = window_get_origin(parent);
-    S2Df s1 = window_get_size(parent);
-    S2Df s2 = window_get_size(window);
-    V2Df p2;
-    p2.x = p1.x + (s1.width - s2.width) / 2;
-    p2.y = p1.y + (s1.height - s2.height) / 2;
-    window_origin(window, p2);
-}
-
-/*---------------------------------------------------------------------------*/
-
 static void i_OnFormClose(GtNapForm *form, Event *e)
 {
     cassert_no_null(form);
@@ -5657,6 +5871,47 @@ static void i_OnFormClose(GtNapForm *form, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static V2Df i_center_window(const Window *parent, Window *window)
+{
+    V2Df p1 = window_get_origin(parent);
+    S2Df s1 = window_get_size(parent);
+    S2Df s2 = window_get_size(window);
+    V2Df p2;
+    p2.x = p1.x + (s1.width - s2.width) / 2;
+    p2.y = p1.y + (s1.height - s2.height) / 2;
+    return p2;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_form_frame(GtNapForm *form, Window *parent)
+{
+    S2Df size;
+    cassert_no_null(form);
+    size.width = i_read_prop_r32(tc(form->nameid), i_WIDTH_PROP);
+    size.height = i_read_prop_r32(tc(form->nameid), i_HEIGHT_PROP);
+    if ((size.width == i_MAXIMIZED_SIZE || size.height == i_MAXIMIZED_SIZE) && form->is_resizable == TRUE)
+    {
+        window_maximize(form->window);
+    }
+    else
+    {
+        V2Df pos;
+        pos.x = i_read_prop_r32(tc(form->nameid), i_XPOS_PROP);
+        pos.y = i_read_prop_r32(tc(form->nameid), i_YPOS_PROP);
+
+        if ((pos.x == i_UNDEF_R32 || pos.y == i_UNDEF_R32) && parent != NULL)
+            pos = i_center_window(parent, form->window);
+
+        if ((size.width != i_UNDEF_R32 && size.height != i_UNDEF_R32) && form->is_resizable == TRUE)
+            window_client_size(form->window, size);
+
+        window_origin(form->window, pos);
+    }       
+}
+
+/*---------------------------------------------------------------------------*/
+
 void hbnap_forms_show(GtNapForm *form, HB_ITEM *onclose_block)
 {
     cassert_no_null(form);
@@ -5666,19 +5921,27 @@ void hbnap_forms_show(GtNapForm *form, HB_ITEM *onclose_block)
     form->OnClose_block = hb_itemNew(onclose_block);
     window_OnClose(form->window, listener(form, i_OnFormClose, GtNapForm));
     window_update(form->window);
+    i_form_frame(form, NULL);
     window_show(form->window);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static uint32_t i_forms_modal(GtNapForm *form, Window *parent)
+{
+    cassert_no_null(form);
+    window_update(form->window);
+    i_form_frame(form, parent);
+    form->modal_ret = window_modal(form->window, parent);
+    return form->modal_ret;
 }
 
 /*---------------------------------------------------------------------------*/
 
 uint32_t hbnap_forms_modal(GtNapForm *form, GtNapForm *parent)
 {
-    cassert_no_null(form);
     cassert_no_null(parent);
-    window_update(form->window);
-    i_center_window(parent->window, form->window);
-    form->modal_ret = window_modal(form->window, parent->window);
-    return form->modal_ret;
+    return i_forms_modal(form, parent->window);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -5686,12 +5949,8 @@ uint32_t hbnap_forms_modal(GtNapForm *form, GtNapForm *parent)
 uint32_t hbnap_forms_modal_gtnap(GtNapForm *form)
 {
     GtNapWindow *gtwin = i_current_gtwin(GTNAP_GLOBAL);
-    cassert_no_null(form);
     cassert_no_null(gtwin);
-    window_update(form->window);
-    i_center_window(gtwin->window, form->window);
-    form->modal_ret = window_modal(form->window, gtwin->window);
-    return form->modal_ret;
+    return i_forms_modal(form, gtwin->window);
 }
 
 /*---------------------------------------------------------------------------*/

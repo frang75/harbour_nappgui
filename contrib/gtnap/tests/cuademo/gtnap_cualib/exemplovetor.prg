@@ -9,7 +9,7 @@ LOCAL V_Janela
 
 CUA20 @ 15,20,27,85 JANELA V_Janela ;
      TITULO "Escolha o tipo de janela de browse de vetor" SUBTITULO "%T";
-     AJUDA "T?????"
+     AJUDA "T00020"
 
 ESPECIALIZE V_Janela MENU
 ADDOPCAO V_Janela TEXTO "janela seleção simples, sem grade, nem toolbar" ;
@@ -35,7 +35,7 @@ V_Vetor := {"#Leite condensado","A#rroz tipo 1","Ac#arajé","Doc#e de leite",;
 CUA20 @ 06,64,MAXROW()-4,MAXCOL()-5 JANELA V_Janela ;
     TITU "Browse de vetor" ;
     SUBTITULO "%T;sem grade, sem toolbar;sem barra de rolagem" ;
-    AJUDA "T?????"
+    AJUDA "T00021"
 
 ADDBOTAO V_Janela TEXTO "F5=exibir selecionados" ;
    ACAO EXIBIR_ITEM_SELECIONADO(V_Janela,V_Vetor) AJUDA "B19277"
@@ -62,7 +62,7 @@ V_Vetor := {"#Leite condensado","A#rroz tipo 1","Ac#arajé","Doc#e de leite",;
 CUA20 @ 15,64,MAXROW()-5,MAXCOL()-5 JANELA V_Janela ;
     TITU "Browse de vetor" ;
     SUBTITULO "%T;com grade, sem toolbar;com barra de rolagem" ;
-    AJUDA "T?????"
+    AJUDA "T00022"
 
 ADDBOTAO V_Janela TEXTO "Enter=exibir itens selecionados" ;
     ACAO EXIBIR_ITENS_SELECIONADOS(V_Janela,V_Vetor) AUTOCLOSE AJUDA "B19279"
@@ -95,7 +95,7 @@ V_Vetor := {"Leite condensado","Arroz tipo 1","Acarajé","Doce de leite",;
 CUA20 @ 06,64,MAXROW()-5,MAXCOL()-5 JANELA V_Janela ;
     TITU "Browse de vetor" ;
     SUBTITULO "%T;com grade, com toolbar;sem barra de rolagem" ;
-    AJUDA "T?????"
+    AJUDA "T00023"
 
 ADDBOTAO V_Janela TEXTO "Enter=exibir itens selecionados" ;
     ACAO EXIBIR_ITENS_SELECIONADOS(V_Janela,V_Vetor) AJUDA "B19283"
@@ -117,7 +117,7 @@ V_Vetor := {"Leite condensado","Arroz tipo 1","Acarajé","Doce de leite",;
 CUA20 @ 06,64,MAXROW()-5,MAXCOL()-5 JANELA V_Janela ;
     TITU "Browse de vetor" ;
     SUBTITULO "%T;com 'autoclose'" ;
-    AJUDA "T?????"
+    AJUDA "T00024"
 
 ADDBOTAO V_Janela TEXTO "F5=exibir selecionados" ;
    ACAO (EXIBIR_ITEM_SELECIONADO(V_Janela,V_Vetor),.T.) AUTOCLOSE AJUDA "B19285"
