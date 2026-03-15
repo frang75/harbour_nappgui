@@ -49,6 +49,8 @@ TEXT_SVIEW_PROPS    Scroll view properties
 TEXT_TEXT_PROPS     Textview properties
 TEXT_IMAGE_PROPS    Imageview properties
 TEXT_TABLE_PROPS    Tableview properties
+TEXT_HLINE_PROPS    HorzLine properties
+TEXT_VLINE_PROPS    VertLine properties
 TEXT_LAYOUT         Layout
 TEXT_LAYOUTS        Layouts
 TEXT_BUTTONS        Buttons
@@ -248,6 +250,9 @@ TIP_LIST_MHEIGHT    Listbox height.
 TIP_SLIDER_MWIDTH   Slider width.
 TIP_SLIDER_MHEIGHT  Slider height.
 TIP_PROGRESS_MWIDTH Progress width.
+TIP_HLINE_LENGTH    Horizontal line length.
+TIP_VLINE_LENGTH    Vertical line length.
+
 TIP_VIEW_MWIDTH     View width.
 TIP_VIEW_MHEIGHT    View height.
 TIP_TEXT_MWIDTH     Textview width.

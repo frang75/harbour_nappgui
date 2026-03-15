@@ -2003,6 +2003,8 @@ static Designer *i_app(void)
     i_add_drawer(app->wdrawers, ekDRAWER_TEXT_PROPS, TEXT_TEXT_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_IMAGE_PROPS, TEXT_IMAGE_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_TABLE_FRAME_PROPS, TEXT_TABLE_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_HLINE_PROPS, TEXT_HLINE_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_VLINE_PROPS, TEXT_VLINE_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_TABLE_COLS_PROPS, TEXT_COLUMN_PROPS);
     i_add_widget(app->bwidgets, ekWIDGET_SELECT, TEXT_SELECT, CURSOR_PNG, ekDRAWER_WIDGET_SELECT);
     i_add_widget(app->bwidgets, ekWIDGET_VERT_LAYOUT, TEXT_VERT_LAYOUT, VLAYOUT_PNG, ekDRAWER_WIDGET_LAYOUTS);

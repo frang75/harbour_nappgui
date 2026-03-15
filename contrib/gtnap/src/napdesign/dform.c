@@ -2196,8 +2196,35 @@ void dform_synchro_table(DForm *form, const DSelect *sel)
     ftable_synchro(cell->widget.table, view);
 }
 
-/* ekCELL_TYPE_HLINE */
-/* ekCELL_TYPE_VLINE */
+/*---------------------------------------------------------------------------*/
+
+void dform_synchro_hline(DForm *form, const DSelect *sel)
+{
+    FCell *cell = i_sel_fcell(sel);
+    Line *line = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_HLINE);
+    i_need_save(form, TRUE);
+    line = layout_get_line(sel->glayout, sel->col, sel->row);
+    fhline_synchro(cell->widget.hline, line);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dform_synchro_vline(DForm *form, const DSelect *sel)
+{
+    FCell *cell = i_sel_fcell(sel);
+    Line *line = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_VLINE);
+    i_need_save(form, TRUE);
+    line = layout_get_line(sel->glayout, sel->col, sel->row);
+    fvline_synchro(cell->widget.vline, line);
+}
 
 /*---------------------------------------------------------------------------*/
 

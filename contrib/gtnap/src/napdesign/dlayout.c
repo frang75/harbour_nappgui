@@ -1388,13 +1388,11 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
 
             case ekCELL_TYPE_HLINE:
             {
-                cassert(FALSE);
                 break;
             }
 
             case ekCELL_TYPE_VLINE:
             {
-                cassert(FALSE);
                 break;
             }
 

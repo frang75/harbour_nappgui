@@ -62,6 +62,8 @@ struct _propdata_t
     Layout *text_layout;
     Layout *image_layout;
     Layout *table_layout;
+    Layout *hline_layout;
+    Layout *vline_layout;
     Layout *header_layout;
     ListBox *popup_list;
     ListBox *listbox_list;
@@ -2022,6 +2024,66 @@ static Layout *i_table_layout(PropData *data)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnHLineNotify(PropData *data, Event *e)
+{
+    cassert_no_null(data);
+    cassert_unref(event_type(e) == ekGUI_EVENT_OBJCHANGE, e);
+    dform_synchro_hline(data->form, &data->sel);
+    dform_compose(data->form);
+    designer_canvas_update(data->app);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Layout *i_hline_layout(PropData *data)
+{
+    Layout *layout1 = layout_create(2, 2);
+    Layout *layout2 = i_value_updown_layout(gui_text(TIP_HLINE_LENGTH));
+    Label *label1 = label_create();
+    cassert_no_null(data);
+    label_text(label1, gui_text(TEXT_LENGTH));
+    layout_label(layout1, label1, 0, 0);
+    layout_layout(layout1, layout2, 1, 0);
+    layout_hexpand(layout1, 1);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
+    cell_dbind(layout_cell(layout1, 1, 0), FHline, real32_t, length);
+    layout_dbind(layout1, listener(data, i_OnHLineNotify, PropData), FHline);
+    data->hline_layout = layout1;
+    return i_drawer_layout(data->app, layout1, ekDRAWER_HLINE_PROPS);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnVLineNotify(PropData *data, Event *e)
+{
+    cassert_no_null(data);
+    cassert_unref(event_type(e) == ekGUI_EVENT_OBJCHANGE, e);
+    dform_synchro_vline(data->form, &data->sel);
+    dform_compose(data->form);
+    designer_canvas_update(data->app);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Layout *i_vline_layout(PropData *data)
+{
+    Layout *layout1 = layout_create(2, 2);
+    Layout *layout2 = i_value_updown_layout(gui_text(TIP_VLINE_LENGTH));
+    Label *label1 = label_create();
+    cassert_no_null(data);
+    label_text(label1, gui_text(TEXT_LENGTH));
+    layout_label(layout1, label1, 0, 0);
+    layout_layout(layout1, layout2, 1, 0);
+    layout_hexpand(layout1, 1);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
+    cell_dbind(layout_cell(layout1, 1, 0), FVline, real32_t, length);
+    layout_dbind(layout1, listener(data, i_OnVLineNotify, PropData), FVline);
+    data->vline_layout = layout1;
+    return i_drawer_layout(data->app, layout1, ekDRAWER_VLINE_PROPS);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Panel *i_cell_content_panel(PropData *data)
 {
     Layout *layout1 = i_empty_cell_layout();
@@ -2043,6 +2105,8 @@ static Panel *i_cell_content_panel(PropData *data)
     Layout *layout17 = i_text_layout(data);
     Layout *layout18 = i_image_layout(data);
     Layout *layout19 = i_table_layout(data);
+    Layout *layout20 = i_hline_layout(data);
+    Layout *layout21 = i_vline_layout(data);
     Panel *panel = panel_create();
     cassert_no_null(data);
     panel_layout(panel, layout1);
@@ -2064,6 +2128,8 @@ static Panel *i_cell_content_panel(PropData *data)
     panel_layout(panel, layout17);
     panel_layout(panel, layout18);
     panel_layout(panel, layout19);
+    panel_layout(panel, layout20);
+    panel_layout(panel, layout21);
     panel_visible_layout(panel, 0);
     data->cell_panel = panel;
     return panel;
@@ -2264,6 +2330,8 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
     layout_dbind_obj(data->text_layout, NULL, FText);
     layout_dbind_obj(data->image_layout, NULL, FImage);
     layout_dbind_obj(data->table_layout, NULL, FTable);
+    layout_dbind_obj(data->hline_layout, NULL, FHline);
+    layout_dbind_obj(data->vline_layout, NULL, FVline);
 
     /* i_no_sel_layout */
     if (sel->flayout == NULL)
@@ -2390,8 +2458,16 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
             i_update_header_list(cell->widget.table->headers, data->table_list, data->header_layout);
             panel_visible_layout(data->cell_panel, 18);
         }
-        /* ekCELL_TYPE_HLINE */
-        /* ekCELL_TYPE_VLINE */
+        else if (cell->type == ekCELL_TYPE_HLINE)
+        {
+            layout_dbind_obj(data->hline_layout, cell->widget.hline, FHline);
+            panel_visible_layout(data->cell_panel, 19);
+        }
+        else if (cell->type == ekCELL_TYPE_VLINE)
+        {
+            layout_dbind_obj(data->vline_layout, cell->widget.vline, FVline);
+            panel_visible_layout(data->cell_panel, 20);
+        }
         else
         {
             cassert(FALSE);
