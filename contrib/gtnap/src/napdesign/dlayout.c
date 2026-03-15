@@ -1387,14 +1387,10 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
             }
 
             case ekCELL_TYPE_HLINE:
-            {
-                break;
-            }
-
             case ekCELL_TYPE_VLINE:
-            {
+                draw_fill_color(ctx, wcolor);
+                draw_rect(ctx, ekFILL, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
                 break;
-            }
 
             case ekCELL_TYPE_LAYOUT:
             {
