@@ -226,8 +226,8 @@ static Layout *i_border_layout(void)
     label_text(label1, gui_text(TEXT_LIGHT));
     label_text(label2, gui_text(TEXT_DARK));
     button_tooltip(check, gui_text(TIP_BORDER));
-    cbutton_tooltip(button1, gui_text(TIP_LIGHT_COLOR));
-    cbutton_tooltip(button2, gui_text(TIP_DARK_COLOR));
+    cbutton_info(button1, gui_text(TIP_LIGHT_COLOR));
+    cbutton_info(button2, gui_text(TIP_DARK_COLOR));
     layout_button(layout, check, 0, 0);
     layout_label(layout, label1, 1, 0);
     layout_label(layout, label2, 3, 0);
@@ -256,8 +256,8 @@ static Layout *i_background_layout(void)
     label_text(label1, gui_text(TEXT_LIGHT));
     label_text(label2, gui_text(TEXT_DARK));
     button_tooltip(check, gui_text(TIP_BACKGROUND));
-    cbutton_tooltip(button1, gui_text(TIP_LIGHT_COLOR));
-    cbutton_tooltip(button2, gui_text(TIP_DARK_COLOR));
+    cbutton_info(button1, gui_text(TIP_LIGHT_COLOR));
+    cbutton_info(button2, gui_text(TIP_DARK_COLOR));
     layout_button(layout, check, 0, 0);
     layout_label(layout, label1, 1, 0);
     layout_label(layout, label2, 3, 0);

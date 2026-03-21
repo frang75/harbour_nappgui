@@ -28,6 +28,7 @@
 #include "popup.inl"
 #include "listbox.inl"
 #include "slider.inl"
+#include "splitview.inl"
 #include "view.inl"
 #include "window.inl"
 #include <geom2d/s2d.h>
@@ -1580,6 +1581,54 @@ Panel *_layout_panel(const Layout *layout)
 
 /*---------------------------------------------------------------------------*/
 
+static Layout *i_cell_component(const GuiComponent *lcomponent, const GuiComponent *component, Cell **in_cell, const bool_t in_subpanels)
+{
+    cassert_no_null(lcomponent);
+    cassert(lcomponent != component);    
+    if (in_subpanels == TRUE)
+    {
+        if (lcomponent->type == ekGUI_TYPE_PANEL)
+        {
+            Panel *panel = cast(lcomponent, Panel);
+            Layout *active_layout = _panel_active_layout(panel);
+            if (active_layout != NULL)
+            {
+                Layout *flayout = _layout_search_component(active_layout, component, in_cell, in_subpanels);
+                if (flayout != NULL)
+                    return flayout;
+            }
+        }
+        else if (lcomponent->type == ekGUI_TYPE_SPLITVIEW)
+        {
+            GuiComponent *child0 = _splitview_child0(cast(lcomponent, SplitView));
+            GuiComponent *child1 = _splitview_child1(cast(lcomponent, SplitView));
+            if (child0 != NULL)
+            {
+                Layout *flayout = NULL;
+                /* Component without layout */
+                cassert(child0 != component);
+                flayout = i_cell_component(child0, component, in_cell, in_subpanels);
+                if (flayout != NULL)
+                    return flayout;
+            }
+
+            if (child1 != NULL)
+            {
+                Layout *flayout = NULL;
+                /* Component without layout */
+                cassert(child1 != component);
+                flayout = i_cell_component(child1, component, in_cell, in_subpanels);
+                if (flayout != NULL)
+                    return flayout;
+            }
+        }
+    }
+
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
 Layout *_layout_search_component(const Layout *layout, const GuiComponent *component, Cell **in_cell, const bool_t in_subpanels)
 {
     Layout *find_layout = NULL;
@@ -1595,21 +1644,14 @@ Layout *_layout_search_component(const Layout *layout, const GuiComponent *compo
                 cassert_no_null(cell->content.component);
                 if (cell->content.component == component)
                 {
-                    find_layout = (Layout *)layout;
+                    find_layout = cast(layout, Layout);
                     ptr_assign(in_cell, cell);
                     break;
                 }
 
-                if (in_subpanels == TRUE)
-                {
-                    if (cell->content.component->type == ekGUI_TYPE_PANEL)
-                    {
-                        Panel *panel = cast(cell->content.component, Panel);
-                        find_layout = _panel_active_layout(panel);
-                        if (find_layout != NULL)
-                            break;
-                    }
-                }
+                find_layout = i_cell_component(cell->content.component, component, in_cell, in_subpanels);
+                if (find_layout != NULL)
+                    break;
             }
             else if (cell->type == i_ekLAYOUT)
             {

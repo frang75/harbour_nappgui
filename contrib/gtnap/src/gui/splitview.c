@@ -827,3 +827,19 @@ void _splitview_panels(const SplitView *split, uint32_t *num_panels, Panel **pan
     *num_panels = 0;
     i_accum_panels(split, num_panels, panels);
 }
+
+/*---------------------------------------------------------------------------*/
+
+GuiComponent *_splitview_child0(const SplitView *split)
+{
+    cassert_no_null(split);
+    return split->child0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+GuiComponent *_splitview_child1(const SplitView *split)
+{
+    cassert_no_null(split);
+    return split->child1;
+}
