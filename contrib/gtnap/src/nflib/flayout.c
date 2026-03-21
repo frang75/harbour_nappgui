@@ -22,6 +22,7 @@
 #include "fsview.h"
 #include "fhline.h"
 #include "fvline.h"
+#include <gui/gui.h>
 #include <gui/button.h>
 #include <gui/cell.h>
 #include <gui/combo.h>
@@ -1502,6 +1503,19 @@ void flayout_synchro(const FLayout *layout, Layout *glayout)
     cassert_no_null(layout);
     layout_margin4(glayout, layout->margin_top, layout->margin_right, layout->margin_bottom, layout->margin_left);
     layout_taborder(glayout, layout->row_tabstop ? ekGUI_HORIZONTAL : ekGUI_VERTICAL);
+    
+    if (layout->with_border == TRUE)
+        layout_skcolor(glayout, gui_alt_color(layout->border_light, layout->border_dark));
+    else
+        layout_skcolor(glayout, 0);
+
+    if (layout->with_background == TRUE)
+        layout_bgcolor(glayout, gui_alt_color(layout->backgd_light, layout->backgd_dark));
+    else
+        layout_bgcolor(glayout, 0);
+
+    /* TODO: NAppGUI support for groups */
+    /* layout->group_title, layout->with_group */
 }
 
 /*---------------------------------------------------------------------------*/

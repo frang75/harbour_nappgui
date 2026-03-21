@@ -215,7 +215,7 @@ static Layout *i_taborder_layout(void)
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_border_layout(PropData *data)
+static Layout *i_border_layout(void)
 {
     Layout *layout = layout_create(6, 1);
     Button *check = button_check();
@@ -237,12 +237,15 @@ static Layout *i_border_layout(PropData *data)
     layout_hmargin(layout, 2, 5);
     layout_hmargin(layout, 3, 5);
     layout_hexpand(layout, 5);
+    cell_dbind(layout_cell(layout, 0, 0), FLayout, bool_t, with_border);
+    cell_dbind(layout_cell(layout, 2, 0), FLayout, uint32_t, border_light);
+    cell_dbind(layout_cell(layout, 4, 0), FLayout, uint32_t, border_dark);
     return layout;
 }
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_background_layout(PropData *data)
+static Layout *i_background_layout(void)
 {
     Layout *layout = layout_create(6, 1);
     Button *check = button_check();
@@ -264,12 +267,15 @@ static Layout *i_background_layout(PropData *data)
     layout_hmargin(layout, 2, 5);
     layout_hmargin(layout, 3, 5);
     layout_hexpand(layout, 5);
+    cell_dbind(layout_cell(layout, 0, 0), FLayout, bool_t, with_background);
+    cell_dbind(layout_cell(layout, 2, 0), FLayout, uint32_t, backgd_light);
+    cell_dbind(layout_cell(layout, 4, 0), FLayout, uint32_t, backgd_dark);
     return layout;
 }
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_group_layout(PropData *data)
+static Layout *i_group_layout(void)
 {
     Layout *layout = layout_create(3, 1);
     Button *check = button_check();
@@ -283,6 +289,8 @@ static Layout *i_group_layout(PropData *data)
     layout_edit(layout, edit, 2, 0);
     layout_hmargin(layout, 1, 5);
     layout_hexpand(layout, 2);
+    cell_dbind(layout_cell(layout, 0, 0), FLayout, bool_t, with_group);
+    cell_dbind(layout_cell(layout, 2, 0), FLayout, String *, group_title);
     return layout;
 }
 
@@ -291,10 +299,10 @@ static Layout *i_group_layout(PropData *data)
 static Layout *i_lprops_layout(PropData *data)
 {
     Layout *layout1 = layout_create(2, 11);
-    Layout *layout2 = i_promote_buttons(data);
-    Layout *layout3 = i_border_layout(data);
-    Layout *layout4 = i_background_layout(data);
-    Layout *layout5 = i_group_layout(data);
+    Layout *layout3 = i_border_layout();
+    Layout *layout4 = i_background_layout();
+    Layout *layout5 = i_group_layout();
+    Layout *layout6 = i_promote_buttons(data);
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
@@ -347,14 +355,17 @@ static Layout *i_lprops_layout(PropData *data)
     layout_layout(layout1, layout3, 1, 7);
     layout_layout(layout1, layout4, 1, 8);
     layout_layout(layout1, layout5, 1, 9);
-    layout_layout(layout1, layout2, 1, 10);
+    layout_layout(layout1, layout6, 1, 10);
     layout_margin4(layout1, 1, 0, 0, 0);
     layout_vmargin(layout1, 0, 1);
     layout_vmargin(layout1, 5, 2);
     layout_vmargin(layout1, 6, 2);
     layout_vmargin(layout1, 7, 2);
+    layout_vmargin(layout1, 8, 2);
     layout_halign(layout1, 1, 0, ekJUSTIFY);
     layout_halign(layout1, 1, 6, ekLEFT);
+    layout_halign(layout1, 1, 7, ekLEFT);
+    layout_halign(layout1, 1, 8, ekLEFT);
     layout_halign(layout1, 1, 10, ekLEFT);
     layout_valign(layout1, 0, 7, ekTOP);
     layout_hexpand(layout1, 1);
@@ -754,11 +765,7 @@ static void i_OnLayoutNotify(PropData *data, Event *e)
     {
         designer_inspect_update(data->app);
     }
-    else if (evbind_modify(e, FLayout, real32_t, margin_left) == TRUE
-        || evbind_modify(e, FLayout, real32_t, margin_top) == TRUE
-        || evbind_modify(e, FLayout, real32_t, margin_right) == TRUE
-        || evbind_modify(e, FLayout, real32_t, margin_bottom) == TRUE
-        || evbind_modify(e, FLayout, bool_t, row_tabstop) == TRUE)
+    else
     {
         cassert(evbind_object(e, FLayout) == data->sel.flayout);
         dform_synchro_layout(data->form, &data->sel);
