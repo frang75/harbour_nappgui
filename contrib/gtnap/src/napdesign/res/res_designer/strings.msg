@@ -115,6 +115,7 @@ TEXT_SCALE          Scale
 TEXT_TEXT           Text
 TEXT_TOOLTIP        Tooltip
 TEXT_TITLE          Title
+TEXT_BORDER         Border
 TEXT_MULTILINE      Multiline
 TEXT_AUTOSELECT     Autoselect
 TEXT_PASSMODE       Passmode
@@ -215,6 +216,7 @@ TIP_TOP_MARGIN      Margin at top of layout (in px).
 TIP_LEFT_MARGIN     Margin at left of layout (in px).
 TIP_BOTTOM_MARGIN   Margin at bottom of layout (in px).
 TIP_RIGHT_MARGIN    Margin at right of layout (in px).
+TIP_BORDER          Enable the border line with solid color.
 TIP_BACKGROUND      Enable the background fill with solid color.
 TIP_LIGHT_COLOR     Color for light-mode themes.
 TIP_DARK_COLOR      Color for dark-mode themes.
