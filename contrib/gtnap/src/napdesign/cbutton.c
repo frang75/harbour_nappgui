@@ -8,6 +8,7 @@
 #include <draw2d/draw.h>
 #include <core/event.h>
 #include <core/heap.h>
+#include <core/strings.h>
 #include <sewer/cassert.h>
 
 typedef struct _cdata_t CData;
@@ -15,6 +16,7 @@ typedef struct _cdata_t CData;
 struct _cdata_t
 {
     uint32_t color;
+    String *tooltip;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -75,7 +77,26 @@ static CData *i_create_data(void)
 
 static void i_destroy_data(CData **data)
 {
+    cassert_no_null(data);
+    cassert_no_null(*data);
+    str_destopt(&(*data)->tooltip);
     heap_delete(data, CData);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_update_tooltip(CData *data, CButton *cbutton)
+{
+    String *tooltip = NULL;
+    uint8_t r, g, b;
+    cassert_no_null(data);
+    color_get_rgb(data->color, &r, &g, &b);
+    if (str_empty(data->tooltip) == TRUE)
+        tooltip = str_printf("rgb(%d,%d,%d)", r, g, b);
+    else
+        tooltip = str_printf("%s rgb(%d,%d,%d)", tc(data->tooltip), r, g, b);
+    view_tooltip(cast(cbutton, View), tc(tooltip));
+    str_destroy(&tooltip);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -174,6 +195,7 @@ static void i_set_empty(CButton *cbutton)
 {
     CData *data = view_get_data(cast(cbutton, View), CData);
     data->color = kCOLOR_TRANSPARENT;
+    i_update_tooltip(data, cbutton);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -183,6 +205,7 @@ static void i_set_uint32(CButton *cbutton, const uint32_t value)
     CData *data = view_get_data(cast(cbutton, View), CData);
     data->color = value;
     view_update(cast(cbutton, View));
+    i_update_tooltip(data, cbutton);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -190,7 +213,18 @@ static void i_set_uint32(CButton *cbutton, const uint32_t value)
 CButton *cbutton_create(const S2Df size)
 {
     CData *data = i_create_data();
-    View *view = _vctrl_create(ekVIEW_HSCROLL | ekVIEW_VSCROLL | ekVIEW_BORDER | ekVIEW_CONTROL | ekVIEW_NOERASE, &i_CBUTTON_TLB, data, CData);
+    View *view = _vctrl_create(ekVIEW_CONTROL | ekVIEW_BORDER | ekVIEW_NOERASE, &i_CBUTTON_TLB, data, CData);
+    i_update_tooltip(data, cast(view, CButton));
     view_size(view, size);
     return cast(view, CButton);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void cbutton_tooltip(CButton *cbutton, const char_t *text)
+{
+    CData *data = view_get_data(cast(cbutton, View), CData);
+    cassert_no_null(data);
+    str_upd(&data->tooltip, text);
+    i_update_tooltip(data, cbutton);
 }

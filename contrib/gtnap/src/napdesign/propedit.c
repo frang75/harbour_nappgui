@@ -1,6 +1,7 @@
 /* Property editor */
 
 #include "propedit.h"
+#include "cbutton.h"
 #include "designer.h"
 #include "dlayout.h"
 #include "dform.h"
@@ -86,6 +87,7 @@ struct _propdata_t
 /*---------------------------------------------------------------------------*/
 
 static const real32_t i_LABEL_COLUMN_MARGIN = 5;
+static const real32_t i_CBUTTON_SIZE = 16;
 
 /*---------------------------------------------------------------------------*/
 
@@ -213,10 +215,38 @@ static Layout *i_taborder_layout(void)
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_margin_layout(PropData *data)
+static Layout *i_background_layout(PropData *data)
 {
-    Layout *layout1 = layout_create(2, 8);
+    Layout *layout = layout_create(6, 1);
+    Button *check = button_check();
+    Label *label1 = label_create();
+    Label *label2 = label_create();
+    CButton *button1 = cbutton_create(s2df(i_CBUTTON_SIZE, i_CBUTTON_SIZE));
+    CButton *button2 = cbutton_create(s2df(i_CBUTTON_SIZE, i_CBUTTON_SIZE));
+    label_text(label1, gui_text(TEXT_LIGHT));
+    label_text(label2, gui_text(TEXT_DARK));
+    button_tooltip(check, gui_text(TIP_BACKGROUND));
+    cbutton_tooltip(button1, gui_text(TIP_LIGHT_COLOR));
+    cbutton_tooltip(button2, gui_text(TIP_DARK_COLOR));
+    layout_button(layout, check, 0, 0);
+    layout_label(layout, label1, 1, 0);
+    layout_label(layout, label2, 3, 0);
+    layout_view(layout, cast(button1, View), 2, 0);
+    layout_view(layout, cast(button2, View), 4, 0);
+    layout_hmargin(layout, 1, 5);
+    layout_hmargin(layout, 2, 5);
+    layout_hmargin(layout, 3, 5);
+    layout_hexpand(layout, 5);
+    return layout;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Layout *i_lprops_layout(PropData *data)
+{
+    Layout *layout1 = layout_create(2, 9);
     Layout *layout2 = i_promote_buttons(data);
+    Layout *layout3 = i_background_layout(data);
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
@@ -226,6 +256,7 @@ static Layout *i_margin_layout(PropData *data)
     Label *label7 = label_create();
     Label *label8 = label_create();
     Label *label9 = label_create();
+    Label *label10 = label_create();
     Edit *edit = edit_create();
     Layout *val1 = i_value_updown_layout(gui_text(TIP_TOP_MARGIN));
     Layout *val2 = i_value_updown_layout(gui_text(TIP_LEFT_MARGIN));
@@ -241,7 +272,8 @@ static Layout *i_margin_layout(PropData *data)
     label_text(label5, gui_text(TEXT_BOTTOM));
     label_text(label6, gui_text(TEXT_RIGHT));
     label_text(label7, gui_text(TEXT_TABORDER));
-    label_text(label8, gui_text(TEXT_PROMOTE));
+    label_text(label8, gui_text(TEXT_BACKGROUND));
+    label_text(label9, gui_text(TEXT_PROMOTE));
     layout_label(layout1, label1, 0, 0);
     layout_label(layout1, label2, 0, 1);
     layout_label(layout1, label3, 0, 2);
@@ -250,24 +282,27 @@ static Layout *i_margin_layout(PropData *data)
     layout_label(layout1, label6, 0, 5);
     layout_label(layout1, label7, 0, 6);
     layout_label(layout1, label8, 0, 7);
-    layout_label(layout1, label9, 1, 0);
+    layout_label(layout1, label9, 0, 8);
+    layout_label(layout1, label10, 1, 0);
     layout_edit(layout1, edit, 1, 1);
     layout_layout(layout1, val1, 1, 2);
     layout_layout(layout1, val2, 1, 3);
     layout_layout(layout1, val3, 1, 4);
     layout_layout(layout1, val4, 1, 5);
     layout_layout(layout1, val5, 1, 6);
-    layout_layout(layout1, layout2, 1, 7);
+    layout_layout(layout1, layout3, 1, 7);
+    layout_layout(layout1, layout2, 1, 8);
     layout_margin4(layout1, 1, 0, 0, 0);
     layout_vmargin(layout1, 0, 1);
     layout_vmargin(layout1, 5, 2);
     layout_vmargin(layout1, 6, 2);
     layout_halign(layout1, 1, 0, ekJUSTIFY);
     layout_halign(layout1, 1, 6, ekLEFT);
-    layout_halign(layout1, 1, 7, ekLEFT);
+    layout_halign(layout1, 1, 8, ekLEFT);
+    layout_valign(layout1, 0, 7, ekTOP);
     layout_hexpand(layout1, 1);
     layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
-    data->layout_type_label = label9;
+    data->layout_type_label = label10;
     cell_dbind(layout_cell(layout1, 1, 1), FLayout, String *, name);
     cell_dbind(layout_cell(layout1, 1, 2), FLayout, real32_t, margin_top);
     cell_dbind(layout_cell(layout1, 1, 3), FLayout, real32_t, margin_left);
@@ -727,7 +762,7 @@ static void i_OnRowNotify(PropData *data, Event *e)
 static Layout *i_layout_layout(PropData *data, const real32_t mright)
 {
     Layout *layout1 = layout_create(1, 4);
-    Layout *layout2 = i_margin_layout(data);
+    Layout *layout2 = i_lprops_layout(data);
     Layout *layout3 = i_column_layout(data);
     Layout *layout4 = i_row_layout(data);
     Panel *panel1 = panel_create();
