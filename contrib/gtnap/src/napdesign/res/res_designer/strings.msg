@@ -116,6 +116,7 @@ TEXT_TEXT           Text
 TEXT_TOOLTIP        Tooltip
 TEXT_TITLE          Title
 TEXT_BORDER         Border
+TEXT_GROUP          Group
 TEXT_MULTILINE      Multiline
 TEXT_AUTOSELECT     Autoselect
 TEXT_PASSMODE       Passmode
@@ -218,6 +219,8 @@ TIP_BOTTOM_MARGIN   Margin at bottom of layout (in px).
 TIP_RIGHT_MARGIN    Margin at right of layout (in px).
 TIP_BORDER          Enable the border line with solid color.
 TIP_BACKGROUND      Enable the background fill with solid color.
+TIP_GROUP           Enable the group frame, with standard color.
+TIP_GROUP_TITLE     Text to show at top of the group frame.
 TIP_LIGHT_COLOR     Color for light-mode themes.
 TIP_DARK_COLOR      Color for dark-mode themes.
 TIP_COLUMN          Index of the column will be edited (0-based).
