@@ -287,6 +287,14 @@ struct _flayout_t
     real32_t margin_top;
     real32_t margin_right;
     real32_t margin_bottom;
+    bool_t with_border;
+    bool_t with_background;
+    bool_t with_group;
+    uint32_t border_light;
+    uint32_t border_dark;
+    uint32_t backgd_light;
+    uint32_t backgd_dark;
+    String *group_title;
     ArrSt(FColumn) *cols;
     ArrSt(FRow) *rows;
     ArrSt(FCell) *cells;

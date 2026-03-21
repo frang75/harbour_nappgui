@@ -4,6 +4,7 @@
 #include "nflib.inl"
 #include "nflib_res.h"
 #include <gui/gui.h>
+#include <draw2d/color.h>
 #include <draw2d/image.h>
 #include <core/dbind.h>
 #include <core/respack.h>
@@ -136,6 +137,14 @@ static void i_dbind(void)
     dbind(FLayout, real32_t, margin_top);
     dbind(FLayout, real32_t, margin_right);
     dbind(FLayout, real32_t, margin_bottom);
+    dbind(FLayout, bool_t, with_border);
+    dbind(FLayout, bool_t, with_background);
+    dbind(FLayout, bool_t, with_group);
+    dbind(FLayout, uint32_t, border_light);
+    dbind(FLayout, uint32_t, border_dark);
+    dbind(FLayout, uint32_t, backgd_light);
+    dbind(FLayout, uint32_t, backgd_dark);
+    dbind(FLayout, String *, group_title);
     dbind(FLayout, ArrSt(FColumn) *, cols);
     dbind(FLayout, ArrSt(FRow) *, rows);
     dbind(FLayout, ArrSt(FCell) *, cells);
@@ -302,6 +311,13 @@ static void i_dbind(void)
     dbind_default(FLayout, real32_t, margin_top, 0);
     dbind_default(FLayout, real32_t, margin_right, 0);
     dbind_default(FLayout, real32_t, margin_bottom, 0);
+    dbind_default(FLayout, bool_t, with_border, FALSE);
+    dbind_default(FLayout, bool_t, with_background, FALSE);
+    dbind_default(FLayout, bool_t, with_group, FALSE);
+    dbind_default(FLayout, uint32_t, border_light, color_rgb(225, 225, 225));
+    dbind_default(FLayout, uint32_t, border_dark, color_rgb(100, 100, 100));
+    dbind_default(FLayout, uint32_t, backgd_light, color_rgb(225, 225, 225));
+    dbind_default(FLayout, uint32_t, backgd_dark, color_rgb(100, 100, 100));
     dbind_increment(FLayout, real32_t, margin_left, 1);
     dbind_increment(FLayout, real32_t, margin_top, 1);
     dbind_increment(FLayout, real32_t, margin_right, 1);
