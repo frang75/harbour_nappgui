@@ -203,9 +203,11 @@ static void i_OnClick(CData *data, Event *e)
     cassert_no_null(data);
     unref(e);
     window = guicontrol_get_window(guicontrol(data->view));
-    r2d = window_control_frame(window, guicontrol(data->view));
-    r2d.pos = window_client_to_screen(window, r2d.pos);
-    comwin_color(window, tc(data->info), r2d.pos.x, r2d.pos.y, ekRIGHT, ekTOP, data->color, NULL, 0, listener(data, i_OnColorChange, CData));
+    r2d.pos = window_get_origin(window);
+    r2d.size = window_get_size(window);
+    //r2d = window_control_frame(window, guicontrol(data->view));
+    //r2d.pos = window_client_to_screen(window, r2d.pos);
+    comwin_color(window, tc(data->info), r2d.pos.x + r2d.size.width / 2, r2d.pos.y + r2d.size.height / 2, ekCENTER, ekCENTER, data->color, NULL, 0, listener(data, i_OnColorChange, CData));
 }
 
 /*---------------------------------------------------------------------------*/
