@@ -14,6 +14,7 @@ typedef struct _dform_t DForm;
 typedef struct _dselect_t DSelect;
 typedef struct _dclipboard_t DClipBoard;
 typedef struct _dcolors_t DColors;
+typedef struct _cbutton_t CButton;
 
 typedef enum _widget_t
 {

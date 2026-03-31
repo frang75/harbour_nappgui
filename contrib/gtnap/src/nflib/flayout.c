@@ -22,6 +22,7 @@
 #include "fsview.h"
 #include "fhline.h"
 #include "fvline.h"
+#include <gui/gui.h>
 #include <gui/button.h>
 #include <gui/cell.h>
 #include <gui/combo.h>
@@ -38,6 +39,7 @@
 #include <gui/slider.h>
 #include <gui/tableview.h>
 #include <gui/view.h>
+#include <draw2d/color.h>
 #include <draw2d/image.h>
 #include <geom2d/s2d.h>
 #include <core/arrst.h>
@@ -51,7 +53,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-static uint16_t i_VERSION = 9;
+static uint16_t i_VERSION = 10;
 static void i_write_layout(Stream *stm, const FLayout *layout);
 
 /*---------------------------------------------------------------------------*/
@@ -645,6 +647,30 @@ FLayout *flayout_read_with_vers(Stream *stm, const uint16_t vers)
         layout->margin_top = stm_read_r32(stm);
         layout->margin_right = stm_read_r32(stm);
         layout->margin_bottom = stm_read_r32(stm);
+
+        if (vers >= 10)
+        {
+            layout->with_border = stm_read_bool(stm);
+            layout->with_background = stm_read_bool(stm);
+            layout->with_group = stm_read_bool(stm);
+            layout->border_light = stm_read_u32(stm);
+            layout->border_dark = stm_read_u32(stm);
+            layout->backgd_light = stm_read_u32(stm);
+            layout->backgd_dark = stm_read_u32(stm);
+            layout->group_title = str_read(stm);
+        }
+        else
+        {
+            layout->with_border = FALSE;
+            layout->with_background = FALSE;
+            layout->with_group = FALSE;
+            layout->border_light = color_rgb(225, 225, 225);
+            layout->border_dark = color_rgb(100, 100, 100);
+            layout->backgd_light = color_rgb(225, 225, 225);
+            layout->backgd_dark = color_rgb(100, 100, 100);
+            layout->group_title = str_c("");
+        }
+
         layout->cols = arrst_read_ex(stm, i_read_col, &vers, FColumn, uint16_t);
         layout->rows = arrst_read_ex(stm, i_read_row, &vers, FRow, uint16_t);
         layout->cells = arrst_read_ex(stm, i_read_cell, &vers, FCell, uint16_t);
@@ -987,6 +1013,14 @@ static void i_write_layout(Stream *stm, const FLayout *layout)
     stm_write_r32(stm, layout->margin_top);
     stm_write_r32(stm, layout->margin_right);
     stm_write_r32(stm, layout->margin_bottom);
+    stm_write_bool(stm, layout->with_border);
+    stm_write_bool(stm, layout->with_background);
+    stm_write_bool(stm, layout->with_group);
+    stm_write_u32(stm, layout->border_light);
+    stm_write_u32(stm, layout->border_dark);
+    stm_write_u32(stm, layout->backgd_light);
+    stm_write_u32(stm, layout->backgd_dark);
+    str_write(stm, layout->group_title);
     arrst_write(stm, layout->cols, i_write_col, FColumn);
     arrst_write(stm, layout->rows, i_write_row, FRow);
     arrst_write(stm, layout->cells, i_write_cell, FCell);
@@ -1469,6 +1503,19 @@ void flayout_synchro(const FLayout *layout, Layout *glayout)
     cassert_no_null(layout);
     layout_margin4(glayout, layout->margin_top, layout->margin_right, layout->margin_bottom, layout->margin_left);
     layout_taborder(glayout, layout->row_tabstop ? ekGUI_HORIZONTAL : ekGUI_VERTICAL);
+    
+    if (layout->with_border == TRUE)
+        layout_skcolor(glayout, gui_alt_color(layout->border_light, layout->border_dark));
+    else
+        layout_skcolor(glayout, 0);
+
+    if (layout->with_background == TRUE)
+        layout_bgcolor(glayout, gui_alt_color(layout->backgd_light, layout->backgd_dark));
+    else
+        layout_bgcolor(glayout, 0);
+
+    /* TODO: NAppGUI support for groups */
+    /* layout->group_title, layout->with_group */
 }
 
 /*---------------------------------------------------------------------------*/
