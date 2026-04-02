@@ -26,6 +26,10 @@ void _splitview_OnResize(SplitView *split, const S2Df *size);
 
 void _splitview_panels(const SplitView *split, uint32_t *num_panels, Panel **panels);
 
+void _splitview_window(SplitView *split, Window *window);
+
+Window *_splitview_get_window(SplitView *split);
+
 GuiComponent *_splitview_child0(const SplitView *split);
 
 GuiComponent *_splitview_child1(const SplitView *split);

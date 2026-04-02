@@ -273,7 +273,7 @@ void _panel_dettach_component(Panel *panel, GuiComponent *component)
     i_hide_component(component);
 #endif
 
-    _component_set_parent_window(component, NULL);
+    _component_window(component, NULL);
     _component_detach_from_panel(&panel->component, component);
     index = arrpt_find(panel->children, component, GuiComponent);
     arrpt_delete(panel->children, index, NULL, GuiComponent);
@@ -310,7 +310,7 @@ void _panel_destroy_component(Panel *panel, GuiComponent *component)
         i_hide_component(component);
 #endif
 
-        _component_set_parent_window(component, NULL);
+        _component_window(component, NULL);
         _component_detach_from_panel(&panel->component, component);
         index = arrpt_find(panel->children, component, GuiComponent);
         arrpt_delete(panel->children, index, _component_destroy, GuiComponent);
@@ -406,7 +406,6 @@ void _panel_panels(const Panel *panel, uint32_t *num_panels, Panel **panels)
 void _panel_window(Panel *panel, Window *window)
 {
     cassert_no_null(panel);
-
     if (window != NULL)
     {
         cassert(panel->window == NULL);
@@ -418,17 +417,9 @@ void _panel_window(Panel *panel, Window *window)
             obj_release(&panel->window, Window);
     }
 
-    {
-        GuiComponent **child;
-        uint32_t i, num_elems;
-        child = arrpt_all(panel->children, GuiComponent);
-        num_elems = arrpt_size(panel->children, GuiComponent);
-        for (i = 0; i < num_elems; ++i, ++child)
-        {
-            cassert_no_null(child);
-            _component_set_parent_window(*child, panel->window);
-        }
-    }
+    arrpt_foreach(child, panel->children, GuiComponent)
+        _component_window(child, window);
+    arrpt_end()
 }
 
 /*---------------------------------------------------------------------------*/

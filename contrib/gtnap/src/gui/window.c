@@ -777,7 +777,7 @@ R2Df window_control_frame(const Window *window, const GuiControl *control)
     Cell *cell = NULL;
     cassert_no_null(window);
     cassert_no_null(component);
-    cassert(_component_window(component) == window);
+    cassert(_component_get_window(component) == window);
     cassert(i_in_active_layout(window, component) == TRUE);
     _component_get_origin(component, &r2d.pos);
     _component_get_size(component, &r2d.size);

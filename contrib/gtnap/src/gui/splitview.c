@@ -29,6 +29,7 @@
 struct _splitview_t
 {
     GuiComponent component;
+    Window *window;
     S2Df size;
     uint32_t flags;
     split_mode_t divider_mode;
@@ -826,6 +827,37 @@ void _splitview_panels(const SplitView *split, uint32_t *num_panels, Panel **pan
 {
     *num_panels = 0;
     i_accum_panels(split, num_panels, panels);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _splitview_window(SplitView *split, Window *window)
+{
+    cassert_no_null(split);
+    if (window != NULL)
+    {
+        cassert(split->window == NULL);
+        split->window = obj_retain(window, Window);
+    }
+    else
+    {
+        if (split->window != NULL)
+            obj_release(&split->window, Window);
+    }
+
+    if (split->child0 != NULL)
+        _component_window(split->child0, window);
+
+    if (split->child1 != NULL)
+        _component_window(split->child1, window);
+}
+
+/*---------------------------------------------------------------------------*/
+
+Window *_splitview_get_window(SplitView *split)
+{
+    cassert_no_null(split);
+    return split->window;
 }
 
 /*---------------------------------------------------------------------------*/

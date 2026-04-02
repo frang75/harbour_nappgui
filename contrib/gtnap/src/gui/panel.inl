@@ -38,7 +38,7 @@ void _panel_invalidate_layout(Panel *panel, Layout *layout);
 
 void _panel_panels(const Panel *panel, uint32_t *num_panels, Panel **panels);
 
-void _panel_window(Panel *panel, Window *parent_window);
+void _panel_window(Panel *panel, Window *window);
 
 Window *_panel_get_window(Panel *panel);
 

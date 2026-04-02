@@ -224,5 +224,5 @@ uint32_t guicontrol_get_tag(const GuiControl *control)
 Window *guicontrol_get_window(const GuiControl *control)
 {
     const GuiComponent *component = cast_const(control, GuiComponent);
-    return _component_window(component);
+    return _component_get_window(cast(component, GuiComponent));
 }

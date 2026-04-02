@@ -402,7 +402,7 @@ static void i_change_component(Layout *layout, GuiComponent *component, const ui
     _panel_attach_component(layout->panel, cell->content.component);
     _panel_invalidate_layout(layout->panel, layout);
     parent_window = _panel_get_window(layout->panel);
-    _component_set_parent_window(component, parent_window);
+    _component_window(component, parent_window);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -602,7 +602,7 @@ void layout_panel_replace(Layout *layout, Panel *panel, const uint32_t col, cons
         if (layout->panel != NULL)
         {
             Window *parent_window = _panel_get_window(layout->panel);
-            _component_set_parent_window(cast(panel, GuiComponent), parent_window);
+            _component_window(cast(panel, GuiComponent), parent_window);
             layout_update(layout);
         }
     }
