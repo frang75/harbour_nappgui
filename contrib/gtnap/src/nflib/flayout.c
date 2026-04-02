@@ -689,6 +689,7 @@ void flayout_destroy(FLayout **layout)
 {
     cassert_no_null(layout);
     str_destroy(&(*layout)->name);
+    str_destroy(&(*layout)->group_title);
     arrst_destroy(&(*layout)->cols, i_remove_column, FColumn);
     arrst_destroy(&(*layout)->rows, i_remove_row, FRow);
     arrst_destroy(&(*layout)->cells, i_remove_cell, FCell);
