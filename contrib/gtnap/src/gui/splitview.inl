@@ -30,8 +30,4 @@ void _splitview_window(SplitView *split, Window *window);
 
 Window *_splitview_get_window(SplitView *split);
 
-GuiComponent *_splitview_child0(const SplitView *split);
-
-GuiComponent *_splitview_child1(const SplitView *split);
-
 __END_C

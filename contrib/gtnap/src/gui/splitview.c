@@ -860,18 +860,3 @@ Window *_splitview_get_window(SplitView *split)
     return split->window;
 }
 
-/*---------------------------------------------------------------------------*/
-
-GuiComponent *_splitview_child0(const SplitView *split)
-{
-    cassert_no_null(split);
-    return split->child0;
-}
-
-/*---------------------------------------------------------------------------*/
-
-GuiComponent *_splitview_child1(const SplitView *split)
-{
-    cassert_no_null(split);
-    return split->child1;
-}
