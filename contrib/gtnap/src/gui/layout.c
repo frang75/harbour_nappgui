@@ -1581,9 +1581,9 @@ Panel *_layout_panel(const Layout *layout)
 
 /*---------------------------------------------------------------------------*/
 
-Layout *_layout_search_component(const Layout *layout, const GuiComponent *component, Cell **in_cell)
+Cell *_layout_search_component(const Layout *layout, const GuiComponent *component)
 {
-    Layout *find_layout = NULL;
+    Cell *fcell = NULL;
     cassert_no_null(layout);
     cassert_no_null(layout->panel);
     arrpt_foreach(cell, layout->cells, Cell)
@@ -1595,25 +1595,24 @@ Layout *_layout_search_component(const Layout *layout, const GuiComponent *compo
                 cassert_no_null(cell->content.component);
                 if (cell->content.component == component)
                 {
-                    find_layout = cast(layout, Layout);
-                    ptr_assign(in_cell, cell);
+                    fcell = cell;
                     break;
                 }
             }
             else if (cell->type == i_ekLAYOUT)
             {
-                find_layout = _layout_search_component(cell->content.layout, component, in_cell);
-                if (find_layout != NULL)
+                fcell = _layout_search_component(cell->content.layout, component);
+                if (fcell != NULL)
                     break;
             }
         }
     arrpt_end()
-    return find_layout;
+    return fcell;
 }
 
 /*---------------------------------------------------------------------------*/
 
-bool_t _layout_search_layout(const Layout *layout, Layout *sublayout)
+bool_t _layout_exists(const Layout *layout, Layout *sublayout)
 {
     cassert_no_null(layout);
     cassert_no_null(layout->panel);
@@ -1626,12 +1625,11 @@ bool_t _layout_search_layout(const Layout *layout, Layout *sublayout)
         arrpt_foreach(cell, layout->cells, Cell)
             if (cell->type == i_ekLAYOUT)
             {
-                bool_t exists = _layout_search_layout(cell->content.layout, sublayout);
+                bool_t exists = _layout_exists(cell->content.layout, sublayout);
                 if (exists == TRUE)
                     return exists;
             }
         arrpt_end()
-
         return FALSE;
     }
 }

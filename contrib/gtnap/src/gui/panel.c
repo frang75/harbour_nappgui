@@ -292,7 +292,7 @@ void _panel_destroy_component(Panel *panel, GuiComponent *component)
         /* Avoid previously destroyed layouts */
         if (layout != NULL)
         {
-            if (_layout_search_component(layout, component, NULL) != NULL)
+            if (_layout_search_component(layout, component) != NULL)
             {
                 exists = TRUE;
                 break;
@@ -335,7 +335,7 @@ void _panel_invalidate_layout(Panel *panel, Layout *layout)
     if (panel->visible_layout != UINT32_MAX)
     {
         Layout *main_layout = arrpt_get(panel->layouts, panel->visible_layout, Layout);
-        if (_layout_search_layout(main_layout, layout) == TRUE)
+        if (_layout_exists(main_layout, layout) == TRUE)
             panel->visible_layout = UINT32_MAX;
     }
 
@@ -429,7 +429,7 @@ Cell *_panel_get_component_cell(Panel *panel, const GuiComponent *component)
     if (panel->active_layout != UINT32_MAX)
     {
         Layout *layout = arrpt_get(panel->layouts, panel->active_layout, Layout);
-        _layout_search_component(layout, component, &cell);
+        cell = _layout_search_component(layout, component);
     }
 
     return cell;
