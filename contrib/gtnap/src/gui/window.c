@@ -789,7 +789,10 @@ R2Df window_control_frame(const Window *window, const GuiControl *control)
 
         if (component->type == ekGUI_TYPE_PANEL)
         {
-
+            V2Df vpos;
+            panel_viewport(cast(component, Panel), &vpos, NULL);
+            r2d.pos.x -= vpos.x;
+            r2d.pos.y -= vpos.y;
         }
     }
 

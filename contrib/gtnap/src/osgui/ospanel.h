@@ -20,6 +20,8 @@ _osgui_api void ospanel_destroy(OSPanel **panel);
 
 _osgui_api void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_t skcolor, const real32_t x, const real32_t y, const real32_t width, const real32_t height);
 
+_osgui_api void ospanel_scroll_get(const OSPanel *panel, real32_t *x, real32_t *y);
+
 _osgui_api void ospanel_scroller_size(const OSPanel *panel, real32_t *width, real32_t *height);
 
 _osgui_api void ospanel_content_size(OSPanel *panel, const real32_t width, const real32_t height, const real32_t line_width, const real32_t line_height);

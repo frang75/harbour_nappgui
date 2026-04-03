@@ -1007,6 +1007,7 @@ _draw2d_api void guictx_append_panel_manager_imp(
     FPtr_gctx_create func_panel_create,
     FPtr_gctx_destroy func_panel_destroy,
     FPtr_gctx_set_area func_panel_area,
+    FPtr_gctx_get2_real32 func_panel_scroll_get,
     FPtr_gctx_get2_real32 func_panel_scroller_size,
     FPtr_gctx_set4_real32 func_panel_content_size,
     FPtr_gctx_call func_panel_set_need_display,
@@ -1022,6 +1023,7 @@ _draw2d_api void guictx_append_panel_manager_imp(
     func_panel_create, \
     func_panel_destroy, \
     func_panel_area, \
+    func_panel_scroll_get, \
     func_panel_scroller_size, \
     func_panel_content_size, \
     func_panel_set_need_display, \
@@ -1037,6 +1039,7 @@ _draw2d_api void guictx_append_panel_manager_imp(
         FUNC_CHECK_GCTX_CREATE(func_panel_create, panel_type), \
         FUNC_CHECK_GCTX_DESTROY(func_panel_destroy, panel_type), \
         FUNC_CHECK_GCTX_SET_AREA(func_panel_area, panel_type), \
+        FUNC_CHECK_GCTX_GET2_REAL32(func_panel_scroll_get, panel_type), \
         FUNC_CHECK_GCTX_GET2_REAL32(func_panel_scroller_size, panel_type), \
         FUNC_CHECK_GCTX_SET4_REAL32(func_panel_content_size, panel_type), \
         FUNC_CHECK_GCTX_CALL(func_panel_set_need_display, panel_type), \
@@ -1052,6 +1055,7 @@ _draw2d_api void guictx_append_panel_manager_imp(
             (FPtr_gctx_create)func_panel_create, \
             (FPtr_gctx_destroy)func_panel_destroy, \
             (FPtr_gctx_set_area)func_panel_area, \
+            (FPtr_gctx_get2_real32)func_panel_scroll_get, \
             (FPtr_gctx_get2_real32)func_panel_scroller_size, \
             (FPtr_gctx_set4_real32)func_panel_content_size, \
             (FPtr_gctx_call)func_panel_set_need_display, \

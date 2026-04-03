@@ -434,6 +434,18 @@ void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_
 
 /*---------------------------------------------------------------------------*/
 
+void ospanel_scroll_get(const OSPanel *panel, real32_t *x, real32_t *y)
+{
+    cassert_no_null(panel);
+    if (x != NULL)
+        *x = (real32_t)_osscrolls_x_pos(panel->scroll);
+
+    if (y != NULL)
+        *y = (real32_t)_osscrolls_y_pos(panel->scroll);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void ospanel_scroller_size(const OSPanel *panel, real32_t *width, real32_t *height)
 {
     cassert_no_null(panel);

@@ -307,6 +307,7 @@ GuiCtx *osguictx(void)
         ospanel_create,
         ospanel_destroy,
         ospanel_area,
+        ospanel_scroll_get,
         ospanel_scroller_size,
         ospanel_content_size,
         ospanel_display,

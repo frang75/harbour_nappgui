@@ -850,6 +850,7 @@ struct _guictx_t
 
     /*! <Panels> */
     FPtr_gctx_set_area func_panel_area;
+    FPtr_gctx_get2_real32 func_panel_scroll_get;
     FPtr_gctx_get2_real32 func_panel_scroller_size;
     FPtr_gctx_set4_real32 func_panel_content_size;
     FPtr_gctx_call func_panel_set_need_display;

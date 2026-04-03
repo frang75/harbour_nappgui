@@ -726,6 +726,8 @@ void view_scroll_y(View *view, const real32_t pos)
 void view_scroll_size(const View *view, real32_t *width, real32_t *height)
 {
     cassert_no_null(view);
+    cassert_no_null(view->component.context);
+    cassert_no_nullf(view->component.context->func_view_scroller_size);
     view->component.context->func_view_scroller_size(view->component.ositem, width, height);
 }
 

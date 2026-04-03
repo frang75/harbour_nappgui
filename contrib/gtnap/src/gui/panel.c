@@ -203,14 +203,29 @@ void panel_update(Panel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-real32_t panel_scroll_width(const Panel *panel)
+void panel_scroll_size(const Panel *panel, real32_t *width, real32_t *height)
 {
-    real32_t v = 0;
     cassert_no_null(panel);
     cassert_no_null(panel->component.context);
     cassert_no_nullf(panel->component.context->func_panel_scroller_size);
-    panel->component.context->func_panel_scroller_size(panel->component.ositem, &v, NULL);
-    return v;
+    panel->component.context->func_panel_scroller_size(panel->component.ositem, width, height);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void panel_viewport(const Panel *panel, V2Df *pos, S2Df *size)
+{
+    cassert_no_null(panel);
+    if (pos != NULL)
+    {
+        if (panel->flags & ekVIEW_HSCROLL || panel->flags & ekVIEW_VSCROLL)
+            panel->component.context->func_panel_scroll_get(panel->component.ositem, &pos->x, &pos->y);
+        else
+            *pos = kV2D_ZEROf;
+    }
+
+    if (size != NULL)
+        panel->component.context->func_get_size[ekGUI_TYPE_PANEL](panel->component.ositem, &size->width, &size->height);
 }
 
 /*---------------------------------------------------------------------------*/

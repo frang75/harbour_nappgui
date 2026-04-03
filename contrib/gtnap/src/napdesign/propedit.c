@@ -2369,10 +2369,11 @@ Panel *propedit_create(Designer *app)
 {
     PropData *data = i_data(app);
     Panel *panel = panel_custom(FALSE, TRUE, FALSE);
-    real32_t mright = panel_scroll_width(panel);
+    real32_t mright = 0;
     Layout *layout0 = i_no_sel_layout();
     Layout *layout1 = i_layout_layout(data, mright);
     Layout *layout2 = i_cell_layout(data, mright);
+    panel_scroll_size(panel, &mright, NULL);
     panel_layout(panel, layout0);
     panel_layout(panel, layout1);
     panel_layout(panel, layout2);
