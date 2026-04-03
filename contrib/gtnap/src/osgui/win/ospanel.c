@@ -50,6 +50,7 @@ struct _area_t
     HBRUSH bgbrush;
     COLORREF bgcolor;
     HBRUSH skbrush;
+    INT twidth;
     String *text;
 };
 
@@ -70,6 +71,7 @@ DeclSt(Area);
 /*---------------------------------------------------------------------------*/
 
 static int32_t i_GROUP_TITLE_OFFSET = 8;
+static int32_t i_GROUP_TITLE_CLEAN = 3;
 
 /*---------------------------------------------------------------------------*/
 
@@ -83,7 +85,39 @@ static void i_remove_area(Area *area)
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE void i_area(HWND hwnd, HDC hdc, const Area *area)
+static HBRUSH i_brush_from_rect(const RECT *rect, const ArrSt(Area) *areas, COLORREF *c)
+{
+    arrst_forback_const(area, areas, Area)
+        RECT inter;
+        if (IntersectRect(&inter, &area->rect, rect) == TRUE)
+        {
+            if (area->bgbrush != NULL)
+            {
+                ptr_assign(c, area->bgcolor);
+                return area->bgbrush;
+            }
+        }
+    arrst_end()
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static HBRUSH i_brush(OSControl *control, const ArrSt(Area) *areas, COLORREF *c)
+{
+    OSFrame rect;
+    RECT rc;
+    _oscontrol_frame(control, &rect);
+    rc.left = rect.left;
+    rc.right = rect.right;
+    rc.top = rect.top;
+    rc.bottom = rect.bottom;
+    return i_brush_from_rect(&rc, areas, c);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_area(HWND hwnd, HDC hdc, Area *area, const ArrSt(Area) *areas)
 {
     cassert_no_null(area);
     if (area->bgbrush != NULL)
@@ -111,48 +145,56 @@ static ___INLINE void i_area(HWND hwnd, HDC hdc, const Area *area)
 
             if (str_empty(area->text) == FALSE)
             {
-                int32_t x = area->rect.left + i_GROUP_TITLE_OFFSET;
-                int32_t y = area->rect.top;
+                int32_t mwidth = (area->rect.right - area->rect.left) - 2 * i_GROUP_TITLE_OFFSET;
                 Font *font = _osgui_create_default_font();
-                real32_t height = font_height(font);
-                HBRUSH bgbrush = area->bgbrush != NULL ? area->bgbrush : GetSysColorBrush(COLOR_3DFACE);
-                y -= (int32_t)height / 2;
+
+                /* Set the font */
                 SelectObject(hdc, (HFONT)font_native(font));
-                _osdrawctrl_gdi_text(hdc, theme, tc(area->text), x, y, ekLEFT, ekELLIPEND, (int32_t)(area->rect.right - area->rect.left) - 2 * i_GROUP_TITLE_OFFSET, kCOLOR_DEFAULT, bgbrush, ekCTRL_STATE_NORMAL);
+
+                if (area->twidth < 0)
+                   _osdrawctrl_gdi_measuse(hdc, tc(area->text), &area->twidth, NULL);
+
+                /* Erase the border line */
+                {
+                    HBRUSH bgbrush = NULL;
+                    int32_t ewidth = mwidth;
+                    RECT erect;
+
+                    /* We find the brush from the area slightly above this area */
+                    {
+                        RECT brect = area->rect;
+                        brect.top -= 2;
+                        brect.bottom = brect.top + 1;
+                        bgbrush = i_brush_from_rect(&brect, areas, NULL);
+                        if (bgbrush == NULL)
+                            bgbrush = GetSysColorBrush(COLOR_3DFACE);
+                    }
+
+                    if (area->twidth < ewidth)
+                        ewidth = area->twidth;
+
+                    erect.left = area->rect.left + i_GROUP_TITLE_OFFSET - i_GROUP_TITLE_CLEAN;
+                    erect.right = erect.left + ewidth + i_GROUP_TITLE_CLEAN * 2;
+                    erect.top = area->rect.top;
+                    erect.bottom = erect.top + 1;
+                    FillRect(hdc, &erect, bgbrush);
+                }
+
+                /* Draw the text */
+                {
+                    real32_t height = font_height(font);
+                    int32_t tx = area->rect.left + i_GROUP_TITLE_OFFSET;
+                    int32_t ty = area->rect.top;
+                    ty -= (int32_t)height / 2;
+                    _osdrawctrl_gdi_text(hdc, theme, tc(area->text), tx, ty, ekLEFT, ekELLIPEND, (int32_t)(area->rect.right - area->rect.left) - 2 * i_GROUP_TITLE_OFFSET, kCOLOR_DEFAULT, ekCTRL_STATE_NORMAL);
+                }
+
                 font_destroy(&font);
             }
 
             _osstyleXP_CloseTheme(theme);
         }
     }
-}
-
-/*---------------------------------------------------------------------------*/
-
-static HBRUSH i_brush(OSControl *control, const ArrSt(Area) *areas, COLORREF *c)
-{
-    OSFrame rect;
-    RECT rc;
-    _oscontrol_frame(control, &rect);
-    rc.left = rect.left;
-    rc.right = rect.right;
-    rc.top = rect.top;
-    rc.bottom = rect.bottom;
-
-    arrst_forback_const(area, areas, Area)
-        {
-            RECT inter;
-            if (IntersectRect(&inter, &area->rect, &rc) == TRUE)
-            {
-                if (area->bgbrush != NULL)
-                {
-                    ptr_assign(c, area->bgcolor);
-                    return area->bgbrush;
-                }
-            }
-        }
-    arrst_end()
-    return NULL;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -334,16 +376,16 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
             if (n == 1)
             {
-                const Area *area = arrst_get(panel->areas, 0, Area);
+                Area *area = arrst_get(panel->areas, 0, Area);
                 if (EqualRect(&rc, &area->rect) == TRUE)
                 {
-                    i_area(hwnd, (HDC)wParam, area);
+                    i_area(hwnd, (HDC)wParam, area, panel->areas);
                 }
                 else
                 {
                     HBRUSH defbrush = (HBRUSH)GetClassLongPtr(hwnd, GCLP_HBRBACKGROUND);
                     FillRect((HDC)wParam, &rc, defbrush);
-                    i_area(hwnd, (HDC)wParam, area);
+                    i_area(hwnd, (HDC)wParam, area, panel->areas);
                 }
             }
             else
@@ -351,7 +393,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
                 HBRUSH defbrush = (HBRUSH)GetClassLongPtr(hwnd, GCLP_HBRBACKGROUND);
                 FillRect((HDC)wParam, &rc, defbrush);
                 arrst_foreach(area, panel->areas, Area)
-                    i_area(hwnd, (HDC)wParam, area);
+                    i_area(hwnd, (HDC)wParam, area, panel->areas);
                 arrst_end()
             }
 
@@ -457,8 +499,9 @@ void ospanel_area(OSPanel *panel, void *obj, const char_t *group, const color_t 
         area->rect.right = (LONG)(x + width);
         area->rect.bottom = (LONG)(y + height);
         _oscontrol_update_brush(bgcolor, &area->bgbrush, &area->bgcolor);
-        _oscontrol_update_brush(skcolor, &area->skbrush, NULL);
+        _oscontrol_update_brush(skcolor, &area->skbrush, NULL);        
         str_upd(&area->text, group);
+        area->twidth = -1;
     }
     else
     {

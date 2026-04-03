@@ -382,26 +382,22 @@ static void i_ellipsis(HDC hdc, WCHAR **text, const uint32_t num_chars, const ui
 
 /*---------------------------------------------------------------------------*/
 
-static void i_erase_text_bg(HDC hdc, UINT format, const WCHAR *wtext, HBRUSH bgbrush, const RECT *rect)
+void _osdrawctrl_gdi_measuse(HDC hdc, const char_t *text, INT *width, INT *height)
 {
-    cassert_no_null(rect);
-    if (bgbrush != NULL)
-    {
-        RECT nrect = {0, 0, 0, 0};
-        DrawTextW(hdc, wtext, -1, &nrect, format | DT_CALCRECT);
-        nrect.left += rect->left;
-        nrect.right += rect->left;
-        nrect.top += rect->top;
-        nrect.bottom += rect->top;
-        nrect.left -= 3;
-        nrect.right += 3;
-        FillRect(hdc, &nrect, bgbrush);
-    }
+    WString str;
+    const WCHAR *wtext = _osgui_wstr_init(text, &str);
+    RECT nrect = {0, 0, 0, 0};
+    DrawTextW(hdc, wtext, -1, &nrect, DT_LEFT | DT_SINGLELINE | DT_CALCRECT);    
+    if (width != NULL)
+        *width = (INT)(nrect.right - nrect.left);
+    if (height != NULL)
+        *height = (INT)(nrect.bottom - nrect.top);
+    _osgui_wstr_remove(&str);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void _osdrawctrl_gdi_text(HDC hdc, HTHEME theme, const char_t *text, const int32_t x, const int32_t y, const align_t align, const ellipsis_t trim, const int32_t text_width, const color_t text_color, HBRUSH bgbrush, const ctrl_state_t state)
+void _osdrawctrl_gdi_text(HDC hdc, HTHEME theme, const char_t *text, const int32_t x, const int32_t y, const align_t align, const ellipsis_t trim, const int32_t text_width, const color_t text_color, const ctrl_state_t state)
 {
     RECT rect;
     WString str;
@@ -464,7 +460,6 @@ void _osdrawctrl_gdi_text(HDC hdc, HTHEME theme, const char_t *text, const int32
         if (osbs_windows() > ekWIN_XP3)
         {
             int istate = i_list_state(state);
-            i_erase_text_bg(hdc, format, wtext, bgbrush, &rect);
             _osstyleXP_DrawThemeText2(theme, hdc, LVP_LISTITEM, istate, wtext, -1, format, &rect);
         }
         else
@@ -474,13 +469,11 @@ void _osdrawctrl_gdi_text(HDC hdc, HTHEME theme, const char_t *text, const int32
             if (state == ekCTRL_STATE_PRESSED || state == ekCTRL_STATE_BKPRESSED)
                 color = GetSysColor(COLOR_HIGHLIGHTTEXT);
             SetTextColor(hdc, color);
-            i_erase_text_bg(hdc, format, wtext, bgbrush, &rect);
             DrawTextW(hdc, wtext, -1, &rect, format);
         }
     }
     else
     {
-        i_erase_text_bg(hdc, format, wtext, bgbrush, &rect);
         DrawTextW(hdc, wtext, -1, &rect, format);
     }
 
@@ -505,7 +498,7 @@ void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32
      * Check 'Using GDI+ on a GDI HDC'
      */
     cassert(dctx_internal_bitmap(ctx) == NULL);
-    _osdrawctrl_gdi_text(hdc, i_list_theme(ctx), text, x + (int32_t)offset_x, y + (int32_t)offset_y, align, trim, (int32_t)text_width, text_color, NULL, state);
+    _osdrawctrl_gdi_text(hdc, i_list_theme(ctx), text, x + (int32_t)offset_x, y + (int32_t)offset_y, align, trim, (int32_t)text_width, text_color, state);
 }
 
 /*---------------------------------------------------------------------------*/
