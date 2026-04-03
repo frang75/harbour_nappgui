@@ -527,6 +527,8 @@ static void i_add_child(SplitView *split, GuiComponent *component, const bool_t 
 {
     cassert_no_null(split);
     cassert_no_null(component);
+    cassert(component->parent == NULL);
+    component->parent = &split->component;
     if (split->child0 == NULL)
     {
         split->child0 = component;
@@ -668,12 +670,16 @@ void _splitview_destroy(SplitView **split)
     cassert_no_null(*split);
     if ((*split)->child0 != NULL)
     {
+        cassert((*split)->child0->parent == &(*split)->component);
+        (*split)->child0->parent = NULL;
         (*split)->component.context->func_split_detach_control((*split)->component.ositem, (*split)->child0->ositem);
         _component_destroy(&(*split)->child0);
     }
 
     if ((*split)->child1 != NULL)
     {
+        cassert((*split)->child1->parent == &(*split)->component);
+        (*split)->child1->parent = NULL;
         (*split)->component.context->func_split_detach_control((*split)->component.ositem, (*split)->child1->ositem);
         _component_destroy(&(*split)->child1);
     }

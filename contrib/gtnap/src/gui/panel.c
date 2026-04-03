@@ -344,14 +344,6 @@ void _panel_invalidate_layout(Panel *panel, Layout *layout)
 
 /*---------------------------------------------------------------------------*/
 
-GuiComponent *_panel_get_component(Panel *panel)
-{
-    cassert_no_null(panel);
-    return &(panel)->component;
-}
-
-/*---------------------------------------------------------------------------*/
-
 GuiComponent *_panel_find_component(Panel *panel, void *ositem)
 {
     cassert_no_null(panel);

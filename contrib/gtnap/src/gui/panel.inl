@@ -26,8 +26,6 @@ void _panel_destroy_component(Panel *panel, GuiComponent *component);
 
 void _panel_hide_all(Panel *panel);
 
-GuiComponent *_panel_get_component(Panel *panel);
-
 GuiComponent *_panel_find_component(Panel *panel, void *ositem);
 
 Layout *_panel_active_layout(const Panel *panel);
