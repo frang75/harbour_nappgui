@@ -878,17 +878,36 @@ static void i_draw_frame(DCtx *ctx, const Font *font, const DColors *colors, con
 
 static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Font *default_font, const DColors *colors, DCtx *ctx)
 {
+    V2Df laypos;
+    S2Df laysize;
     uint32_t ncols, nrows, i, j, radio_i = 0;
     const DCell *dcell = NULL;
     cassert_no_null(dlayout);
     cassert_no_null(flayout);
     cassert_no_null(hover);
     cassert_no_null(colors);
+    laypos = dlayout->rect.pos;
+    laysize = dlayout->rect.size;
     ncols = arrst_size(dlayout->cols, DColumn);
     nrows = arrst_size(dlayout->rows, DRow);
     dcell = arrst_all_const(dlayout->cells, DCell);
     cassert(ncols == flayout_ncols(flayout));
     cassert(nrows == flayout_nrows(flayout));
+
+    if (flayout->with_background == TRUE)
+    {
+        color_t c = gui_dark_mode() ? flayout->backgd_dark : flayout->backgd_light;
+        draw_fill_color(ctx, c);
+        draw_rect(ctx, ekFILL, laypos.x, laypos.y, laysize.width, laysize.height);
+    }
+
+    if (flayout->with_border == TRUE)
+    {
+        color_t c = gui_dark_mode() ? flayout->border_dark : flayout->border_light;
+        draw_line_color(ctx, c);
+        draw_rect(ctx, ekSTROKE, laypos.x, laypos.y, laysize.width, laysize.height);
+        draw_line_color(ctx, colors->main);
+    }
 
     for (j = 0; j < nrows; ++j)
     {
