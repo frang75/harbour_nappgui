@@ -126,6 +126,8 @@ struct _layout_t
     real32_t dim_margin_after[2];   /* Right/bottom border margin */
     color_t bgcolor;                /* Background color */
     color_t skcolor;                /* Border color */
+    bool_t group;                   /* Layout draws a groupbox */
+    String *gtext;                  /* Layout group text */
     const DBind *stbind;            /* Data binding: Struct linked to layout */
     void *objbind;                  /* Data binding: Struct instance linked to layout */
     Listener *OnObjChange;          /* Data binding: Struct instance change event */
@@ -219,6 +221,7 @@ void _layout_destroy(Layout **layout)
 {
     cassert_no_null(layout);
     cassert_no_null(*layout);
+    str_destopt(&(*layout)->gtext);
     arrst_destroy(&(*layout)->lines_dim[0], NULL, i_LineDim);
     arrst_destroy(&(*layout)->lines_dim[1], NULL, i_LineDim);
     arrpt_destroy(&(*layout)->cells_dim[0], NULL, Cell);
@@ -1328,6 +1331,15 @@ void layout_skcolor(Layout *layout, const color_t color)
 
 /*---------------------------------------------------------------------------*/
 
+void layout_group(Layout *layout, const bool_t group, const char_t *text)
+{
+    cassert_no_null(layout);
+    layout->group = group;
+    str_upd(&layout->gtext, text);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void layout_update(const Layout *layout)
 {
     cassert_no_null(layout);
@@ -2094,11 +2106,12 @@ static void i_layout_locate(Layout *layout, const V2Df *origin, FPtr_gctx_set_ar
     real32_t xorigin = lorigin.x;
 
     cassert_no_null(layout);
-    if (layout->bgcolor != 0 || layout->skcolor != 0)
+    if (layout->bgcolor != 0 || layout->skcolor != 0 || layout->group == TRUE)
     {
         real32_t width = i_dimension_size(layout->lines_dim[0], layout->dim_margin_before[0], layout->dim_margin_after[0]);
         real32_t height = i_dimension_size(layout->lines_dim[1], layout->dim_margin_before[1], layout->dim_margin_after[1]);
-        func_area(ospanel, layout, layout->bgcolor, layout->skcolor, lorigin.x, lorigin.y, width, height);
+        const char_t *group = layout->group ? tc(layout->gtext) : NULL;
+        func_area(ospanel, layout, group, layout->bgcolor, layout->skcolor, lorigin.x, lorigin.y, width, height);
     }
 
     ncols = i_NUM_COLS(layout);
@@ -2269,7 +2282,7 @@ void _layout_locate(Layout *layout)
     {
         ospanel = cast(layout->panel, GuiComponent)->ositem;
         func_area = cast(layout->panel, GuiComponent)->context->func_panel_area;
-        func_area(ospanel, NULL, 0, 0, 0, 0, 0, 0);
+        func_area(ospanel, NULL, NULL, 0, 0, 0, 0, 0, 0);
     }
 
     i_layout_locate(layout, &kV2D_ZEROf, func_area, ospanel);

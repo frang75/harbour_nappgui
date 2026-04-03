@@ -1515,8 +1515,7 @@ void flayout_synchro(const FLayout *layout, Layout *glayout)
     else
         layout_bgcolor(glayout, 0);
 
-    /* TODO: NAppGUI support for groups */
-    /* layout->group_title, layout->with_group */
+    layout_group(glayout, layout->with_group, tc(layout->group_title));
 }
 
 /*---------------------------------------------------------------------------*/

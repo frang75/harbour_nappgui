@@ -10,10 +10,12 @@
 
 /* Drawing custom GUI controls */
 
+#include "osdrawctrl_win.inl"
 #include "osimg.inl"
 #include "osstyleXP.inl"
 #include "osgui_win.inl"
 #include "../osdrawctrl.h"
+#include "../osgui.inl"
 #include <draw2d/color.h>
 #include <draw2d/dctxh.h>
 #include <draw2d/font.h>
@@ -60,15 +62,15 @@ Font *osdrawctrl_font(const DCtx *ctx)
         LOGFONTW lfont;
         if (GetThemeFont(theme, NULL, LVP_LISTITEM, DLISS_NORMAL, TMT_FONT, &lfont) == S_OK)
         {
-            // TODO: Create a font from LOGFONT
-            font = font_system(font_regular_size(), 0);
+            /* TODO: Create a font from LOGFONT */
+            font = _osgui_create_default_font();
         }
 
         _osstyleXP_CloseTheme(theme);
     }
 
     if (font == NULL)
-        font = font_system(font_regular_size(), 0);
+        font = _osgui_create_default_font();
 
     return font;
 }
@@ -380,28 +382,34 @@ static void i_ellipsis(HDC hdc, WCHAR **text, const uint32_t num_chars, const ui
 
 /*---------------------------------------------------------------------------*/
 
-void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32_t y, const ctrl_state_t state)
+static void i_erase_text_bg(HDC hdc, UINT format, const WCHAR *wtext, HBRUSH bgbrush, const RECT *rect)
+{
+    cassert_no_null(rect);
+    if (bgbrush != NULL)
+    {
+        RECT nrect = {0, 0, 0, 0};
+        DrawTextW(hdc, wtext, -1, &nrect, format | DT_CALCRECT);
+        nrect.left += rect->left;
+        nrect.right += rect->left;
+        nrect.top += rect->top;
+        nrect.bottom += rect->top;
+        nrect.left -= 3;
+        nrect.right += 3;
+        FillRect(hdc, &nrect, bgbrush);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osdrawctrl_gdi_text(HDC hdc, HTHEME theme, const char_t *text, const int32_t x, const int32_t y, const align_t align, const ellipsis_t trim, const int32_t text_width, const color_t text_color, HBRUSH bgbrush, const ctrl_state_t state)
 {
     RECT rect;
     WString str;
     const WCHAR *wtext = _osgui_wstr_init(text, &str);
-    real32_t offset_x = 0, offset_y = 0;
-    align_t align = dctx_text_intalign(ctx);
-    ellipsis_t trim = dctx_text_trim(ctx);
-    real32_t text_width = dctx_text_width(ctx);
-    HDC hdc = (HDC)dctx_native(ctx);
     UINT format = DT_TOP;
 
-    draw_set_raster_mode(ctx);
-    dctx_offset(ctx, &offset_x, &offset_y);
-
-    /*
-     * For GDI-based raster text in bitmap context, we have to 'delete' the GDI object
-     * Check 'Using GDI+ on a GDI HDC'
-     */
-    cassert(dctx_internal_bitmap(ctx) == NULL);
-    rect.left = (LONG)x + (LONG)offset_x;
-    rect.top = (LONG)y + (LONG)offset_y;
+    rect.left = (LONG)x;
+    rect.top = (LONG)y;
     rect.right = text_width >= 0 ? rect.left + (LONG)text_width : UNDEF_WIDTH;
     rect.bottom = rect.top + UNDEF_HEIGHT;
 
@@ -451,12 +459,13 @@ void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32
         rect.bottom = rect.top + (nrect.bottom - nrect.top);
     }
 
-    if (dctx_text_color(ctx) == kCOLOR_DEFAULT)
+    if (text_color == kCOLOR_DEFAULT)
     {
         if (osbs_windows() > ekWIN_XP3)
         {
             int istate = i_list_state(state);
-            _osstyleXP_DrawThemeText2(i_list_theme(ctx), hdc, LVP_LISTITEM, istate, wtext, -1, format, &rect);
+            i_erase_text_bg(hdc, format, wtext, bgbrush, &rect);
+            _osstyleXP_DrawThemeText2(theme, hdc, LVP_LISTITEM, istate, wtext, -1, format, &rect);
         }
         else
         {
@@ -465,15 +474,38 @@ void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32
             if (state == ekCTRL_STATE_PRESSED || state == ekCTRL_STATE_BKPRESSED)
                 color = GetSysColor(COLOR_HIGHLIGHTTEXT);
             SetTextColor(hdc, color);
+            i_erase_text_bg(hdc, format, wtext, bgbrush, &rect);
             DrawTextW(hdc, wtext, -1, &rect, format);
         }
     }
     else
     {
+        i_erase_text_bg(hdc, format, wtext, bgbrush, &rect);
         DrawTextW(hdc, wtext, -1, &rect, format);
     }
 
     _osgui_wstr_remove(&str);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32_t y, const ctrl_state_t state)
+{
+    real32_t offset_x = 0, offset_y = 0;
+    HDC hdc = (HDC)dctx_native(ctx);
+    align_t align = dctx_text_intalign(ctx);
+    ellipsis_t trim = dctx_text_trim(ctx);
+    real32_t text_width = dctx_text_width(ctx);
+    color_t text_color = dctx_text_color(ctx);
+    draw_set_raster_mode(ctx);
+    dctx_offset(ctx, &offset_x, &offset_y);
+
+    /*
+     * For GDI-based raster text in bitmap context, we have to 'delete' the GDI object
+     * Check 'Using GDI+ on a GDI HDC'
+     */
+    cassert(dctx_internal_bitmap(ctx) == NULL);
+    _osdrawctrl_gdi_text(hdc, i_list_theme(ctx), text, x + (int32_t)offset_x, y + (int32_t)offset_y, align, trim, (int32_t)text_width, text_color, NULL, state);
 }
 
 /*---------------------------------------------------------------------------*/
