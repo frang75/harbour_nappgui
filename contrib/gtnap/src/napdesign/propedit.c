@@ -2365,15 +2365,23 @@ static void i_destroy_data(PropData **data)
 
 /*---------------------------------------------------------------------------*/
 
+static real32_t i_scrollbar_width(Panel *panel)
+{
+    real32_t width = 0;
+    panel_scroll_size(panel, &width, NULL);
+    return width;
+}
+
+/*---------------------------------------------------------------------------*/
+
 Panel *propedit_create(Designer *app)
 {
     PropData *data = i_data(app);
     Panel *panel = panel_custom(FALSE, TRUE, FALSE);
-    real32_t mright = 0;
+    real32_t mright = i_scrollbar_width(panel);
     Layout *layout0 = i_no_sel_layout();
     Layout *layout1 = i_layout_layout(data, mright);
     Layout *layout2 = i_cell_layout(data, mright);
-    panel_scroll_size(panel, &mright, NULL);
     panel_layout(panel, layout0);
     panel_layout(panel, layout1);
     panel_layout(panel, layout2);

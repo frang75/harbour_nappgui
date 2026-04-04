@@ -909,6 +909,61 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
         draw_line_color(ctx, colors->main);
     }
 
+    if (flayout->with_group == TRUE)
+    {
+        color_t c = hover->dlayout == dlayout ? colors->select : colors->main;
+        draw_line_color(ctx, c);
+
+        if (str_empty(flayout->group_title) == FALSE)
+        {
+            static real32_t i_GROUP_TITLE_OFFSET = 8;
+            static real32_t i_GROUP_TITLE_CLEAN = 3;
+            Font *gfont = gui_default_font();   
+            real32_t height = font_height(gfont);
+            real32_t mwidth = laysize.width - i_GROUP_TITLE_OFFSET * 2;
+            V2Df line[6];
+
+            {
+                real32_t ewidth, eheight;
+                font_extents(gfont, tc(flayout->group_title), -1, &ewidth, &eheight);
+                if (ewidth > mwidth)
+                {
+                    draw_text_width(ctx, mwidth);
+                    draw_text_trim(ctx, ekELLIPEND);
+                }
+                else
+                {
+                    draw_text_width(ctx, -1);
+                    mwidth = ewidth;
+                }
+            }
+
+            line[0].x = laypos.x + i_GROUP_TITLE_OFFSET - i_GROUP_TITLE_CLEAN;
+            line[0].y = laypos.y;
+            line[1].x = laypos.x;
+            line[1].y = line[0].y;
+            line[2].x = line[1].x;
+            line[2].y = laypos.y + laysize.height;
+            line[3].x = laypos.x + laysize.width;
+            line[3].y = line[2].y;
+            line[4].x = line[3].x;
+            line[4].y = line[0].y;
+            line[5].x = laypos.x + mwidth + i_GROUP_TITLE_OFFSET + i_GROUP_TITLE_CLEAN;
+            line[5].y = line[0].y;
+            draw_font(ctx, gfont);
+            draw_text_color(ctx, c);
+            drawctrl_text(ctx, tc(flayout->group_title), (int32_t)(laypos.x + i_GROUP_TITLE_OFFSET), (int32_t)(laypos.y - height / 2), ekCTRL_STATE_NORMAL);
+            draw_polyline(ctx, FALSE, line, 6);
+            font_destroy(&gfont);
+        }
+        else
+        {
+            draw_rect(ctx, ekSTROKE, laypos.x, laypos.y, laysize.width, laysize.height);
+        }
+
+        draw_line_color(ctx, colors->main);
+    }
+    
     for (j = 0; j < nrows; ++j)
     {
         for (i = 0; i < ncols; ++i)

@@ -135,6 +135,7 @@ static void i_area(HWND hwnd, HDC hdc, Area *area, const ArrSt(Area) *areas)
         FrameRect(hdc, &area->rect, area->skbrush);
     }
 
+    /* GroupBox drawing */
     if (area->text != NULL)
     {
         HTHEME theme = _osstyleXP_OpenTheme(hwnd, L"BUTTON");
