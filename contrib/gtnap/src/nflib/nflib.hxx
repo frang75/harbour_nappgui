@@ -94,6 +94,12 @@ struct _flabel_t
     bool_t multiline;
     real32_t min_width;
     halign_t align;
+    bool_t with_color;
+    bool_t with_bgcolor;
+    uint32_t color_light;
+    uint32_t color_dark;
+    uint32_t bgcolor_light;
+    uint32_t bgcolor_dark;
 };
 
 struct _fbutton_t

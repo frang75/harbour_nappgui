@@ -14,6 +14,14 @@
 
 static uint32_t i_NUM_USERS = 0;
 static ResPack *i_RESPACK = NULL;
+color_t kCOLOR_LAYOUT_BDLT = 0;
+color_t kCOLOR_LAYOUT_BDDK = 0;
+color_t kCOLOR_LAYOUT_BGLT = 0;
+color_t kCOLOR_LAYOUT_BGDK = 0;
+color_t kCOLOR_LABEL_LT = 0;
+color_t kCOLOR_LABEL_DK = 0;
+color_t kCOLOR_LABEL_BGLT = 0;
+color_t kCOLOR_LABEL_BGDK = 0;
 
 /*---------------------------------------------------------------------------*/
 
@@ -65,6 +73,12 @@ static void i_dbind(void)
     dbind(FLabel, bool_t, multiline);
     dbind(FLabel, real32_t, min_width);
     dbind(FLabel, halign_t, align);
+    dbind(FLabel, bool_t, with_color);
+    dbind(FLabel, bool_t, with_bgcolor);
+    dbind(FLabel, uint32_t, color_light);
+    dbind(FLabel, uint32_t, color_dark);
+    dbind(FLabel, uint32_t, bgcolor_light);
+    dbind(FLabel, uint32_t, bgcolor_dark);
     dbind(FButton, String *, text);
     dbind(FButton, String *, tooltip);
     dbind(FButton, real32_t, min_width);
@@ -157,6 +171,12 @@ static void i_dbind(void)
     dbind_precision(FLabel, real32_t, min_width, 1);
     dbind_range(FLabel, real32_t, min_width, 0, 1000);
     dbind_default(FLabel, halign_t, align, ekHALIGN_LEFT);
+    dbind_default(FLabel, bool_t, with_color, FALSE);
+    dbind_default(FLabel, bool_t, with_bgcolor, FALSE);
+    dbind_default(FLabel, uint32_t, color_light, kCOLOR_LABEL_LT);
+    dbind_default(FLabel, uint32_t, color_dark, kCOLOR_LABEL_DK);
+    dbind_default(FLabel, uint32_t, bgcolor_light, kCOLOR_LABEL_BGLT);
+    dbind_default(FLabel, uint32_t, bgcolor_light, kCOLOR_LABEL_BGDK);
     dbind_default(FButton, real32_t, min_width, 0);
     dbind_increment(FButton, real32_t, min_width, 1);
     dbind_precision(FButton, real32_t, min_width, 1);
@@ -314,10 +334,10 @@ static void i_dbind(void)
     dbind_default(FLayout, bool_t, with_border, FALSE);
     dbind_default(FLayout, bool_t, with_background, FALSE);
     dbind_default(FLayout, bool_t, with_group, FALSE);
-    dbind_default(FLayout, uint32_t, border_light, color_rgb(225, 225, 225));
-    dbind_default(FLayout, uint32_t, border_dark, color_rgb(100, 100, 100));
-    dbind_default(FLayout, uint32_t, backgd_light, color_rgb(225, 225, 225));
-    dbind_default(FLayout, uint32_t, backgd_dark, color_rgb(100, 100, 100));
+    dbind_default(FLayout, uint32_t, border_light, kCOLOR_LAYOUT_BDLT);
+    dbind_default(FLayout, uint32_t, border_dark, kCOLOR_LAYOUT_BDDK);
+    dbind_default(FLayout, uint32_t, backgd_light, kCOLOR_LAYOUT_BGLT);
+    dbind_default(FLayout, uint32_t, backgd_dark, kCOLOR_LAYOUT_BGDK);
     dbind_increment(FLayout, real32_t, margin_left, 1);
     dbind_increment(FLayout, real32_t, margin_top, 1);
     dbind_increment(FLayout, real32_t, margin_right, 1);
@@ -383,6 +403,14 @@ void nflib_start(void)
     if (i_NUM_USERS == 0)
     {
         gui_start();
+        kCOLOR_LAYOUT_BDLT = color_rgb(225, 225, 225);
+        kCOLOR_LAYOUT_BDDK = color_rgb(100, 100, 100);
+        kCOLOR_LAYOUT_BGLT = color_rgb(225, 225, 225);
+        kCOLOR_LAYOUT_BGDK = color_rgb(100, 100, 100);
+        kCOLOR_LABEL_LT = color_rgb(240, 0, 0);
+        kCOLOR_LABEL_DK = color_rgb(40, 0, 0);
+        kCOLOR_LABEL_BGLT = color_rgb(225, 225, 225);
+        kCOLOR_LABEL_BGDK = color_rgb(100, 100, 100);
         i_dbind();
         blib_atexit(i_nflib_atexit);
     }
