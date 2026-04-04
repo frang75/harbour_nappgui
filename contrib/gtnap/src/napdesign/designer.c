@@ -109,7 +109,8 @@ struct _designer_t
 
 /*---------------------------------------------------------------------------*/
 
-static const uint16_t i_CONFIG_VERS = 0;
+static const uint16_t i_CONFIG_VERS = 1;
+static const uint32_t i_OLD_CONFIG_NDRAWERS = 31;
 static const split_mode_t i_SPLIT1_MODE = ekSPLIT_FIXED0;
 static const split_mode_t i_SPLIT2_MODE = ekSPLIT_FIXED0;
 static const split_mode_t i_SPLIT3_MODE = ekSPLIT_FIXED1;
@@ -1741,6 +1742,7 @@ static void i_save_config(const Designer *app)
 
     if (stm != NULL)
     {
+        uint32_t ndrawers = arrst_size(app->wdrawers, WDrawer);
         stm_write_u16(stm, i_CONFIG_VERS);
         str_write(stm, app->config.folder_path);
         stm_write_u32(stm, app->config.sel_form);
@@ -1758,6 +1760,8 @@ static void i_save_config(const Designer *app)
         stm_write_bool(stm, app->config.show_widgets);
         stm_write_bool(stm, app->config.show_inspectr);
         stm_write_bool(stm, app->config.show_propedit);
+        cassert(ndrawers == 31);
+        stm_write_u32(stm, ndrawers);
         arrst_foreach_const(wdrawer, app->wdrawers, WDrawer)
             stm_write_bool(stm, wdrawer->opened);
         arrst_end()
@@ -1814,6 +1818,9 @@ static void i_load_config(Designer *app)
         app->config.vers = stm_read_u16(stm);
         if (app->config.vers <= i_CONFIG_VERS)
         {
+            uint32_t i, ndrawers = 0;
+            uint32_t tdrawers = arrst_size(app->wdrawers, WDrawer);
+            WDrawer *wdrawer = arrst_all(app->wdrawers, WDrawer);
             app->config.folder_path = str_read(stm);
             app->config.sel_form = stm_read_u32(stm);
             app->config.swidget = stm_read_enum(stm, widget_t);
@@ -1830,9 +1837,22 @@ static void i_load_config(Designer *app)
             app->config.show_widgets = stm_read_bool(stm);
             app->config.show_inspectr = stm_read_bool(stm);
             app->config.show_propedit = stm_read_bool(stm);
-            arrst_foreach(wdrawer, app->wdrawers, WDrawer)
-                wdrawer->opened = stm_read_bool(stm);
-            arrst_end()
+
+            if (app->config.vers >= 1)
+                ndrawers = stm_read_u32(stm);
+            else
+                ndrawers = i_OLD_CONFIG_NDRAWERS;
+
+            for (i = 0; i < ndrawers; ++i)
+            {
+                bool_t opened = stm_read_bool(stm);                
+                if (i < tdrawers)
+                    wdrawer[i].opened = opened;
+            }
+
+            for (i = ndrawers; i < tdrawers; ++i)
+                wdrawer[i].opened = FALSE;
+
             ok = stm_state(stm) == ekSTOK;
         }
 
