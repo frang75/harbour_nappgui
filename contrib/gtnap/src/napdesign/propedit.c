@@ -215,7 +215,7 @@ static Layout *i_taborder_layout(void)
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_border_layout(void)
+static Layout *i_color_layout(ResId tooltip)
 {
     Layout *layout = layout_create(6, 1);
     Button *check = button_check();
@@ -225,7 +225,7 @@ static Layout *i_border_layout(void)
     CButton *button2 = cbutton_create(s2df(i_CBUTTON_SIZE, i_CBUTTON_SIZE));
     label_text(label1, gui_text(TEXT_LIGHT));
     label_text(label2, gui_text(TEXT_DARK));
-    button_tooltip(check, gui_text(TIP_BORDER));
+    button_tooltip(check, gui_text(tooltip));
     cbutton_info(button1, gui_text(TIP_LIGHT_COLOR));
     cbutton_info(button2, gui_text(TIP_DARK_COLOR));
     layout_button(layout, check, 0, 0);
@@ -237,39 +237,6 @@ static Layout *i_border_layout(void)
     layout_hmargin(layout, 2, 5);
     layout_hmargin(layout, 3, 5);
     layout_hexpand(layout, 5);
-    cell_dbind(layout_cell(layout, 0, 0), FLayout, bool_t, with_border);
-    cell_dbind(layout_cell(layout, 2, 0), FLayout, uint32_t, border_light);
-    cell_dbind(layout_cell(layout, 4, 0), FLayout, uint32_t, border_dark);
-    return layout;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static Layout *i_background_layout(void)
-{
-    Layout *layout = layout_create(6, 1);
-    Button *check = button_check();
-    Label *label1 = label_create();
-    Label *label2 = label_create();
-    CButton *button1 = cbutton_create(s2df(i_CBUTTON_SIZE, i_CBUTTON_SIZE));
-    CButton *button2 = cbutton_create(s2df(i_CBUTTON_SIZE, i_CBUTTON_SIZE));
-    label_text(label1, gui_text(TEXT_LIGHT));
-    label_text(label2, gui_text(TEXT_DARK));
-    button_tooltip(check, gui_text(TIP_BACKGROUND));
-    cbutton_info(button1, gui_text(TIP_LIGHT_COLOR));
-    cbutton_info(button2, gui_text(TIP_DARK_COLOR));
-    layout_button(layout, check, 0, 0);
-    layout_label(layout, label1, 1, 0);
-    layout_label(layout, label2, 3, 0);
-    layout_view(layout, cast(button1, View), 2, 0);
-    layout_view(layout, cast(button2, View), 4, 0);
-    layout_hmargin(layout, 1, 5);
-    layout_hmargin(layout, 2, 5);
-    layout_hmargin(layout, 3, 5);
-    layout_hexpand(layout, 5);
-    cell_dbind(layout_cell(layout, 0, 0), FLayout, bool_t, with_background);
-    cell_dbind(layout_cell(layout, 2, 0), FLayout, uint32_t, backgd_light);
-    cell_dbind(layout_cell(layout, 4, 0), FLayout, uint32_t, backgd_dark);
     return layout;
 }
 
@@ -299,8 +266,8 @@ static Layout *i_group_layout(void)
 static Layout *i_lprops_layout(PropData *data)
 {
     Layout *layout1 = layout_create(2, 11);
-    Layout *layout3 = i_border_layout();
-    Layout *layout4 = i_background_layout();
+    Layout *layout3 = i_color_layout(TIP_BORDER);
+    Layout *layout4 = i_color_layout(TIP_BACKGROUND);
     Layout *layout5 = i_group_layout();
     Layout *layout6 = i_promote_buttons(data);
     Label *label1 = label_create();
@@ -377,6 +344,12 @@ static Layout *i_lprops_layout(PropData *data)
     cell_dbind(layout_cell(layout1, 1, 4), FLayout, real32_t, margin_bottom);
     cell_dbind(layout_cell(layout1, 1, 5), FLayout, real32_t, margin_right);
     cell_dbind(layout_cell(layout1, 1, 6), FLayout, bool_t, row_tabstop);
+    cell_dbind(layout_cell(layout3, 0, 0), FLayout, bool_t, with_border);
+    cell_dbind(layout_cell(layout3, 2, 0), FLayout, uint32_t, border_light);
+    cell_dbind(layout_cell(layout3, 4, 0), FLayout, uint32_t, border_dark);
+    cell_dbind(layout_cell(layout4, 0, 0), FLayout, bool_t, with_background);
+    cell_dbind(layout_cell(layout4, 2, 0), FLayout, uint32_t, backgd_light);
+    cell_dbind(layout_cell(layout4, 4, 0), FLayout, uint32_t, backgd_dark);
     return layout1;
 }
 
