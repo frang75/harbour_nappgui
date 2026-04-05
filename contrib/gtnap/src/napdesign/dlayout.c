@@ -970,8 +970,9 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
         {
             const FCell *fcell = flayout_ccell(flayout, i, j);
             Cell *gcell = layout_cell(cast(glayout, Layout), i, j);
-            color_t wcolor = i_is_cell_sel(hover, dlayout, i, j) ? colors->select : colors->main;
-            color_t bcolor = i_is_cell_sel(hover, dlayout, i, j) ? colors->main : colors->select;
+            bool_t issel = i_is_cell_sel(hover, dlayout, i, j);
+            color_t wcolor = issel ? colors->select : colors->main;
+            color_t bcolor = issel ? colors->main : colors->select;
 
             draw_r2df(ctx, ekSTROKE, &dcell->rect);
 
@@ -984,9 +985,39 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
             {
                 const Label *glabel = cell_label(gcell);
                 const Font *gfont = label_get_font(glabel);
+                
+                if (fcell->widget.label->with_bgcolor == TRUE)
+                {
+                    if (gui_dark_mode() == TRUE)
+                        draw_fill_color(ctx, fcell->widget.label->bgcolor_dark);
+                    else
+                        draw_fill_color(ctx, fcell->widget.label->bgcolor_light);         
+                }
+                else
+                {
+                    draw_fill_color(ctx, colors->back);
+                }
+
+                if (issel == TRUE)
+                {
+                    draw_text_color(ctx, wcolor);
+                }
+                else
+                {
+                    if (fcell->widget.label->with_color == TRUE)
+                    {
+                        if (gui_dark_mode() == TRUE)
+                            draw_text_color(ctx, fcell->widget.label->color_dark);
+                        else
+                            draw_text_color(ctx, fcell->widget.label->color_light);         
+                    }
+                    else
+                    {
+                        draw_text_color(ctx, wcolor);
+                    }                
+                }
+
                 draw_font(ctx, gfont);
-                draw_fill_color(ctx, colors->back);
-                draw_text_color(ctx, wcolor);
                 draw_rect(ctx, ekFILL, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
                 draw_text_width(ctx, dcell->content_rect.size.width);
 

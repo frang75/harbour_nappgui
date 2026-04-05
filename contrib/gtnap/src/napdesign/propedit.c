@@ -910,7 +910,6 @@ static Layout *i_label_layout(PropData *data)
     layout_hexpand(layout1, 1);
     layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
     layout_vmargin(layout1, 4, 2);
-
     cell_dbind(layout_cell(layout1, 1, 0), FLabel, String *, text);
     cell_dbind(layout_cell(layout1, 1, 1), FLabel, bool_t, multiline);
     cell_dbind(layout_cell(layout1, 1, 2), FLabel, real32_t, min_width);
