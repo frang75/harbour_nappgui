@@ -123,6 +123,7 @@ TEXT_PASSMODE       Passmode
 TEXT_RESIZABLE      Resizable
 TEXT_TABSTOP        Tabstop
 TEXT_TABORDER       Taborder
+TEXT_COLOR          Color
 TEXT_BACKGROUND     Background
 TEXT_LIGHT          Light
 TEXT_DARK           Dark
@@ -219,6 +220,8 @@ TIP_BOTTOM_MARGIN   Margin at bottom of layout (in px).
 TIP_RIGHT_MARGIN    Margin at right of layout (in px).
 TIP_BORDER          Enable the border line with solid color.
 TIP_BACKGROUND      Enable the background fill with solid color.
+TIP_LABEL_COLOR     Enable the custom color for label.
+TIP_LABEL_BGCOLOR   Enable the custom color for label background.
 TIP_GROUP           Enable the group frame, with standard color.
 TIP_GROUP_TITLE     Text to show at top of the group frame.
 TIP_LIGHT_COLOR     Color for light-mode themes.

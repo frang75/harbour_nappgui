@@ -871,12 +871,16 @@ static void i_OnLabelNotify(PropData *data, Event *e)
 
 static Layout *i_label_layout(PropData *data)
 {
-    Layout *layout1 = layout_create(2, 4);
+    Layout *layout1 = layout_create(2, 6);
     Layout *layout2 = i_value_updown_layout(gui_text(TIP_LABEL_MWIDTH));
+    Layout *layout3 = i_color_layout(TIP_LABEL_COLOR);
+    Layout *layout4 = i_color_layout(TIP_LABEL_BGCOLOR);
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
     Label *label4 = label_create();
+    Label *label5 = label_create();
+    Label *label6 = label_create();
     Edit *edit = edit_create();
     Button *check = button_check();
     PopUp *popup = popup_create();
@@ -885,6 +889,8 @@ static Layout *i_label_layout(PropData *data)
     label_text(label2, gui_text(TEXT_MULTILINE));
     label_text(label3, gui_text(TEXT_WIDTH));
     label_text(label4, gui_text(TEXT_ALIGN));
+    label_text(label5, gui_text(TEXT_COLOR));
+    label_text(label6, gui_text(TEXT_BACKGROUND));
     edit_tooltip(edit, gui_text(TIP_LABEL_TEXT));
     button_tooltip(check, gui_text(TIP_LABEL_MLINE));
     popup_tooltip(popup, gui_text(TIP_LABEL_ALIGN));
@@ -892,17 +898,29 @@ static Layout *i_label_layout(PropData *data)
     layout_label(layout1, label2, 0, 1);
     layout_label(layout1, label3, 0, 2);
     layout_label(layout1, label4, 0, 3);
+    layout_label(layout1, label5, 0, 4);
+    layout_label(layout1, label6, 0, 5);
     layout_edit(layout1, edit, 1, 0);
     layout_button(layout1, check, 1, 1);
     layout_layout(layout1, layout2, 1, 2);
     layout_popup(layout1, popup, 1, 3);
+    layout_layout(layout1, layout3, 1, 4);
+    layout_layout(layout1, layout4, 1, 5);
     layout_margin4(layout1, 0, 0, 1, 0);
     layout_hexpand(layout1, 1);
     layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
+    layout_vmargin(layout1, 4, 2);
+
     cell_dbind(layout_cell(layout1, 1, 0), FLabel, String *, text);
     cell_dbind(layout_cell(layout1, 1, 1), FLabel, bool_t, multiline);
     cell_dbind(layout_cell(layout1, 1, 2), FLabel, real32_t, min_width);
     cell_dbind(layout_cell(layout1, 1, 3), FLabel, halign_t, align);
+    cell_dbind(layout_cell(layout3, 0, 0), FLabel, bool_t, with_color);
+    cell_dbind(layout_cell(layout3, 2, 0), FLabel, uint32_t, color_light);
+    cell_dbind(layout_cell(layout3, 4, 0), FLabel, uint32_t, color_dark);
+    cell_dbind(layout_cell(layout4, 0, 0), FLabel, bool_t, with_bgcolor);
+    cell_dbind(layout_cell(layout4, 2, 0), FLabel, uint32_t, bgcolor_light);
+    cell_dbind(layout_cell(layout4, 4, 0), FLabel, uint32_t, bgcolor_dark);
     layout_dbind(layout1, listener(data, i_OnLabelNotify, PropData), FLabel);
     data->label_layout = layout1;
     return i_drawer_layout(data->app, layout1, ekDRAWER_LABEL_PROPS);
