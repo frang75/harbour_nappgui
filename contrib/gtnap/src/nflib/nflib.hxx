@@ -6,6 +6,7 @@
 #ifndef __NFLIB_HXX__
 #define __NFLIB_HXX__
 
+typedef struct _ffont_t FFont;
 typedef struct _flabel_t FLabel;
 typedef struct _fbutton_t FButton;
 typedef struct _fcheck_t FCheck;
@@ -88,9 +89,27 @@ typedef enum _scale_t
     ekSCALE_FIT
 } scale_t;
 
+/* Don't change the order. Add new values to end */
+typedef enum _ffamily_t
+{
+    ekFFAMILY_REGULAR,
+    ekFFAMILY_MONOSPACE
+} ffamily_t;
+
+struct _ffont_t
+{
+    ffamily_t family;
+    real32_t size;
+    bool_t bold;
+    bool_t italic;
+    bool_t underline;
+    bool_t strikeout;
+} ffont_t;
+
 struct _flabel_t
 {
     String *text;
+    FFont font;
     bool_t multiline;
     real32_t min_width;
     halign_t align;

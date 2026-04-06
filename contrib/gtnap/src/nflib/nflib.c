@@ -69,7 +69,16 @@ static void i_dbind(void)
     dbind_enum(scale_t, ekSCALE_AUTO, "Auto");
     dbind_enum(scale_t, ekSCALE_ASPECT, "Aspect");
     dbind_enum(scale_t, ekSCALE_FIT, "Fit");
+    dbind_enum(ffamily_t, ekFFAMILY_REGULAR, "Regular");
+    dbind_enum(ffamily_t, ekFFAMILY_MONOSPACE, "Monospace");
+    dbind(FFont, ffamily_t, family);
+    dbind(FFont, real32_t, size);
+    dbind(FFont, bool_t, bold);
+    dbind(FFont, bool_t, italic);
+    dbind(FFont, bool_t, underline);
+    dbind(FFont, bool_t, strikeout);
     dbind(FLabel, String *, text);
+    dbind(FLabel, FFont, font);
     dbind(FLabel, bool_t, multiline);
     dbind(FLabel, real32_t, min_width);
     dbind(FLabel, halign_t, align);
@@ -164,7 +173,15 @@ static void i_dbind(void)
     dbind(FLayout, ArrSt(FCell) *, cells);
     dbind(FForm, String *, description);
     dbind(FForm, FLayout *, layout);
-
+    dbind_default(FFont, ffamily_t, family, ekFFAMILY_REGULAR);
+    dbind_default(FFont, real32_t, size, 0);
+    dbind_increment(FFont, real32_t, size, 1);
+    dbind_precision(FFont, real32_t, size, 1);
+    dbind_range(FFont, real32_t, size, 0, 100);
+    dbind_default(FFont, bool_t, bold, FALSE);
+    dbind_default(FFont, bool_t, italic, FALSE);
+    dbind_default(FFont, bool_t, underline, FALSE);
+    dbind_default(FFont, bool_t, strikeout, FALSE);
     dbind_default(FLabel, bool_t, multiline, FALSE);
     dbind_default(FLabel, real32_t, min_width, 0);
     dbind_increment(FLabel, real32_t, min_width, 1);

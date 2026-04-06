@@ -7,6 +7,7 @@
 #include "fcombo.h"
 #include "fbutton.h"
 #include "fedit.h"
+#include "ffont.h"
 #include "flabel.h"
 #include "flistbox.h"
 #include "fimage.h"
@@ -53,7 +54,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-static uint16_t i_VERSION = 11;
+static uint16_t i_VERSION = 12;
 static void i_write_layout(Stream *stm, const FLayout *layout);
 
 /*---------------------------------------------------------------------------*/
@@ -268,6 +269,12 @@ static FLabel *i_read_label(Stream *stm, const uint16_t vers)
 {
     FLabel *label = heap_new0(FLabel);
     label->text = str_read(stm);
+    
+    if (vers >= 12)
+        ffont_read_init_ex(stm, &label->font, &vers);
+    else
+        ffont_init(&label->font);
+
     if (vers >= 3)
     {
         label->multiline = stm_read_bool(stm);
@@ -744,6 +751,7 @@ static void i_write_label(Stream *stm, const FLabel *label)
 {
     cassert_no_null(label);
     str_write(stm, label->text);
+    ffont_write(stm, &label->font);
     stm_write_bool(stm, label->multiline);
     stm_write_r32(stm, label->min_width);
     stm_write_enum(stm, label->align, halign_t);
