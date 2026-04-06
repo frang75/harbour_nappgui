@@ -2891,11 +2891,28 @@ void cell_dbind_imp(
 
 /*---------------------------------------------------------------------------*/
 
+bool_t _cell_is_component(const Cell *cell)
+{
+    cassert_no_null(cell);
+    return (bool_t)(cell->type == i_ekCOMPONENT);
+}
+
+/*---------------------------------------------------------------------------*/
+
 GuiComponent *_cell_component(Cell *cell)
 {
     cassert_no_null(cell);
     cassert(cell->type == i_ekCOMPONENT);
     return cell->content.component;
+}
+
+/*---------------------------------------------------------------------------*/
+
+Layout *_cell_layout(Cell *cell)
+{
+    cassert_no_null(cell);
+    cassert(cell->type == i_ekLAYOUT);
+    return cell->content.layout;
 }
 
 /*---------------------------------------------------------------------------*/

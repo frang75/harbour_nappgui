@@ -14,7 +14,11 @@
 
 __EXTERN_C
 
+bool_t _cell_is_component(const Cell *cell);
+
 GuiComponent *_cell_component(Cell *cell);
+
+Layout *_cell_layout(Cell *cell);
 
 Layout *_cell_parent(Cell *cell);
 
