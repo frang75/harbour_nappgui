@@ -2908,15 +2908,6 @@ GuiComponent *_cell_component(Cell *cell)
 
 /*---------------------------------------------------------------------------*/
 
-Layout *_cell_layout(Cell *cell)
-{
-    cassert_no_null(cell);
-    cassert(cell->type == i_ekLAYOUT);
-    return cell->content.layout;
-}
-
-/*---------------------------------------------------------------------------*/
-
 Layout *_cell_parent(Cell *cell)
 {
     cassert_no_null(cell);
