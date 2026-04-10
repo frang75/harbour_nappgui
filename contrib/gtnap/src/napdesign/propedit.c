@@ -250,7 +250,7 @@ static Layout *i_group_layout(void)
     Edit *edit = edit_create();
     label_text(label, gui_text(TEXT_TITLE));
     button_tooltip(check, gui_text(TIP_GROUP));
-    edit_tooltip(edit, gui_text(TIP_GROUP_TITLE));    
+    edit_tooltip(edit, gui_text(TIP_GROUP_TITLE));
     layout_button(layout, check, 0, 0);
     layout_label(layout, label, 1, 0);
     layout_edit(layout, edit, 2, 0);
@@ -903,7 +903,7 @@ static Layout *i_font_layout(PropData *data)
     layout_dbind(layout1, NULL, FFont);
     return layout1;
 }
- 
+
 /*---------------------------------------------------------------------------*/
 
 static Layout *i_label_layout(PropData *data)
@@ -952,6 +952,7 @@ static Layout *i_label_layout(PropData *data)
     layout_hexpand(layout1, 1);
     layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
     layout_valign(layout1, 0, 6, ekTOP);
+    layout_vmargin(layout1, 3, 3);
     layout_vmargin(layout1, 4, 2);
     layout_vmargin(layout1, 5, 3);
     cell_dbind(layout_cell(layout1, 1, 0), FLabel, String *, text);
