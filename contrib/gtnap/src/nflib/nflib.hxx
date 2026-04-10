@@ -104,7 +104,7 @@ struct _ffont_t
     bool_t italic;
     bool_t underline;
     bool_t strikeout;
-} ffont_t;
+};
 
 struct _flabel_t
 {

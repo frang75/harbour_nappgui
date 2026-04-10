@@ -374,6 +374,8 @@ static Aws::S3::Model::StorageClass i_storage_class(const s3_storage_class_t sto
         return Aws::S3::Model::StorageClass::SNOW;
     case ekSTORAGE_EXPRESS_ONEZONE:
         return Aws::S3::Model::StorageClass::EXPRESS_ONEZONE;
+    default:
+        break;
     }
 
     return Aws::S3::Model::StorageClass::STANDARD;
@@ -941,6 +943,8 @@ static Aws::S3::Model::Tier i_tier(const s3_tier_t tier)
         return Aws::S3::Model::Tier::Bulk;
     case ekTIER_EXPEDITED:
         return Aws::S3::Model::Tier::Expedited;
+    default:
+        break;
     }
     return Aws::S3::Model::Tier::Standard;
 }

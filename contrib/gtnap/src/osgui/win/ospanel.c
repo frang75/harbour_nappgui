@@ -500,7 +500,7 @@ void ospanel_area(OSPanel *panel, void *obj, const char_t *group, const color_t 
         area->rect.right = (LONG)(x + width);
         area->rect.bottom = (LONG)(y + height);
         _oscontrol_update_brush(bgcolor, &area->bgbrush, &area->bgcolor);
-        _oscontrol_update_brush(skcolor, &area->skbrush, NULL);        
+        _oscontrol_update_brush(skcolor, &area->skbrush, NULL);
         str_upd(&area->text, group);
         area->twidth = -1;
     }
@@ -517,10 +517,20 @@ void ospanel_scroll_get(const OSPanel *panel, real32_t *x, real32_t *y)
 {
     cassert_no_null(panel);
     if (x != NULL)
-        *x = (real32_t)_osscrolls_x_pos(panel->scroll);
+    {
+        if (panel->scroll != NULL)
+            *x = (real32_t)_osscrolls_x_pos(panel->scroll);
+        else
+            *x = 0;
+    }
 
     if (y != NULL)
-        *y = (real32_t)_osscrolls_y_pos(panel->scroll);
+    {
+        if (panel->scroll != NULL)
+            *y = (real32_t)_osscrolls_y_pos(panel->scroll);
+        else
+            *y = 0;
+    }
 }
 
 /*---------------------------------------------------------------------------*/

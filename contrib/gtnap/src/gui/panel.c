@@ -230,18 +230,6 @@ void panel_viewport(const Panel *panel, V2Df *pos, S2Df *size)
 
 /*---------------------------------------------------------------------------*/
 
-real32_t panel_scroll_height(const Panel *panel)
-{
-    real32_t v = 0;
-    cassert_no_null(panel);
-    cassert_no_null(panel->component.context);
-    cassert_no_nullf(panel->component.context->func_panel_scroller_size);
-    panel->component.context->func_panel_scroller_size(panel->component.ositem, NULL, &v);
-    return v;
-}
-
-/*---------------------------------------------------------------------------*/
-
 void _panel_attach_component(Panel *panel, GuiComponent *component)
 {
     cassert_no_null(panel);

@@ -194,9 +194,10 @@ void ospanel_destroy(OSPanel **panel)
 
 /*---------------------------------------------------------------------------*/
 
-void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_t skcolor, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
+void ospanel_area(OSPanel *panel, void *obj, const char_t *group, const color_t bgcolor, const color_t skcolor, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
     cassert_no_null(panel);
+    unref(group);
     if (obj != NULL)
     {
         Area *area = NULL;
@@ -229,6 +230,28 @@ void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_
     {
         if (panel->areas != NULL)
             arrst_clear(panel->areas, NULL, Area);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ospanel_scroll_get(const OSPanel *panel, real32_t *x, real32_t *y)
+{
+    cassert_no_null(panel);
+    if (x != NULL)
+    {
+        if (panel->hadjust != NULL)
+            *x = (real32_t)gtk_adjustment_get_value(panel->hadjust);
+        else
+            *x = 0;
+    }
+
+    if (y != NULL)
+    {
+        if (panel->vadjust != NULL)
+            *y = (real32_t)gtk_adjustment_get_value(panel->vadjust);
+        else
+            *y = 0;
     }
 }
 

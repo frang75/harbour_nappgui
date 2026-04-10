@@ -759,16 +759,6 @@ S2Df window_get_client_size(const Window *window)
 
 /*---------------------------------------------------------------------------*/
 
-//#if defined __ASSERTS__
-//static bool_t i_in_active_layout(const Window *window, const GuiComponent *component)
-//{
-//    Panel *panel = i_main_panel(window);
-//    return _panel_in_active_layout(panel, component);
-//}
-//#endif
-
-/*---------------------------------------------------------------------------*/
-
 R2Df window_control_frame(const Window *window, const GuiControl *control)
 {
     R2Df r2d;
@@ -776,7 +766,6 @@ R2Df window_control_frame(const Window *window, const GuiControl *control)
     cassert_no_null(window);
     cassert_no_null(component);
     cassert(_component_get_window(component) == window);
-    //cassert(i_in_active_layout(window, component) == TRUE);
     _component_get_origin(component, &r2d.pos);
     _component_get_size(component, &r2d.size);
     while (component->parent != NULL)
