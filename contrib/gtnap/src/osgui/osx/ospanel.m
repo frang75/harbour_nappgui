@@ -19,6 +19,7 @@
 #include <core/arrst.h>
 #include <core/heap.h>
 #include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 #if !defined(__MACOS__)
 #error This file is only for OSX
@@ -133,16 +134,16 @@ OSPanel *ospanel_create(const uint32_t flags)
         [scroll setBorderType:(flags & ekVIEW_BORDER) ? NSGrooveBorder : NSNoBorder];
         panel->scroll = scroll;
 
-        panel->evmonitor = [NSEvent addLocalMonitorForEventsMatchingMask:kWHEEL_EVENT
-                                                                 handler:^NSEvent *(NSEvent *event) {
-                                                                   if ([panel eventIsInside:event])
-                                                                   {
-                                                                       [panel handleScroll:event];
-                                                                       return nil;
-                                                                   }
+        panel->evmonitor = [NSEvent addLocalMonitorForEventsMatchingMask:kWHEEL_EVENT handler:^NSEvent *(NSEvent *event)
+        {
+           if ([panel eventIsInside:event])
+           {
+               [panel handleScroll:event];
+               return nil;
+           }
 
-                                                                   return cast(event, void);
-                                                                 }];
+           return cast(event, void);
+        }];
 
         return cast(scroll, OSPanel);
     }
@@ -241,7 +242,7 @@ void _ospanel_destroy(OSPanel **panel)
 
 /*---------------------------------------------------------------------------*/
 
-void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_t skcolor, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
+void ospanel_area(OSPanel *panel, void *obj, const char_t *group, const color_t bgcolor, const color_t skcolor, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
     OSXPanel *lpanel = i_get_panel(panel);
     cassert_no_null(lpanel);
@@ -295,6 +296,36 @@ void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_
     {
         if (lpanel->areas != NULL)
             arrst_clear(lpanel->areas, i_remove_area, Area);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ospanel_scroll_get(const OSPanel *panel, real32_t *x, real32_t *y)
+{
+    if ([cast(panel, NSView) isKindOfClass:[NSScrollView class]])
+    {
+        NSScrollView *scroll = cast(panel, NSScrollView);
+        if (x)
+        {
+            NSScroller *scroller = [scroll verticalScroller];
+            *x = 0;
+            if (scroller != nil)
+                *x = (real32_t)[scroller doubleValue];
+        }
+
+        if (y)
+        {
+            NSScroller *scroller = [scroll horizontalScroller];
+            *y = 0;
+            if (scroller != nil)
+                *y = (real32_t)[scroller doubleValue];
+        }
+    }
+    else
+    {
+        ptr_assign(x, 0);
+        ptr_assign(y, 0);
     }
 }
 
