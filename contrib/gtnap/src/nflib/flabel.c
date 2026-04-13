@@ -6,6 +6,7 @@
 #include <gui/gui.h>
 #include <gui/label.h>
 #include <draw2d/color.h>
+#include <draw2d/font.h>
 #include <core/dbind.h>
 #include <core/strings.h>
 #include <sewer/cassert.h>

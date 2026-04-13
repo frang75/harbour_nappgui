@@ -117,7 +117,7 @@ static HBRUSH i_brush(OSControl *control, const ArrSt(Area) *areas, COLORREF *c)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_area(HWND hwnd, HDC hdc, Area *area, const ArrSt(Area) *areas)
+static void i_area(HWND hwnd, HDC hdc, Area *area)
 {
     cassert_no_null(area);
     if (area->bgbrush != NULL)
@@ -157,19 +157,9 @@ static void i_area(HWND hwnd, HDC hdc, Area *area, const ArrSt(Area) *areas)
 
                 /* Erase the border line */
                 {
-                    HBRUSH bgbrush = NULL;
+                    HBRUSH bgbrush = area->bgbrush != NULL ? area->bgbrush : GetSysColorBrush(COLOR_3DFACE);
                     int32_t ewidth = mwidth;
                     RECT erect;
-
-                    /* We find the brush from the area slightly above this area */
-                    {
-                        RECT brect = area->rect;
-                        brect.top -= 2;
-                        brect.bottom = brect.top + 1;
-                        bgbrush = i_brush_from_rect(&brect, areas, NULL);
-                        if (bgbrush == NULL)
-                            bgbrush = GetSysColorBrush(COLOR_3DFACE);
-                    }
 
                     if (area->twidth < ewidth)
                         ewidth = area->twidth;
@@ -380,13 +370,13 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
                 Area *area = arrst_get(panel->areas, 0, Area);
                 if (EqualRect(&rc, &area->rect) == TRUE)
                 {
-                    i_area(hwnd, (HDC)wParam, area, panel->areas);
+                    i_area(hwnd, (HDC)wParam, area);
                 }
                 else
                 {
                     HBRUSH defbrush = (HBRUSH)GetClassLongPtr(hwnd, GCLP_HBRBACKGROUND);
                     FillRect((HDC)wParam, &rc, defbrush);
-                    i_area(hwnd, (HDC)wParam, area, panel->areas);
+                    i_area(hwnd, (HDC)wParam, area);
                 }
             }
             else
@@ -394,7 +384,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
                 HBRUSH defbrush = (HBRUSH)GetClassLongPtr(hwnd, GCLP_HBRBACKGROUND);
                 FillRect((HDC)wParam, &rc, defbrush);
                 arrst_foreach(area, panel->areas, Area)
-                    i_area(hwnd, (HDC)wParam, area, panel->areas);
+                    i_area(hwnd, (HDC)wParam, area);
                 arrst_end()
             }
 
