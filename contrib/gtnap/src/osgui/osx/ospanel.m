@@ -10,6 +10,7 @@
 
 /* Operating System native panel */
 
+#include "osgui_osx.inl"
 #include "ospanel_osx.inl"
 #include "oscontrol_osx.inl"
 #include "../ospanel.h"
@@ -18,6 +19,7 @@
 #include "../osgui.inl"
 #include <core/arrst.h>
 #include <core/heap.h>
+#include <core/strings.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
@@ -32,6 +34,7 @@ struct _area_t
     NSRect rect;
     NSColor *bgcolor;
     NSColor *skcolor;
+    String *text;
 };
 
 DeclSt(Area);
@@ -79,10 +82,26 @@ static NSEventMask kWHEEL_EVENT = NSScrollWheelMask;
                 [area->bgcolor set];
                 NSRectFill(area->rect);
             }
+        
             if (area->skcolor != NULL)
             {
                 [area->skcolor set];
                 NSFrameRect(area->rect);
+            }
+        
+            if (area->text != NULL)
+            {
+                NSPoint origin;
+                NSBox *box = _osgui_groupbox(&area->rect, &origin);
+                NSAffineTransform *tr = [NSAffineTransform transform];
+                [NSGraphicsContext saveGraphicsState];
+                [tr translateXBy:origin.x yBy:origin.y];
+                [tr concat];
+                [box displayRectIgnoringOpacity:[box bounds] inContext:[NSGraphicsContext currentContext]];
+                [NSGraphicsContext restoreGraphicsState];
+                
+                if (str_empty(area->text) == FALSE)
+                    _osgui_groupbox_text(&area->rect, tc(area->text));
             }
         arrst_end()
     }
@@ -163,6 +182,7 @@ static void i_remove_area(Area *area)
         [area->bgcolor release];
     if (area->skcolor != nil)
         [area->skcolor release];
+    str_destopt(&area->text);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -263,10 +283,8 @@ void ospanel_area(OSPanel *panel, void *obj, const char_t *group, const color_t 
 
         if (area == NULL)
         {
-            area = arrst_new(lpanel->areas, Area);
+            area = arrst_new0(lpanel->areas, Area);
             area->obj = obj;
-            area->bgcolor = nil;
-            area->skcolor = nil;
         }
 
         area->rect.origin.x = (CGFloat)x;
@@ -291,6 +309,8 @@ void ospanel_area(OSPanel *panel, void *obj, const char_t *group, const color_t 
 
         if (skcolor != 0)
             area->skcolor = [_oscontrol_color(skcolor) retain];
+        
+        str_upd(&area->text, group);
     }
     else
     {
