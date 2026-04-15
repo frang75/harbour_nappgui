@@ -215,7 +215,7 @@ static Layout *i_taborder_layout(void)
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_border_layout(void)
+static Layout *i_color_layout(ResId tooltip)
 {
     Layout *layout = layout_create(6, 1);
     Button *check = button_check();
@@ -225,7 +225,7 @@ static Layout *i_border_layout(void)
     CButton *button2 = cbutton_create(s2df(i_CBUTTON_SIZE, i_CBUTTON_SIZE));
     label_text(label1, gui_text(TEXT_LIGHT));
     label_text(label2, gui_text(TEXT_DARK));
-    button_tooltip(check, gui_text(TIP_BORDER));
+    button_tooltip(check, gui_text(tooltip));
     cbutton_info(button1, gui_text(TIP_LIGHT_COLOR));
     cbutton_info(button2, gui_text(TIP_DARK_COLOR));
     layout_button(layout, check, 0, 0);
@@ -237,39 +237,6 @@ static Layout *i_border_layout(void)
     layout_hmargin(layout, 2, 5);
     layout_hmargin(layout, 3, 5);
     layout_hexpand(layout, 5);
-    cell_dbind(layout_cell(layout, 0, 0), FLayout, bool_t, with_border);
-    cell_dbind(layout_cell(layout, 2, 0), FLayout, uint32_t, border_light);
-    cell_dbind(layout_cell(layout, 4, 0), FLayout, uint32_t, border_dark);
-    return layout;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static Layout *i_background_layout(void)
-{
-    Layout *layout = layout_create(6, 1);
-    Button *check = button_check();
-    Label *label1 = label_create();
-    Label *label2 = label_create();
-    CButton *button1 = cbutton_create(s2df(i_CBUTTON_SIZE, i_CBUTTON_SIZE));
-    CButton *button2 = cbutton_create(s2df(i_CBUTTON_SIZE, i_CBUTTON_SIZE));
-    label_text(label1, gui_text(TEXT_LIGHT));
-    label_text(label2, gui_text(TEXT_DARK));
-    button_tooltip(check, gui_text(TIP_BACKGROUND));
-    cbutton_info(button1, gui_text(TIP_LIGHT_COLOR));
-    cbutton_info(button2, gui_text(TIP_DARK_COLOR));
-    layout_button(layout, check, 0, 0);
-    layout_label(layout, label1, 1, 0);
-    layout_label(layout, label2, 3, 0);
-    layout_view(layout, cast(button1, View), 2, 0);
-    layout_view(layout, cast(button2, View), 4, 0);
-    layout_hmargin(layout, 1, 5);
-    layout_hmargin(layout, 2, 5);
-    layout_hmargin(layout, 3, 5);
-    layout_hexpand(layout, 5);
-    cell_dbind(layout_cell(layout, 0, 0), FLayout, bool_t, with_background);
-    cell_dbind(layout_cell(layout, 2, 0), FLayout, uint32_t, backgd_light);
-    cell_dbind(layout_cell(layout, 4, 0), FLayout, uint32_t, backgd_dark);
     return layout;
 }
 
@@ -283,7 +250,7 @@ static Layout *i_group_layout(void)
     Edit *edit = edit_create();
     label_text(label, gui_text(TEXT_TITLE));
     button_tooltip(check, gui_text(TIP_GROUP));
-    edit_tooltip(edit, gui_text(TIP_GROUP_TITLE));    
+    edit_tooltip(edit, gui_text(TIP_GROUP_TITLE));
     layout_button(layout, check, 0, 0);
     layout_label(layout, label, 1, 0);
     layout_edit(layout, edit, 2, 0);
@@ -299,8 +266,8 @@ static Layout *i_group_layout(void)
 static Layout *i_lprops_layout(PropData *data)
 {
     Layout *layout1 = layout_create(2, 11);
-    Layout *layout3 = i_border_layout();
-    Layout *layout4 = i_background_layout();
+    Layout *layout3 = i_color_layout(TIP_BORDER);
+    Layout *layout4 = i_color_layout(TIP_BACKGROUND);
     Layout *layout5 = i_group_layout();
     Layout *layout6 = i_promote_buttons(data);
     Label *label1 = label_create();
@@ -377,6 +344,12 @@ static Layout *i_lprops_layout(PropData *data)
     cell_dbind(layout_cell(layout1, 1, 4), FLayout, real32_t, margin_bottom);
     cell_dbind(layout_cell(layout1, 1, 5), FLayout, real32_t, margin_right);
     cell_dbind(layout_cell(layout1, 1, 6), FLayout, bool_t, row_tabstop);
+    cell_dbind(layout_cell(layout3, 0, 0), FLayout, bool_t, with_border);
+    cell_dbind(layout_cell(layout3, 2, 0), FLayout, uint32_t, border_light);
+    cell_dbind(layout_cell(layout3, 4, 0), FLayout, uint32_t, border_dark);
+    cell_dbind(layout_cell(layout4, 0, 0), FLayout, bool_t, with_background);
+    cell_dbind(layout_cell(layout4, 2, 0), FLayout, uint32_t, backgd_light);
+    cell_dbind(layout_cell(layout4, 4, 0), FLayout, uint32_t, backgd_dark);
     return layout1;
 }
 
@@ -896,14 +869,57 @@ static void i_OnLabelNotify(PropData *data, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static Layout *i_font_layout(PropData *data)
+{
+    Layout *layout1 = layout_create(1, 6);
+    Layout *layout2 = i_value_updown_layout(TIP_FONT_SIZE);
+    PopUp *popup = popup_create();
+    Button *check1 = button_check();
+    Button *check2 = button_check();
+    Button *check3 = button_check();
+    Button *check4 = button_check();
+    unref(data);
+    button_text(check1, gui_text(TEXT_BOLD));
+    button_text(check2, gui_text(TEXT_ITALIC));
+    button_text(check3, gui_text(TEXT_UNDERLINE));
+    button_text(check4, gui_text(TEXT_STRIKEOUT));
+    popup_tooltip(popup, gui_text(TIP_FONT_FAMILY));
+    button_tooltip(check1, gui_text(TIP_FONT_BOLD));
+    button_tooltip(check2, gui_text(TIP_FONT_ITALIC));
+    button_tooltip(check3, gui_text(TIP_FONT_UNDERLINE));
+    button_tooltip(check4, gui_text(TIP_FONT_STRIKEOUT));
+    layout_popup(layout1, popup, 0, 0);
+    layout_layout(layout1, layout2, 0, 1);
+    layout_button(layout1, check1, 0, 2);
+    layout_button(layout1, check2, 0, 3);
+    layout_button(layout1, check3, 0, 4);
+    layout_button(layout1, check4, 0, 5);
+    cell_dbind(layout_cell(layout1, 0, 0), FFont, ffamily_t, family);
+    cell_dbind(layout_cell(layout1, 0, 1), FFont, real32_t, size);
+    cell_dbind(layout_cell(layout1, 0, 2), FFont, bool_t, bold);
+    cell_dbind(layout_cell(layout1, 0, 3), FFont, bool_t, italic);
+    cell_dbind(layout_cell(layout1, 0, 4), FFont, bool_t, underline);
+    cell_dbind(layout_cell(layout1, 0, 5), FFont, bool_t, strikeout);
+    layout_dbind(layout1, NULL, FFont);
+    return layout1;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Layout *i_label_layout(PropData *data)
 {
-    Layout *layout1 = layout_create(2, 4);
+    Layout *layout1 = layout_create(2, 7);
     Layout *layout2 = i_value_updown_layout(gui_text(TIP_LABEL_MWIDTH));
+    Layout *layout3 = i_color_layout(TIP_LABEL_COLOR);
+    Layout *layout4 = i_color_layout(TIP_LABEL_BGCOLOR);
+    Layout *layout5 = i_font_layout(data);
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
     Label *label4 = label_create();
+    Label *label5 = label_create();
+    Label *label6 = label_create();
+    Label *label7 = label_create();
     Edit *edit = edit_create();
     Button *check = button_check();
     PopUp *popup = popup_create();
@@ -912,6 +928,9 @@ static Layout *i_label_layout(PropData *data)
     label_text(label2, gui_text(TEXT_MULTILINE));
     label_text(label3, gui_text(TEXT_WIDTH));
     label_text(label4, gui_text(TEXT_ALIGN));
+    label_text(label5, gui_text(TEXT_COLOR));
+    label_text(label6, gui_text(TEXT_BACKGROUND));
+    label_text(label7, gui_text(TEXT_FONT));
     edit_tooltip(edit, gui_text(TIP_LABEL_TEXT));
     button_tooltip(check, gui_text(TIP_LABEL_MLINE));
     popup_tooltip(popup, gui_text(TIP_LABEL_ALIGN));
@@ -919,17 +938,34 @@ static Layout *i_label_layout(PropData *data)
     layout_label(layout1, label2, 0, 1);
     layout_label(layout1, label3, 0, 2);
     layout_label(layout1, label4, 0, 3);
+    layout_label(layout1, label5, 0, 4);
+    layout_label(layout1, label6, 0, 5);
+    layout_label(layout1, label7, 0, 6);
     layout_edit(layout1, edit, 1, 0);
     layout_button(layout1, check, 1, 1);
     layout_layout(layout1, layout2, 1, 2);
     layout_popup(layout1, popup, 1, 3);
+    layout_layout(layout1, layout3, 1, 4);
+    layout_layout(layout1, layout4, 1, 5);
+    layout_layout(layout1, layout5, 1, 6);
     layout_margin4(layout1, 0, 0, 1, 0);
     layout_hexpand(layout1, 1);
     layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
+    layout_valign(layout1, 0, 6, ekTOP);
+    layout_vmargin(layout1, 3, 3);
+    layout_vmargin(layout1, 4, 2);
+    layout_vmargin(layout1, 5, 3);
     cell_dbind(layout_cell(layout1, 1, 0), FLabel, String *, text);
     cell_dbind(layout_cell(layout1, 1, 1), FLabel, bool_t, multiline);
     cell_dbind(layout_cell(layout1, 1, 2), FLabel, real32_t, min_width);
     cell_dbind(layout_cell(layout1, 1, 3), FLabel, halign_t, align);
+    cell_dbind(layout_cell(layout1, 1, 6), FLabel, FFont, font);
+    cell_dbind(layout_cell(layout3, 0, 0), FLabel, bool_t, with_color);
+    cell_dbind(layout_cell(layout3, 2, 0), FLabel, uint32_t, color_light);
+    cell_dbind(layout_cell(layout3, 4, 0), FLabel, uint32_t, color_dark);
+    cell_dbind(layout_cell(layout4, 0, 0), FLabel, bool_t, with_bgcolor);
+    cell_dbind(layout_cell(layout4, 2, 0), FLabel, uint32_t, bgcolor_light);
+    cell_dbind(layout_cell(layout4, 4, 0), FLabel, uint32_t, bgcolor_dark);
     layout_dbind(layout1, listener(data, i_OnLabelNotify, PropData), FLabel);
     data->label_layout = layout1;
     return i_drawer_layout(data->app, layout1, ekDRAWER_LABEL_PROPS);
@@ -2365,11 +2401,20 @@ static void i_destroy_data(PropData **data)
 
 /*---------------------------------------------------------------------------*/
 
+static real32_t i_scrollbar_width(Panel *panel)
+{
+    real32_t width = 0;
+    panel_scroll_size(panel, &width, NULL);
+    return width;
+}
+
+/*---------------------------------------------------------------------------*/
+
 Panel *propedit_create(Designer *app)
 {
     PropData *data = i_data(app);
     Panel *panel = panel_custom(FALSE, TRUE, FALSE);
-    real32_t mright = panel_scroll_width(panel);
+    real32_t mright = i_scrollbar_width(panel);
     Layout *layout0 = i_no_sel_layout();
     Layout *layout1 = i_layout_layout(data, mright);
     Layout *layout2 = i_cell_layout(data, mright);

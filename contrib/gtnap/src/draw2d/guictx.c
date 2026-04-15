@@ -1033,6 +1033,7 @@ void guictx_append_panel_manager_imp(
     FPtr_gctx_create func_panel_create,
     FPtr_gctx_destroy func_panel_destroy,
     FPtr_gctx_set_area func_panel_area,
+    FPtr_gctx_get2_real32 func_panel_scroll_get,
     FPtr_gctx_get2_real32 func_panel_scroller_size,
     FPtr_gctx_set4_real32 func_panel_content_size,
     FPtr_gctx_call func_panel_set_need_display,
@@ -1048,6 +1049,7 @@ void guictx_append_panel_manager_imp(
     cassert(context->func_create[ekGUI_TYPE_PANEL] == NULL);
     cassert(context->func_destroy[ekGUI_TYPE_PANEL] == NULL);
     cassert(context->func_panel_area == NULL);
+    cassert(context->func_panel_scroll_get == NULL);
     cassert(context->func_panel_scroller_size == NULL);
     cassert(context->func_panel_content_size == NULL);
     cassert(context->func_panel_set_need_display == NULL);
@@ -1061,6 +1063,7 @@ void guictx_append_panel_manager_imp(
     cassert_no_nullf(func_panel_create);
     cassert_no_nullf(func_panel_destroy);
     cassert_no_nullf(func_panel_area);
+    cassert_no_nullf(func_panel_scroll_get);
     cassert_no_nullf(func_panel_scroller_size);
     cassert_no_nullf(func_panel_content_size);
     cassert_no_nullf(func_panel_set_need_display);
@@ -1074,6 +1077,7 @@ void guictx_append_panel_manager_imp(
     context->func_create[ekGUI_TYPE_PANEL] = func_panel_create;
     context->func_destroy[ekGUI_TYPE_PANEL] = func_panel_destroy;
     context->func_panel_area = func_panel_area;
+    context->func_panel_scroll_get = func_panel_scroll_get;
     context->func_panel_scroller_size = func_panel_scroller_size;
     context->func_panel_content_size = func_panel_content_size;
     context->func_panel_set_need_display = func_panel_set_need_display;

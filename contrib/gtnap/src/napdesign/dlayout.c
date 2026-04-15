@@ -878,26 +878,101 @@ static void i_draw_frame(DCtx *ctx, const Font *font, const DColors *colors, con
 
 static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Font *default_font, const DColors *colors, DCtx *ctx)
 {
+    V2Df laypos;
+    S2Df laysize;
     uint32_t ncols, nrows, i, j, radio_i = 0;
     const DCell *dcell = NULL;
     cassert_no_null(dlayout);
     cassert_no_null(flayout);
     cassert_no_null(hover);
     cassert_no_null(colors);
+    laypos = dlayout->rect.pos;
+    laysize = dlayout->rect.size;
     ncols = arrst_size(dlayout->cols, DColumn);
     nrows = arrst_size(dlayout->rows, DRow);
     dcell = arrst_all_const(dlayout->cells, DCell);
     cassert(ncols == flayout_ncols(flayout));
     cassert(nrows == flayout_nrows(flayout));
 
+    if (flayout->with_background == TRUE)
+    {
+        color_t c = gui_dark_mode() ? flayout->backgd_dark : flayout->backgd_light;
+        draw_fill_color(ctx, c);
+        draw_rect(ctx, ekFILL, laypos.x, laypos.y, laysize.width, laysize.height);
+    }
+
+    if (flayout->with_border == TRUE)
+    {
+        color_t c = gui_dark_mode() ? flayout->border_dark : flayout->border_light;
+        draw_line_color(ctx, c);
+        draw_rect(ctx, ekSTROKE, laypos.x, laypos.y, laysize.width, laysize.height);
+        draw_line_color(ctx, colors->main);
+    }
+
+    if (flayout->with_group == TRUE)
+    {
+        color_t c = hover->dlayout == dlayout ? colors->select : colors->main;
+        draw_line_color(ctx, c);
+
+        if (str_empty(flayout->group_title) == FALSE)
+        {
+            static real32_t i_GROUP_TITLE_OFFSET = 8;
+            static real32_t i_GROUP_TITLE_CLEAN = 3;
+            Font *gfont = gui_default_font();   
+            real32_t height = font_height(gfont);
+            real32_t mwidth = laysize.width - i_GROUP_TITLE_OFFSET * 2;
+            V2Df line[6];
+
+            {
+                real32_t ewidth, eheight;
+                font_extents(gfont, tc(flayout->group_title), -1, &ewidth, &eheight);
+                if (ewidth > mwidth)
+                {
+                    draw_text_width(ctx, mwidth);
+                    draw_text_trim(ctx, ekELLIPEND);
+                }
+                else
+                {
+                    draw_text_width(ctx, -1);
+                    mwidth = ewidth;
+                }
+            }
+
+            line[0].x = laypos.x + i_GROUP_TITLE_OFFSET - i_GROUP_TITLE_CLEAN;
+            line[0].y = laypos.y;
+            line[1].x = laypos.x;
+            line[1].y = line[0].y;
+            line[2].x = line[1].x;
+            line[2].y = laypos.y + laysize.height;
+            line[3].x = laypos.x + laysize.width;
+            line[3].y = line[2].y;
+            line[4].x = line[3].x;
+            line[4].y = line[0].y;
+            line[5].x = laypos.x + mwidth + i_GROUP_TITLE_OFFSET + i_GROUP_TITLE_CLEAN;
+            line[5].y = line[0].y;
+            draw_font(ctx, gfont);
+            draw_text_color(ctx, c);
+            drawctrl_text(ctx, tc(flayout->group_title), (int32_t)(laypos.x + i_GROUP_TITLE_OFFSET), (int32_t)(laypos.y - height / 2), ekCTRL_STATE_NORMAL);
+            draw_polyline(ctx, FALSE, line, 6);
+            font_destroy(&gfont);
+        }
+        else
+        {
+            draw_rect(ctx, ekSTROKE, laypos.x, laypos.y, laysize.width, laysize.height);
+        }
+
+        draw_line_color(ctx, colors->main);
+    }
+    
     for (j = 0; j < nrows; ++j)
     {
         for (i = 0; i < ncols; ++i)
         {
             const FCell *fcell = flayout_ccell(flayout, i, j);
             Cell *gcell = layout_cell(cast(glayout, Layout), i, j);
-            color_t wcolor = i_is_cell_sel(hover, dlayout, i, j) ? colors->select : colors->main;
-            color_t bcolor = i_is_cell_sel(hover, dlayout, i, j) ? colors->main : colors->select;
+            bool_t issel = i_is_cell_sel(hover, dlayout, i, j);
+            color_t wcolor = issel ? colors->select : colors->main;
+            color_t bcolor = issel ? colors->main : colors->select;
 
             draw_r2df(ctx, ekSTROKE, &dcell->rect);
 
@@ -910,9 +985,39 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
             {
                 const Label *glabel = cell_label(gcell);
                 const Font *gfont = label_get_font(glabel);
+                
+                if (fcell->widget.label->with_bgcolor == TRUE)
+                {
+                    if (gui_dark_mode() == TRUE)
+                        draw_fill_color(ctx, fcell->widget.label->bgcolor_dark);
+                    else
+                        draw_fill_color(ctx, fcell->widget.label->bgcolor_light);         
+                }
+                else
+                {
+                    draw_fill_color(ctx, colors->back);
+                }
+
+                if (issel == TRUE)
+                {
+                    draw_text_color(ctx, wcolor);
+                }
+                else
+                {
+                    if (fcell->widget.label->with_color == TRUE)
+                    {
+                        if (gui_dark_mode() == TRUE)
+                            draw_text_color(ctx, fcell->widget.label->color_dark);
+                        else
+                            draw_text_color(ctx, fcell->widget.label->color_light);         
+                    }
+                    else
+                    {
+                        draw_text_color(ctx, wcolor);
+                    }                
+                }
+
                 draw_font(ctx, gfont);
-                draw_fill_color(ctx, colors->back);
-                draw_text_color(ctx, wcolor);
                 draw_rect(ctx, ekFILL, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
                 draw_text_width(ctx, dcell->content_rect.size.width);
 

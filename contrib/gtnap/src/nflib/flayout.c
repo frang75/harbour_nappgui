@@ -7,6 +7,7 @@
 #include "fcombo.h"
 #include "fbutton.h"
 #include "fedit.h"
+#include "ffont.h"
 #include "flabel.h"
 #include "flistbox.h"
 #include "fimage.h"
@@ -53,7 +54,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-static uint16_t i_VERSION = 10;
+static uint16_t i_VERSION = 12;
 static void i_write_layout(Stream *stm, const FLayout *layout);
 
 /*---------------------------------------------------------------------------*/
@@ -268,6 +269,12 @@ static FLabel *i_read_label(Stream *stm, const uint16_t vers)
 {
     FLabel *label = heap_new0(FLabel);
     label->text = str_read(stm);
+    
+    if (vers >= 12)
+        ffont_read_init_ex(stm, &label->font, &vers);
+    else
+        ffont_init(&label->font);
+
     if (vers >= 3)
     {
         label->multiline = stm_read_bool(stm);
@@ -280,6 +287,26 @@ static FLabel *i_read_label(Stream *stm, const uint16_t vers)
         label->min_width = 0;
         label->align = ekHALIGN_LEFT;
     }
+
+    if (vers >= 11)
+    {
+        label->with_color = stm_read_bool(stm);
+        label->with_bgcolor = stm_read_bool(stm);
+        label->color_light = stm_read_u32(stm);
+        label->color_dark = stm_read_u32(stm);
+        label->bgcolor_light = stm_read_u32(stm);
+        label->bgcolor_dark = stm_read_u32(stm);
+    }
+    else
+    {
+        label->with_color = FALSE;
+        label->with_bgcolor = FALSE;
+        label->color_light = kCOLOR_LABEL_LT;
+        label->color_dark = kCOLOR_LABEL_DK;
+        label->bgcolor_light = kCOLOR_LABEL_BGLT;
+        label->bgcolor_dark = kCOLOR_LABEL_BGDK;
+    }
+
     return label;
 }
 
@@ -664,10 +691,10 @@ FLayout *flayout_read_with_vers(Stream *stm, const uint16_t vers)
             layout->with_border = FALSE;
             layout->with_background = FALSE;
             layout->with_group = FALSE;
-            layout->border_light = color_rgb(225, 225, 225);
-            layout->border_dark = color_rgb(100, 100, 100);
-            layout->backgd_light = color_rgb(225, 225, 225);
-            layout->backgd_dark = color_rgb(100, 100, 100);
+            layout->border_light = kCOLOR_LAYOUT_BDLT;
+            layout->border_dark = kCOLOR_LAYOUT_BDDK;
+            layout->backgd_light = kCOLOR_LAYOUT_BGLT;
+            layout->backgd_dark = kCOLOR_LAYOUT_BGDK;
             layout->group_title = str_c("");
         }
 
@@ -689,6 +716,7 @@ void flayout_destroy(FLayout **layout)
 {
     cassert_no_null(layout);
     str_destroy(&(*layout)->name);
+    str_destroy(&(*layout)->group_title);
     arrst_destroy(&(*layout)->cols, i_remove_column, FColumn);
     arrst_destroy(&(*layout)->rows, i_remove_row, FRow);
     arrst_destroy(&(*layout)->cells, i_remove_cell, FCell);
@@ -723,9 +751,16 @@ static void i_write_label(Stream *stm, const FLabel *label)
 {
     cassert_no_null(label);
     str_write(stm, label->text);
+    ffont_write(stm, &label->font);
     stm_write_bool(stm, label->multiline);
     stm_write_r32(stm, label->min_width);
     stm_write_enum(stm, label->align, halign_t);
+    stm_write_bool(stm, label->with_color);
+    stm_write_bool(stm, label->with_bgcolor);
+    stm_write_u32(stm, label->color_light);
+    stm_write_u32(stm, label->color_dark);
+    stm_write_u32(stm, label->bgcolor_light);
+    stm_write_u32(stm, label->bgcolor_dark);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1514,8 +1549,7 @@ void flayout_synchro(const FLayout *layout, Layout *glayout)
     else
         layout_bgcolor(glayout, 0);
 
-    /* TODO: NAppGUI support for groups */
-    /* layout->group_title, layout->with_group */
+    layout_group(glayout, layout->with_group, tc(layout->group_title));
 }
 
 /*---------------------------------------------------------------------------*/

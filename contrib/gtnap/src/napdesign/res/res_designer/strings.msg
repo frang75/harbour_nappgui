@@ -63,6 +63,12 @@ TEXT_SINGLE_LAYOUT  Single Layout
 TEXT_VERT_LAYOUT    Vertical Layout
 TEXT_HORZ_LAYOUT    Horizontal Layout
 TEXT_GRID_LAYOUT    Grid Layout
+TEXT_FONT           Font
+TEXT_SIZE           Size
+TEXT_BOLD           Bold
+TEXT_ITALIC         Italic
+TEXT_UNDERLINE      Underline
+TEXT_STRIKEOUT      Strikeout
 TEXT_LABEL          Label
 TEXT_PUSH_BUTTON    Push Button
 TEXT_CHECK_BOX      Check Box
@@ -123,6 +129,7 @@ TEXT_PASSMODE       Passmode
 TEXT_RESIZABLE      Resizable
 TEXT_TABSTOP        Tabstop
 TEXT_TABORDER       Taborder
+TEXT_COLOR          Color
 TEXT_BACKGROUND     Background
 TEXT_LIGHT          Light
 TEXT_DARK           Dark
@@ -219,6 +226,8 @@ TIP_BOTTOM_MARGIN   Margin at bottom of layout (in px).
 TIP_RIGHT_MARGIN    Margin at right of layout (in px).
 TIP_BORDER          Enable the border line with solid color.
 TIP_BACKGROUND      Enable the background fill with solid color.
+TIP_LABEL_COLOR     Enable the custom color for label.
+TIP_LABEL_BGCOLOR   Enable the custom color for label background.
 TIP_GROUP           Enable the group frame, with standard color.
 TIP_GROUP_TITLE     Text to show at top of the group frame.
 TIP_LIGHT_COLOR     Color for light-mode themes.
@@ -231,6 +240,12 @@ TIP_ROW_MARGIN      Internal margin at bottom of row (in px).
 TIP_ROW_HEIGHT      Row height (forced). If 0 will be set automatically.
 TIP_HALIGN          Horizontal alignment of the widget within the cell.
 TIP_VALIGN          Vertical alignment of the widget within the cell.
+TIP_FONT_FAMILY     Font family.
+TIP_FONT_SIZE       Font size. If 0 regular size will be set.
+TIP_FONT_BOLD       Font bold.
+TIP_FONT_ITALIC     Font italic.
+TIP_FONT_UNDERLINE  Font with underline decoration.
+TIP_FONT_STRIKEOUT  Font with strikeout decoration.
 TIP_LABEL_TEXT      The text that will be displayed on the label.
 TIP_LABEL_MLINE     If set, the text will expand over multiple lines.
 TIP_LABEL_MWIDTH    Text width. If 0 will be set automatically.

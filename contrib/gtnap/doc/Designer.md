@@ -16,6 +16,8 @@
 * [Save, Export](#save-export)
 * [Resizable Forms](#resizable-forms)
 * [Property editor list](#property-full-list)
+    - [Color properties](#color-properties)
+    - [Font properties](#font-properties)
     - [Layout properties](#layout-properties)
     - [Cell properties](#cell-properties)
     - [Push Button properties](#push-button-properties)
@@ -470,6 +472,34 @@ Finally, an example of a form that is designed to be resizable.
 
 In the _Property Editor_ panel we can change the value of the element properties. Any changes will automatically be reflected in the canvas and simulation.
 
+### Color properties
+
+Color selection is present in different widgets. It is composed of a checkBox and two buttons:
+
+- **Check:** If checked, the color selected by the user will be used. If unchecked, the system default color will be used.
+
+- **Light:** User color button for light window environments (Light Mode). When you press it, a color selection window will appear.
+
+- **Dark:** User color button for dark window environments (Dark Mode). When you press it, a color selection window will appear.
+
+### Font properties
+
+Like colors, the font selector can be present in different widgets. In general, it is not advisable to change the fonts of widgets, since we will move away from the rules and guides of the native window environment.
+
+- **Font type:** Family selector. At the moment only two options:
+    - **Regular:** System font (default).
+    - **Monospace:** Monospaced font.
+
+- **Font size:** Size (height) in pixels. If we select 0, the default size will be set.
+
+- **Bold:** Check to select/deselect.
+
+- **Italic:** Check to select/deselect.
+
+- **Underline:** Check to select/deselect.
+
+- **Strikeout:** Check to select/deselect.
+
 ### Layout properties
 
 Layouts are rectangular grids (columns x rows) where we can place elements (widgets). More information in the [official NAppGUI documentation](https://nappgui.com/en/gui/layout.html).
@@ -485,6 +515,12 @@ Layouts are rectangular grids (columns x rows) where we can place elements (widg
 - **Right:** Right margin (in pixels).
 
 - **Taborder:** Columns/Rows. When we press [TAB] or [CAPS/TAB] the keyboard focus will move through the layout by rows or columns. It will only have an effect on _Grid Layout_ (m x n).
+
+- **Border:** Layout border color. See [Color Properties](#color-properties).
+
+- **Background:** Layout background color. See [Color Properties](#color-properties).
+
+- **Group:** If we check, the typical border/background of GroupBoxes with native appearance will be drawn. Additionally, we can assign a title for the group. Typically, this option will flatten the previous Border/Background colors. It is advisable that these are unchecked.
 
 ### Column properties (layout)
 
@@ -587,6 +623,12 @@ More information in the [official NAppGUI documentation](https://nappgui.com/en/
 - **Multiline:** If checked (true) the text will expand into several lines when reaching the maximum width (Width). Otherwise, the text will be cut off showing ellipses (...).
 
 - **Align:** Horizontal interior alignment of the text, in case the Label control is wider than the text itself.
+
+- **Color:** Text color. See [Color Properties](#color-properties).
+
+- **Background:** Background color. See [Color Properties](#color-properties).
+
+- **Font:** See [Font properties](#font-properties).
 
 ### Edit Box properties
 

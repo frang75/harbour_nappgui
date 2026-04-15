@@ -198,16 +198,39 @@ static void i_OnColorChange(CData *data, Event *e)
 
 static void i_OnClick(CData *data, Event *e)
 {
+    S2Df screen = gui_resolution();
     Window *window = NULL;
+    align_t halign = ekRIGHT;
+    align_t valign = ekCENTER;
     R2Df r2d;
     cassert_no_null(data);
     unref(e);
     window = guicontrol_get_window(guicontrol(data->view));
-    r2d.pos = window_get_origin(window);
-    r2d.size = window_get_size(window);
-    //r2d = window_control_frame(window, guicontrol(data->view));
-    //r2d.pos = window_client_to_screen(window, r2d.pos);
-    comwin_color(window, tc(data->info), r2d.pos.x + r2d.size.width / 2, r2d.pos.y + r2d.size.height / 2, ekCENTER, ekCENTER, data->color, NULL, 0, listener(data, i_OnColorChange, CData));
+    r2d = window_control_frame(window, guicontrol(data->view));
+    r2d.pos = window_client_to_screen(window, r2d.pos);
+    
+    if (r2d.pos.y < screen.height / 3)
+    {
+        valign = ekTOP;
+    }
+    else if (r2d.pos.y > 2 * (screen.height / 3))
+    {
+        valign = ekBOTTOM;
+        r2d.pos.y += r2d.size.height;
+    }
+    else
+    {
+        valign = ekCENTER;
+        r2d.pos.y += r2d.size.height / 2;
+    }
+
+    if (r2d.pos.x < screen.width / 2)
+    {
+        halign = ekLEFT;
+        r2d.pos.x += r2d.size.width;
+    }
+
+    comwin_color(window, tc(data->info), r2d.pos.x, r2d.pos.y, halign, valign, data->color, NULL, 0, listener(data, i_OnColorChange, CData));
 }
 
 /*---------------------------------------------------------------------------*/
