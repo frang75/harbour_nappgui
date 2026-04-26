@@ -102,7 +102,7 @@ elif [ $OPERATION == "lib" ]; then
         HBMK_FLAGS=-debug
     fi
 
-    $HBMK_PATH/hbmk2 $HBMK_FLAGS -comp=$COMPILER $CWD/src/hboffice/hboffice.hbp || exit 1
+    $HBMK_PATH/hbmk2 $HBMK_FLAGS -comp=$COMPILER $CWD/hboffice.hbp || exit 1
     echo ---------------------------
     echo HBOFFICE LIB build succeed
     echo ---------------------------

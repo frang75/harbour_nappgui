@@ -92,7 +92,7 @@ if [ $BUILD == "Debug" ]; then
     HBMK_FLAGS=-debug
 fi
 
-../../bin/$PLATFORM/$COMPILER/hbmk2 -comp=$COMPILER $HBMK_FLAGS ./src/gtnap/gtnap.hbp || exit 1
+../../bin/$PLATFORM/$COMPILER/hbmk2 -comp=$COMPILER $HBMK_FLAGS $CWD/gtnap.hbp || exit 1
 
 echo ---------------------------
 echo GTNAP build succeed
