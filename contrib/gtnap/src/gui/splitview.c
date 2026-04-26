@@ -865,4 +865,3 @@ Window *_splitview_get_window(SplitView *split)
     cassert_no_null(split);
     return split->window;
 }
-

@@ -188,13 +188,13 @@ void _osgui_finish_imp(void)
     [kUNDERLINE_STYLE_SINGLE release];
     [kUNDERLINE_STYLE_NONE release];
     [kEMPTY_MENUBAR release];
-    
+
     if (kGROUP_BOX != nil)
         [kGROUP_BOX release];
-    
+
     if (kGROUP_BOX_ATTRS != nil)
         [kGROUP_BOX_ATTRS release];
-    
+
     _osglobals_finish();
     _ossplit_destroy_tracks();
     _oscomwin_destroy_globals();
@@ -426,7 +426,7 @@ void _osgui_groupbox_text(const NSRect *frame, const char_t *text)
         font_destroy(&font);
         [pstyle release];
     }
-    
+
     /* Text drawing */
     str = [NSString stringWithUTF8String:cast_const(text, char)];
     textRect = NSMakeRect(frame->origin.x + kBOX_TEXT_OFFSET, frame->origin.y - (fheight + kBOX_TEXT_OFFSET / 2) / 2, frame->size.width - 2 * kBOX_TEXT_OFFSET, fheight);

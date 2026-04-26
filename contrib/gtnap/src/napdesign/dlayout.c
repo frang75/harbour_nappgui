@@ -918,14 +918,13 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
         {
             static real32_t i_GROUP_TITLE_OFFSET = 8;
             static real32_t i_GROUP_TITLE_CLEAN = 3;
-            Font *gfont = gui_default_font();   
-            real32_t height = font_height(gfont);
+            real32_t height = font_height(default_font);
             real32_t mwidth = laysize.width - i_GROUP_TITLE_OFFSET * 2;
             V2Df line[6];
 
             {
                 real32_t ewidth, eheight;
-                font_extents(gfont, tc(flayout->group_title), -1, &ewidth, &eheight);
+                font_extents(default_font, tc(flayout->group_title), -1, &ewidth, &eheight);
                 if (ewidth > mwidth)
                 {
                     draw_text_width(ctx, mwidth);
@@ -950,11 +949,10 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
             line[4].y = line[0].y;
             line[5].x = laypos.x + mwidth + i_GROUP_TITLE_OFFSET + i_GROUP_TITLE_CLEAN;
             line[5].y = line[0].y;
-            draw_font(ctx, gfont);
+            draw_font(ctx, default_font);
             draw_text_color(ctx, c);
             drawctrl_text(ctx, tc(flayout->group_title), (int32_t)(laypos.x + i_GROUP_TITLE_OFFSET), (int32_t)(laypos.y - height / 2), ekCTRL_STATE_NORMAL);
             draw_polyline(ctx, FALSE, line, 6);
-            font_destroy(&gfont);
         }
         else
         {
