@@ -528,6 +528,28 @@ align_t _nflib_valign(const valign_t valign)
 
 /*---------------------------------------------------------------------------*/
 
+gui_pos_t _nflib_pos(const pos_t pos)
+{
+    switch (pos)
+    {
+    case ekPOS_NONE:
+        return ekGUI_POS_NONE;
+    case ekPOS_LEFT:
+        return ekGUI_POS_LEFT;
+    case ekPOS_TOP:
+        return ekGUI_POS_TOP;
+    case ekPOS_RIGHT:
+        return ekGUI_POS_RIGHT;
+    case ekPOS_BOTTOM:
+        return ekGUI_POS_BOTTOM;
+    default:
+        cassert_default(pos);
+    }
+    return ekGUI_POS_NONE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 gui_scale_t _nflib_scale(const scale_t scale)
 {
     switch(scale) {

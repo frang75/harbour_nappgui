@@ -135,6 +135,7 @@ TEXT_LIGHT          Light
 TEXT_DARK           Dark
 
 TEXT_TEXT_ALIGN     TAlign
+TEXT_IMAGE_POS      ImgPos
 TEXT_MIN_WIDTH      Min width
 TEXT_MAX_WIDTH      Max width
 TEXT_MIN_HEIGHT     Min height
@@ -255,8 +256,10 @@ TIP_BUTTON_TOOLTIP  The tooltip text that will be displayed when the mouse is ov
 TIP_BUTTON_WIDTH    Minimum width of the push button, as long as the text is visible.
 TIP_BUTTON_HPAD     Horizontal padding of the push button, -1 as default.
 TIP_BUTTON_VPAD     Vertical padding of the push button, -1 as default.
+TIP_TOOL_IMGPOS     Relative position of the image with respect to the text.
 TIP_CHECK_TEXT      The text that will be displayed to the right of the checkbox.
 TIP_RADIO_TEXT      The text that will be displayed to the right of the radio button.
+TIP_TOOL_TEXT       The text that will be displayed in tool button (optional).
 TIP_EDIT_ALIGN      Text alignment inside the editbox.
 TIP_EDIT_MWIDTH     Editbox width.
 TIP_EDIT_PASSMODE   If set, the text will be hidden will be hidden by asterisks.
