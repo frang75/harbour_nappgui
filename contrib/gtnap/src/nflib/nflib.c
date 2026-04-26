@@ -65,6 +65,11 @@ static void i_dbind(void)
     dbind_enum(valign_t, ekVALIGN_CENTER, "Center");
     dbind_enum(valign_t, ekVALIGN_BOTTOM, "Bottom");
     dbind_enum(valign_t, ekVALIGN_JUSTIFY, "Justify");
+    dbind_enum(pos_t, ekPOS_NONE, "None");
+    dbind_enum(pos_t, ekPOS_LEFT, "Left");
+    dbind_enum(pos_t, ekPOS_TOP, "Top");
+    dbind_enum(pos_t, ekPOS_RIGHT, "Right");
+    dbind_enum(pos_t, ekPOS_BOTTOM, "Bottom");
     dbind_enum(scale_t, ekSCALE_NONE, "None");
     dbind_enum(scale_t, ekSCALE_AUTO, "Auto");
     dbind_enum(scale_t, ekSCALE_ASPECT, "Aspect");
@@ -96,7 +101,9 @@ static void i_dbind(void)
     dbind(FCheck, String *, text);
     dbind(FRadio, String *, text);
     dbind(FTool, String *, path);
+    dbind(FTool, String *, text);
     dbind(FTool, String *, tooltip);
+    dbind(FTool, pos_t, imgpos);
     dbind(FTool, real32_t, hpadding);
     dbind(FTool, real32_t, vpadding);
     dbind(FElem, String *, text);
@@ -206,6 +213,7 @@ static void i_dbind(void)
     dbind_increment(FButton, real32_t, vpadding, 1);
     dbind_precision(FButton, real32_t, vpadding, 1);
     dbind_range(FButton, real32_t, vpadding, -1, 1000);
+    dbind_default(FTool, pos_t, imgpos, ekPOS_NONE);
     dbind_default(FTool, real32_t, hpadding, -1);
     dbind_increment(FTool, real32_t, hpadding, 1);
     dbind_precision(FTool, real32_t, hpadding, 1);
