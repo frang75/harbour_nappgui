@@ -1064,7 +1064,7 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
 
         draw_line_color(ctx, colors->main);
     }
-    
+
     for (j = 0; j < nrows; ++j)
     {
         for (i = 0; i < ncols; ++i)
@@ -1086,13 +1086,13 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
             {
                 const Label *glabel = cell_label(gcell);
                 const Font *gfont = label_get_font(glabel);
-                
+
                 if (fcell->widget.label->with_bgcolor == TRUE)
                 {
                     if (gui_dark_mode() == TRUE)
                         draw_fill_color(ctx, fcell->widget.label->bgcolor_dark);
                     else
-                        draw_fill_color(ctx, fcell->widget.label->bgcolor_light);         
+                        draw_fill_color(ctx, fcell->widget.label->bgcolor_light);
                 }
                 else
                 {
@@ -1110,12 +1110,12 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                         if (gui_dark_mode() == TRUE)
                             draw_text_color(ctx, fcell->widget.label->color_dark);
                         else
-                            draw_text_color(ctx, fcell->widget.label->color_light);         
+                            draw_text_color(ctx, fcell->widget.label->color_light);
                     }
                     else
                     {
                         draw_text_color(ctx, wcolor);
-                    }                
+                    }
                 }
 
                 draw_font(ctx, gfont);
@@ -1238,8 +1238,8 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                 real32_t imgwidth = (real32_t)image_width(image);
                 real32_t imgheight = (real32_t)image_height(image);
                 real32_t imgsep = 0.f;
-                real32_t imgx, imgy;
-                real32_t tx, ty;
+                real32_t imgx = 0.f, imgy = 0.f;
+                real32_t tx = 0.f, ty = 0.f;
 
                 if (str_empty(fcell->widget.tool->text) == FALSE && fcell->widget.tool->imgpos != ekPOS_NONE)
                 {
