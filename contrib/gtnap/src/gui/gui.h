@@ -29,8 +29,6 @@ _gui_api const Image *gui_image(const ResId id);
 
 _gui_api const byte_t *gui_file(const ResId id, uint32_t *size);
 
-_gui_api Font *gui_default_font(void);
-
 _gui_api bool_t gui_dark_mode(void);
 
 _gui_api color_t gui_alt_color(const color_t light_color, const color_t dark_color);

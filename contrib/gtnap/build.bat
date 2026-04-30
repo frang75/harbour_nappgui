@@ -94,7 +94,7 @@ set HBMK_FLAGS=-debug
 
 :hbmk2
 echo HBMK HOME: %HBMK_PATH%
-call %HBMK_PATH%\\hbmk2.exe -comp=%COMPILER% %HBMK_FLAGS% %CWD%\src\gtnap\gtnap.hbp || goto error_gtnap
+call %HBMK_PATH%\\hbmk2.exe -comp=%COMPILER% %HBMK_FLAGS% %CWD%\gtnap.hbp || goto error_gtnap
 
 echo ---------------------------
 echo GTNAP build succeed

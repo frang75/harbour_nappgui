@@ -54,7 +54,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-static uint16_t i_VERSION = 12;
+static uint16_t i_VERSION = 13;
 static void i_write_layout(Stream *stm, const FLayout *layout);
 
 /*---------------------------------------------------------------------------*/
@@ -364,10 +364,21 @@ static FTool *i_read_tool(Stream *stm, const uint16_t vers)
 {
     FTool *tool = heap_new0(FTool);
     tool->path = str_read(stm);
+
+    if (vers >= 13)
+        tool->text = str_read(stm);
+    else
+        tool->text = str_c("");
+
     if (vers >= 6)
         tool->tooltip = str_read(stm);
     else
         tool->tooltip = str_c("");
+
+    if (vers >= 13)
+        tool->imgpos = stm_read_enum(stm, pos_t);
+    else
+        tool->imgpos = ekPOS_NONE;
 
     tool->hpadding = stm_read_r32(stm);
     tool->vpadding = stm_read_r32(stm);
@@ -797,7 +808,9 @@ static void i_write_tool(Stream *stm, const FTool *tool)
 {
     cassert_no_null(tool);
     str_write(stm, tool->path);
+    str_write(stm, tool->text);
     str_write(stm, tool->tooltip);
+    stm_write_enum(stm, tool->imgpos, pos_t);
     stm_write_r32(stm, tool->hpadding);
     stm_write_r32(stm, tool->vpadding);
 }

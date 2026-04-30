@@ -82,13 +82,13 @@ static NSEventMask kWHEEL_EVENT = NSScrollWheelMask;
                 [area->bgcolor set];
                 NSRectFill(area->rect);
             }
-        
+
             if (area->skcolor != NULL)
             {
                 [area->skcolor set];
                 NSFrameRect(area->rect);
             }
-        
+
             if (area->text != NULL)
             {
                 NSPoint origin;
@@ -99,7 +99,7 @@ static NSEventMask kWHEEL_EVENT = NSScrollWheelMask;
                 [tr concat];
                 [box displayRectIgnoringOpacity:[box bounds] inContext:[NSGraphicsContext currentContext]];
                 [NSGraphicsContext restoreGraphicsState];
-                
+
                 if (str_empty(area->text) == FALSE)
                     _osgui_groupbox_text(&area->rect, tc(area->text));
             }
@@ -153,16 +153,16 @@ OSPanel *ospanel_create(const uint32_t flags)
         [scroll setBorderType:(flags & ekVIEW_BORDER) ? NSGrooveBorder : NSNoBorder];
         panel->scroll = scroll;
 
-        panel->evmonitor = [NSEvent addLocalMonitorForEventsMatchingMask:kWHEEL_EVENT handler:^NSEvent *(NSEvent *event)
-        {
-           if ([panel eventIsInside:event])
-           {
-               [panel handleScroll:event];
-               return nil;
-           }
+        panel->evmonitor = [NSEvent addLocalMonitorForEventsMatchingMask:kWHEEL_EVENT
+                                                                 handler:^NSEvent *(NSEvent *event) {
+                                                                   if ([panel eventIsInside:event])
+                                                                   {
+                                                                       [panel handleScroll:event];
+                                                                       return nil;
+                                                                   }
 
-           return cast(event, void);
-        }];
+                                                                   return cast(event, void);
+                                                                 }];
 
         return cast(scroll, OSPanel);
     }
@@ -309,7 +309,7 @@ void ospanel_area(OSPanel *panel, void *obj, const char_t *group, const color_t 
 
         if (skcolor != 0)
             area->skcolor = [_oscontrol_color(skcolor) retain];
-        
+
         str_upd(&area->text, group);
     }
     else

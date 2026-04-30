@@ -2,6 +2,7 @@
 
 #include "ftool.h"
 #include "nflib.h"
+#include "nflib.inl"
 #include <gui/button.h>
 #include <draw2d/image.h>
 #include <core/dbind.h>
@@ -27,7 +28,9 @@ void ftool_destroy(FTool **ftool)
 void ftool_synchro(const FTool *ftool, Button *button, const char_t *resource_path)
 {
     cassert_no_null(ftool);
+    button_text(button, tc(ftool->text));
     button_tooltip(button, tc(ftool->tooltip));
+    button_image_pos(button, _nflib_pos(ftool->imgpos));
     button_hpadding(button, ftool->hpadding);
     button_vpadding(button, ftool->vpadding);
 

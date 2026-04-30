@@ -876,6 +876,109 @@ static void i_draw_frame(DCtx *ctx, const Font *font, const DColors *colors, con
 
 /*---------------------------------------------------------------------------*/
 
+static void i_toolbutton_content_size(const real32_t imgwidth, const real32_t imgheight, const real32_t imgsep, const pos_t imgpos, const real32_t twidth, const real32_t theight, real32_t *cwidth, real32_t *cheight)
+{
+    cassert_no_null(cwidth);
+    cassert_no_null(cheight);
+
+    /* Draw text and image */
+    if (imgwidth > 0.f && twidth > 0.f)
+    {
+        switch (imgpos)
+        {
+        case ekPOS_LEFT:
+        case ekPOS_RIGHT:
+            *cwidth = imgwidth + imgsep + twidth;
+            *cheight = imgheight > theight ? imgheight : theight;
+            break;
+
+        case ekPOS_TOP:
+        case ekPOS_BOTTOM:
+            *cwidth = imgwidth > twidth ? imgwidth : twidth;
+            *cheight = imgheight + imgsep + theight;
+            break;
+
+        case ekPOS_NONE:
+            *cwidth = imgwidth;
+            *cheight = imgheight;
+            break;
+
+        default:
+            cassert_default(imgpos);
+        }
+    }
+    else if (imgwidth > 0.f)
+    {
+        *cwidth = imgwidth;
+        *cheight = imgheight;
+    }
+    else
+    {
+        cassert(twidth > 0.f);
+        *cwidth = twidth;
+        *cheight = theight;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_toolbutton_position(const real32_t width, const real32_t height, const real32_t imgwidth, const real32_t imgheight, const real32_t imgsep, const pos_t imgpos, const real32_t twidth, const real32_t theight, real32_t *imgx, real32_t *imgy, real32_t *tx, real32_t *ty)
+{
+    real32_t cwidth, cheight;
+    real32_t ox, oy;
+    cassert_no_null(imgx);
+    cassert_no_null(imgy);
+    cassert_no_null(tx);
+    cassert_no_null(ty);
+
+    i_toolbutton_content_size(imgwidth, imgheight, imgsep, imgpos, twidth, theight, &cwidth, &cheight);
+    ox = (width - cwidth) / 2.f;
+    oy = (height - cheight) / 2.f;
+
+    switch (imgpos)
+    {
+    case ekPOS_LEFT:
+        *imgx = ox;
+        *imgy = oy + (cheight - imgheight) / 2.f;
+        *tx = ox + imgwidth + imgsep;
+        *ty = oy + (cheight - theight) / 2.f;
+        break;
+
+    case ekPOS_RIGHT:
+        *imgx = ox + twidth + imgsep;
+        *imgy = oy + (cheight - imgheight) / 2.f;
+        *tx = ox;
+        *ty = oy + (cheight - theight) / 2.f;
+        break;
+
+    case ekPOS_TOP:
+        *imgx = ox + (cwidth - imgwidth) / 2.f;
+        *imgy = oy;
+        *tx = ox + (cwidth - twidth) / 2.f;
+        *ty = oy + imgheight + imgsep;
+        break;
+
+    case ekPOS_BOTTOM:
+        *imgx = ox + (cwidth - imgwidth) / 2.f;
+        *imgy = oy + theight + imgsep;
+        *tx = ox + (cwidth - twidth) / 2.f;
+        *ty = oy;
+        break;
+
+    case ekPOS_NONE:
+        *imgx = ox + (cwidth - imgwidth) / 2.f;
+        *imgy = oy + (cheight - imgheight) / 2.f;
+        *tx = 0.f;
+        *ty = 0.f;
+        break;
+
+    default:
+        cassert_default(imgpos);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Font *default_font, const DColors *colors, DCtx *ctx)
 {
     V2Df laypos;
@@ -918,14 +1021,13 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
         {
             static real32_t i_GROUP_TITLE_OFFSET = 8;
             static real32_t i_GROUP_TITLE_CLEAN = 3;
-            Font *gfont = gui_default_font();   
-            real32_t height = font_height(gfont);
+            real32_t height = font_height(default_font);
             real32_t mwidth = laysize.width - i_GROUP_TITLE_OFFSET * 2;
             V2Df line[6];
 
             {
                 real32_t ewidth, eheight;
-                font_extents(gfont, tc(flayout->group_title), -1, &ewidth, &eheight);
+                font_extents(default_font, tc(flayout->group_title), -1, &ewidth, &eheight);
                 if (ewidth > mwidth)
                 {
                     draw_text_width(ctx, mwidth);
@@ -950,11 +1052,10 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
             line[4].y = line[0].y;
             line[5].x = laypos.x + mwidth + i_GROUP_TITLE_OFFSET + i_GROUP_TITLE_CLEAN;
             line[5].y = line[0].y;
-            draw_font(ctx, gfont);
+            draw_font(ctx, default_font);
             draw_text_color(ctx, c);
             drawctrl_text(ctx, tc(flayout->group_title), (int32_t)(laypos.x + i_GROUP_TITLE_OFFSET), (int32_t)(laypos.y - height / 2), ekCTRL_STATE_NORMAL);
             draw_polyline(ctx, FALSE, line, 6);
-            font_destroy(&gfont);
         }
         else
         {
@@ -963,7 +1064,7 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
 
         draw_line_color(ctx, colors->main);
     }
-    
+
     for (j = 0; j < nrows; ++j)
     {
         for (i = 0; i < ncols; ++i)
@@ -985,13 +1086,13 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
             {
                 const Label *glabel = cell_label(gcell);
                 const Font *gfont = label_get_font(glabel);
-                
+
                 if (fcell->widget.label->with_bgcolor == TRUE)
                 {
                     if (gui_dark_mode() == TRUE)
                         draw_fill_color(ctx, fcell->widget.label->bgcolor_dark);
                     else
-                        draw_fill_color(ctx, fcell->widget.label->bgcolor_light);         
+                        draw_fill_color(ctx, fcell->widget.label->bgcolor_light);
                 }
                 else
                 {
@@ -1009,12 +1110,12 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                         if (gui_dark_mode() == TRUE)
                             draw_text_color(ctx, fcell->widget.label->color_dark);
                         else
-                            draw_text_color(ctx, fcell->widget.label->color_light);         
+                            draw_text_color(ctx, fcell->widget.label->color_light);
                     }
                     else
                     {
                         draw_text_color(ctx, wcolor);
-                    }                
+                    }
                 }
 
                 draw_font(ctx, gfont);
@@ -1128,18 +1229,44 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
             case ekCELL_TYPE_TOOL:
             {
                 const Image *image = i_get_image(dcell, 0, i_is_cell_sel(hover, dlayout, i, j));
-                real32_t iwidth = (real32_t)image_width(image);
-                real32_t iheight = (real32_t)image_height(image);
-                real32_t tx, ty;
+                real32_t x = dcell->content_rect.pos.x;
+                real32_t y = dcell->content_rect.pos.y;
+                real32_t width = dcell->content_rect.size.width;
+                real32_t height = dcell->content_rect.size.height;
+                real32_t twidth = 0.f;
+                real32_t theight = 0.f;
+                real32_t imgwidth = (real32_t)image_width(image);
+                real32_t imgheight = (real32_t)image_height(image);
+                real32_t imgsep = 0.f;
+                real32_t imgx = 0.f, imgy = 0.f;
+                real32_t tx = 0.f, ty = 0.f;
+
+                if (str_empty(fcell->widget.tool->text) == FALSE && fcell->widget.tool->imgpos != ekPOS_NONE)
+                {
+                    font_extents(default_font, tc(fcell->widget.tool->text), -1.f, &twidth, &theight);
+                    imgsep = 4.f;
+                }
+
+                i_toolbutton_position(width, height, imgwidth, imgheight, imgsep, fcell->widget.tool->imgpos, twidth, theight, &imgx, &imgy, &tx, &ty);
+                imgx += x;
+                imgy += y;
+                tx += x;
+                ty += y;
+
                 draw_line_color(ctx, wcolor);
                 draw_fill_color(ctx, colors->back);
                 draw_line_width(ctx, 2);
-                draw_rect(ctx, ekFILLSK, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
+                draw_rect(ctx, ekFILLSK, x, y, width, height);
                 draw_line_width(ctx, 1);
                 draw_line_color(ctx, colors->main);
-                tx = dcell->content_rect.pos.x + ((dcell->content_rect.size.width - iwidth) / 2);
-                ty = dcell->content_rect.pos.y + ((dcell->content_rect.size.height - iheight) / 2);
-                drawctrl_image(ctx, image, (int32_t)tx, (int32_t)ty);
+                drawctrl_image(ctx, image, (int32_t)imgx, (int32_t)imgy);
+
+                if (twidth > 0.f)
+                {
+                    draw_text_color(ctx, wcolor);
+                    drawctrl_text(ctx, tc(fcell->widget.tool->text), (int32_t)tx, (int32_t)ty, ekCTRL_STATE_NORMAL);
+                }
+
                 break;
             }
 

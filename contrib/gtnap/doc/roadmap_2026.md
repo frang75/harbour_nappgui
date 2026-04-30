@@ -41,11 +41,11 @@ The main goal this year is to consolidate the use of GTNAP/Forms in the Aspec pr
 - Sprint 4: Improve NAppGUI layout algorithm to take into account panel scrollbars width/height.
 - Sprint 5: Implement line widgets (hor/ver) in NAppGUI and add them to designer. **Done Sprint 101 15/03/26**
 - Sprint 6: --> Possible maintenance tasks for current projects.
-- Sprint 7: Implement group widget in NAppGUI.
-- Sprint 8: Add panel widget and group widget to designer.
+- Sprint 7: Implement group widget in NAppGUI. **Done Sprint 102 31/03/26**
+- Sprint 8: Add panel widget and group widget to designer. **Done Sprint 103 15/04/26**
 - Sprint 9: Implement TabBar widget in NAppGUI.
 - Sprint 10: Implement TreeView widget in NAppGUI.
-- Sprint 11: --> Possible maintenance tasks for current projects.
+- Sprint 11: Implement ToolButton texts in NAppGUI/designer. **Done Sprint 104 30/04/26**
 - Sprint 12: Add TabBar and TreeView to designer.
 - Sprint 13: Implement HiDPI support in NAppGUI Win32 backend (I).
 - Sprint 14: Implement HiDPI support in NAppGUI Win32 backend (II).

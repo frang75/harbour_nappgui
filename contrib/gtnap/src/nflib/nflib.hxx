@@ -81,6 +81,16 @@ typedef enum _valign_t
 } valign_t;
 
 /* Don't change the order. Add new values to end */
+typedef enum _pos_t
+{
+    ekPOS_NONE,
+    ekPOS_LEFT,
+    ekPOS_TOP,
+    ekPOS_RIGHT,
+    ekPOS_BOTTOM
+} pos_t;
+
+/* Don't change the order. Add new values to end */
 typedef enum _scale_t
 {
     ekSCALE_NONE,
@@ -143,7 +153,9 @@ struct _fradio_t
 struct _ftool_t
 {
     String *path;
+    String *text;
     String *tooltip;
+    pos_t imgpos;
     real32_t hpadding;
     real32_t vpadding;
 };

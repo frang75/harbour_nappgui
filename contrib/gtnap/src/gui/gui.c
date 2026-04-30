@@ -268,13 +268,6 @@ const byte_t *gui_file(const ResId id, uint32_t *size)
 
 /*---------------------------------------------------------------------------*/
 
-Font *gui_default_font(void)
-{
-    return _gui_create_default_font();
-}
-
-/*---------------------------------------------------------------------------*/
-
 bool_t gui_dark_mode(void)
 {
     return i_DARK_MODE;
