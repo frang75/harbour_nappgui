@@ -32,6 +32,7 @@ typedef enum _widget_t
     ekWIDGET_CUSTOMVIEW,
     ekWIDGET_SCROLLVIEW,
     ekWIDGET_TEXTVIEW,
+    ekWIDGET_TABS,
     ekWIDGET_LISTBOX,
     ekWIDGET_POPUP,
     ekWIDGET_TABLEVIEW,

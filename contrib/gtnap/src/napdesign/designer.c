@@ -2038,6 +2038,7 @@ static Designer *i_app(void)
     i_add_widget(app->bwidgets, ekWIDGET_EDITBOX, TEXT_EDIT_BOX, EDITBOX_PNG, ekDRAWER_WIDGET_TEXT);
     i_add_widget(app->bwidgets, ekWIDGET_COMBOBOX, TEXT_COMBO_BOX, COMBOBOX_PNG, ekDRAWER_WIDGET_TEXT);
     i_add_widget(app->bwidgets, ekWIDGET_TEXTVIEW, TEXT_TEXT_VIEW, TEXTVIEW_PNG, ekDRAWER_WIDGET_TEXT);
+    i_add_widget(app->bwidgets, ekWIDGET_TABS, TEXT_TAB_CONTROL, TABS24_PNG, ekDRAWER_WIDGET_ITEMS);
     i_add_widget(app->bwidgets, ekWIDGET_LISTBOX, TEXT_LIST_BOX, LISTVIEW_PNG, ekDRAWER_WIDGET_ITEMS);
     i_add_widget(app->bwidgets, ekWIDGET_POPUP, TEXT_POPUP_BUTTON, POPUP_PNG, ekDRAWER_WIDGET_ITEMS);
     i_add_widget(app->bwidgets, ekWIDGET_TABLEVIEW, TEXT_TABLE_VIEW, TABLEVIEW_PNG, ekDRAWER_WIDGET_ITEMS);

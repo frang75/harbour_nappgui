@@ -13,6 +13,7 @@ TEXT_NEW_ELEM_POPUP A new element will be added to popup in cell '%s'
 TEXT_NEW_ELEM_LIST  A new element will be added to listbox in cell '%s'
 TEXT_NEW_EDIT       A new editbox will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_COMBO      A new combo box will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_TABCTRL    A new tabcontrol will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_LISTBOX    A new listbox will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SLIDER     A new slider will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_VSLIDER    A new vertical slider will be placed in cell (%d, %d) of '%s' layout
@@ -80,6 +81,7 @@ TEXT_EDIT_BOX       Edit Box
 TEXT_COMBO_BOX      Combo Box
 TEXT_ELEM_LIST      ListBox Add Element
 TEXT_LIST_BOX       List Box
+TEXT_TAB_CONTROL    Tab Control
 TEXT_HORZ_SLIDER    Horizontal Slider
 TEXT_VERT_SLIDER    Vertical Slider
 TEXT_PROGRESS_BAR   Progress Bar

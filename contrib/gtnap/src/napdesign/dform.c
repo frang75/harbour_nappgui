@@ -987,6 +987,21 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     }
                 }
 
+                case ekWIDGET_TABS:
+                {
+                    FTabs *ftabs = dialog_new_tabs(window, font, &sel);
+                    if (ftabs != NULL)
+                    {
+                        i_new_tabs(ftabs, &sel, folder_path, colors);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
                 case ekWIDGET_HORZ_SLIDER:
                 {
                     FSlider *fslider = dialog_new_slider(window, font, &sel);
