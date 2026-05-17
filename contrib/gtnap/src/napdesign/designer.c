@@ -973,6 +973,7 @@ static bool_t i_is_widget_drawer(const drawer_t drawer)
     case ekDRAWER_POPUP_PROPS:
     case ekDRAWER_EDIT_PROPS:
     case ekDRAWER_COMBO_PROPS:
+    case ekDRAWER_TABS_PROPS:
     case ekDRAWER_LIST_PROPS:
     case ekDRAWER_HSLIDER_PROPS:
     case ekDRAWER_VSLIDER_PROPS:
@@ -1760,7 +1761,6 @@ static void i_save_config(const Designer *app)
         stm_write_bool(stm, app->config.show_widgets);
         stm_write_bool(stm, app->config.show_inspectr);
         stm_write_bool(stm, app->config.show_propedit);
-        cassert(ndrawers == 31);
         stm_write_u32(stm, ndrawers);
         arrst_foreach_const(wdrawer, app->wdrawers, WDrawer)
             stm_write_bool(stm, wdrawer->opened);
@@ -2013,7 +2013,8 @@ static Designer *i_app(void)
     i_add_drawer(app->wdrawers, ekDRAWER_TOOL_PROPS, TEXT_TOOL_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_POPUP_PROPS, TEXT_POPUP_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_EDIT_PROPS, TEXT_EDIT_PROPS);
-    i_add_drawer(app->wdrawers, ekDRAWER_COMBO_PROPS, TEXT_COMBO_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_COMBO_PROPS, TEXT_COMBO_PROPS);    
+    i_add_drawer(app->wdrawers, ekDRAWER_TABS_PROPS, TEXT_TABS_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_LIST_PROPS, TEXT_LIST_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_HSLIDER_PROPS, TEXT_SLIDER_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_VSLIDER_PROPS, TEXT_VSLIDER_PROPS);

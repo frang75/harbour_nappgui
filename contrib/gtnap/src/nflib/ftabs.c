@@ -28,6 +28,7 @@ void ftabs_destroy(FTabs **ftabs)
 void ftabs_synchro(const FTabs *ftabs, Tabs *tabs, const char_t *resource_path)
 {
     cassert_no_null(ftabs);
+    tabs_length(tabs, ftabs->min_width);
     tabs_clear(tabs);
 
     arrst_foreach_const(elem, ftabs->elems, FElem)

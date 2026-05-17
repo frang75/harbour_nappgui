@@ -1342,7 +1342,6 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
 
             case ekCELL_TYPE_TABS:
             {
-                cassert(FALSE);
                 break;
             }
 

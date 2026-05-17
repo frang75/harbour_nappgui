@@ -10,6 +10,7 @@ TEXT_NEW_RADIO      A new radio button will be placed in cell (%d, %d) of '%s' l
 TEXT_NEW_TOOL       A new tool button will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_POPUP      A new popup button will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_ELEM_POPUP A new element will be added to popup in cell '%s'
+TEXT_NEW_ELEM_TABS  A new element will be added to tabcontrol in cell '%s'
 TEXT_NEW_ELEM_LIST  A new element will be added to listbox in cell '%s'
 TEXT_NEW_EDIT       A new editbox will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_COMBO      A new combo box will be placed in cell (%d, %d) of '%s' layout
@@ -41,6 +42,7 @@ TEXT_TOOL_PROPS     Tool button properties
 TEXT_POPUP_PROPS    Popup properties
 TEXT_EDIT_PROPS     Editbox properties
 TEXT_COMBO_PROPS    Combobox properties
+TEXT_TABS_PROPS     Tabcontrol properties
 TEXT_LIST_PROPS     Listbox properties
 TEXT_SLIDER_PROPS   Slider properties
 TEXT_VSLIDER_PROPS  VertSlider properties
@@ -75,6 +77,7 @@ TEXT_PUSH_BUTTON    Push Button
 TEXT_CHECK_BOX      Check Box
 TEXT_RADIO_BUTTON   Radio Button
 TEXT_TOOL_BUTTON    Tool Button
+TEXT_ELEM_TABS      TabControl Add Element
 TEXT_ELEM_POPUP     PopUp Add Element
 TEXT_POPUP_BUTTON   PopUp Button
 TEXT_EDIT_BOX       Edit Box
@@ -277,6 +280,7 @@ TIP_ELEMENT_CLEAR   Remove all elements
 TIP_COLUMN_ADD      Add a new column
 TIP_COLUMN_REMOVE   Remove current column
 TIP_COLUMN_CLEAR    Remove all columns
+TIP_TABS_MWIDTH     Tabcontrol width.
 TIP_LIST_MWIDTH     Listbox width.
 TIP_LIST_MHEIGHT    Listbox height.
 TIP_SLIDER_MWIDTH   Slider width.
