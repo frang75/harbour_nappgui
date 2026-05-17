@@ -23,6 +23,7 @@
 #include <nflib/fslider.h>
 #include <nflib/fvslider.h>
 #include <nflib/ftable.h>
+#include <nflib/ftabs.h>
 #include <nflib/ftext.h>
 #include <nflib/ftool.h>
 #include <nflib/fview.h>
@@ -39,6 +40,7 @@
 #include <gui/listbox.h>
 #include <gui/imageview.h>
 #include <gui/tableview.h>
+#include <gui/tabs.h>
 #include <gui/textview.h>
 #include <gui/layout.h>
 #include <gui/layouth.h>
@@ -663,6 +665,18 @@ static void i_new_combo(FCombo *fcombo, const DSelect *sel)
     fcombo_synchro(fcombo, combo);
     flayout_add_combo(sel->flayout, fcombo, sel->col, sel->row);
     layout_combo(sel->glayout, combo, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_tabs(FTabs *ftabs, const DSelect *sel, const char_t *folder_path, const DColors *colors)
+{
+    Tabs *tabs = tabs_create(ekGUI_POS_TOP);
+    cassert_no_null(sel);
+    ftabs_synchro(ftabs, tabs, folder_path);
+    dlayout_synchro_elems(sel->dlayout, sel->col, sel->row, ftabs->elems, folder_path, colors);
+    flayout_add_tabs(sel->flayout, ftabs, sel->col, sel->row);
+    layout_tabs(sel->glayout, tabs, sel->col, sel->row);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1506,6 +1520,13 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
                 break;
             }
 
+            case ekCELL_TYPE_TABS:
+            {
+                FTabs *ftabs = dbind_copy(clipboard->fcell->widget.tabs, FTabs);
+                i_new_tabs(ftabs, &form->sel, folder_path, colors);
+                break;
+            }
+
             case ekCELL_TYPE_LISTBOX:
             {
                 FListBox *flistbox = dbind_copy(clipboard->fcell->widget.listbox, FListBox);
@@ -2063,6 +2084,21 @@ void dform_synchro_combo(DForm *form, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+void dform_synchro_tabs(DForm *form, const DSelect *sel, const char_t *resource_path)
+{
+    FCell *cell = i_sel_fcell(sel);
+    Tabs *tabs = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_TABS);
+    i_need_save(form, TRUE);
+    tabs = layout_get_tabs(sel->glayout, sel->col, sel->row);
+    ftabs_synchro(cell->widget.tabs, tabs, resource_path);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dform_synchro_listbox(DForm *form, const DSelect *sel, const char_t *resource_path)
 {
     FCell *cell = i_sel_fcell(sel);
@@ -2351,6 +2387,8 @@ const char_t* dform_cell_type(const celltype_t type)
         return gui_text(TEXT_CELL_EDIT);
     case ekCELL_TYPE_COMBO:
         return gui_text(TEXT_CELL_COMBO);
+    case ekCELL_TYPE_TABS:
+        return gui_text(TEXT_CELL_TABS);
     case ekCELL_TYPE_LISTBOX:
         return gui_text(TEXT_CELL_LISTBOX);
     case ekCELL_TYPE_SLIDER:
@@ -2406,6 +2444,8 @@ const Image *dform_cell_icon(const celltype_t type)
         return gui_image(EDITBOX16_PNG);
     case ekCELL_TYPE_COMBO:
         return gui_image(COMBOBOX16_PNG);
+    case ekCELL_TYPE_TABS:
+        return gui_image(TABS16_PNG);
     case ekCELL_TYPE_LISTBOX:
         return gui_image(LISTVIEW16_PNG);
     case ekCELL_TYPE_SLIDER:

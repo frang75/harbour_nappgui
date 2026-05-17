@@ -1340,6 +1340,12 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                 break;
             }
 
+            case ekCELL_TYPE_TABS:
+            {
+                cassert(FALSE);
+                break;
+            }
+
             case ekCELL_TYPE_LISTBOX:
             {
                 draw_line_color(ctx, wcolor);

@@ -162,6 +162,7 @@ TEXT_CELL_TOOL      ToolButtonCell
 TEXT_CELL_POPUP     PopUpCell
 TEXT_CELL_EDIT      EditBoxCell
 TEXT_CELL_COMBO     ComboBoxCell
+TEXT_CELL_TABS      TabsCell
 TEXT_CELL_LISTBOX   ListBoxCell
 TEXT_CELL_SLIDER    SliderCell
 TEXT_CELL_VSLIDER   VertSliderCell

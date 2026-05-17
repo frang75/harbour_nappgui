@@ -40,6 +40,8 @@ _nflib_api void flayout_add_edit(FLayout *layout, FEdit *edit, const uint32_t co
 
 _nflib_api void flayout_add_combo(FLayout *layout, FCombo *combo, const uint32_t col, const uint32_t row);
 
+_nflib_api void flayout_add_tabs(FLayout *layout, FTabs *tabs, const uint32_t col, const uint32_t row);
+
 _nflib_api void flayout_add_listbox(FLayout *layout, FListBox *listbox, const uint32_t col, const uint32_t row);
 
 _nflib_api void flayout_add_slider(FLayout *layout, FSlider *slider, const uint32_t col, const uint32_t row);

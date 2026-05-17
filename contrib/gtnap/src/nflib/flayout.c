@@ -17,6 +17,7 @@
 #include "fslider.h"
 #include "fvslider.h"
 #include "ftable.h"
+#include "ftabs.h"
 #include "ftext.h"
 #include "ftool.h"
 #include "fview.h"
@@ -33,6 +34,7 @@
 #include <gui/line.h>
 #include <gui/listbox.h>
 #include <gui/edit.h>
+#include <gui/tabs.h>
 #include <gui/textview.h>
 #include <gui/imageview.h>
 #include <gui/progress.h>
@@ -113,6 +115,10 @@ static void i_remove_cell(FCell *cell)
 
     case ekCELL_TYPE_COMBO:
         fcombo_destroy(&cell->widget.combo);
+        break;
+
+    case ekCELL_TYPE_TABS:
+        ftabs_destroy(&cell->widget.tabs);
         break;
 
     case ekCELL_TYPE_LISTBOX:
@@ -433,6 +439,16 @@ static FCombo *i_read_combo(Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
+static FTabs *i_read_tabs(Stream *stm)
+{
+    FTabs *tabs = heap_new0(FTabs);
+    tabs->min_width = stm_read_r32(stm);
+    tabs->elems = arrst_read(stm, i_read_elem, FElem);
+    return tabs;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static FListBox *i_read_listbox(Stream *stm)
 {
     FListBox *listbox = heap_new0(FListBox);
@@ -614,6 +630,9 @@ static void i_read_cell(Stream *stm, FCell *cell, const uint16_t *vers)
         break;
     case ekCELL_TYPE_COMBO:
         cell->widget.combo = i_read_combo(stm);
+        break;
+    case ekCELL_TYPE_TABS:
+        cell->widget.tabs = i_read_tabs(stm);
         break;
     case ekCELL_TYPE_LISTBOX:
         cell->widget.listbox = i_read_listbox(stm);
@@ -855,6 +874,15 @@ static void i_write_combo(Stream *stm, const FCombo *combo)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_write_tabs(Stream *stm, const FTabs *tabs)
+{
+    cassert_no_null(tabs);
+    stm_write_r32(stm, tabs->min_width);
+    arrst_write(stm, tabs->elems, i_write_elem, FElem);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_write_listbox(Stream *stm, const FListBox *listbox)
 {
     cassert_no_null(listbox);
@@ -1008,6 +1036,9 @@ static void i_write_cell(Stream *stm, const FCell *cell)
         break;
     case ekCELL_TYPE_COMBO:
         i_write_combo(stm, cell->widget.combo);
+        break;
+    case ekCELL_TYPE_TABS:
+        i_write_tabs(stm, cell->widget.tabs);
         break;
     case ekCELL_TYPE_LISTBOX:
         i_write_listbox(stm, cell->widget.listbox);
@@ -1312,6 +1343,20 @@ void flayout_add_combo(FLayout *layout, FCombo *combo, const uint32_t col, const
     cell->halign = ekHALIGN_JUSTIFY;
     cell->valign = ekVALIGN_CENTER;
     cell->widget.combo = combo;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_add_tabs(FLayout *layout, FTabs *tabs, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(tabs);
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_TABS;
+    cell->halign = ekHALIGN_JUSTIFY;
+    cell->valign = ekVALIGN_BOTTOM;
+    cell->widget.tabs = tabs;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1788,6 +1833,14 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     break;
                 }
 
+                case ekCELL_TYPE_TABS:
+                {
+                    Tabs *tabs = tabs_create(ekGUI_POS_TOP);
+                    ftabs_synchro(cells->widget.tabs, tabs, resource_path);
+                    layout_tabs(glayout, tabs, i, j);
+                    break;
+                }
+
                 case ekCELL_TYPE_COMBO:
                 {
                     Combo *combo = combo_create();
@@ -1930,6 +1983,7 @@ GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout
                 case ekCELL_TYPE_POPUP:
                 case ekCELL_TYPE_EDIT:
                 case ekCELL_TYPE_COMBO:
+                case ekCELL_TYPE_TABS:
                 case ekCELL_TYPE_LISTBOX:
                 case ekCELL_TYPE_SLIDER:
                 case ekCELL_TYPE_VSLIDER:

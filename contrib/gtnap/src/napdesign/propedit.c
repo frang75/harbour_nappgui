@@ -2568,6 +2568,10 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
             layout_dbind_obj(data->combo_layout, cell->widget.combo, FCombo);
             panel_visible_layout(data->cell_panel, 9);
         }
+        else if (cell->type == ekCELL_TYPE_TABS)
+        {
+            cassert(FALSE);
+        }
         else if (cell->type == ekCELL_TYPE_LISTBOX)
         {
             layout_dbind_obj(data->listbox_layout, cell->widget.listbox, FListBox);

@@ -45,6 +45,7 @@ static void i_dbind(void)
     dbind_enum(celltype_t, ekCELL_TYPE_POPUP, "");
     dbind_enum(celltype_t, ekCELL_TYPE_EDIT, "");
     dbind_enum(celltype_t, ekCELL_TYPE_COMBO, "");
+    dbind_enum(celltype_t, ekCELL_TYPE_TABS, "");
     dbind_enum(celltype_t, ekCELL_TYPE_LISTBOX, "");
     dbind_enum(celltype_t, ekCELL_TYPE_SLIDER, "");
     dbind_enum(celltype_t, ekCELL_TYPE_VSLIDER, "");
@@ -117,6 +118,8 @@ static void i_dbind(void)
     dbind(FCombo, bool_t, autosel);
     dbind(FCombo, halign_t, text_align);
     dbind(FCombo, real32_t, min_width);
+    dbind(FTabs, real32_t, min_width);
+    dbind(FTabs, ArrSt(FElem) *, elems);
     dbind(FListBox, real32_t, min_width);
     dbind(FListBox, real32_t, min_height);
     dbind(FListBox, ArrSt(FElem) *, elems);
@@ -230,6 +233,10 @@ static void i_dbind(void)
     dbind_increment(FCombo, real32_t, min_width, 1);
     dbind_precision(FCombo, real32_t, min_width, 1);
     dbind_range(FCombo, real32_t, min_width, 10, 1000);
+    dbind_default(FTabs, real32_t, min_width, 100);
+    dbind_increment(FTabs, real32_t, min_width, 1);
+    dbind_precision(FTabs, real32_t, min_width, 1);
+    dbind_range(FTabs, real32_t, min_width, 10, 1000);
     dbind_default(FListBox, real32_t, min_width, 100);
     dbind_increment(FListBox, real32_t, min_width, 1);
     dbind_precision(FListBox, real32_t, min_width, 1);
@@ -385,6 +392,7 @@ static void i_dbind(void)
     dbind(FWidget, FPopUp *, popup);
     dbind(FWidget, FEdit *, edit);
     dbind(FWidget, FCombo *, combo);
+    dbind(FWidget, FTabs *, tabs);
     dbind(FWidget, FListBox *, listbox);
     dbind(FWidget, FSlider *, slider);
     dbind(FWidget, FVSlider *, vslider);
@@ -407,6 +415,7 @@ static void i_dbind(void)
     dbind_default(FWidget, FPopUp *, popup, NULL);
     dbind_default(FWidget, FEdit *, edit, NULL);
     dbind_default(FWidget, FCombo *, combo, NULL);
+    dbind_default(FWidget, FTabs *, tabs, NULL);
     dbind_default(FWidget, FListBox *, listbox, NULL);
     dbind_default(FWidget, FSlider *, slider, NULL);
     dbind_default(FWidget, FVSlider *, vslider, NULL);

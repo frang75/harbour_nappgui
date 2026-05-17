@@ -16,6 +16,7 @@ typedef struct _felem_t FElem;
 typedef struct _fpopup_t FPopUp;
 typedef struct _fedit_t FEdit;
 typedef struct _fcombo_t FCombo;
+typedef struct _ftabs_t FTabs;
 typedef struct _flistbox_t FListBox;
 typedef struct _fslider_t FSlider;
 typedef struct _fvslider_t FVSlider;
@@ -59,7 +60,8 @@ typedef enum _celltype_t
     ekCELL_TYPE_VIEW,
     ekCELL_TYPE_SCROLL_VIEW,
     ekCELL_TYPE_HLINE,
-    ekCELL_TYPE_VLINE
+    ekCELL_TYPE_VLINE,
+    ekCELL_TYPE_TABS
 } celltype_t;
 
 /* Don't change the order. Add new values to end */
@@ -187,6 +189,12 @@ struct _fcombo_t
     real32_t min_width;
 };
 
+struct _ftabs_t
+{
+	real32_t min_width;
+    ArrSt(FElem) *elems;
+};
+
 struct _flistbox_t
 {
     real32_t min_width;
@@ -288,6 +296,7 @@ struct _fwidget_t
     FPopUp *popup;
     FEdit *edit;
     FCombo *combo;
+    FTabs *tabs;
     FListBox *listbox;
     FSlider *slider;
     FVSlider *vslider;
