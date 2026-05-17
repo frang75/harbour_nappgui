@@ -126,6 +126,20 @@ DLayout *dlayout_from_flayout(const FLayout *flayout, const char_t *resource_pat
             {
                 dlayout_synchro_elems(layout, i, j, fcell->widget.popup->elems, resource_path, colors);
             }
+            else if (fcell->type == ekCELL_TYPE_TABS)
+            {
+                arrst_foreach_const(elem, fcell->widget.tabs->elems, FElem)
+                    Image *image = NULL;
+                    if (str_empty(elem->iconpath) == FALSE)
+                    {
+                        String *path = str_printf("%s%s", resource_path, tc(elem->iconpath));
+                        image = image_from_file(tc(path), NULL);
+                        str_destroy(&path);
+                    }
+                    dlayout_add_image(layout, image, i, j, colors);
+                    ptr_destopt(image_destroy, &image, Image);
+                arrst_end()
+            }
             else if (fcell->type == ekCELL_TYPE_LISTBOX)
             {
                 arrst_foreach_const(elem, fcell->widget.listbox->elems, FElem)
@@ -1342,6 +1356,63 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
 
             case ekCELL_TYPE_TABS:
             {
+                draw_line_color(ctx, wcolor);
+                draw_fill_color(ctx, colors->back);
+
+                if (arrst_size(fcell->widget.tabs->elems, FElem) > 0)
+                {
+                    real32_t rheight = dcell->content_rect.size.height;
+                    real32_t xpos = 0;
+
+                    draw_text_color(ctx, wcolor);
+
+                    /* TODO: Use clipping when ready */
+                    arrst_foreach_const(elem, fcell->widget.tabs->elems, FElem)
+                        real32_t twidth = 0, theight = 0;
+                        real32_t stx = xpos;
+                        real32_t edx = xpos;
+                        const Image *image = i_get_image(dcell, elem_i, i_is_cell_sel(hover, dlayout, i, j));
+                        font_extents(default_font, tc(elem->text), -1.f, &twidth, &theight);
+
+                        if (image != NULL)
+                        {
+                            real32_t imgwidth = (real32_t)image_width(image);
+                            xpos += 4;
+                            if (dcell->content_rect.size.width >= xpos + imgwidth)
+                            {
+                                real32_t imgheight = (real32_t)image_height(image);
+                                real32_t yoffset = (rheight - imgheight) / 2;
+                                draw_image(ctx, image, dcell->content_rect.pos.x + xpos, dcell->content_rect.pos.y + yoffset);                               
+                            }
+
+                            xpos += imgwidth + 4;
+                        }
+
+                        if (dcell->content_rect.size.width >= xpos + twidth)
+                        {
+                            real32_t tx = dcell->content_rect.pos.x + xpos;
+                            real32_t ty = dcell->content_rect.pos.y + ((rheight - theight) / 2);
+                            drawctrl_text(ctx, tc(elem->text), (int32_t)tx, (int32_t)ty, ekCTRL_STATE_NORMAL);
+                        }
+
+                        xpos += twidth;
+                        xpos += 4;
+                        edx = xpos;
+
+                        if (dcell->content_rect.size.width >= stx)
+                        {
+                            if (dcell->content_rect.size.width < edx)
+                                edx = dcell->content_rect.size.width;
+
+                            draw_line_width(ctx, 2);
+                            draw_rect(ctx, ekSTROKE, dcell->content_rect.pos.x + stx, dcell->content_rect.pos.y, edx - stx, dcell->content_rect.size.height);
+                            draw_line_width(ctx, 1);
+                        }
+
+                    arrst_end();
+                }
+
+                draw_line_color(ctx, colors->main);
                 break;
             }
 
