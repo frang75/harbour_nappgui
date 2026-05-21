@@ -11,6 +11,7 @@
 #include "flabel.h"
 #include "flistbox.h"
 #include "fimage.h"
+#include "fpanel.h"
 #include "fpopup.h"
 #include "fprogress.h"
 #include "fradio.h"
@@ -37,6 +38,7 @@
 #include <gui/tabs.h>
 #include <gui/textview.h>
 #include <gui/imageview.h>
+#include <gui/panel.h>
 #include <gui/progress.h>
 #include <gui/popup.h>
 #include <gui/slider.h>
@@ -163,6 +165,10 @@ static void i_remove_cell(FCell *cell)
 
     case ekCELL_TYPE_VLINE:
         fvline_destroy(&cell->widget.vline);
+        break;
+
+    case ekCELL_TYPE_PANEL:
+        fpanel_destroy(&cell->widget.panel);
         break;
 
     case ekCELL_TYPE_LAYOUT:
@@ -572,6 +578,17 @@ static FVline *i_read_vline(Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
+static FPanel *i_read_panel(Stream *stm)
+{
+    FPanel *panel = heap_new0(FPanel);
+    panel->autosize = stm_read_bool(stm);
+    panel->min_width = stm_read_r32(stm);
+    panel->min_height = stm_read_r32(stm);
+    return panel;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_read_cell(Stream *stm, FCell *cell, const uint16_t *vers)
 {
     cassert_no_null(cell);
@@ -666,6 +683,9 @@ static void i_read_cell(Stream *stm, FCell *cell, const uint16_t *vers)
         break;
     case ekCELL_TYPE_VLINE:
         cell->widget.vline = i_read_vline(stm);
+        break;
+    case ekCELL_TYPE_PANEL:
+        cell->widget.panel = i_read_panel(stm);
         break;
     case ekCELL_TYPE_LAYOUT:
         if (*vers >= 8)
@@ -996,6 +1016,16 @@ static void i_write_vline(Stream *stm, const FVline *vline)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_write_panel(Stream *stm, const FPanel *panel)
+{
+    cassert_no_null(panel);
+    stm_write_bool(stm, panel->autosize);
+    stm_write_r32(stm, panel->min_width);
+    stm_write_r32(stm, panel->min_height);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_write_cell(Stream *stm, const FCell *cell)
 {
     cassert_no_null(cell);
@@ -1072,6 +1102,9 @@ static void i_write_cell(Stream *stm, const FCell *cell)
         break;
     case ekCELL_TYPE_VLINE:
         i_write_vline(stm, cell->widget.vline);
+        break;
+    case ekCELL_TYPE_PANEL:
+        i_write_panel(stm, cell->widget.panel);
         break;
     case ekCELL_TYPE_LAYOUT:
         i_write_layout(stm, cell->widget.layout);
@@ -1515,6 +1548,20 @@ void flayout_add_vline(FLayout *layout, FVline *vline, const uint32_t col, const
 
 /*---------------------------------------------------------------------------*/
 
+void flayout_add_panel(FLayout *layout, FPanel *panel, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(panel);
+    cassert(cell->type == ekCELL_TYPE_PANEL);
+    cell->type = ekCELL_TYPE_VLINE;
+    cell->halign = ekHALIGN_JUSTIFY;
+    cell->valign = ekVALIGN_JUSTIFY;
+    cell->widget.panel = panel;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void flayout_add_layout(FLayout *layout, FLayout *sublayout, const uint32_t col, const uint32_t row)
 {
     FCell *cell = i_cell(layout, col, row);
@@ -1937,6 +1984,14 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     break;
                 }
 
+                case ekCELL_TYPE_PANEL:
+                {
+                    Panel *panel = panel_create();
+                    fpanel_synchro(cells->widget.panel, panel);
+                    layout_panel(glayout, panel, i, j);
+                    break;
+                }
+
                 case ekCELL_TYPE_LAYOUT:
                 {
                     Layout *gsublayout = flayout_to_gui(cells->widget.layout, resource_path, empty_width, empty_height);
@@ -1995,6 +2050,7 @@ GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout
                 case ekCELL_TYPE_TABLEVIEW:
                 case ekCELL_TYPE_HLINE:
                 case ekCELL_TYPE_VLINE:
+                case ekCELL_TYPE_PANEL:
                 {
                     Cell *gcell = layout_cell(gui_layout, i, j);
                     return cell_control(gcell);

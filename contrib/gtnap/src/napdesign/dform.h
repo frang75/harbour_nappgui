@@ -106,6 +106,8 @@ void dform_synchro_hline(DForm *form, const DSelect *sel);
 
 void dform_synchro_vline(DForm *form, const DSelect *sel);
 
+void dform_synchro_panel(DForm *form, const DSelect *sel);
+
 void dform_synchro_layout(DForm *form, const DSelect *sel);
 
 void dform_synchro_col(DForm *form, const DSelect *sel, const FColumn *fcol, const uint32_t col);

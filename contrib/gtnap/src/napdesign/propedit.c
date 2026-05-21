@@ -2708,6 +2708,10 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
             layout_dbind_obj(data->vline_layout, cell->widget.vline, FVline);
             panel_visible_layout(data->cell_panel, 21);
         }
+        else if (cell->type == ekCELL_TYPE_PANEL)
+        {
+            cassert(FALSE);
+        }        
         else
         {
             cassert(FALSE);

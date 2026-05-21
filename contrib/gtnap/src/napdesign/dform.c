@@ -17,6 +17,7 @@
 #include <nflib/flabel.h>
 #include <nflib/flayout.h>
 #include <nflib/flistbox.h>
+#include <nflib/fpanel.h>
 #include <nflib/fpopup.h>
 #include <nflib/fprogress.h>
 #include <nflib/fradio.h>
@@ -802,6 +803,17 @@ static void i_new_vline(FVline *fvline, const DSelect *sel)
     fvline_synchro(fvline, line);
     flayout_add_vline(sel->flayout, fvline, sel->col, sel->row);
     layout_line(sel->glayout, line, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_panel(FPanel *fpanel, const DSelect *sel)
+{
+    Panel *panel = panel_create();
+    cassert_no_null(sel);
+    fpanel_synchro(fpanel, panel);
+    flayout_add_panel(sel->flayout, fpanel, sel->col, sel->row);
+    layout_panel(sel->glayout, panel, sel->col, sel->row);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1619,6 +1631,13 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
                 break;
             }
 
+            case ekCELL_TYPE_PANEL:
+            {
+                FPanel *fpanel = dbind_copy(clipboard->fcell->widget.panel, FPanel);
+                i_new_panel(fpanel, &form->sel);
+                break;
+            }
+
             case ekCELL_TYPE_LAYOUT:
             {
                 FLayout *fsublayout = dbind_copy(clipboard->fcell->widget.layout, FLayout);
@@ -2279,6 +2298,21 @@ void dform_synchro_vline(DForm *form, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+void dform_synchro_panel(DForm *form, const DSelect *sel)
+{
+    FCell *cell = i_sel_fcell(sel);
+    Panel *panel = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_PANEL);
+    i_need_save(form, TRUE);
+    panel = layout_get_panel(sel->glayout, sel->col, sel->row);
+    fpanel_synchro(cell->widget.panel, panel);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dform_synchro_layout(DForm *form, const DSelect *sel)
 {
     cassert_no_null(form);
@@ -2426,6 +2460,8 @@ const char_t* dform_cell_type(const celltype_t type)
         return gui_text(TEXT_CELL_HLINE);
     case ekCELL_TYPE_VLINE:
         return gui_text(TEXT_CELL_VLINE);
+    case ekCELL_TYPE_PANEL:
+        return gui_text(TEXT_CELL_PANEL);
     case ekCELL_TYPE_LAYOUT:
         return gui_text(TEXT_CELL_LAYOUT);
     default:
@@ -2483,6 +2519,8 @@ const Image *dform_cell_icon(const celltype_t type)
         return gui_image(HLINE16_PNG);
     case ekCELL_TYPE_VLINE:
         return gui_image(VLINE16_PNG);
+    case ekCELL_TYPE_PANEL:
+        return gui_image(PANEL16_PNG);
     case ekCELL_TYPE_LAYOUT:
         return gui_image(LCELL16_PNG);
     default:

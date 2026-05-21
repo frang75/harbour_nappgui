@@ -179,6 +179,7 @@ TEXT_CELL_IMAGE     ImageViewCell
 TEXT_CELL_TABLE     TableCell
 TEXT_CELL_HLINE     HLineCell
 TEXT_CELL_VLINE     VLineCell
+TEXT_CELL_PANEL     PanelCell
 TEXT_CELL_LAYOUT    LayoutCell
 TEXT_FILE           File
 TEXT_FILENAME       Filename

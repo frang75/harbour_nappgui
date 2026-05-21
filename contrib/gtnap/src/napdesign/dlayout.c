@@ -1700,6 +1700,10 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                 draw_rect(ctx, ekFILL, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
                 break;
 
+            case ekCELL_TYPE_PANEL:
+                cassert(FALSE);
+                break;
+
             case ekCELL_TYPE_LAYOUT:
             {
                 Layout *gsublayout = cell_layout(gcell);

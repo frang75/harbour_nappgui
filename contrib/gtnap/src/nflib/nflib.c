@@ -57,6 +57,7 @@ static void i_dbind(void)
     dbind_enum(celltype_t, ekCELL_TYPE_TABLEVIEW, "");
     dbind_enum(celltype_t, ekCELL_TYPE_HLINE, "");
     dbind_enum(celltype_t, ekCELL_TYPE_VLINE, "");
+    dbind_enum(celltype_t, ekCELL_TYPE_PANEL, "");
     dbind_enum(celltype_t, ekCELL_TYPE_LAYOUT, "");
     dbind_enum(halign_t, ekHALIGN_LEFT, "Left");
     dbind_enum(halign_t, ekHALIGN_CENTER, "Center");
@@ -149,6 +150,9 @@ static void i_dbind(void)
     dbind(FTable, ArrSt(FHeader) *, headers);
     dbind(FHline, real32_t, length);
     dbind(FVline, real32_t, length);
+    dbind(FPanel, bool_t, autosize);
+    dbind(FPanel, real32_t, min_width);
+    dbind(FPanel, real32_t, min_height);
     dbind(FColumn, bool_t, expand);
     dbind(FColumn, real32_t, margin_right);
     dbind(FColumn, real32_t, forced_width);
@@ -320,6 +324,15 @@ static void i_dbind(void)
     dbind_increment(FVline, real32_t, length, 1);
     dbind_precision(FVline, real32_t, length, 1);
     dbind_range(FVline, real32_t, length, 10, 1000);
+    dbind_default(FPanel, bool_t, autosize, TRUE);
+    dbind_default(FPanel, real32_t, min_width, 100);
+    dbind_increment(FPanel, real32_t, min_width, 1);
+    dbind_precision(FPanel, real32_t, min_width, 1);
+    dbind_range(FPanel, real32_t, min_width, 10, 1000);
+    dbind_default(FPanel, real32_t, min_height, 100);
+    dbind_increment(FPanel, real32_t, min_height, 1);
+    dbind_precision(FPanel, real32_t, min_height, 1);
+    dbind_range(FPanel, real32_t, min_height, 10, 1000);
     dbind_default(FColumn, bool_t, expand, FALSE);
     dbind_default(FColumn, real32_t, margin_right, 0);
     dbind_default(FColumn, real32_t, forced_width, 0);
@@ -404,6 +417,7 @@ static void i_dbind(void)
     dbind(FWidget, FTable*, table);
     dbind(FWidget, FHline*, hline);
     dbind(FWidget, FVline*, vline);
+    dbind(FWidget, FPanel*, panel);
     dbind(FWidget, FLayout *, layout);
     dbind(FCell, FWidget, widget);
 
@@ -427,6 +441,7 @@ static void i_dbind(void)
     dbind_default(FWidget, FTable*, table, NULL);
     dbind_default(FWidget, FHline*, hline, NULL);
     dbind_default(FWidget, FVline*, vline, NULL);
+    dbind_default(FWidget, FPanel*, panel, NULL);
     dbind_default(FWidget, FLayout *, layout, NULL);
 }
 
