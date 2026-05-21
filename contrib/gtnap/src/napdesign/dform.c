@@ -810,7 +810,9 @@ static void i_new_vline(FVline *fvline, const DSelect *sel)
 static void i_new_panel(FPanel *fpanel, const DSelect *sel)
 {
     Panel *panel = panel_create();
+    Layout *layout = layout_create(1, 1);
     cassert_no_null(sel);
+    panel_layout(panel, layout);
     fpanel_synchro(fpanel, panel);
     flayout_add_panel(sel->flayout, fpanel, sel->col, sel->row);
     layout_panel(sel->glayout, panel, sel->col, sel->row);
@@ -1155,6 +1157,21 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     if (fvline != NULL)
                     {
                         i_new_vline(fvline, &sel);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
+                case ekWIDGET_PANEL:
+                {
+                    FPanel *fpanel = dialog_new_panel(window, font, &sel);
+                    if (fpanel != NULL)
+                    {
+                        i_new_panel(fpanel, &sel);
                         i_after_new_widget(form, inspect, propedit, &sel);
                         return TRUE;
                     }

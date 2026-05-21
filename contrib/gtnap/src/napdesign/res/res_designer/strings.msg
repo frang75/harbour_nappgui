@@ -26,6 +26,7 @@ TEXT_NEW_IMAGEVIEW  A new imageview will be placed in cell (%d, %d) of '%s' layo
 TEXT_NEW_TABLEVIEW  A new tableview will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_HLINE      A new horizontal separator will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_VLINE      A new vertical separator will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_PANEL      A new panel will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SUBLAYOUT  A new sublayout will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_FORM       A new form will be created with this filename and properties
 TEXT_PROPS_FORM     Change the filename and forms properties
@@ -92,6 +93,7 @@ TEXT_HORZ_LINE      Horizontal Line
 TEXT_VERT_LINE      Vertical Line
 TEXT_CUSTOM_VIEW    Custom View
 TEXT_SCROLL_VIEW    Scroll View
+TEXT_PANEL          Panel
 TEXT_TEXT_VIEW      Text View
 TEXT_IMAGE_VIEW     Image View
 TEXT_TABLE_VIEW     Table View
@@ -149,6 +151,7 @@ TEXT_ICON           Icon
 TEXT_IMAGE          Image
 TEXT_ICON_PATH      Icon path
 TEXT_IMAGE_PATH     Image path
+TEXT_AUTOSIZE       Autosize
 TEXT_ELEMENTS       Elements
 TEXT_DEFAULT        default
 TEXT_LOAD_IMAGE     Load image

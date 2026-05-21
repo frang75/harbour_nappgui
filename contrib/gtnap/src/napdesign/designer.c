@@ -2046,11 +2046,12 @@ static Designer *i_app(void)
     i_add_widget(app->bwidgets, ekWIDGET_IMAGEVIEW, TEXT_IMAGE_VIEW, IMAGEVIEW_PNG, ekDRAWER_WIDGET_DISPLAY);
     i_add_widget(app->bwidgets, ekWIDGET_CUSTOMVIEW, TEXT_CUSTOM_VIEW, VIEW_PNG, ekDRAWER_WIDGET_DISPLAY);
     i_add_widget(app->bwidgets, ekWIDGET_SCROLLVIEW, TEXT_SCROLL_VIEW, SVIEW_PNG, ekDRAWER_WIDGET_DISPLAY);
+    i_add_widget(app->bwidgets, ekWIDGET_PANEL, TEXT_PANEL, PANEL24_PNG, ekDRAWER_WIDGET_DISPLAY);
     i_add_widget(app->bwidgets, ekWIDGET_HORZ_SLIDER, TEXT_HORZ_SLIDER, HORSLIDER_PNG, ekDRAWER_WIDGET_OTHERS);
     i_add_widget(app->bwidgets, ekWIDGET_VERT_SLIDER, TEXT_VERT_SLIDER, VERSLIDER_PNG, ekDRAWER_WIDGET_OTHERS);
     i_add_widget(app->bwidgets, ekWIDGET_PROGRESS, TEXT_PROGRESS_BAR, PROGRESSBAR_PNG, ekDRAWER_WIDGET_OTHERS);
     i_add_widget(app->bwidgets, ekWIDGET_HORZ_LINE, TEXT_HORZ_LINE, HLINE_PNG, ekDRAWER_WIDGET_OTHERS);
-    i_add_widget(app->bwidgets, ekWIDGET_VERT_LINE, TEXT_VERT_LINE, VLINE_PNG, ekDRAWER_WIDGET_OTHERS);   
+    i_add_widget(app->bwidgets, ekWIDGET_VERT_LINE, TEXT_VERT_LINE, VLINE_PNG, ekDRAWER_WIDGET_OTHERS);       
     i_load_config(app);
     return app;
 }

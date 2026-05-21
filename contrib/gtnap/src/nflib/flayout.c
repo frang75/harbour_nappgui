@@ -1553,8 +1553,8 @@ void flayout_add_panel(FLayout *layout, FPanel *panel, const uint32_t col, const
     FCell *cell = i_cell(layout, col, row);
     cassert_no_null(cell);
     cassert_no_null(panel);
-    cassert(cell->type == ekCELL_TYPE_PANEL);
-    cell->type = ekCELL_TYPE_VLINE;
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_PANEL;
     cell->halign = ekHALIGN_JUSTIFY;
     cell->valign = ekVALIGN_JUSTIFY;
     cell->widget.panel = panel;

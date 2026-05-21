@@ -64,6 +64,8 @@ FHline *dialog_new_hline(Window *parent, const Font *font, const DSelect *sel);
 
 FVline *dialog_new_vline(Window *parent, const Font *font, const DSelect *sel);
 
+FPanel *dialog_new_panel(Window *parent, const Font *font, const DSelect *sel);
+
 FLayout *dialog_vertical_layout(Window *parent, const Font *font, const DSelect *sel);
 
 FLayout *dialog_horizontal_layout(Window *parent, const Font *font, const DSelect *sel);
