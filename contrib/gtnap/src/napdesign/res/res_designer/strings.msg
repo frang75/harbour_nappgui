@@ -224,6 +224,7 @@ TEXT_UNSAVED1       There are unsaved changes in your current forms.\nChanges wi
 TEXT_UNSAVED2       There are unsaved changes in your current forms.\nChanges will be lost if you close the application.\nDo you want to save your changes?
 TEXT_UNDO_STACK     Undo stack
 TEXT_PROMOTE        Promote
+TEXT_RUNTIME_PANEL  Runtime panel
 
 TIP_LAYOUT_NAME     Layout name. It will be useful to locate the layout at runtime.
 TIP_CELL_NAME       Cell name. It will be useful to locate the cell at runtime.

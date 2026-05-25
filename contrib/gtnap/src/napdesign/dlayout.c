@@ -1701,7 +1701,39 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                 break;
 
             case ekCELL_TYPE_PANEL:
+            {
+                const char_t *text = gui_text(TEXT_RUNTIME_PANEL);
+                real32_t x = dcell->content_rect.pos.x;
+                real32_t y = dcell->content_rect.pos.y;
+                real32_t width = dcell->content_rect.size.width;
+                real32_t height = dcell->content_rect.size.height;
+                real32_t mark_width = .3f * dcell->content_rect.size.width;
+                real32_t mark_height = .3f * dcell->content_rect.size.height;
+                real32_t twidth, theight;
+                draw_line_color(ctx, wcolor);
+                draw_line_width(ctx, 2);
+                draw_line(ctx, x, y, x + mark_width, y);
+                draw_line(ctx, x + 2.f * mark_width, y, x + width, y);
+                draw_line(ctx, x, y, x, y + mark_height);
+                draw_line(ctx, x, y + 2.f * mark_height, x, y + height);
+                draw_line(ctx, x, y + height, x + mark_width, y + height);
+                draw_line(ctx, x + 2.f * mark_width, y + height, x + width, y + height);
+                draw_line(ctx, x + width, y, x + width, y + mark_height);
+                draw_line(ctx, x + width, y + 2.f * mark_height, x + width, y + height);
+                draw_line_width(ctx, 1);
+                font_extents(default_font, text, -1.f, &twidth, &theight);
+
+                if (twidth <= width && theight <= height)
+                {
+                    real32_t tx = x + ((width - twidth) / 2.f);
+                    real32_t ty = y + ((height - theight) / 2.f);
+                    draw_text_color(ctx, wcolor);
+                    drawctrl_text(ctx, text, (int32_t)tx, (int32_t)ty, ekCTRL_STATE_NORMAL);
+                    draw_rect(ctx, ekSTROKE, tx - 2, ty - 2, twidth + 4, theight + 4);
+                }
+
                 break;
+            }
 
             case ekCELL_TYPE_LAYOUT:
             {

@@ -810,9 +810,7 @@ static void i_new_vline(FVline *fvline, const DSelect *sel)
 static void i_new_panel(FPanel *fpanel, const DSelect *sel)
 {
     Panel *panel = panel_create();
-    Layout *layout = layout_create(1, 1);
     cassert_no_null(sel);
-    panel_layout(panel, layout);
     fpanel_synchro(fpanel, panel);
     flayout_add_panel(sel->flayout, fpanel, sel->col, sel->row);
     layout_panel(sel->glayout, panel, sel->col, sel->row);
