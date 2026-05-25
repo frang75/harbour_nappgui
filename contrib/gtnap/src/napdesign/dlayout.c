@@ -1701,7 +1701,6 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                 break;
 
             case ekCELL_TYPE_PANEL:
-                cassert(FALSE);
                 break;
 
             case ekCELL_TYPE_LAYOUT:

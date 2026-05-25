@@ -66,6 +66,7 @@ struct _propdata_t
     Layout *table_layout;
     Layout *hline_layout;
     Layout *vline_layout;
+    Layout *panell_layout;
     Layout *header_layout;
     ListBox *popup_list;
     ListBox *tabs_list;
@@ -2306,6 +2307,49 @@ static Layout *i_vline_layout(PropData *data)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnPanelNotify(PropData *data, Event *e)
+{
+    cassert_no_null(data);
+    cassert_unref(event_type(e) == ekGUI_EVENT_OBJCHANGE, e);
+    dform_synchro_panel(data->form, &data->sel);
+    dform_compose(data->form);
+    designer_canvas_update(data->app);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Layout *i_panel_layout(PropData *data)
+{
+    Layout *layout1 = layout_create(2, 4);
+    Layout *layout2 = i_value_updown_layout(gui_text(TIP_PANEL_MWIDTH));
+    Layout *layout3 = i_value_updown_layout(gui_text(TIP_PANEL_MHEIGHT));
+    Label *label1 = label_create();
+    Label *label2 = label_create();
+    Label *label3 = label_create();
+    Button *check = button_check();
+    cassert_no_null(data);
+    label_text(label1, gui_text(TEXT_WIDTH));
+    label_text(label2, gui_text(TEXT_HEIGHT));
+    label_text(label3, gui_text(TEXT_AUTOSIZE));
+    button_tooltip(check, gui_text(TIP_PANEL_AUTOSIZE));
+    layout_label(layout1, label1, 0, 0);
+    layout_label(layout1, label2, 0, 1);
+    layout_label(layout1, label3, 0, 2);
+    layout_layout(layout1, layout2, 1, 0);
+    layout_layout(layout1, layout3, 1, 1);
+    layout_button(layout1, check, 1, 2);
+    layout_hmargin(layout1, 0, i_LABEL_COLUMN_MARGIN);
+    layout_vexpand(layout1, 3);
+    cell_dbind(layout_cell(layout1, 1, 0), FPanel, real32_t, min_width);
+    cell_dbind(layout_cell(layout1, 1, 1), FPanel, real32_t, min_height);
+    cell_dbind(layout_cell(layout1, 1, 2), FPanel, bool_t, autosize);
+    layout_dbind(layout1, listener(data, i_OnPanelNotify, PropData), FPanel);
+    data->panell_layout = layout1;
+    return i_drawer_layout(data->app, layout1, ekDRAWER_PANEL_PROPS);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Panel *i_cell_content_panel(PropData *data)
 {
     Layout *layout1 = i_empty_cell_layout();
@@ -2330,6 +2374,7 @@ static Panel *i_cell_content_panel(PropData *data)
     Layout *layout20 = i_table_layout(data);
     Layout *layout21 = i_hline_layout(data);
     Layout *layout22 = i_vline_layout(data);
+    Layout *layout23 = i_panel_layout(data);
     Panel *panel = panel_create();
     cassert_no_null(data);
     panel_layout(panel, layout1);
@@ -2354,6 +2399,7 @@ static Panel *i_cell_content_panel(PropData *data)
     panel_layout(panel, layout20);
     panel_layout(panel, layout21);
     panel_layout(panel, layout22);
+    panel_layout(panel, layout23);
     panel_visible_layout(panel, 0);
     data->cell_panel = panel;
     return panel;
@@ -2566,7 +2612,8 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
     layout_dbind_obj(data->table_layout, NULL, FTable);
     layout_dbind_obj(data->hline_layout, NULL, FHline);
     layout_dbind_obj(data->vline_layout, NULL, FVline);
-
+    layout_dbind_obj(data->panell_layout, NULL, FPanel);
+    
     /* i_no_sel_layout */
     if (sel->flayout == NULL)
     {
@@ -2710,7 +2757,8 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
         }
         else if (cell->type == ekCELL_TYPE_PANEL)
         {
-            cassert(FALSE);
+            layout_dbind_obj(data->panell_layout, cell->widget.panel, FPanel);
+            panel_visible_layout(data->cell_panel, 22);
         }        
         else
         {

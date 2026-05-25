@@ -55,6 +55,7 @@ TEXT_IMAGE_PROPS    Imageview properties
 TEXT_TABLE_PROPS    Tableview properties
 TEXT_HLINE_PROPS    HorzLine properties
 TEXT_VLINE_PROPS    VertLine properties
+TEXT_PANEL_PROPS    Panel properties
 TEXT_LAYOUT         Layout
 TEXT_LAYOUTS        Layouts
 TEXT_BUTTONS        Buttons
@@ -292,6 +293,9 @@ TIP_SLIDER_MHEIGHT  Slider height.
 TIP_PROGRESS_MWIDTH Progress width.
 TIP_HLINE_LENGTH    Horizontal line length.
 TIP_VLINE_LENGTH    Vertical line length.
+TIP_PANEL_MWIDTH    Panel width, if autosize is off.
+TIP_PANEL_MHEIGHT   Panel height, if autosize is off.
+TIP_PANEL_AUTOSIZE  If set, the runtime panel will expand to display all content without scroll bars.
 
 TIP_VIEW_MWIDTH     View width.
 TIP_VIEW_MHEIGHT    View height.
