@@ -13,7 +13,10 @@
     - [HBNAP_FORMS_DESTROY](#hbnap_forms_destroy)
     - [HBNAP_FORMS_TITLE](#hbnap_forms_title)
     - [HBNAP_FORMS_SET_TEXT](#hbnap_forms_set_text)
+    - [HBNAP_FORMS_SET_INT](#hbnap_forms_set_int)
     - [HBNAP_FORMS_INSERT_TEXT](#hbnap_forms_insert_text)
+    - [HBNAP_FORMS_GET_INT](#hbnap_forms_get_int)
+    - [HBNAP_FORMS_EMBED](#hbnap_forms_embed)
     - [HBNAP_FORMS_BIND](#hbnap_forms_bind)
     - [HBNAP_FORMS_BIND_STORE](#hbnap_forms_bind_store)
     - [HBNAP_FORMS_AREA_BIND](#hbnap_forms_area_bind)
@@ -187,9 +190,10 @@ PAR3: hb_bitOr() with form creation flags.
 RET: Form object.
 
 # Creation flags (in hbnap.ch)
-HBNAP_FORMS_RESIZABLE       The form will be resizable
-HBNAP_FORMS_CLOSE_ON_ESC    The form can be closed with [ESC] key.
-HBNAP_FORMS_CLOSE_ON_RETURN The form can be closed with [RETURN] key.
+HBNAP_FORMS_RESIZABLE       The form will be resizable. Will be ignored if HBNAP_FORMS_EMBEDDED_PANEL is set.
+HBNAP_FORMS_CLOSE_ON_ESC    The form can be closed with [ESC] key. Will be ignored if HBNAP_FORMS_EMBEDDED_PANEL is set.
+HBNAP_FORMS_CLOSE_ON_RETURN The form can be closed with [RETURN] key. Will be ignored if HBNAP_FORMS_EMBEDDED_PANEL is set.
+HBNAP_FORMS_EMBEDDED_PANEL  The form is an inner panel (embedded), not a top-level window.
 ```
 
 ### HBNAP_FORMS_DESTROY
@@ -233,6 +237,24 @@ PAR2: Widget cell name.
 PAR3: Text string in UTF8.
 ```
 
+### HBNAP_FORMS_SET_INT
+
+Sets a integer value for a widget within the form. Access to the widget is done using the cell identifier. The widgets that respond to this function are:
+
+- Label (will display the value)
+- Edit Box (will show the value for edit)
+- PopUp (will select the item in 'value' position)
+- List Box (will select the item in 'value' position)
+- Tab Control (will select the tab in 'value' position)
+
+```
+HBNAP_FORMS_SET_INT(O_MAINWINDOW, "popup_1", 3)
+
+PAR1: Form object.
+PAR2: Widget cell name.
+PAR3: Integer value
+```
+
 ### HBNAP_FORMS_INSERT_TEXT
 
 Add text to the end of a widget, without deleting previous text. Access to the widget is done using the cell identifier. The widgets that respond to this function are:
@@ -245,6 +267,38 @@ HBNAP_FORMS_INSERT_TEXT(O_FORM, "textview", "And this text will be added at the 
 PAR1: Form object.
 PAR2: Widget cell name.
 PAR3: Text string in UTF8.
+```
+
+### HBNAP_FORMS_GET_INT
+
+Gets the integer value associated with the state of a widget.
+The widgets that respond to this function are:
+
+- Edit Box (the text will be converted to integer)
+- PopUp (the value of selected item)
+- List Box (the value of selected item)
+- Tab Control (the value of selected tab)
+
+```
+N_VALUE := HBNAP_FORMS_GET_INT(O_FORM, "popup_1")
+
+PAR1: Form object.
+PAR2: Widget cell name.
+RET: The integer value, or -1 if error.
+```
+
+### HBNAP_FORMS_EMBED
+
+Embeds (swaps) an interior panel into a form at run time.
+
+```
+O_EMBEDDED := HBNAP_FORMS_LOAD(DIRET_FORMS() + "InnerPanel.nfm", DIRET_FORMS(), HBNAP_FORMS_EMBEDDED_PANEL)
+N_VALUE := HBNAP_FORMS_EMBEB(O_FORM, O_EMBEDDED, "runtime_panel")
+
+PAR1: Form object.
+PAR2: Inner (embedded) form object. It must be created with HBNAP_FORMS_EMBEDDED_PANEL flag.
+PAR3: Widget cell name. The widget MUST be a Panel widget.
+RET: .T. if success. .F. if the panel change fails.
 ```
 
 ### HBNAP_FORMS_BIND
