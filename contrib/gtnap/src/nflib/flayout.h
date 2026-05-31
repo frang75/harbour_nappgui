@@ -100,4 +100,6 @@ _nflib_api Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_
 
 _nflib_api GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout, const char_t *cell_name);
 
+_nflib_api Layout *flayout_search_cell_location(const FLayout *layout, Layout *gui_layout, const char_t *cell_name, uint32_t *col, uint32_t *row);
+
 __END_C

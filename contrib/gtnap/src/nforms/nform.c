@@ -8,11 +8,13 @@
 #include <gui/edit.h>
 #include <gui/guicontrol.h>
 #include <gui/label.h>
+#include <gui/layout.h>
 #include <gui/listbox.h>
 #include <gui/panel.h>
 #include <gui/popup.h>
 #include <gui/slider.h>
 #include <gui/progress.h>
+#include <gui/tabs.h>
 #include <gui/textview.h>
 #include <gui/window.h>
 #include <geom2d/r2d.h>
@@ -180,6 +182,7 @@ void nform_set_control_int(NForm *form, const char_t *cell_name, const int32_t v
         Edit *edit = guicontrol_edit(control);
         PopUp *popup = guicontrol_popup(control);
         ListBox *listbox = guicontrol_listbox(control);
+        Tabs *tabs = guicontrol_tabs(control);
 
         if (label != NULL)
         {
@@ -217,6 +220,19 @@ void nform_set_control_int(NForm *form, const char_t *cell_name, const int32_t v
                 if (v >= n)
                     v = n - 1;
                 listbox_select(listbox, v, TRUE);
+            }
+        }
+        else if (tabs != NULL)
+        {
+            uint32_t n = tabs_count(tabs);
+            if (n > 0)
+            {
+                uint32_t v = 0;
+                if (value > 0)
+                    v = (uint32_t)value - 1;
+                if (v >= n)
+                    v = n - 1;
+                tabs_selected(tabs, v);
             }
         }
     }
@@ -365,6 +381,8 @@ bool_t nform_get_control_int(const NForm *form, const char_t *cell_name, int32_t
         Edit *edit = guicontrol_edit(control);
         PopUp *popup = guicontrol_popup(control);
         ListBox *listbox = guicontrol_listbox(control);
+        Tabs *tabs = guicontrol_tabs(control);
+
         if (edit != NULL)
         {
             const char_t *text = edit_get_text(edit);
@@ -389,6 +407,15 @@ bool_t nform_get_control_int(const NForm *form, const char_t *cell_name, int32_t
         {
             if (listbox_count(listbox) > 0)
                 *value = (int32_t)listbox_get_selected(listbox) + 1;
+            else
+                *value = 0;
+
+            return TRUE;
+        }
+        else if (tabs != NULL)
+        {
+            if (tabs_count(tabs) > 0)
+                *value = (int32_t)tabs_get_selected(tabs) + 1;
             else
                 *value = 0;
 
@@ -421,6 +448,39 @@ bool_t nform_get_control_real(const NForm *form, const char_t *cell_name, real32
         else if (progress != NULL)
         {
             *value = .5f;
+        }
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t nform_change_embedded_panel(const NForm *form, const NForm *panel_form, const char_t *panel_resource_path, const char_t *cell_name)
+{
+    Panel *panel = NULL;
+    cassert_no_null(form);
+    cassert_no_null(form->fform);
+    cassert_no_null(panel_form);
+    cassert_no_null(panel_form->fform);
+
+    {
+        Layout *layout = flayout_to_gui(panel_form->fform->layout, panel_resource_path, 40.f, 20.f);
+        panel = panel_create();
+        panel_layout(panel, layout);
+        cast(panel_form, NForm)->glayout = layout;
+    }
+
+    if (panel != NULL)
+    {
+        Layout *layout = NULL;
+        uint32_t col = UINT32_MAX;
+        uint32_t row = UINT32_MAX;
+        layout = flayout_search_cell_location(form->fform->layout, form->glayout, cell_name, &col, &row);
+        if (layout != NULL)
+        {
+            layout_panel_replace(layout, panel, col, row);
+            return TRUE;
         }
     }
 

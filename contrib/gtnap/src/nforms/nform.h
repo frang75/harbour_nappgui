@@ -34,6 +34,8 @@ _nforms_api bool_t nform_get_control_int(const NForm *form, const char_t *cell_n
 
 _nforms_api bool_t nform_get_control_real(const NForm *form, const char_t *cell_name, real32_t *value);
 
+_nforms_api bool_t nform_change_embedded_panel(const NForm *form, const NForm *panel_form, const char_t *panel_resource_path, const char_t *cell_name);
+
 _nforms_api bool_t nform_set_listener(NForm *form, const char_t *cell_name, Listener *listener);
 
 _nforms_api R2Df nform_get_control_frame(NForm *form, const char_t *cell_name, Window *window);

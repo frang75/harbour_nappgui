@@ -2013,7 +2013,7 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
 
 /*---------------------------------------------------------------------------*/
 
-GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout, const char_t *cell_name)
+static GuiControl *i_search_gui_control(const FLayout *layout, Layout *gui_layout, const char_t *cell_name, Layout **loc_layout, uint32_t *loc_col, uint32_t *loc_row)
 {
     const FCell *cells = NULL;
     uint32_t i, j, ncols = 0, nrows = 0;
@@ -2053,6 +2053,9 @@ GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout
                 case ekCELL_TYPE_PANEL:
                 {
                     Cell *gcell = layout_cell(gui_layout, i, j);
+                    ptr_assign(loc_layout, gui_layout);
+                    ptr_assign(loc_col, i);
+                    ptr_assign(loc_row, j);
                     return cell_control(gcell);
                 }
 
@@ -2068,13 +2071,39 @@ GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout
             {
                 Cell *gcell = layout_cell(gui_layout, i, j);
                 Layout *gsub_layout = cell_layout(gcell);
-                GuiControl *control = flayout_search_gui_control(cells->widget.layout, gsub_layout, cell_name);
+                GuiControl *control = i_search_gui_control(cells->widget.layout, gsub_layout, cell_name, loc_layout, loc_col, loc_row);
                 if (control != NULL)
                     return control;
             }
 
             cells += 1;
         }
+    }
+
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout, const char_t *cell_name)
+{
+    return i_search_gui_control(layout, gui_layout, cell_name, NULL, NULL, NULL);
+}
+
+/*---------------------------------------------------------------------------*/
+
+Layout *flayout_search_cell_location(const FLayout *layout, Layout *gui_layout, const char_t *cell_name, uint32_t *col, uint32_t *row)
+{
+    GuiControl *control = NULL;
+    Layout *loc_layout = NULL;
+    uint32_t loc_col = UINT32_MAX;
+    uint32_t loc_row = UINT32_MAX;
+    control = i_search_gui_control(layout, gui_layout, cell_name, &loc_layout, &loc_col, &loc_row);
+    if (control != NULL)
+    {
+        ptr_assign(col, loc_col);
+        ptr_assign(row, loc_row);
+        return loc_layout;
     }
 
     return NULL;

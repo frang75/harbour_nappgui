@@ -247,6 +247,7 @@ struct _gtnap_form_t
     NForm *form;
     Window *window;
     String *nameid;
+    String *respath;
     uint32_t modal_ret;
     GtNapFArea *area;
     HB_ITEM *OnClose_block;
@@ -3528,8 +3529,8 @@ uint32_t hb_gtnap_window_modal(const uint32_t wid, const uint32_t pwid, const ui
             window_hotkey(gtwin->window, ekKEY_NUMRET, 0, listener(gtwin, i_OnNextTabstop, GtNapWindow));
         }
 
-        /* 
-         * At this point, we have a precomputed window position, based on window (left, top) 
+        /*
+         * At this point, we have a precomputed window position, based on window (left, top)
          * and parent position. Its can be overwritten by a previous stored user position.
          */
         {
@@ -5237,37 +5238,41 @@ GtNapForm *hbnap_forms_load(const char_t *pathname, const char_t *resource_path,
     if (form != NULL)
     {
         GtNapForm *gtform = heap_new0(GtNapForm);
-        uint32_t nflags = 0;
         str_split_pathext(pathname, NULL, &gtform->nameid, NULL);
         gtform->form = form;
+        gtform->respath = str_c(resource_path);
         gtform->binds = arrst_create(GtNapBind);
         gtform->callbacks = arrpt_create(GtNapCallback);
 
-        if (flags & HBNAP_FORMS_RESIZABLE)
+        if (!(flags & HBNAP_FORMS_EMBEDDED_PANEL))
         {
-            nflags |= ekWINDOW_STDRES;
-            gtform->is_resizable = TRUE;
-        }
-        else
-        {
-            nflags |= ekWINDOW_STD;
-        }
+            uint32_t nflags = 0;
+            if (flags & HBNAP_FORMS_RESIZABLE)
+            {
+                nflags |= ekWINDOW_STDRES;
+                gtform->is_resizable = TRUE;
+            }
+            else
+            {
+                nflags |= ekWINDOW_STD;
+            }
 
-        if (flags & HBNAP_FORMS_CLOSE_ON_ESC)
-            nflags |= ekWINDOW_ESC;
+            if (flags & HBNAP_FORMS_CLOSE_ON_ESC)
+                nflags |= ekWINDOW_ESC;
 
-        if (flags & HBNAP_FORMS_CLOSE_ON_RETURN)
-            nflags |= ekWINDOW_RETURN;
+            if (flags & HBNAP_FORMS_CLOSE_ON_RETURN)
+                nflags |= ekWINDOW_RETURN;
 
-        gtform->window = nform_window(gtform->form, nflags, resource_path);
-        if (gtform->window != NULL)
-        {
-            window_OnMoved(gtform->window, listener(gtform, i_OnFormMoved, GtNapForm));
-            window_OnResize(gtform->window, listener(gtform, i_OnFormResize, GtNapForm));
-        }
-        else
-        {
-            hbnap_forms_destroy(&gtform);
+            gtform->window = nform_window(gtform->form, nflags, resource_path);
+            if (gtform->window != NULL)
+            {
+                window_OnMoved(gtform->window, listener(gtform, i_OnFormMoved, GtNapForm));
+                window_OnResize(gtform->window, listener(gtform, i_OnFormResize, GtNapForm));
+            }
+            else
+            {
+                hbnap_forms_destroy(&gtform);
+            }
         }
 
         return gtform;
@@ -5319,6 +5324,7 @@ void hbnap_forms_destroy(GtNapForm **form)
     cassert_no_null(form);
     cassert_no_null(*form);
     str_destroy(&(*form)->nameid);
+    str_destroy(&(*form)->respath);
     ptr_destopt(window_destroy, &(*form)->window, Window);
 
     if ((*form)->OnClose_block != NULL)
@@ -5352,10 +5358,44 @@ void hbnap_forms_set_text(GtNapForm *form, const char_t *cell, const char_t *tex
 
 /*---------------------------------------------------------------------------*/
 
+void hbnap_forms_set_int(GtNapForm *form, const char_t *cell, const int32_t value)
+{
+    cassert_no_null(form);
+    nform_set_control_int(form->form, cell, value);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void hbnap_forms_insert_text(GtNapForm *form, const char_t *cell, const char_t *text)
 {
     cassert_no_null(form);
     nform_add_control_str(form->form, cell, text);
+}
+
+/*---------------------------------------------------------------------------*/
+
+int32_t hbnap_forms_get_int(GtNapForm *form, const char_t *cell)
+{
+    int32_t value = 0;
+    cassert_no_null(form);
+    if (nform_get_control_int(form->form, cell, &value) == TRUE)
+        return value;
+    return -1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t hbnap_forms_embed(GtNapForm *form, GtNapForm *embedded_form, const char_t *cell)
+{
+    bool_t ok = FALSE;
+    cassert_no_null(form);
+    cassert_no_null(embedded_form);
+    cassert_no_null(form->window);
+    cassert(embedded_form->window == NULL);
+    ok = nform_change_embedded_panel(form->form, embedded_form->form, tc(embedded_form->respath), cell);
+    if (ok == TRUE)
+        window_update(form->window);
+    return ok;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -5907,7 +5947,7 @@ static void i_form_frame(GtNapForm *form, Window *parent)
             window_client_size(form->window, size);
 
         window_origin(form->window, pos);
-    }       
+    }
 }
 
 /*---------------------------------------------------------------------------*/
