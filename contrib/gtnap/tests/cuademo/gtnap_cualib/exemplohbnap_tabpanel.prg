@@ -33,6 +33,11 @@ LOCAL N_RES := 0
 LOCAL i := 0
 
 HBNAP_FORMS_TITLE(O_FORM, "TabControl and TabPanels demo")
+
+// Click in Tab event handler
+HBNAP_FORMS_ONCLICK(O_FORM, "tab_control", {|| CHANGE_EMBEDDED(O_FORM, O_EMBEDDED) })
+
+// Assign first panel
 CHANGE_EMBEDDED(O_FORM, O_EMBEDDED)
 
 // Launch the form

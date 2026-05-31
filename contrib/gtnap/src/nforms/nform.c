@@ -499,10 +499,15 @@ bool_t nform_set_listener(NForm *form, const char_t *cell_name, Listener *listen
     if (control != NULL)
     {
         Button *button = guicontrol_button(control);
+        Tabs *tabs = guicontrol_tabs(control);
         if (button != NULL)
         {
             button_OnClick(button, listener);
             return TRUE;
+        }
+        else if (tabs != NULL)
+        {
+            tabs_OnSelect(tabs, listener);
         }
     }
 
