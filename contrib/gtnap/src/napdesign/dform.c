@@ -17,12 +17,14 @@
 #include <nflib/flabel.h>
 #include <nflib/flayout.h>
 #include <nflib/flistbox.h>
+#include <nflib/fpanel.h>
 #include <nflib/fpopup.h>
 #include <nflib/fprogress.h>
 #include <nflib/fradio.h>
 #include <nflib/fslider.h>
 #include <nflib/fvslider.h>
 #include <nflib/ftable.h>
+#include <nflib/ftabs.h>
 #include <nflib/ftext.h>
 #include <nflib/ftool.h>
 #include <nflib/fview.h>
@@ -39,6 +41,7 @@
 #include <gui/listbox.h>
 #include <gui/imageview.h>
 #include <gui/tableview.h>
+#include <gui/tabs.h>
 #include <gui/textview.h>
 #include <gui/layout.h>
 #include <gui/layouth.h>
@@ -667,6 +670,18 @@ static void i_new_combo(FCombo *fcombo, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_new_tabs(FTabs *ftabs, const DSelect *sel, const char_t *folder_path, const DColors *colors)
+{
+    Tabs *tabs = tabs_create(ekGUI_POS_TOP);
+    cassert_no_null(sel);
+    ftabs_synchro(ftabs, tabs, folder_path);
+    dlayout_synchro_elems(sel->dlayout, sel->col, sel->row, ftabs->elems, folder_path, colors);
+    flayout_add_tabs(sel->flayout, ftabs, sel->col, sel->row);
+    layout_tabs(sel->glayout, tabs, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_new_listbox(FListBox *flistbox, const DSelect *sel, const char_t *folder_path, const DColors *colors)
 {
     ListBox *listbox = listbox_create();
@@ -788,6 +803,17 @@ static void i_new_vline(FVline *fvline, const DSelect *sel)
     fvline_synchro(fvline, line);
     flayout_add_vline(sel->flayout, fvline, sel->col, sel->row);
     layout_line(sel->glayout, line, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_panel(FPanel *fpanel, const DSelect *sel)
+{
+    Panel *panel = panel_create();
+    cassert_no_null(sel);
+    fpanel_synchro(fpanel, panel);
+    flayout_add_panel(sel->flayout, fpanel, sel->col, sel->row);
+    layout_panel(sel->glayout, panel, sel->col, sel->row);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -973,6 +999,21 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     }
                 }
 
+                case ekWIDGET_TABS:
+                {
+                    FTabs *ftabs = dialog_new_tabs(window, font, &sel);
+                    if (ftabs != NULL)
+                    {
+                        i_new_tabs(ftabs, &sel, folder_path, colors);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
                 case ekWIDGET_HORZ_SLIDER:
                 {
                     FSlider *fslider = dialog_new_slider(window, font, &sel);
@@ -1114,6 +1155,21 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     if (fvline != NULL)
                     {
                         i_new_vline(fvline, &sel);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
+                case ekWIDGET_PANEL:
+                {
+                    FPanel *fpanel = dialog_new_panel(window, font, &sel);
+                    if (fpanel != NULL)
+                    {
+                        i_new_panel(fpanel, &sel);
                         i_after_new_widget(form, inspect, propedit, &sel);
                         return TRUE;
                     }
@@ -1506,6 +1562,13 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
                 break;
             }
 
+            case ekCELL_TYPE_TABS:
+            {
+                FTabs *ftabs = dbind_copy(clipboard->fcell->widget.tabs, FTabs);
+                i_new_tabs(ftabs, &form->sel, folder_path, colors);
+                break;
+            }
+
             case ekCELL_TYPE_LISTBOX:
             {
                 FListBox *flistbox = dbind_copy(clipboard->fcell->widget.listbox, FListBox);
@@ -1580,6 +1643,13 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
             {
                 FVline *fvline = dbind_copy(clipboard->fcell->widget.vline, FVline);
                 i_new_vline(fvline, &form->sel);
+                break;
+            }
+
+            case ekCELL_TYPE_PANEL:
+            {
+                FPanel *fpanel = dbind_copy(clipboard->fcell->widget.panel, FPanel);
+                i_new_panel(fpanel, &form->sel);
                 break;
             }
 
@@ -2063,6 +2133,21 @@ void dform_synchro_combo(DForm *form, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+void dform_synchro_tabs(DForm *form, const DSelect *sel, const char_t *resource_path)
+{
+    FCell *cell = i_sel_fcell(sel);
+    Tabs *tabs = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_TABS);
+    i_need_save(form, TRUE);
+    tabs = layout_get_tabs(sel->glayout, sel->col, sel->row);
+    ftabs_synchro(cell->widget.tabs, tabs, resource_path);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dform_synchro_listbox(DForm *form, const DSelect *sel, const char_t *resource_path)
 {
     FCell *cell = i_sel_fcell(sel);
@@ -2228,6 +2313,21 @@ void dform_synchro_vline(DForm *form, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+void dform_synchro_panel(DForm *form, const DSelect *sel)
+{
+    FCell *cell = i_sel_fcell(sel);
+    Panel *panel = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_PANEL);
+    i_need_save(form, TRUE);
+    panel = layout_get_panel(sel->glayout, sel->col, sel->row);
+    fpanel_synchro(cell->widget.panel, panel);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dform_synchro_layout(DForm *form, const DSelect *sel)
 {
     cassert_no_null(form);
@@ -2351,6 +2451,8 @@ const char_t* dform_cell_type(const celltype_t type)
         return gui_text(TEXT_CELL_EDIT);
     case ekCELL_TYPE_COMBO:
         return gui_text(TEXT_CELL_COMBO);
+    case ekCELL_TYPE_TABS:
+        return gui_text(TEXT_CELL_TABS);
     case ekCELL_TYPE_LISTBOX:
         return gui_text(TEXT_CELL_LISTBOX);
     case ekCELL_TYPE_SLIDER:
@@ -2373,6 +2475,8 @@ const char_t* dform_cell_type(const celltype_t type)
         return gui_text(TEXT_CELL_HLINE);
     case ekCELL_TYPE_VLINE:
         return gui_text(TEXT_CELL_VLINE);
+    case ekCELL_TYPE_PANEL:
+        return gui_text(TEXT_CELL_PANEL);
     case ekCELL_TYPE_LAYOUT:
         return gui_text(TEXT_CELL_LAYOUT);
     default:
@@ -2406,6 +2510,8 @@ const Image *dform_cell_icon(const celltype_t type)
         return gui_image(EDITBOX16_PNG);
     case ekCELL_TYPE_COMBO:
         return gui_image(COMBOBOX16_PNG);
+    case ekCELL_TYPE_TABS:
+        return gui_image(TABS16_PNG);
     case ekCELL_TYPE_LISTBOX:
         return gui_image(LISTVIEW16_PNG);
     case ekCELL_TYPE_SLIDER:
@@ -2428,6 +2534,8 @@ const Image *dform_cell_icon(const celltype_t type)
         return gui_image(HLINE16_PNG);
     case ekCELL_TYPE_VLINE:
         return gui_image(VLINE16_PNG);
+    case ekCELL_TYPE_PANEL:
+        return gui_image(PANEL16_PNG);
     case ekCELL_TYPE_LAYOUT:
         return gui_image(LCELL16_PNG);
     default:

@@ -10,9 +10,11 @@ TEXT_NEW_RADIO      A new radio button will be placed in cell (%d, %d) of '%s' l
 TEXT_NEW_TOOL       A new tool button will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_POPUP      A new popup button will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_ELEM_POPUP A new element will be added to popup in cell '%s'
+TEXT_NEW_ELEM_TABS  A new element will be added to tabcontrol in cell '%s'
 TEXT_NEW_ELEM_LIST  A new element will be added to listbox in cell '%s'
 TEXT_NEW_EDIT       A new editbox will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_COMBO      A new combo box will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_TABCTRL    A new tabcontrol will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_LISTBOX    A new listbox will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SLIDER     A new slider will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_VSLIDER    A new vertical slider will be placed in cell (%d, %d) of '%s' layout
@@ -24,6 +26,7 @@ TEXT_NEW_IMAGEVIEW  A new imageview will be placed in cell (%d, %d) of '%s' layo
 TEXT_NEW_TABLEVIEW  A new tableview will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_HLINE      A new horizontal separator will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_VLINE      A new vertical separator will be placed in cell (%d, %d) of '%s' layout
+TEXT_NEW_PANEL      A new panel will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_SUBLAYOUT  A new sublayout will be placed in cell (%d, %d) of '%s' layout
 TEXT_NEW_FORM       A new form will be created with this filename and properties
 TEXT_PROPS_FORM     Change the filename and forms properties
@@ -40,6 +43,7 @@ TEXT_TOOL_PROPS     Tool button properties
 TEXT_POPUP_PROPS    Popup properties
 TEXT_EDIT_PROPS     Editbox properties
 TEXT_COMBO_PROPS    Combobox properties
+TEXT_TABS_PROPS     Tabcontrol properties
 TEXT_LIST_PROPS     Listbox properties
 TEXT_SLIDER_PROPS   Slider properties
 TEXT_VSLIDER_PROPS  VertSlider properties
@@ -51,6 +55,7 @@ TEXT_IMAGE_PROPS    Imageview properties
 TEXT_TABLE_PROPS    Tableview properties
 TEXT_HLINE_PROPS    HorzLine properties
 TEXT_VLINE_PROPS    VertLine properties
+TEXT_PANEL_PROPS    Panel properties
 TEXT_LAYOUT         Layout
 TEXT_LAYOUTS        Layouts
 TEXT_BUTTONS        Buttons
@@ -74,12 +79,14 @@ TEXT_PUSH_BUTTON    Push Button
 TEXT_CHECK_BOX      Check Box
 TEXT_RADIO_BUTTON   Radio Button
 TEXT_TOOL_BUTTON    Tool Button
+TEXT_ELEM_TABS      TabControl Add Element
 TEXT_ELEM_POPUP     PopUp Add Element
 TEXT_POPUP_BUTTON   PopUp Button
 TEXT_EDIT_BOX       Edit Box
 TEXT_COMBO_BOX      Combo Box
 TEXT_ELEM_LIST      ListBox Add Element
 TEXT_LIST_BOX       List Box
+TEXT_TAB_CONTROL    Tab Control
 TEXT_HORZ_SLIDER    Horizontal Slider
 TEXT_VERT_SLIDER    Vertical Slider
 TEXT_PROGRESS_BAR   Progress Bar
@@ -87,6 +94,7 @@ TEXT_HORZ_LINE      Horizontal Line
 TEXT_VERT_LINE      Vertical Line
 TEXT_CUSTOM_VIEW    Custom View
 TEXT_SCROLL_VIEW    Scroll View
+TEXT_PANEL          Panel
 TEXT_TEXT_VIEW      Text View
 TEXT_IMAGE_VIEW     Image View
 TEXT_TABLE_VIEW     Table View
@@ -144,6 +152,7 @@ TEXT_ICON           Icon
 TEXT_IMAGE          Image
 TEXT_ICON_PATH      Icon path
 TEXT_IMAGE_PATH     Image path
+TEXT_AUTOSIZE       Autosize
 TEXT_ELEMENTS       Elements
 TEXT_DEFAULT        default
 TEXT_LOAD_IMAGE     Load image
@@ -162,6 +171,7 @@ TEXT_CELL_TOOL      ToolButtonCell
 TEXT_CELL_POPUP     PopUpCell
 TEXT_CELL_EDIT      EditBoxCell
 TEXT_CELL_COMBO     ComboBoxCell
+TEXT_CELL_TABS      TabsCell
 TEXT_CELL_LISTBOX   ListBoxCell
 TEXT_CELL_SLIDER    SliderCell
 TEXT_CELL_VSLIDER   VertSliderCell
@@ -173,6 +183,7 @@ TEXT_CELL_IMAGE     ImageViewCell
 TEXT_CELL_TABLE     TableCell
 TEXT_CELL_HLINE     HLineCell
 TEXT_CELL_VLINE     VLineCell
+TEXT_CELL_PANEL     PanelCell
 TEXT_CELL_LAYOUT    LayoutCell
 TEXT_FILE           File
 TEXT_FILENAME       Filename
@@ -213,6 +224,7 @@ TEXT_UNSAVED1       There are unsaved changes in your current forms.\nChanges wi
 TEXT_UNSAVED2       There are unsaved changes in your current forms.\nChanges will be lost if you close the application.\nDo you want to save your changes?
 TEXT_UNDO_STACK     Undo stack
 TEXT_PROMOTE        Promote
+TEXT_RUNTIME_PANEL  Runtime panel
 
 TIP_LAYOUT_NAME     Layout name. It will be useful to locate the layout at runtime.
 TIP_CELL_NAME       Cell name. It will be useful to locate the cell at runtime.
@@ -274,6 +286,7 @@ TIP_ELEMENT_CLEAR   Remove all elements
 TIP_COLUMN_ADD      Add a new column
 TIP_COLUMN_REMOVE   Remove current column
 TIP_COLUMN_CLEAR    Remove all columns
+TIP_TABS_MWIDTH     Tabcontrol width.
 TIP_LIST_MWIDTH     Listbox width.
 TIP_LIST_MHEIGHT    Listbox height.
 TIP_SLIDER_MWIDTH   Slider width.
@@ -281,6 +294,9 @@ TIP_SLIDER_MHEIGHT  Slider height.
 TIP_PROGRESS_MWIDTH Progress width.
 TIP_HLINE_LENGTH    Horizontal line length.
 TIP_VLINE_LENGTH    Vertical line length.
+TIP_PANEL_MWIDTH    Panel width, if autosize is off.
+TIP_PANEL_MHEIGHT   Panel height, if autosize is off.
+TIP_PANEL_AUTOSIZE  If set, the runtime panel will expand to display all content without scroll bars.
 
 TIP_VIEW_MWIDTH     View width.
 TIP_VIEW_MHEIGHT    View height.

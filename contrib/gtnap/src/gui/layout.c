@@ -623,7 +623,15 @@ void layout_splitview(Layout *layout, SplitView *view, const uint32_t col, const
 void layout_panel(Layout *layout, Panel *panel, const uint32_t col, const uint32_t row)
 {
     Cell *cell = i_set_component(layout, cast(panel, GuiComponent), col, row, ekJUSTIFY, ekJUSTIFY);
+    cassert_no_null(layout);
     cassert_unref(cell != NULL, cell);
+    cassert(cell->tabstop == TRUE);
+    if (layout->panel != NULL)
+    {
+        Window *parent_window = _panel_get_window(layout->panel);
+        _component_window(cast(panel, GuiComponent), parent_window);
+        layout_update(layout);
+    }
 }
 
 /*---------------------------------------------------------------------------*/

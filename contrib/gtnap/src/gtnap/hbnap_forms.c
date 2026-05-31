@@ -60,12 +60,43 @@ HB_FUNC(HBNAP_FORMS_SET_TEXT)
 
 /*---------------------------------------------------------------------------*/
 
+HB_FUNC(HBNAP_FORMS_SET_INT)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    const char_t *cell = hb_parcx(2);
+    int32_t value = (int32_t)hb_parni(3);
+    hbnap_forms_set_int(form, cell, value);
+}
+
+/*---------------------------------------------------------------------------*/
+
 HB_FUNC(HBNAP_FORMS_INSERT_TEXT)
 {
     GtNapForm *form = cast(hb_parptr(1), GtNapForm);
     const char_t *cell = hb_parcx(2);
     const char_t *text = hb_parcx(3);
     hbnap_forms_insert_text(form, cell, text);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(HBNAP_FORMS_GET_INT)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    const char_t *cell = hb_parcx(2);
+    int32_t value = hbnap_forms_get_int(form, cell);
+    hb_retni(value);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(HBNAP_FORMS_EMBED)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    GtNapForm *embedded_form = cast(hb_parptr(2), GtNapForm);
+    const char_t *cell = hb_parcx(3);
+    bool_t ok = hbnap_forms_embed(form, embedded_form, cell);
+    hb_retl(ok);
 }
 
 /*---------------------------------------------------------------------------*/

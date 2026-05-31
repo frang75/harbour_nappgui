@@ -32,6 +32,7 @@ typedef enum _widget_t
     ekWIDGET_CUSTOMVIEW,
     ekWIDGET_SCROLLVIEW,
     ekWIDGET_TEXTVIEW,
+    ekWIDGET_TABS,
     ekWIDGET_LISTBOX,
     ekWIDGET_POPUP,
     ekWIDGET_TABLEVIEW,
@@ -40,7 +41,8 @@ typedef enum _widget_t
     ekWIDGET_VERT_SLIDER,
     ekWIDGET_PROGRESS,
     ekWIDGET_HORZ_LINE,
-    ekWIDGET_VERT_LINE
+    ekWIDGET_VERT_LINE,
+    ekWIDGET_PANEL
 } widget_t;
 
 typedef enum _drawer_t
@@ -64,6 +66,7 @@ typedef enum _drawer_t
     ekDRAWER_POPUP_PROPS,
     ekDRAWER_EDIT_PROPS,
     ekDRAWER_COMBO_PROPS,
+    ekDRAWER_TABS_PROPS,
     ekDRAWER_LIST_PROPS,
     ekDRAWER_HSLIDER_PROPS,
     ekDRAWER_VSLIDER_PROPS,
@@ -75,7 +78,8 @@ typedef enum _drawer_t
     ekDRAWER_TEXT_PROPS,
     ekDRAWER_IMAGE_PROPS,
     ekDRAWER_TABLE_FRAME_PROPS,
-    ekDRAWER_TABLE_COLS_PROPS
+    ekDRAWER_TABLE_COLS_PROPS,
+    ekDRAWER_PANEL_PROPS
 } drawer_t;
 
 typedef enum _layelem_t

@@ -14,11 +14,13 @@
 #include <nflib/fradio.h>
 #include <nflib/ftool.h>
 #include <nflib/flayout.h>
+#include <nflib/fpanel.h>
 #include <nflib/fpopup.h>
 #include <nflib/fprogress.h>
 #include <nflib/fslider.h>
 #include <nflib/fvslider.h>
 #include <nflib/ftable.h>
+#include <nflib/ftabs.h>
 #include <nflib/ftext.h>
 #include <nflib/fview.h>
 #include <nflib/fsview.h>
@@ -950,6 +952,41 @@ FCombo *dialog_new_combo(Window *parent, const Font *font, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+FTabs *dialog_new_tabs(Window *parent, const Font *font, const DSelect *sel)
+{
+    DialogData data = i_dialog_data();
+    Layout *layout1 = layout_create(2, 1);
+    FTabs *ftabs = ftabs_create();   
+    String *caption = NULL;
+    uint32_t ret = 0;
+    cassert_no_null(sel);
+    cassert_no_null(sel->flayout);
+
+    /* Widget layout */
+    {
+        Label *label1 = label_create();
+        Layout *layout2 = i_value_updown_layout();
+        label_text(label1, gui_text(TEXT_WIDTH));
+        layout_label(layout1, label1, 0, 0);
+        layout_layout(layout1, layout2, 1, 0);
+        cell_dbind(layout_cell(layout1, 1, 0), FTabs, real32_t, min_width);
+        layout_dbind(layout1, NULL, FTabs);
+        layout_dbind_obj(layout1, ftabs, FTabs);
+    }
+
+    caption = str_printf(gui_text(TEXT_NEW_TABCTRL), sel->col, sel->row, tc(sel->flayout->name));
+    ret = i_modal_launch(parent, &data, layout1, font, TABS24_PNG, TEXT_TAB_CONTROL, tc(caption), ekDBUT_OK_CANCEL_DEF_OK);
+
+    if (ret != BUTTON_OK)
+        ftabs_destroy(&ftabs);
+
+    str_destroy(&caption);
+    i_remove_dialog_data(&data);
+    return ftabs;
+}
+
+/*---------------------------------------------------------------------------*/
+
 FListBox *dialog_new_listbox(Window *parent, const Font *font, const DSelect *sel)
 {
     DialogData data = i_dialog_data();
@@ -1410,6 +1447,48 @@ FVline *dialog_new_vline(Window *parent, const Font *font, const DSelect *sel)
     str_destroy(&caption);
     i_remove_dialog_data(&data);
     return fvline;
+}
+
+/*---------------------------------------------------------------------------*/
+
+FPanel *dialog_new_panel(Window *parent, const Font *font, const DSelect *sel)
+{
+    DialogData data = i_dialog_data();
+    Layout *layout1 = layout_create(2, 2);
+    FPanel *fpanel = fpanel_create();    
+    String *caption = NULL;
+    uint32_t ret = 0;
+    cassert_no_null(sel);
+    cassert_no_null(sel->flayout);
+
+    /* Widget layout */
+    {
+        Label *label1 = label_create();
+        Label *label2 = label_create();
+        Layout *layout2 = i_value_updown_layout();
+        Layout *layout3 = i_value_updown_layout();
+        label_text(label1, gui_text(TEXT_WIDTH));
+        label_text(label2, gui_text(TEXT_HEIGHT));
+        layout_label(layout1, label1, 0, 0);
+        layout_label(layout1, label2, 0, 1);
+        layout_layout(layout1, layout2, 1, 0);
+        layout_layout(layout1, layout3, 1, 1);
+        layout_hmargin(layout1, 0, 5);
+        cell_dbind(layout_cell(layout1, 1, 0), FPanel, real32_t, min_width);
+        cell_dbind(layout_cell(layout1, 1, 1), FPanel, real32_t, min_height);
+        layout_dbind(layout1, NULL, FPanel);
+        layout_dbind_obj(layout1, fpanel, FPanel);
+    }
+
+    caption = str_printf(gui_text(TEXT_NEW_PANEL), sel->col, sel->row, tc(sel->flayout->name));
+    ret = i_modal_launch(parent, &data, layout1, font, PANEL24_PNG, TEXT_PANEL, tc(caption), ekDBUT_OK_CANCEL_DEF_OK);
+
+    if (ret != BUTTON_OK)
+        fpanel_destroy(&fpanel);
+
+    str_destroy(&caption);
+    i_remove_dialog_data(&data);
+    return fpanel;
 }
 
 /*---------------------------------------------------------------------------*/

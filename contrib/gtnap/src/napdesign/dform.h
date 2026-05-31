@@ -82,6 +82,8 @@ void dform_synchro_edit(DForm *form, const DSelect *sel);
 
 void dform_synchro_combo(DForm *form, const DSelect *sel);
 
+void dform_synchro_tabs(DForm *form, const DSelect *sel, const char_t *resource_path);
+
 void dform_synchro_listbox(DForm *form, const DSelect *sel, const char_t *resource_path);
 
 void dform_synchro_slider(DForm *form, const DSelect *sel);
@@ -103,6 +105,8 @@ void dform_synchro_table(DForm *form, const DSelect *sel);
 void dform_synchro_hline(DForm *form, const DSelect *sel);
 
 void dform_synchro_vline(DForm *form, const DSelect *sel);
+
+void dform_synchro_panel(DForm *form, const DSelect *sel);
 
 void dform_synchro_layout(DForm *form, const DSelect *sel);
 

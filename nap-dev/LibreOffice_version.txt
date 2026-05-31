@@ -1,0 +1,4 @@
+Minimum versions of LibreOffice required for run precompiled officesdk libraries.
+
+Linux: LibreOffice 24.2.7.2 and upper.
+Windows: LibreOffice 25.8.4.2 and upper.

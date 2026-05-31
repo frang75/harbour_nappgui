@@ -199,7 +199,13 @@ extern void hbnap_forms_title(GtNapForm *form, const char_t *text);
 
 extern void hbnap_forms_set_text(GtNapForm *form, const char_t *cell, const char_t *text);
 
+extern void hbnap_forms_set_int(GtNapForm *form, const char_t *cell, const int32_t value);
+
 extern void hbnap_forms_insert_text(GtNapForm *form, const char_t *cell, const char_t *text);
+
+extern int32_t hbnap_forms_get_int(GtNapForm *form, const char_t *cell);
+
+extern bool_t hbnap_forms_embed(GtNapForm *form, GtNapForm *embedded_form, const char_t *cell);
 
 extern void hbnap_forms_bind(GtNapForm *form, HB_ITEM *cell_bind);
 

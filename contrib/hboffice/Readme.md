@@ -211,7 +211,7 @@ cd contrib/hboffice
 ./build.sh -dll -b Release
 
 :: Full command
-./build.sh -dll -b [Release|Debug]
+./build.sh -dll -comp [gcc|clang] -b [Release|Debug]
 ```
 
 Then, generate the **libhboffice.a**:

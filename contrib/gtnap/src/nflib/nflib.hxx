@@ -16,6 +16,7 @@ typedef struct _felem_t FElem;
 typedef struct _fpopup_t FPopUp;
 typedef struct _fedit_t FEdit;
 typedef struct _fcombo_t FCombo;
+typedef struct _ftabs_t FTabs;
 typedef struct _flistbox_t FListBox;
 typedef struct _fslider_t FSlider;
 typedef struct _fvslider_t FVSlider;
@@ -26,6 +27,7 @@ typedef struct _ftext_t FText;
 typedef struct _fimage_t FImage;
 typedef struct _fhline_t FHline;
 typedef struct _fvline_t FVline;
+typedef struct _fpanel_t FPanel;
 typedef struct _fheader_t FHeader;
 typedef struct _ftable_t FTable;
 typedef struct _fcolumn_t FColumn;
@@ -59,7 +61,9 @@ typedef enum _celltype_t
     ekCELL_TYPE_VIEW,
     ekCELL_TYPE_SCROLL_VIEW,
     ekCELL_TYPE_HLINE,
-    ekCELL_TYPE_VLINE
+    ekCELL_TYPE_VLINE,
+    ekCELL_TYPE_TABS,
+    ekCELL_TYPE_PANEL
 } celltype_t;
 
 /* Don't change the order. Add new values to end */
@@ -187,6 +191,12 @@ struct _fcombo_t
     real32_t min_width;
 };
 
+struct _ftabs_t
+{
+	real32_t min_width;
+    ArrSt(FElem) *elems;
+};
+
 struct _flistbox_t
 {
     real32_t min_width;
@@ -246,6 +256,13 @@ struct _fvline_t
     real32_t length;
 };
 
+struct _fpanel_t
+{
+    bool_t autosize;
+    real32_t min_width;
+    real32_t min_height;
+};
+
 struct _fheader_t
 {
     String *title;
@@ -288,6 +305,7 @@ struct _fwidget_t
     FPopUp *popup;
     FEdit *edit;
     FCombo *combo;
+    FTabs *tabs;
     FListBox *listbox;
     FSlider *slider;
     FVSlider *vslider;
@@ -299,6 +317,7 @@ struct _fwidget_t
     FTable *table;
     FHline *hline;
     FVline *vline;
+    FPanel *panel;
     FLayout *layout;
 };
 

@@ -973,6 +973,7 @@ static bool_t i_is_widget_drawer(const drawer_t drawer)
     case ekDRAWER_POPUP_PROPS:
     case ekDRAWER_EDIT_PROPS:
     case ekDRAWER_COMBO_PROPS:
+    case ekDRAWER_TABS_PROPS:
     case ekDRAWER_LIST_PROPS:
     case ekDRAWER_HSLIDER_PROPS:
     case ekDRAWER_VSLIDER_PROPS:
@@ -985,6 +986,7 @@ static bool_t i_is_widget_drawer(const drawer_t drawer)
     case ekDRAWER_TABLE_COLS_PROPS:
     case ekDRAWER_HLINE_PROPS:
     case ekDRAWER_VLINE_PROPS:
+    case ekDRAWER_PANEL_PROPS:
         return FALSE;
     default:
         cassert_default(drawer);
@@ -1760,7 +1762,6 @@ static void i_save_config(const Designer *app)
         stm_write_bool(stm, app->config.show_widgets);
         stm_write_bool(stm, app->config.show_inspectr);
         stm_write_bool(stm, app->config.show_propedit);
-        cassert(ndrawers == 31);
         stm_write_u32(stm, ndrawers);
         arrst_foreach_const(wdrawer, app->wdrawers, WDrawer)
             stm_write_bool(stm, wdrawer->opened);
@@ -2013,7 +2014,8 @@ static Designer *i_app(void)
     i_add_drawer(app->wdrawers, ekDRAWER_TOOL_PROPS, TEXT_TOOL_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_POPUP_PROPS, TEXT_POPUP_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_EDIT_PROPS, TEXT_EDIT_PROPS);
-    i_add_drawer(app->wdrawers, ekDRAWER_COMBO_PROPS, TEXT_COMBO_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_COMBO_PROPS, TEXT_COMBO_PROPS);    
+    i_add_drawer(app->wdrawers, ekDRAWER_TABS_PROPS, TEXT_TABS_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_LIST_PROPS, TEXT_LIST_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_HSLIDER_PROPS, TEXT_SLIDER_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_VSLIDER_PROPS, TEXT_VSLIDER_PROPS);
@@ -2026,6 +2028,7 @@ static Designer *i_app(void)
     i_add_drawer(app->wdrawers, ekDRAWER_HLINE_PROPS, TEXT_HLINE_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_VLINE_PROPS, TEXT_VLINE_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_TABLE_COLS_PROPS, TEXT_COLUMN_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_PANEL_PROPS, TEXT_PANEL_PROPS);
     i_add_widget(app->bwidgets, ekWIDGET_SELECT, TEXT_SELECT, CURSOR_PNG, ekDRAWER_WIDGET_SELECT);
     i_add_widget(app->bwidgets, ekWIDGET_VERT_LAYOUT, TEXT_VERT_LAYOUT, VLAYOUT_PNG, ekDRAWER_WIDGET_LAYOUTS);
     i_add_widget(app->bwidgets, ekWIDGET_HORZ_LAYOUT, TEXT_HORZ_LAYOUT, HLAYOUT_PNG, ekDRAWER_WIDGET_LAYOUTS);
@@ -2038,17 +2041,19 @@ static Designer *i_app(void)
     i_add_widget(app->bwidgets, ekWIDGET_EDITBOX, TEXT_EDIT_BOX, EDITBOX_PNG, ekDRAWER_WIDGET_TEXT);
     i_add_widget(app->bwidgets, ekWIDGET_COMBOBOX, TEXT_COMBO_BOX, COMBOBOX_PNG, ekDRAWER_WIDGET_TEXT);
     i_add_widget(app->bwidgets, ekWIDGET_TEXTVIEW, TEXT_TEXT_VIEW, TEXTVIEW_PNG, ekDRAWER_WIDGET_TEXT);
+    i_add_widget(app->bwidgets, ekWIDGET_TABS, TEXT_TAB_CONTROL, TABS24_PNG, ekDRAWER_WIDGET_ITEMS);
     i_add_widget(app->bwidgets, ekWIDGET_LISTBOX, TEXT_LIST_BOX, LISTVIEW_PNG, ekDRAWER_WIDGET_ITEMS);
     i_add_widget(app->bwidgets, ekWIDGET_POPUP, TEXT_POPUP_BUTTON, POPUP_PNG, ekDRAWER_WIDGET_ITEMS);
     i_add_widget(app->bwidgets, ekWIDGET_TABLEVIEW, TEXT_TABLE_VIEW, TABLEVIEW_PNG, ekDRAWER_WIDGET_ITEMS);
     i_add_widget(app->bwidgets, ekWIDGET_IMAGEVIEW, TEXT_IMAGE_VIEW, IMAGEVIEW_PNG, ekDRAWER_WIDGET_DISPLAY);
     i_add_widget(app->bwidgets, ekWIDGET_CUSTOMVIEW, TEXT_CUSTOM_VIEW, VIEW_PNG, ekDRAWER_WIDGET_DISPLAY);
     i_add_widget(app->bwidgets, ekWIDGET_SCROLLVIEW, TEXT_SCROLL_VIEW, SVIEW_PNG, ekDRAWER_WIDGET_DISPLAY);
+    i_add_widget(app->bwidgets, ekWIDGET_PANEL, TEXT_PANEL, PANEL24_PNG, ekDRAWER_WIDGET_DISPLAY);
     i_add_widget(app->bwidgets, ekWIDGET_HORZ_SLIDER, TEXT_HORZ_SLIDER, HORSLIDER_PNG, ekDRAWER_WIDGET_OTHERS);
     i_add_widget(app->bwidgets, ekWIDGET_VERT_SLIDER, TEXT_VERT_SLIDER, VERSLIDER_PNG, ekDRAWER_WIDGET_OTHERS);
     i_add_widget(app->bwidgets, ekWIDGET_PROGRESS, TEXT_PROGRESS_BAR, PROGRESSBAR_PNG, ekDRAWER_WIDGET_OTHERS);
     i_add_widget(app->bwidgets, ekWIDGET_HORZ_LINE, TEXT_HORZ_LINE, HLINE_PNG, ekDRAWER_WIDGET_OTHERS);
-    i_add_widget(app->bwidgets, ekWIDGET_VERT_LINE, TEXT_VERT_LINE, VLINE_PNG, ekDRAWER_WIDGET_OTHERS);   
+    i_add_widget(app->bwidgets, ekWIDGET_VERT_LINE, TEXT_VERT_LINE, VLINE_PNG, ekDRAWER_WIDGET_OTHERS);           
     i_load_config(app);
     return app;
 }

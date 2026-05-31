@@ -11,12 +11,14 @@
 #include "flabel.h"
 #include "flistbox.h"
 #include "fimage.h"
+#include "fpanel.h"
 #include "fpopup.h"
 #include "fprogress.h"
 #include "fradio.h"
 #include "fslider.h"
 #include "fvslider.h"
 #include "ftable.h"
+#include "ftabs.h"
 #include "ftext.h"
 #include "ftool.h"
 #include "fview.h"
@@ -33,8 +35,10 @@
 #include <gui/line.h>
 #include <gui/listbox.h>
 #include <gui/edit.h>
+#include <gui/tabs.h>
 #include <gui/textview.h>
 #include <gui/imageview.h>
+#include <gui/panel.h>
 #include <gui/progress.h>
 #include <gui/popup.h>
 #include <gui/slider.h>
@@ -115,6 +119,10 @@ static void i_remove_cell(FCell *cell)
         fcombo_destroy(&cell->widget.combo);
         break;
 
+    case ekCELL_TYPE_TABS:
+        ftabs_destroy(&cell->widget.tabs);
+        break;
+
     case ekCELL_TYPE_LISTBOX:
         flistbox_destroy(&cell->widget.listbox);
         break;
@@ -157,6 +165,10 @@ static void i_remove_cell(FCell *cell)
 
     case ekCELL_TYPE_VLINE:
         fvline_destroy(&cell->widget.vline);
+        break;
+
+    case ekCELL_TYPE_PANEL:
+        fpanel_destroy(&cell->widget.panel);
         break;
 
     case ekCELL_TYPE_LAYOUT:
@@ -433,6 +445,16 @@ static FCombo *i_read_combo(Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
+static FTabs *i_read_tabs(Stream *stm)
+{
+    FTabs *tabs = heap_new0(FTabs);
+    tabs->min_width = stm_read_r32(stm);
+    tabs->elems = arrst_read(stm, i_read_elem, FElem);
+    return tabs;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static FListBox *i_read_listbox(Stream *stm)
 {
     FListBox *listbox = heap_new0(FListBox);
@@ -556,6 +578,17 @@ static FVline *i_read_vline(Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
+static FPanel *i_read_panel(Stream *stm)
+{
+    FPanel *panel = heap_new0(FPanel);
+    panel->autosize = stm_read_bool(stm);
+    panel->min_width = stm_read_r32(stm);
+    panel->min_height = stm_read_r32(stm);
+    return panel;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_read_cell(Stream *stm, FCell *cell, const uint16_t *vers)
 {
     cassert_no_null(cell);
@@ -615,6 +648,9 @@ static void i_read_cell(Stream *stm, FCell *cell, const uint16_t *vers)
     case ekCELL_TYPE_COMBO:
         cell->widget.combo = i_read_combo(stm);
         break;
+    case ekCELL_TYPE_TABS:
+        cell->widget.tabs = i_read_tabs(stm);
+        break;
     case ekCELL_TYPE_LISTBOX:
         cell->widget.listbox = i_read_listbox(stm);
         break;
@@ -647,6 +683,9 @@ static void i_read_cell(Stream *stm, FCell *cell, const uint16_t *vers)
         break;
     case ekCELL_TYPE_VLINE:
         cell->widget.vline = i_read_vline(stm);
+        break;
+    case ekCELL_TYPE_PANEL:
+        cell->widget.panel = i_read_panel(stm);
         break;
     case ekCELL_TYPE_LAYOUT:
         if (*vers >= 8)
@@ -855,6 +894,15 @@ static void i_write_combo(Stream *stm, const FCombo *combo)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_write_tabs(Stream *stm, const FTabs *tabs)
+{
+    cassert_no_null(tabs);
+    stm_write_r32(stm, tabs->min_width);
+    arrst_write(stm, tabs->elems, i_write_elem, FElem);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_write_listbox(Stream *stm, const FListBox *listbox)
 {
     cassert_no_null(listbox);
@@ -968,6 +1016,16 @@ static void i_write_vline(Stream *stm, const FVline *vline)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_write_panel(Stream *stm, const FPanel *panel)
+{
+    cassert_no_null(panel);
+    stm_write_bool(stm, panel->autosize);
+    stm_write_r32(stm, panel->min_width);
+    stm_write_r32(stm, panel->min_height);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_write_cell(Stream *stm, const FCell *cell)
 {
     cassert_no_null(cell);
@@ -1009,6 +1067,9 @@ static void i_write_cell(Stream *stm, const FCell *cell)
     case ekCELL_TYPE_COMBO:
         i_write_combo(stm, cell->widget.combo);
         break;
+    case ekCELL_TYPE_TABS:
+        i_write_tabs(stm, cell->widget.tabs);
+        break;
     case ekCELL_TYPE_LISTBOX:
         i_write_listbox(stm, cell->widget.listbox);
         break;
@@ -1041,6 +1102,9 @@ static void i_write_cell(Stream *stm, const FCell *cell)
         break;
     case ekCELL_TYPE_VLINE:
         i_write_vline(stm, cell->widget.vline);
+        break;
+    case ekCELL_TYPE_PANEL:
+        i_write_panel(stm, cell->widget.panel);
         break;
     case ekCELL_TYPE_LAYOUT:
         i_write_layout(stm, cell->widget.layout);
@@ -1316,6 +1380,20 @@ void flayout_add_combo(FLayout *layout, FCombo *combo, const uint32_t col, const
 
 /*---------------------------------------------------------------------------*/
 
+void flayout_add_tabs(FLayout *layout, FTabs *tabs, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(tabs);
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_TABS;
+    cell->halign = ekHALIGN_JUSTIFY;
+    cell->valign = ekVALIGN_BOTTOM;
+    cell->widget.tabs = tabs;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void flayout_add_listbox(FLayout *layout, FListBox *listbox, const uint32_t col, const uint32_t row)
 {
     FCell *cell = i_cell(layout, col, row);
@@ -1466,6 +1544,20 @@ void flayout_add_vline(FLayout *layout, FVline *vline, const uint32_t col, const
     cell->halign = ekHALIGN_CENTER;
     cell->valign = ekVALIGN_JUSTIFY;
     cell->widget.vline = vline;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_add_panel(FLayout *layout, FPanel *panel, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(panel);
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_PANEL;
+    cell->halign = ekHALIGN_JUSTIFY;
+    cell->valign = ekVALIGN_JUSTIFY;
+    cell->widget.panel = panel;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1788,6 +1880,14 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     break;
                 }
 
+                case ekCELL_TYPE_TABS:
+                {
+                    Tabs *tabs = tabs_create(ekGUI_POS_TOP);
+                    ftabs_synchro(cells->widget.tabs, tabs, resource_path);
+                    layout_tabs(glayout, tabs, i, j);
+                    break;
+                }
+
                 case ekCELL_TYPE_COMBO:
                 {
                     Combo *combo = combo_create();
@@ -1884,6 +1984,14 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     break;
                 }
 
+                case ekCELL_TYPE_PANEL:
+                {
+                    Panel *panel = panel_create();
+                    fpanel_synchro(cells->widget.panel, panel);
+                    layout_panel(glayout, panel, i, j);
+                    break;
+                }
+
                 case ekCELL_TYPE_LAYOUT:
                 {
                     Layout *gsublayout = flayout_to_gui(cells->widget.layout, resource_path, empty_width, empty_height);
@@ -1905,7 +2013,7 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
 
 /*---------------------------------------------------------------------------*/
 
-GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout, const char_t *cell_name)
+static GuiControl *i_search_gui_control(const FLayout *layout, Layout *gui_layout, const char_t *cell_name, Layout **loc_layout, uint32_t *loc_col, uint32_t *loc_row)
 {
     const FCell *cells = NULL;
     uint32_t i, j, ncols = 0, nrows = 0;
@@ -1930,6 +2038,7 @@ GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout
                 case ekCELL_TYPE_POPUP:
                 case ekCELL_TYPE_EDIT:
                 case ekCELL_TYPE_COMBO:
+                case ekCELL_TYPE_TABS:
                 case ekCELL_TYPE_LISTBOX:
                 case ekCELL_TYPE_SLIDER:
                 case ekCELL_TYPE_VSLIDER:
@@ -1941,8 +2050,12 @@ GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout
                 case ekCELL_TYPE_TABLEVIEW:
                 case ekCELL_TYPE_HLINE:
                 case ekCELL_TYPE_VLINE:
+                case ekCELL_TYPE_PANEL:
                 {
                     Cell *gcell = layout_cell(gui_layout, i, j);
+                    ptr_assign(loc_layout, gui_layout);
+                    ptr_assign(loc_col, i);
+                    ptr_assign(loc_row, j);
                     return cell_control(gcell);
                 }
 
@@ -1958,13 +2071,39 @@ GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout
             {
                 Cell *gcell = layout_cell(gui_layout, i, j);
                 Layout *gsub_layout = cell_layout(gcell);
-                GuiControl *control = flayout_search_gui_control(cells->widget.layout, gsub_layout, cell_name);
+                GuiControl *control = i_search_gui_control(cells->widget.layout, gsub_layout, cell_name, loc_layout, loc_col, loc_row);
                 if (control != NULL)
                     return control;
             }
 
             cells += 1;
         }
+    }
+
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+GuiControl *flayout_search_gui_control(const FLayout *layout, Layout *gui_layout, const char_t *cell_name)
+{
+    return i_search_gui_control(layout, gui_layout, cell_name, NULL, NULL, NULL);
+}
+
+/*---------------------------------------------------------------------------*/
+
+Layout *flayout_search_cell_location(const FLayout *layout, Layout *gui_layout, const char_t *cell_name, uint32_t *col, uint32_t *row)
+{
+    GuiControl *control = NULL;
+    Layout *loc_layout = NULL;
+    uint32_t loc_col = UINT32_MAX;
+    uint32_t loc_row = UINT32_MAX;
+    control = i_search_gui_control(layout, gui_layout, cell_name, &loc_layout, &loc_col, &loc_row);
+    if (control != NULL)
+    {
+        ptr_assign(col, loc_col);
+        ptr_assign(row, loc_row);
+        return loc_layout;
     }
 
     return NULL;

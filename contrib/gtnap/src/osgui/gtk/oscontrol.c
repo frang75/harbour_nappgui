@@ -821,6 +821,7 @@ OSWidget *_oscontrol_focus_widget(const OSControl *control)
 
     case ekGUI_TYPE_SLIDER:
     case ekGUI_TYPE_UPDOWN:
+    case ekGUI_TYPE_TABLIST:
         return cast(control->widget, OSWidget);
 
     case ekGUI_TYPE_TEXTVIEW:
@@ -847,7 +848,6 @@ OSWidget *_oscontrol_focus_widget(const OSControl *control)
     case ekGUI_TYPE_SPLITVIEW:
     case ekGUI_TYPE_PANEL:
     case ekGUI_TYPE_LINE:
-    case ekGUI_TYPE_TABLIST:
     case ekGUI_TYPE_WINDOW:
     default:
         cassert_default(control->type);

@@ -40,6 +40,8 @@ FEdit *dialog_new_edit(Window *parent, const Font *font, const DSelect *sel);
 
 FCombo *dialog_new_combo(Window *parent, const Font *font, const DSelect *sel);
 
+FTabs *dialog_new_tabs(Window *parent, const Font *font, const DSelect *sel);
+
 FListBox *dialog_new_listbox(Window *parent, const Font *font, const DSelect *sel);
 
 FSlider *dialog_new_slider(Window *parent, const Font *font, const DSelect *sel);
@@ -61,6 +63,8 @@ FTable *dialog_new_table(Window *parent, const Font *font, const DSelect *sel);
 FHline *dialog_new_hline(Window *parent, const Font *font, const DSelect *sel);
 
 FVline *dialog_new_vline(Window *parent, const Font *font, const DSelect *sel);
+
+FPanel *dialog_new_panel(Window *parent, const Font *font, const DSelect *sel);
 
 FLayout *dialog_vertical_layout(Window *parent, const Font *font, const DSelect *sel);
 
