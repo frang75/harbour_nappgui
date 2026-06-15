@@ -11,6 +11,7 @@
 
 /* Array macros for type checking at compile time */
 
+#if defined __ASSERTS__
 #define ArrPtDebug(type) \
     struct type##PtData \
     { \
@@ -24,6 +25,10 @@
         uint16_t elem_sizeof; \
         struct type##PtData *content; \
     }
+#else
+#define ArrPtDebug(type) \
+    typedef struct _arrptnonused##type##_t arrptnonused##type
+#endif
 
 #define ArrPtFuncs(type) \
     ArrPt(type); \

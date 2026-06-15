@@ -38,6 +38,7 @@
 
 typedef struct _column_t Column;
 typedef struct _tdata_t TData;
+typedef struct _tnode_t TNode;
 
 typedef enum _ctype_t
 {
@@ -64,6 +65,14 @@ struct _column_t
     bool_t resizable;
 };
 
+struct _tnode_t
+{
+    void *node;
+    uint32_t depth;
+    uint32_t nchildren;
+    bool_t expanded;
+};
+
 struct _tdata_t
 {
     ScrollView *sview;
@@ -86,6 +95,8 @@ struct _tdata_t
     uint32_t resize_mouse_x;
     uint32_t resize_col_width;
     uint32_t freeze_col_id;
+    uint32_t tree_col_id;
+    ArrSt(TNode) *tree_nodes;
     uint32_t fill_width;
     ctrl_msel_t multisel_mode;
     gui_cursor_t cursor;
@@ -155,7 +166,9 @@ static VCtrlTbl i_TABLEVIEW_TLB = {
 /*---------------------------------------------------------------------------*/
 
 DeclSt(Column);
+DeclSt(TNode);
 static const uint32_t i_COLUMN_PADDING = 10;
+static const uint32_t i_TREE_INDENT = 16;
 static const uint32_t i_ROW_PADDING = 4;
 static const uint32_t i_COLUMN_MIN_DISPLAY = 15;
 static const uint32_t i_BOTTOM_PADDING = 10;
@@ -184,6 +197,7 @@ static TData *i_create_data(void)
     data->head_height_forced = UINT32_MAX;
     data->row_height_forced = UINT32_MAX;
     data->freeze_col_id = UINT32_MAX;
+    data->tree_col_id = UINT32_MAX;
     data->hkey_scroll = i_HORIZONTAL_KEY_SCROLL;
     data->multisel_mode = ekCTRL_MSEL_NO;
     data->cursor = ekGUI_CURSOR_ARROW;
@@ -213,6 +227,7 @@ static void i_destroy_data(TData **data)
     listener_destroy(&(*data)->OnHeaderClick);
     arrst_destroy(&(*data)->columns, i_remove_column, Column);
     arrst_destroy(&(*data)->selected, NULL, uint32_t);
+    arrst_destopt(&(*data)->tree_nodes, NULL, TNode);
     heap_delete(data, TData);
 }
 
@@ -232,6 +247,13 @@ static void i_cell_data(TableView *view, const TData *data, const uint32_t col_i
         EvTbPos pos;
         pos.col = col_id;
         pos.row = row_id;
+        pos.node = NULL;
+        if (data->tree_col_id != UINT32_MAX)
+        {
+            const TNode *tnode = arrst_get_const(data->tree_nodes, row_id, TNode);
+            cassert_no_null(tnode);
+            pos.node = tnode->node;
+        }
         listener_event(data->OnData, ekGUI_EVENT_TBL_CELL, view, &pos, cell, TableView, EvTbPos, EvTbCell);
     }
 }
@@ -292,7 +314,7 @@ static void i_draw_cell(const EvTbCell *cell, DCtx *ctx, const Column *col, cons
                 }
                 else
                 {
-                    draw_text_width(ctx, (real32_t)width);
+                    draw_text_width(ctx, (real32_t)twidth);
                     draw_text_trim(ctx, ekELLIPNONE);
                 }
 
@@ -404,7 +426,7 @@ static void i_visible_cols(const ArrSt(Column) *columns, const uint32_t freeze_w
 
 static int i_uint32_cmp(const uint32_t *u1, const uint32_t *u2)
 {
-    return (int)(*u1 - *u2);
+    return (*u1 > *u2) ? 1 : (*u1 < *u2) ? -1 : 0;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -413,6 +435,81 @@ static bool_t i_row_is_selected(const ArrSt(uint32_t) *selected, const uint32_t 
 {
     const uint32_t *elem = arrst_bsearch_const(selected, i_uint32_cmp, &row, NULL, uint32_t, uint32_t);
     return (bool_t)(elem != NULL);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_draw_tree_marker(DCtx *ctx, const uint32_t x, const uint32_t y, const uint32_t row_height, const TNode *tnode)
+{
+    cassert_no_null(tnode);
+    if (tnode->nchildren > 0)
+    {
+        V2Df points[3];
+        real32_t cx = (real32_t)x + (real32_t)(tnode->depth * i_TREE_INDENT) + (real32_t)i_TREE_INDENT / 2;
+        real32_t cy = (real32_t)y + (real32_t)row_height / 2;
+        draw_fill_color(ctx, gui_label_color());
+
+        if (tnode->expanded == TRUE)
+        {
+            /* Down-pointing triangle (expanded ▼) */
+            points[0].x = cx - 5;
+            points[0].y = cy - 3;
+            points[1].x = cx + 5;
+            points[1].y = cy - 3;
+            points[2].x = cx;
+            points[2].y = cy + 4;
+        }
+        else
+        {
+            /* Right-pointing triangle (collapsed ▶) */
+            points[0].x = cx - 3;
+            points[0].y = cy - 5;
+            points[1].x = cx - 3;
+            points[1].y = cy + 5;
+            points[2].x = cx + 4;
+            points[2].y = cy;
+        }
+
+        draw_polygon(ctx, ekFILL, points, 3);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static uint32_t i_draw_row_cols(TableView *view, TData *data, DCtx *ctx, const Column *cols, const uint32_t row, const uint32_t y, const uint32_t stcol, const uint32_t edcol, const uint32_t start_x, const ctrl_state_t state)
+{
+    uint32_t j, lx = start_x;
+    for (j = stcol; j < edcol; ++j)
+    {
+        if (cols[j].width > 0)
+        {
+            uint32_t cell_x = lx;
+            uint32_t cell_width = cols[j].width;
+            EvTbCell cell;
+            i_cell_data(view, data, j, row, &cols[j], &cell);
+
+            if (j == data->tree_col_id)
+            {
+                const TNode *tnode = arrst_get_const(data->tree_nodes, row, TNode);
+                uint32_t indent = (tnode->depth + 1) * i_TREE_INDENT;
+                i_draw_tree_marker(ctx, cell_x, y, data->row_height, tnode);
+                if (cell_width > indent)
+                {
+                    cell_x += indent;
+                    cell_width -= indent;
+                }
+                else
+                {
+                    cell_x += cell_width;
+                    cell_width = 0;
+                }
+            }
+
+            i_draw_cell(&cell, ctx, cols + j, cell_x, y, cell_width, state);
+            lx += cols[j].width;
+        }
+    }
+    return lx;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -428,7 +525,8 @@ static void i_OnDraw(TData *data, Event *e)
     nc = arrst_size(data->columns, Column);
     nr = data->num_rows;
 
-    drawctrl_clear(p->ctx, (int32_t)p->x + (int32_t)freeze_width, (int32_t)p->y, (uint32_t)p->width - freeze_width, (uint32_t)p->height);
+    if (freeze_width < (uint32_t)p->width)
+        drawctrl_clear(p->ctx, (int32_t)p->x + (int32_t)freeze_width, (int32_t)p->y, (uint32_t)p->width - freeze_width, (uint32_t)p->height);
 
     if (nc > 0 && nr > 0)
     {
@@ -450,7 +548,7 @@ static void i_OnDraw(TData *data, Event *e)
         uint32_t focus_width = UINT32_MAX;
         uint32_t focus_height = UINT32_MAX;
         ctrl_state_t focus_state = ENUM_MAX(ctrl_state_t);
-        uint32_t i, j;
+        uint32_t i;
 
         if (data->head_visible == TRUE)
             head_height = data->head_height;
@@ -486,9 +584,6 @@ static void i_OnDraw(TData *data, Event *e)
             ctrl_state_t state = data->focused == TRUE ? ekCTRL_STATE_NORMAL : ekCTRL_STATE_BKNORMAL;
             bool_t draw_row = FALSE;
             bool_t selected = i_row_is_selected(data->selected, i);
-            uint32_t lx = xmin;
-            EvTbCell cell;
-
             if (selected == TRUE && data->focused == TRUE)
             {
                 state = ekCTRL_STATE_PRESSED;
@@ -509,18 +604,7 @@ static void i_OnDraw(TData *data, Event *e)
             if (draw_row == TRUE)
                 drawctrl_fill(p->ctx, 0, (int32_t)y, data->fill_width, data->row_height, state);
 
-            /* Draw the columns */
-            for (j = stcol; j < edcol; ++j)
-            {
-                if (cols[j].width > 0)
-                {
-                    i_cell_data(view, data, j, i, &cols[j], &cell);
-                    i_draw_cell(&cell, p->ctx, cols + j, lx, y, cols[j].width, state);
-                    lx += cols[j].width;
-                }
-            }
-
-            xmax = lx;
+            xmax = i_draw_row_cols(view, data, p->ctx, cols, i, y, stcol, edcol, xmin, state);
 
             if (data->focused == TRUE && data->focus_row == i)
             {
@@ -546,9 +630,6 @@ static void i_OnDraw(TData *data, Event *e)
                 ctrl_state_t state = data->focused == TRUE ? ekCTRL_STATE_NORMAL : ekCTRL_STATE_BKNORMAL;
                 bool_t draw_row = FALSE;
                 bool_t selected = i_row_is_selected(data->selected, i);
-                uint32_t lx = stx;
-                EvTbCell cell;
-
                 if (selected == TRUE && data->focused == TRUE)
                 {
                     state = ekCTRL_STATE_PRESSED;
@@ -569,16 +650,7 @@ static void i_OnDraw(TData *data, Event *e)
                 if (draw_row == TRUE)
                     drawctrl_fill(p->ctx, (int32_t)stx, (int32_t)y, freeze_width, data->row_height, state);
 
-                /* Draw the columns */
-                for (j = 0; j <= data->freeze_col_id; ++j)
-                {
-                    if (cols[j].width > 0)
-                    {
-                        i_cell_data(view, data, j, i, &cols[j], &cell);
-                        i_draw_cell(&cell, p->ctx, cols + j, lx, y, cols[j].width, state);
-                        lx += cols[j].width;
-                    }
-                }
+                i_draw_row_cols(view, data, p->ctx, cols, i, y, 0, data->freeze_col_id + 1, stx, state);
 
                 y += data->row_height;
             }
@@ -603,6 +675,7 @@ static void i_OnDraw(TData *data, Event *e)
 
             if (data->vlines == TRUE)
             {
+                uint32_t j;
                 uint32_t x = xmin;
                 uint32_t ymin = head_height + (strow * data->row_height);
                 uint32_t ymax = ymin + (edrow - strow) * data->row_height;
@@ -953,7 +1026,10 @@ static void i_scroll_to_row(TData *data, const uint32_t row, const align_t align
             offset = control_height / 2;
         }
 
-        ypos -= offset;
+        if (ypos > offset)
+            ypos -= offset;
+        else
+            ypos = 0;
         break;
     }
 
@@ -1117,7 +1193,35 @@ static void i_OnMove(TData *data, Event *e)
         }
         else
         {
-            i_set_cursor(view, data, ekGUI_CURSOR_ARROW);
+            bool_t hand = FALSE;
+            if (data->tree_col_id != UINT32_MAX && data->mouse_row < data->num_rows)
+            {
+                const TNode *tnode = arrst_get_const(data->tree_nodes, data->mouse_row, TNode);
+                if (tnode->nchildren > 0)
+                {
+                    const Column *cols = arrst_all_const(data->columns, Column);
+                    uint32_t tree_col_x = 0;
+                    uint32_t j;
+
+                    for (j = 0; j < data->tree_col_id; ++j)
+                        tree_col_x += cols[j].width;
+
+                    if (data->tree_col_id <= data->freeze_col_id)
+                    {
+                        V2Df vpos;
+                        view_viewport(view, &vpos, NULL);
+                        tree_col_x += (uint32_t)vpos.x;
+                    }
+
+                    if (mouse_x >= tree_col_x)
+                    {
+                        uint32_t rel_x = mouse_x - tree_col_x;
+                        if (rel_x >= tnode->depth * i_TREE_INDENT && rel_x < (tnode->depth + 1) * i_TREE_INDENT)
+                            hand = TRUE;
+                    }
+                }
+            }
+            i_set_cursor(view, data, hand == TRUE ? ekGUI_CURSOR_HAND : ekGUI_CURSOR_ARROW);
         }
     }
 
@@ -1265,6 +1369,269 @@ static bool_t i_select(TableView *view, TData *data, const uint32_t row, const u
 
 /*---------------------------------------------------------------------------*/
 
+static void i_build_subtree(TableView *view, TData *data, void *parent, const uint32_t child_index, const uint32_t depth)
+{
+    EvTbNode node;
+    EvTbNodeInfo ninfo;
+    TNode *tnode;
+
+    node.parent = parent;
+    node.child = child_index;
+    ninfo.node = NULL;
+    ninfo.nchildren = 0;
+    ninfo.expanded = FALSE;
+    listener_event(data->OnData, ekGUI_EVENT_TBL_NODEINFO, view, &node, &ninfo, TableView, EvTbNode, EvTbNodeInfo);
+
+    tnode = arrst_new(data->tree_nodes, TNode);
+    tnode->node = ninfo.node;
+    tnode->depth = depth;
+    tnode->nchildren = ninfo.nchildren;
+    tnode->expanded = ninfo.expanded;
+
+    if (ninfo.expanded == TRUE && ninfo.nchildren > 0)
+    {
+        uint32_t i;
+        for (i = 0; i < ninfo.nchildren; ++i)
+            i_build_subtree(view, data, ninfo.node, i, depth + 1);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_build_tree(TableView *view, TData *data)
+{
+    uint32_t nsel = arrst_size(data->selected, uint32_t);
+    void **sel_nodes = NULL;
+    void *focus_node = NULL;
+
+    cassert_no_null(data);
+    cassert(data->tree_col_id != UINT32_MAX);
+    cassert_no_null(data->tree_nodes);
+
+    if (nsel > 0)
+    {
+        sel_nodes = dcast(heap_malloc((uint32_t)(nsel * sizeof(void *)), "TNodeSel"), void);
+        arrst_foreach_const(srow, data->selected, uint32_t)
+            sel_nodes[srow_i] = arrst_get_const(data->tree_nodes, *srow, TNode)->node;
+        arrst_end()
+    }
+
+    if (data->focus_row != UINT32_MAX)
+        focus_node = arrst_get_const(data->tree_nodes, data->focus_row, TNode)->node;
+
+    arrst_clear(data->tree_nodes, NULL, TNode);
+    arrst_clear(data->selected, NULL, uint32_t);
+    data->focus_row = UINT32_MAX;
+
+    if (data->OnData != NULL)
+    {
+        uint32_t nroots = 0;
+        uint32_t i;
+        listener_event(data->OnData, ekGUI_EVENT_TBL_NROOTS, view, NULL, &nroots, TableView, void, uint32_t);
+        for (i = 0; i < nroots; ++i)
+            i_build_subtree(view, data, NULL, i, 0);
+    }
+
+    data->num_rows = arrst_size(data->tree_nodes, TNode);
+
+    if (focus_node != NULL || sel_nodes != NULL)
+    {
+        arrst_foreach_const(tnode, data->tree_nodes, TNode)
+            if (focus_node != NULL && tnode->node == focus_node)
+            {
+                data->focus_row = tnode_i;
+                focus_node = NULL;
+            }
+
+            if (sel_nodes != NULL)
+            {
+                uint32_t i;
+                for (i = 0; i < nsel; ++i)
+                {
+                    if (tnode->node == sel_nodes[i])
+                    {
+                        arrst_append(data->selected, tnode_i, uint32_t);
+                        break;
+                    }
+                }
+            }
+        arrst_end()
+
+        if (sel_nodes != NULL)
+            heap_free(dcast(&sel_nodes, byte_t), (uint32_t)(nsel * sizeof(void *)), "TNodeSel");
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static uint32_t i_insert_subtree(TableView *view, TData *data, void *parent, const uint32_t child, const uint32_t depth, const uint32_t pos)
+{
+    EvTbNode node;
+    EvTbNodeInfo ninfo;
+    TNode *tnode = NULL;
+    uint32_t next = pos + 1;
+
+    node.parent = parent;
+    node.child = child;
+    ninfo.node = NULL;
+    ninfo.nchildren = 0;
+    ninfo.expanded = FALSE;
+    listener_event(data->OnData, ekGUI_EVENT_TBL_NODEINFO, view, &node, &ninfo, TableView, EvTbNode, EvTbNodeInfo);
+
+    tnode = arrst_insert_n(data->tree_nodes, pos, 1, TNode);
+    tnode->node = ninfo.node;
+    tnode->depth = depth;
+    tnode->nchildren = ninfo.nchildren;
+    tnode->expanded = ninfo.expanded;
+
+    if (ninfo.expanded == TRUE && ninfo.nchildren > 0)
+    {
+        uint32_t i;
+        for (i = 0; i < ninfo.nchildren; ++i)
+            next = i_insert_subtree(view, data, ninfo.node, i, depth + 1, next);
+    }
+
+    return next;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_expand_node(TableView *view, TData *data, const uint32_t row)
+{
+    void *ptr = NULL;
+    uint32_t depth = 0;
+    uint32_t nch = 0;
+    uint32_t nc = 0;
+    uint32_t i = 0;
+    uint32_t next = 0;
+
+    cassert_no_null(data);
+    {
+        const TNode *tnode = arrst_get_const(data->tree_nodes, row, TNode);
+        cassert(tnode->expanded == FALSE);
+        cassert(tnode->nchildren > 0);
+        ptr = tnode->node;
+        depth = tnode->depth;
+        nch = tnode->nchildren;
+    }
+
+    next = row + 1;
+    for (i = 0; i < nch; ++i)
+        next = i_insert_subtree(view, data, ptr, i, depth + 1, next);
+
+    nc = next - (row + 1);
+
+    if (nc > 0)
+    {
+        uint32_t n_sel = arrst_size(data->selected, uint32_t);
+        for (i = 0; i < n_sel; ++i)
+        {
+            uint32_t *sel = arrst_get(data->selected, i, uint32_t);
+            if (*sel > row)
+                *sel += nc;
+        }
+
+        if (data->focus_row != UINT32_MAX && data->focus_row > row)
+            data->focus_row += nc;
+    }
+
+    {
+        TNode *mtnode = arrst_get(data->tree_nodes, row, TNode);
+        mtnode->expanded = TRUE;
+    }
+
+    data->num_rows = arrst_size(data->tree_nodes, TNode);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_collapse_node(TData *data, const uint32_t row)
+{
+    const TNode *tnode = NULL;
+    uint32_t j = row + 1;
+    uint32_t n = 0;
+    uint32_t rc = 0;
+
+    cassert_no_null(data);
+    tnode = arrst_get_const(data->tree_nodes, row, TNode);
+    n = arrst_size(data->tree_nodes, TNode);
+    cassert(tnode->expanded == TRUE);
+
+    while (j < n)
+    {
+        const TNode *child = arrst_get_const(data->tree_nodes, j, TNode);
+        if (child->depth <= tnode->depth)
+            break;
+        rc += 1;
+        j += 1;
+    }
+
+    if (rc > 0)
+    {
+        uint32_t re = row + rc;
+        uint32_t i = 0;
+        uint32_t n_sel = arrst_size(data->selected, uint32_t);
+
+        while (i < n_sel)
+        {
+            uint32_t *sel = arrst_get(data->selected, i, uint32_t);
+            if (*sel > row && *sel <= re)
+            {
+                arrst_delete(data->selected, i, NULL, uint32_t);
+                n_sel -= 1;
+            }
+            else
+            {
+                if (*sel > re)
+                    *sel -= rc;
+                i += 1;
+            }
+        }
+
+        if (data->focus_row > row && data->focus_row <= re)
+            data->focus_row = row;
+        else if (data->focus_row > re)
+            data->focus_row -= rc;
+
+        for (i = 0; i < rc; ++i)
+            arrst_delete(data->tree_nodes, row + 1, NULL, TNode);
+    }
+
+    {
+        TNode *mtnode = arrst_get(data->tree_nodes, row, TNode);
+        mtnode->expanded = FALSE;
+    }
+
+    data->num_rows = arrst_size(data->tree_nodes, TNode);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_toggle_expand(TableView *view, TData *data, const uint32_t row)
+{
+    TNode *tnode = arrst_get(data->tree_nodes, row, TNode);
+    cassert_no_null(tnode);
+    cassert(tnode->nchildren > 0);
+
+    if (data->OnData != NULL)
+    {
+        EvTbExpand expand;
+        expand.node = tnode->node;
+        expand.expanded = (bool_t)!tnode->expanded;
+        listener_event(data->OnData, ekGUI_EVENT_TBL_EXPAND, view, &expand, NULL, TableView, EvTbExpand, void);
+    }
+
+    if (tnode->expanded == TRUE)
+        i_collapse_node(data, row);
+    else
+        i_expand_node(view, data, row);
+
+    data->recompute_height = TRUE;
+    i_document_size(cast(view, View), data);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnDown(TData *data, Event *e)
 {
     const EvMouse *p = event_params(e, EvMouse);
@@ -1302,35 +1669,71 @@ static void i_OnDown(TData *data, Event *e)
         {
             bool_t changed = FALSE;
             bool_t previous_sel = FALSE;
+            bool_t tree_click = FALSE;
 
-            if (data->OnRowClick != NULL)
-                previous_sel = i_row_is_selected(data->selected, data->mouse_row);
-
-            if (data->mouse_row < n)
+            if (data->tree_col_id != UINT32_MAX && data->mouse_row < n)
             {
-                changed |= i_select(cast(view, TableView), data, data->mouse_row, UINT32_MAX, TRUE);
-                if (data->focus_row != data->mouse_row)
+                const TNode *tnode = arrst_get_const(data->tree_nodes, data->mouse_row, TNode);
+                if (tnode->nchildren > 0)
                 {
-                    data->focus_row = data->mouse_row;
-                    changed |= TRUE;
+                    const Column *cols = arrst_all_const(data->columns, Column);
+                    uint32_t tree_col_x = 0;
+                    uint32_t j;
+
+                    for (j = 0; j < data->tree_col_id; ++j)
+                        tree_col_x += cols[j].width;
+
+                    if (data->tree_col_id <= data->freeze_col_id)
+                    {
+                        V2Df vpos;
+                        view_viewport(view, &vpos, NULL);
+                        tree_col_x += (uint32_t)vpos.x;
+                    }
+
+                    if ((uint32_t)p->x >= tree_col_x)
+                    {
+                        uint32_t rel_x = (uint32_t)p->x - tree_col_x;
+                        if (rel_x >= tnode->depth * i_TREE_INDENT && rel_x < (tnode->depth + 1) * i_TREE_INDENT)
+                        {
+                            i_toggle_expand(cast(view, TableView), data, data->mouse_row);
+                            tree_click = TRUE;
+                            changed = TRUE;
+                        }
+                    }
                 }
             }
-            else
-            {
-                if (arrst_size(data->selected, uint32_t) > 0)
-                {
-                    arrst_clear(data->selected, NULL, uint32_t);
-                    changed |= TRUE;
-                }
-            }
 
-            if (data->OnRowClick != NULL)
+            if (tree_click == FALSE)
             {
-                EvTbRow row;
-                bool_t cur_sel = i_row_is_selected(data->selected, data->mouse_row);
-                row.sel = (bool_t) !(previous_sel == cur_sel);
-                row.row = data->mouse_row;
-                listener_event(data->OnRowClick, ekGUI_EVENT_TBL_ROWCLICK, cast(view, TableView), &row, NULL, TableView, EvTbRow, void);
+                if (data->OnRowClick != NULL)
+                    previous_sel = i_row_is_selected(data->selected, data->mouse_row);
+
+                if (data->mouse_row < n)
+                {
+                    changed |= i_select(cast(view, TableView), data, data->mouse_row, UINT32_MAX, TRUE);
+                    if (data->focus_row != data->mouse_row)
+                    {
+                        data->focus_row = data->mouse_row;
+                        changed |= TRUE;
+                    }
+                }
+                else
+                {
+                    if (arrst_size(data->selected, uint32_t) > 0)
+                    {
+                        arrst_clear(data->selected, NULL, uint32_t);
+                        changed |= TRUE;
+                    }
+                }
+
+                if (data->OnRowClick != NULL)
+                {
+                    EvTbRow row;
+                    bool_t cur_sel = i_row_is_selected(data->selected, data->mouse_row);
+                    row.sel = (bool_t) !(previous_sel == cur_sel);
+                    row.row = data->mouse_row;
+                    listener_event(data->OnRowClick, ekGUI_EVENT_TBL_ROWCLICK, cast(view, TableView), &row, NULL, TableView, EvTbRow, void);
+                }
             }
 
             if (changed == TRUE)
@@ -1625,6 +2028,30 @@ static void i_OnKeyDown(TData *data, Event *e)
         {
             i_right_scroll(data);
         }
+        else if (p->key == ekKEY_PLUS || p->key == ekKEY_NUMADD)
+        {
+            if (data->tree_col_id != UINT32_MAX && data->focus_row != UINT32_MAX)
+            {
+                const TNode *tnode = arrst_get_const(data->tree_nodes, data->focus_row, TNode);
+                if (tnode->nchildren > 0 && tnode->expanded == FALSE)
+                {
+                    i_toggle_expand(view, data, data->focus_row);
+                    view_update(cast(view, View));
+                }
+            }
+        }
+        else if (p->key == ekKEY_MINUS || p->key == ekKEY_NUMMINUS)
+        {
+            if (data->tree_col_id != UINT32_MAX && data->focus_row != UINT32_MAX)
+            {
+                const TNode *tnode = arrst_get_const(data->tree_nodes, data->focus_row, TNode);
+                if (tnode->expanded == TRUE)
+                {
+                    i_toggle_expand(view, data, data->focus_row);
+                    view_update(cast(view, View));
+                }
+            }
+        }
         else if (data->multisel == TRUE)
         {
             ctrl_msel_t msel = drawctrl_multisel(NULL, p->key);
@@ -1719,13 +2146,14 @@ void tableview_font(TableView *view, const Font *font)
     TData *data = view_get_data(cast(view, View), TData);
     bool_t updated = FALSE;
     cassert_no_null(data);
-    _gui_update_font(&data->font, NULL, font);
+
     if (_gui_update_font(&data->head_font, NULL, font) == TRUE)
     {
         i_head_height(data);
-        view_update(cast(view, View));
+        updated = TRUE;
     }
 
+    updated |= _gui_update_font(&data->font, NULL, font);
     arrst_foreach(col, data->columns, Column)
         updated |= _gui_update_font(&col->font, NULL, font);
     arrst_end()
@@ -1805,11 +2233,45 @@ uint32_t tableview_add_column_text(TableView *view)
 
 /*---------------------------------------------------------------------------*/
 
+void tableview_tree(TableView *view, const uint32_t column_id)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    cassert_no_null(data);
+    if (data->tree_col_id != column_id)
+    {
+        cassert(column_id == UINT32_MAX || column_id < arrst_size(data->columns, Column));
+        data->tree_col_id = column_id;
+        arrst_clear(data->selected, NULL, uint32_t);
+        data->focus_row = UINT32_MAX;
+        if (column_id != UINT32_MAX)
+        {
+            if (data->tree_nodes == NULL)
+                data->tree_nodes = arrst_create(TNode);
+        }
+        else
+        {
+            arrst_destopt(&data->tree_nodes, NULL, TNode);
+        }
+        view_update(cast(view, View));
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void tableview_del_column(TableView *view, const uint32_t column_id)
 {
     TData *data = view_get_data(cast(view, View), TData);
     cassert_no_null(data);
     arrst_delete(data->columns, column_id, i_remove_column, Column);
+
+    if (data->freeze_col_id != UINT32_MAX && column_id <= data->freeze_col_id)
+    {
+        if (data->freeze_col_id == 0)
+            data->freeze_col_id = UINT32_MAX;
+        else
+            data->freeze_col_id -= 1;
+    }
+
     i_update_after_column(view);
 }
 
@@ -2131,10 +2593,43 @@ void tableview_update(TableView *view)
 {
     TData *data = view_get_data(cast(view, View), TData);
     cassert_no_null(data);
-    i_num_rows(view, data);
+    if (data->tree_col_id != UINT32_MAX)
+        i_build_tree(view, data);
+    else
+        i_num_rows(view, data);
     data->recompute_height = TRUE;
     i_document_size(cast(view, View), data);
     view_update(cast(view, View));
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t tableview_node_row(const TableView *view, void *node)
+{
+    const TData *data = view_get_data(cast(view, View), TData);
+    cassert_no_null(data);
+    if (data->tree_col_id != UINT32_MAX)
+    {
+        arrst_foreach_const(tnode, data->tree_nodes, TNode)
+            if (tnode->node == node)
+                return tnode_i;
+        arrst_end()
+    }
+    return UINT32_MAX;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void *tableview_row_node(const TableView *view, const uint32_t row)
+{
+    const TData *data = view_get_data(cast(view, View), TData);
+    cassert_no_null(data);
+    if (data->tree_col_id != UINT32_MAX)
+    {
+        const TNode *tnode = arrst_get_const(data->tree_nodes, row, TNode);
+        return tnode->node;
+    }
+    return NULL;
 }
 
 /*---------------------------------------------------------------------------*/

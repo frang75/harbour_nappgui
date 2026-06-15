@@ -31,6 +31,8 @@ _gui_api void tableview_size(TableView *view, S2Df size);
 
 _gui_api uint32_t tableview_add_column_text(TableView *view);
 
+_gui_api void tableview_tree(TableView *view, const uint32_t column_id);
+
 _gui_api void tableview_del_column(TableView *view, const uint32_t column_id);
 
 _gui_api uint32_t tableview_column_count(const TableView *view);
@@ -70,6 +72,10 @@ _gui_api void tableview_multisel(TableView *view, const bool_t multisel, const b
 _gui_api void tableview_grid(TableView *view, const bool_t hlines, const bool_t vlines);
 
 _gui_api void tableview_update(TableView *view);
+
+_gui_api uint32_t tableview_node_row(const TableView *view, void *node);
+
+_gui_api void *tableview_row_node(const TableView *view, const uint32_t row);
 
 _gui_api void tableview_select(TableView *view, const uint32_t *rows, const uint32_t n);
 

@@ -190,6 +190,9 @@ typedef enum _gui_event_t
     ekGUI_EVENT_TBL_SEL,
     ekGUI_EVENT_TBL_HEADCLICK,
     ekGUI_EVENT_TBL_ROWCLICK,
+    ekGUI_EVENT_TBL_NROOTS,
+    ekGUI_EVENT_TBL_NODEINFO,
+    ekGUI_EVENT_TBL_EXPAND,
     ekGUI_EVENT_IDLE
 } gui_event_t;
 
@@ -481,6 +484,9 @@ typedef struct _evtbrow_t EvTbRow;
 typedef struct _evtbrect_t EvTbRect;
 typedef struct _evtbsel_t EvTbSel;
 typedef struct _evtbcell_t EvTbCell;
+typedef struct _evtbnode_t EvTbNode;
+typedef struct _evtbnodeinfo_t EvTbNodeInfo;
+typedef struct _evtbexpand_t EvTbExpand;
 
 #define label_get_type(flags) ((flags)&ekLABEL_TYPE)
 #define button_get_type(flags) ((flags)&ekBUTTON_TYPE)
@@ -1084,6 +1090,7 @@ struct _evtbpos_t
 {
     uint32_t col;
     uint32_t row;
+    void *node;
 };
 
 struct _evtbrow_t
@@ -1110,6 +1117,25 @@ struct _evtbcell_t
     const char_t *text;
     const Image *icon;
     align_t align;
+};
+
+struct _evtbnode_t
+{
+    void *parent;
+    uint32_t child;
+};
+
+struct _evtbnodeinfo_t
+{
+    void *node;
+    uint32_t nchildren;
+    bool_t expanded;
+};
+
+struct _evtbexpand_t
+{
+    void *node;
+    bool_t expanded;
 };
 
 #endif
