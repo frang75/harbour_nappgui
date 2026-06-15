@@ -19,6 +19,8 @@ TypenameMacros:
   - SetSt
   - TreePt
   - TreeSt
+  - NodePt
+  - NodeSt
 MacroBlockBegin: "\
 arrst_foreach(.*)|\
 arrst_foreach_const(.*)|\
@@ -36,18 +38,28 @@ setst_forback_const(.*)|\
 setpt_foreach(.*)|\
 setpt_foreach_const(.*)|\
 setpt_forback(.*)|\
-setpt_forback_const(.*)"
+setpt_forback_const(.*)|\
+treest_foreach_const(.*)|\
+treest_foreach(.*)|\
+treept_foreach_const(.*)|\
+treest_forback(.*)|\
+treest_forback_const(.*)|\
+treept_foreach(.*)|\
+treept_forback(.*)|\
+treept_forback_const(.*)"
 
 MacroBlockEnd: "\
 arrst_end(.*)|\
 arrpt_end(.*)|\
+setst_forprev(.*)|\
 stm_next(.*)|\
 setst_fornext(.*)|\
 setst_fornext_const(.*)|\
-setst_forprev(.*)|\
 setst_forprev_const(.*)|\
 setpt_fornext(.*)|\
 setpt_fornext_const(.*)|\
 setpt_forprev(.*)|\
-setpt_forprev_const(.*)"
+setpt_forprev_const(.*)|\
+treest_end(.*)|\
+treept_end(.*)"
 ...

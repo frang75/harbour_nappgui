@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: tabs.h
+ * https://nappgui.com/en/gui/tabs.html
  *
  */
 

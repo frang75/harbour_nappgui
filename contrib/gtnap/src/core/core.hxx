@@ -232,6 +232,8 @@ typedef struct _string_t String;
 typedef struct _stream_t Stream;
 typedef struct _array_t Array;
 typedef struct _rbtree_t RBTree;
+typedef struct _ntree_t NTree;
+typedef struct _nnode_t NNode;
 typedef struct _regex RegEx;
 typedef struct _event_t Event;
 typedef struct _keybuf_t KeyBuf;
@@ -248,10 +250,16 @@ typedef struct _object_t Object;
 #define ARRPT "ArrPt::"
 #define SETST "SetSt::"
 #define SETPT "SetPt::"
+#define TREEST "TreeSt::"
+#define TREEPT "TreePt::"
 #define ArrPt(type) struct Arr##Pt##type
 #define ArrSt(type) struct Arr##St##type
 #define SetPt(type) struct Set##Pt##type
 #define SetSt(type) struct Set##St##type
+#define TreeSt(type) struct Tree##St##type
+#define NodeSt(type) struct Node##St##type
+#define TreePt(type) struct Tree##Pt##type
+#define NodePt(type) struct Node##Pt##type
 
 typedef void (*FPtr_remove)(void *obj);
 #define FUNC_CHECK_REMOVE(func, type) \
@@ -324,22 +332,29 @@ struct _evfiledir_t
 
 #include "array.h"
 #include "rbtree.h"
+#include "ntree.h"
 #include "arrst.hxx"
 #include "arrpt.hxx"
 #include "setst.hxx"
 #include "setpt.hxx"
+#include "treest.hxx"
+#include "treept.hxx"
 
 #define DeclSt(type) \
     ArrStDebug(type); \
     SetStDebug(type); \
+    TreeStDebug(type); \
     ArrStFuncs(type); \
-    SetStFuncs(type)
+    SetStFuncs(type); \
+    TreeStFuncs(type)
 
 #define DeclPt(type) \
     ArrPtDebug(type); \
     SetPtDebug(type); \
+    TreePtDebug(type); \
     ArrPtFuncs(type); \
-    SetPtFuncs(type)
+    SetPtFuncs(type); \
+    TreePtFuncs(type)
 
 DeclSt(bool_t);
 DeclSt(int8_t);

@@ -11,12 +11,13 @@
 
 /* Set macros for type checking at compile time */
 
+#if defined __ASSERTS__
 #define SetStDebug(type) \
-    struct NodeSt##type \
+    struct SNodeSt##type \
     { \
         uint32_t rb; \
-        struct NodeSt##type *left; \
-        struct NodeSt##type *right; \
+        struct SNodeSt##type *left; \
+        struct SNodeSt##type *right; \
         type data; \
     }; \
 \
@@ -25,9 +26,13 @@
         uint32_t elems; \
         uint16_t esize; \
         uint16_t ksize; \
-        struct NodeSt##type *root; \
+        struct SNodeSt##type *root; \
         FPtr_compare func_compare; \
     }
+#else
+#define SetStDebug(type) \
+    typedef struct _setstnonused##type##_t setstnonused##type
+#endif
 
 #define SetStFuncs(type) \
     SetSt(type); \
