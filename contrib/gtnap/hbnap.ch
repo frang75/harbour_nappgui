@@ -10,3 +10,8 @@
 #define HBNAP_CLOSED_BY_ESC             1
 #define HBNAP_CLOSED_BY_RETURN          2
 #define HBNAP_CLOSED_BY_BUTTON          3
+
+/* Alignment values */
+#define HBNAP_LEFT                      1
+#define HBNAP_CENTER                    2
+#define HBNAP_RIGHT                     3

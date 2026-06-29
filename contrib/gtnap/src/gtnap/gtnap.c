@@ -76,7 +76,9 @@ typedef struct _gtnap_geom_t GtNapGeom;
 typedef struct _gtnap_window_t GtNapWindow;
 typedef struct _gtnap_bind_t GtNapBind;
 typedef struct _gtnap_fcolumn_t GtNapFColumn;
+typedef struct _gtnap_fbdconn_t GtNapFDBConn;
 typedef struct _gtnap_farea_t GtNapFArea;
+typedef struct _gtnap_farea2_t GtNapFArea2;
 typedef struct _gtnap_prop_t GtNapProp;
 typedef struct _gtnap_t GtNap;
 
@@ -228,7 +230,24 @@ struct _gtnap_bind_t
 
 struct _gtnap_fcolumn_t
 {
+    align_t align;
     HB_ITEM *block;
+};
+
+struct _gtnap_fbdconn_t
+{
+    GtNapForm *form;
+    String *cellname;
+    TableView *table;
+    ArrSt(GtNapFArea2) *areas;
+};
+
+struct _gtnap_farea2_t
+{
+    AREA *area;
+    ArrSt(GtNapFColumn) *columns;
+    HB_ITEM *relfrom;
+    HB_ITEM *relto;
 };
 
 struct _gtnap_farea_t
@@ -250,6 +269,7 @@ struct _gtnap_form_t
     String *respath;
     uint32_t modal_ret;
     GtNapFArea *area;
+    GtNapFDBConn *dbconn;
     HB_ITEM *OnClose_block;
     bool_t is_resizable;
     ArrSt(GtNapBind) *binds;
@@ -300,6 +320,7 @@ DeclSt(GtNapBind);
 DeclPt(GtNapWindow);
 DeclPt(GuiComponent);
 DeclSt(GtNapProp);
+DeclSt(GtNapFArea2);
 
 /*---------------------------------------------------------------------------*/
 
@@ -5306,6 +5327,35 @@ static void i_destroy_farea(GtNapFArea **area)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_remove_farea2(GtNapFArea2 *area)
+{
+    cassert_no_null(area);
+    area->area = NULL; /* The life cycle of the area is managed exclusively by Harbour */
+
+    if (area->relfrom != NULL)
+        hb_itemRelease(area->relfrom);
+
+    if (area->relto != NULL)
+        hb_itemRelease(area->relto);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_destroy_fdbconn(GtNapFDBConn **dbconn)
+{
+    cassert_no_null(dbconn);
+    (*dbconn)->form = NULL;
+    (*dbconn)->table = NULL;
+    //(*dbconn)->area = NULL;
+    str_destroy(&(*dbconn)->cellname);
+    arrst_destroy(&(*dbconn)->areas, i_remove_farea2, GtNapFArea2);
+    //arrst_destroy(&(*area)->records, NULL, uint32_t);
+    //arrst_destroy(&(*area)->columns, i_remove_fcolumn, GtNapFColumn);
+    heap_delete(dbconn, GtNapFDBConn);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_remove_bind(GtNapBind *bind)
 {
     cassert_no_null(bind);
@@ -5336,6 +5386,7 @@ void hbnap_forms_destroy(GtNapForm **form)
     arrst_destroy(&(*form)->binds, i_remove_bind, GtNapBind);
     arrpt_destroy(&(*form)->callbacks, i_destroy_callback, GtNapCallback);
     ptr_destopt(i_destroy_farea, &(*form)->area, GtNapFArea);
+    ptr_destopt(i_destroy_fdbconn, &(*form)->dbconn, GtNapFDBConn);
     nform_destroy(&(*form)->form);
     heap_delete(form, GtNapForm);
 }
@@ -5643,6 +5694,18 @@ static GtNapFArea *i_create_farea(GtNapForm *form, AREA *area)
 
 /*---------------------------------------------------------------------------*/
 
+static GtNapFDBConn *i_create_dbconn(GtNapForm *form)
+{
+    GtNapFDBConn *dbconn = heap_new0(GtNapFDBConn);
+    dbconn->form = form;
+    dbconn->cellname = NULL;
+    dbconn->table = NULL;
+    dbconn->areas = arrst_create(GtNapFArea2);
+    return dbconn;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_map_bind_to_form(NForm *form, ArrSt(GtNapBind) *binds)
 {
     arrst_foreach(bind, binds, GtNapBind)
@@ -5826,6 +5889,146 @@ uint32_t hbnap_forms_area_recno(GtNapForm *form)
     {
         return UINT32_MAX;
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static align_t i_hbalign(int hbalign)
+{
+    switch (hbalign)
+    {
+    case HBNAP_LEFT:
+        return ekLEFT;
+    case HBNAP_CENTER:
+        return ekCENTER;
+    case HBNAP_RIGHT:
+        return ekRIGHT;
+    default:
+        cassert_default(hbalign);
+    }
+
+    return ekLEFT;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_tree_bind(GtNapForm *form, const char_t *cell, HB_ITEM *areas, HB_ITEM *relations, HB_ITEM *columns)
+{
+    HB_SIZE nA = UINT32_MAX;
+    HB_SIZE nR = UINT32_MAX;
+    HB_SIZE nB = UINT32_MAX;
+    HB_SIZE i = 0;
+    cassert_no_null(form);
+    cassert(form->area == NULL);
+    cassert(form->dbconn == NULL);
+    cassert(HB_ITEM_TYPE(areas) == HB_IT_ARRAY);
+    cassert(HB_ITEM_TYPE(relations) == HB_IT_ARRAY);
+    cassert(HB_ITEM_TYPE(columns) == HB_IT_ARRAY);
+    form->dbconn = i_create_dbconn(form);
+    nA = hb_arrayLen(areas);
+    nR = hb_arrayLen(relations);
+    nB = hb_arrayLen(columns);
+    cassert(nA > 1);
+    cassert(nR == nA - 1);
+    cassert(nB == nA);
+
+    for (i = 1; i <= nA; ++i)
+    {
+        GtNapFArea2 *area = arrst_new0(form->dbconn->areas, GtNapFArea2);
+
+        /* Database area */
+        {
+            PHB_ITEM area_item = hb_arrayGetItemPtr(areas, i);
+            const char *area_id = NULL;
+            int iArea = 0;
+            HB_ERRCODE hbres;
+            cassert(HB_ITEM_TYPE(area_item) == HB_IT_STRING);
+            area_id = hb_itemGetCPtr(area_item);
+            hbres = hb_rddGetAliasNumber(area_id, &iArea);
+            cassert_unref(hbres == HB_SUCCESS, hbres);
+            area->area = cast(hb_rddGetWorkAreaPointer(iArea), AREA);
+            cassert_no_null(area->area);
+        }
+
+        /* Area->Columns data mappings */
+        {
+            PHB_ITEM bind_item = hb_arrayGetItemPtr(columns, i);
+            HB_SIZE j, nCols = UINT32_MAX;
+            area->columns = arrst_create(GtNapFColumn);
+            cassert(HB_ITEM_TYPE(bind_item) == HB_IT_ARRAY);
+            nCols = hb_arrayLen(bind_item);
+            for (j = 1; j <= nCols; ++j)
+            {
+                GtNapFColumn *col = arrst_new0(area->columns, GtNapFColumn);
+                PHB_ITEM col_item = hb_arrayGetItemPtr(bind_item, j);
+                PHB_ITEM align_item = NULL;
+                PHB_ITEM block_item = NULL;                
+                cassert(HB_ITEM_TYPE(col_item) == HB_IT_ARRAY);
+                cassert(hb_arrayLen(col_item) == 2);
+                align_item = hb_arrayGetItemPtr(col_item, 1);
+                block_item = hb_arrayGetItemPtr(col_item, 2);                
+                cassert(HB_ITEM_TYPE(align_item) == HB_IT_INTEGER);
+                cassert(HB_ITEM_TYPE(block_item) == HB_IT_BLOCK);
+                col->align = i_hbalign(hb_itemGetNI(align_item));
+                col->block = block_item ? hb_itemNew(block_item) : NULL;
+            }
+        }
+
+        /* Relation with next area */
+        if (i < nA)
+        {
+            PHB_ITEM rel_item = hb_arrayGetItemPtr(relations, i);
+            PHB_ITEM from_item = NULL;
+            PHB_ITEM to_item = NULL;                
+            cassert(HB_ITEM_TYPE(rel_item) == HB_IT_ARRAY);
+            cassert(hb_arrayLen(rel_item) == 2);
+            from_item = hb_arrayGetItemPtr(rel_item, 1);
+            to_item = hb_arrayGetItemPtr(rel_item, 2);                
+            cassert_no_null(from_item);
+            cassert_no_null(to_item);
+            cassert(HB_ITEM_TYPE(from_item) == HB_IT_BLOCK);
+            cassert(HB_ITEM_TYPE(to_item) == HB_IT_BLOCK);
+            area->relfrom = hb_itemNew(from_item);
+            area->relto = hb_itemNew(to_item);
+        }
+        else
+        {
+            area->relfrom = NULL;
+            area->relto = NULL;
+        }        
+    }
+    
+    unref(cell);
+    //area = cast(hb_rddGetCurrentWorkAreaPointer(), AREA);
+    //if (area != NULL)
+    //{
+    //    HB_SIZE i;
+    //    form->area = i_create_farea(form, area);
+
+    //    for (i = 2; i <= n; ++i)
+    //    {
+    //        PHB_ITEM bind_item = hb_arrayGetItemPtr(column_bind, i);
+    //        PHB_ITEM block_item = NULL;
+    //        GtNapFColumn *column = NULL;
+    //        /* At the moment, the column-bind item only has one member. The column block */
+    //        cassert(HB_ITEM_TYPE(bind_item) == HB_IT_ARRAY);
+    //        cassert(hb_arrayLen(bind_item) == 1);
+    //        block_item = hb_arrayGetItemPtr(bind_item, 1);
+    //        cassert(HB_ITEM_TYPE(block_item) == HB_IT_BLOCK);
+    //        column = arrst_new0(form->area->columns, GtNapFColumn);
+    //        column->block = block_item ? hb_itemNew(block_item) : NULL;
+    //    }
+
+    //    /* The first element in bind array is the tableView cell name */
+    //    {
+    //        PHB_ITEM name_item = hb_arrayGetItemPtr(column_bind, 1);
+    //        const char *gui_id = NULL;
+    //        cassert(HB_ITEM_TYPE(name_item) == HB_IT_STRING);
+    //        gui_id = hb_itemGetCPtr(name_item);
+    //        form->area->cellname = str_c(cast_const(gui_id, char_t));
+    //        i_map_bind_area_to_form(form->area);
+    //    }
+    //}
 }
 
 /*---------------------------------------------------------------------------*/

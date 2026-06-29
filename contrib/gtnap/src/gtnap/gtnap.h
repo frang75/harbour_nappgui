@@ -217,6 +217,8 @@ extern void hbnap_forms_area_refresh(GtNapForm *form);
 
 extern uint32_t hbnap_forms_area_recno(GtNapForm *form);
 
+extern void hbnap_forms_tree_bind(GtNapForm *form, const char_t *cell, HB_ITEM *areas, HB_ITEM *relations, HB_ITEM *columns);
+
 extern void hbnap_forms_item_list(GtNapForm *form, const char_t *cell, HB_ITEM *items);
 
 extern void hbnap_forms_OnClick(GtNapForm *form, const char_t *cell, HB_ITEM *click_block);
