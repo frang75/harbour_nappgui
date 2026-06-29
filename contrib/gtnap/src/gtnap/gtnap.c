@@ -257,6 +257,7 @@ struct _gtnap_farea2_t
     AREA *area;
     ArrSt(GtNapFColumn) *columns;
     HB_ITEM *relkey;
+    HB_USHORT expanded_field;
 };
 
 struct _gtnap_farea_t
@@ -5968,7 +5969,31 @@ static void i_OnTreeFAreaData(GtNapFDBConn *dbconn, Event *e)
         const EvTbExpand *p = event_params(e, EvTbExpand);
         NodeSt(GtNapFNode) *node = cast(p->node, NodeSt(GtNapFNode));
         GtNapFNode *data = treest_node_data(node, GtNapFNode);
+        cassert_no_null(data);
+        cassert_no_null(data->area);
         data->expanded = p->expanded;
+        if (data->area->expanded_field != 0)
+        {
+            DBLOCKINFO linfo;
+            HB_ERRCODE hbres;
+            PHB_ITEM pVal = hb_itemPutL(NULL, (HB_BOOL)p->expanded);
+            SELF_GOTO(data->area->area, data->recno);
+            memset(&linfo, 0, sizeof(linfo));
+            linfo.uiMethod = REC_LOCK;
+            hbres = SELF_LOCK(data->area->area, &linfo);
+            cassert_unref(hbres == HB_SUCCESS, hbres);
+
+            if (linfo.fResult)
+            {
+                hbres = SELF_PUTVALUE(data->area->area, data->area->expanded_field, pVal);
+                cassert_unref(hbres == HB_SUCCESS, hbres);
+                linfo.uiMethod = REC_UNLOCK;
+                hbres = SELF_LOCK(data->area->area, &linfo);
+                cassert_unref(hbres == HB_SUCCESS, hbres);
+            }
+
+            hb_itemRelease(pVal);
+        }
         break;
     }
 
@@ -6009,6 +6034,31 @@ static void i_OnTreeFAreaData(GtNapFDBConn *dbconn, Event *e)
     default:
         break;
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static HB_USHORT i_area_expanded_field(AREA *area)
+{
+    HB_USHORT n = 0;
+    HB_USHORT i;
+    char szName[64];
+    SELF_FIELDCOUNT(area, &n);
+    for (i = 1; i <= n; ++i)
+    {
+        SELF_FIELDNAME(area, i, szName);
+        if (hb_stricmp(szName, "EXPANDED") == 0)
+        {
+            PHB_ITEM pType = hb_itemNew(NULL);
+            bool_t islogic = FALSE;
+            SELF_FIELDINFO(area, i, DBS_TYPE, pType);
+            islogic = (bool_t)(hb_itemGetCPtr(pType)[0] == 'L');
+            hb_itemRelease(pType);
+            return islogic ? i : 0;
+        }
+    }
+
+    return 0;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -6140,7 +6190,17 @@ static void i_build_children(GtNapFDBConn *dbconn, NodeSt(GtNapFNode) *parent, u
                 SELF_RECNO(carea->area, &crecno);
                 cdata->area = carea;
                 cdata->recno = crecno;
-                cdata->expanded = FALSE;
+                if (carea->expanded_field != 0)
+                {
+                    PHB_ITEM pExp = hb_itemNew(NULL);
+                    SELF_GETVALUE(carea->area, carea->expanded_field, pExp);
+                    cdata->expanded = (bool_t)hb_itemGetL(pExp);
+                    hb_itemRelease(pExp);
+                }
+                else
+                {
+                    cdata->expanded = FALSE;
+                }
 
                 /* Recurse for grandchildren if more levels exist */
                 if (level + 2 < nareas)
@@ -6199,7 +6259,17 @@ static void i_dbconn_refresh(GtNapFDBConn *dbconn)
         data = treest_node_data(node, GtNapFNode);
         data->area = area;
         data->recno = recno;
-        data->expanded = FALSE;
+        if (area->expanded_field != 0)
+        {
+            PHB_ITEM pExp = hb_itemNew(NULL);
+            SELF_GETVALUE(area->area, area->expanded_field, pExp);
+            data->expanded = (bool_t)hb_itemGetL(pExp);
+            hb_itemRelease(pExp);
+        }
+        else
+        {
+            data->expanded = FALSE;
+        }
 
         if (nareas > 1)
             i_build_children(dbconn, node, 0);
@@ -6266,6 +6336,7 @@ void hbnap_forms_tree_bind(GtNapForm *form, const char_t *cell, HB_ITEM *areas, 
             cassert_unref(hbres == HB_SUCCESS, hbres);
             area->area = cast(hb_rddGetWorkAreaPointer(iArea), AREA);
             cassert_no_null(area->area);
+            area->expanded_field = i_area_expanded_field(area->area);
         }
 
         /* Area->Columns data mappings */
