@@ -48,6 +48,7 @@
 #include <core/hfile.h>
 #include <core/strings.h>
 #include <core/stream.h>
+#include <core/treest.h>
 #include <osbs/bfile.h>
 #include <osbs/btime.h>
 #include <osbs/log.h>
@@ -79,6 +80,7 @@ typedef struct _gtnap_fcolumn_t GtNapFColumn;
 typedef struct _gtnap_fbdconn_t GtNapFDBConn;
 typedef struct _gtnap_farea_t GtNapFArea;
 typedef struct _gtnap_farea2_t GtNapFArea2;
+typedef struct _gtnap_fnode_t GtNapFNode;
 typedef struct _gtnap_prop_t GtNapProp;
 typedef struct _gtnap_t GtNap;
 
@@ -234,12 +236,20 @@ struct _gtnap_fcolumn_t
     HB_ITEM *block;
 };
 
+struct _gtnap_fnode_t
+{
+    GtNapFArea2 *area;
+    HB_ULONG recno;
+    bool_t expanded;
+};
+
 struct _gtnap_fbdconn_t
 {
     GtNapForm *form;
     String *cellname;
     TableView *table;
     ArrSt(GtNapFArea2) *areas;
+    TreeSt(GtNapFNode) *tdata;
 };
 
 struct _gtnap_farea2_t
@@ -321,6 +331,7 @@ DeclPt(GtNapWindow);
 DeclPt(GuiComponent);
 DeclSt(GtNapProp);
 DeclSt(GtNapFArea2);
+DeclSt(GtNapFNode);
 
 /*---------------------------------------------------------------------------*/
 
@@ -5327,6 +5338,14 @@ static void i_destroy_farea(GtNapFArea **area)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_remove_fnode(GtNapFNode *node)
+{
+    cassert_no_null(node);
+    node->area = NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_remove_farea2(GtNapFArea2 *area)
 {
     cassert_no_null(area);
@@ -5348,11 +5367,9 @@ static void i_destroy_fdbconn(GtNapFDBConn **dbconn)
     cassert_no_null(dbconn);
     (*dbconn)->form = NULL;
     (*dbconn)->table = NULL;
-    //(*dbconn)->area = NULL;
     str_destroy(&(*dbconn)->cellname);
+    treest_destroy(&(*dbconn)->tdata, i_remove_fnode, GtNapFNode);
     arrst_destroy(&(*dbconn)->areas, i_remove_farea2, GtNapFArea2);
-    //arrst_destroy(&(*area)->records, NULL, uint32_t);
-    //arrst_destroy(&(*area)->columns, i_remove_fcolumn, GtNapFColumn);
     heap_delete(dbconn, GtNapFDBConn);
 }
 
@@ -5702,6 +5719,7 @@ static GtNapFDBConn *i_create_dbconn(GtNapForm *form, const char_t *cell)
     dbconn->form = form;
     dbconn->cellname = str_c(cell);
     dbconn->table = NULL;
+    dbconn->tdata = treest_create(GtNapFNode);
     dbconn->areas = arrst_create(GtNapFArea2);
     return dbconn;
 }
@@ -5914,6 +5932,227 @@ static align_t i_hbalign(int hbalign)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnTreeFAreaData(GtNapFDBConn *dbconn, Event *e)
+{
+    uint32_t etype = event_type(e);
+    cassert_no_null(dbconn);
+
+    switch (etype)
+    {
+    case ekGUI_EVENT_TBL_BEGIN:
+        //SELF_RECNO(area->area, &area->cache_recno);
+        break;
+
+    case ekGUI_EVENT_TBL_END:
+        //SELF_GOTO(area->area, area->cache_recno);
+        //area->cache_recno = UINT32_MAX;
+        break;
+
+    //case ekGUI_EVENT_TBL_NROWS:
+    //{
+    //    uint32_t *n = event_result(e, uint32_t);
+    //    *n = arrst_size(area->records, uint32_t);
+    //    break;
+    //}
+
+    case ekGUI_EVENT_TBL_NROOTS:
+    {
+        uint32_t *nroots = event_result(e, uint32_t);
+        NodeSt(GtNapFNode) *virtual_root = treest_root_get(dbconn->tdata, GtNapFNode);
+        *nroots = virtual_root ? treest_node_size(virtual_root, GtNapFNode) : 0;
+        break;
+    }
+
+    case ekGUI_EVENT_TBL_NODEINFO:
+    {
+        const EvTbNode *node = event_params(e, EvTbNode);
+        EvTbNodeInfo *info = event_result(e, EvTbNodeInfo);
+        NodeSt(GtNapFNode) *virtual_root = treest_root_get(dbconn->tdata, GtNapFNode);
+        NodeSt(GtNapFNode) *parent_node = (node->parent != NULL)
+            ? cast(node->parent, NodeSt(GtNapFNode))
+            : virtual_root;
+        NodeSt(GtNapFNode) *this_node = treest_node_get(parent_node, node->child, GtNapFNode);
+        GtNapFNode *this_data = treest_node_data(this_node, GtNapFNode);
+        info->node = this_node;
+        info->nchildren = treest_node_size(this_node, GtNapFNode);
+        info->expanded = this_data->expanded;
+        break;
+    }
+
+    case ekGUI_EVENT_TBL_CELL:
+    {
+        EvTbCell *cell = event_result(e, EvTbCell);
+        const EvTbPos *pos = event_params(e, EvTbPos);
+        bstd_sprintf(TEMP_BUFFER, sizeof(TEMP_BUFFER), "Data (%d, %d)", pos->col, pos->row);
+        cell->text = TEMP_BUFFER;
+        //cell->text = i_farea_eval_field(area, pos->col + 1, pos->row);
+        break;
+    }
+
+    default:
+        break;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_items_equal(PHB_ITEM a, PHB_ITEM b)
+{
+    HB_TYPE t = HB_ITEM_TYPE(a);
+    cassert(t == HB_ITEM_TYPE(b));
+
+    if (t & HB_IT_NUMERIC)
+        return (bool_t)(hb_itemGetND(a) == hb_itemGetND(b));
+    if (t & HB_IT_STRING)
+        return (bool_t)(hb_stricmp(hb_itemGetCPtr(a), hb_itemGetCPtr(b)) == 0);
+    if (t & HB_IT_LOGICAL)
+        return (bool_t)(hb_itemGetL(a) == hb_itemGetL(b));
+
+    cassert(FALSE);
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_build_children(GtNapFDBConn *dbconn, NodeSt(GtNapFNode) *parent, uint32_t level)
+{
+    GtNapFArea2 *parea = NULL;
+    GtNapFArea2 *carea = NULL;
+    GtNapFNode *pdata = NULL;    
+    PHB_ITEM key = NULL;
+    HB_BOOL found = HB_FALSE;
+
+    cassert_no_null(dbconn);
+    parea = arrst_get(dbconn->areas, level, GtNapFArea2);
+    carea = arrst_get(dbconn->areas, level + 1, GtNapFArea2);
+    pdata = treest_node_data(parent, GtNapFNode);
+
+    /* Position parent at its record so relfrom block reads the right value */
+    SELF_GOTO(parea->area, pdata->recno);
+
+    /* Evaluate parent relfrom block → seek key for child area */
+    key = hb_itemDo(parea->relfrom, 0);
+
+    /* 
+     * SEEK in child area (order already set by Harbour SET ORDER TO TAG). 
+     * Hard seek (HB_FALSE remains in EOF if it not found) 
+     * Find last (HB_FALSE find the first record match)
+     */
+    SELF_SEEK(carea->area, HB_FALSE, key, HB_FALSE);
+
+    SELF_FOUND(carea->area, &found);
+    if (found == HB_TRUE)
+    {
+        HB_BOOL eof = HB_FALSE;
+        uint32_t nareas = arrst_size(dbconn->areas, GtNapFArea2);
+        SELF_EOF(carea->area, &eof);
+        while (eof == HB_FALSE)
+        {
+            /* Child key must still match parent key */
+            PHB_ITEM ckey = hb_itemDo(parea->relto, 0);
+            bool_t equ = i_items_equal(key, ckey);
+            hb_itemRelease(ckey);
+
+            if (equ == TRUE)
+            {
+                /* Add child node to tree */
+                NodeSt(GtNapFNode) *child = treest_node_insert(parent, UINT32_MAX, GtNapFNode);
+                GtNapFNode *cdata = treest_node_data(child, GtNapFNode);
+                HB_ULONG crecno = 0;
+
+                SELF_RECNO(carea->area, &crecno);
+                cdata->area = carea;
+                cdata->recno = crecno;
+                cdata->expanded = FALSE;
+
+                /* Recurse for grandchildren if more levels exist */
+                if (level + 2 < nareas)
+                    i_build_children(dbconn, child, level + 1);
+
+                /* Restore child cursor after recursion, then advance */
+                SELF_GOTO(carea->area, crecno);
+                SELF_SKIP(carea->area, 1);
+                SELF_EOF(carea->area, &eof);
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+
+    hb_itemRelease(key);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_dbconn_refresh(GtNapFDBConn *dbconn)
+{
+    uint32_t nareas = 0;
+    NodeSt(GtNapFNode) *root = NULL;
+    GtNapFNode *vdata = NULL;
+    GtNapFArea2 *area = NULL;
+    HB_BOOL eof = HB_FALSE;
+
+    cassert_no_null(dbconn);
+    treest_clear(dbconn->tdata, i_remove_fnode, GtNapFNode);
+    nareas = arrst_size(dbconn->areas, GtNapFArea2);
+    cassert(nareas > 0);
+
+    /* Virtual root: invisible container for all top-level nodes */
+    root = treest_root_new(dbconn->tdata, GtNapFNode);
+    vdata = treest_node_data(root, GtNapFNode);
+    vdata->area = NULL;
+    vdata->recno = UINT32_MAX;
+    vdata->expanded = TRUE;
+
+    /* Navigate root area and build one top-level node per record */
+    area = arrst_get(dbconn->areas, 0, GtNapFArea2);
+    SELF_GOTOP(area->area);
+    SELF_EOF(area->area, &eof);
+
+    while (eof == HB_FALSE)
+    {
+        HB_ULONG recno = 0;
+        NodeSt(GtNapFNode) *node = NULL;
+        GtNapFNode *data = NULL;
+
+        SELF_RECNO(area->area, &recno);
+        node = treest_node_insert(root, UINT32_MAX, GtNapFNode);
+        data = treest_node_data(node, GtNapFNode);
+        data->area = area;
+        data->recno = recno;
+        data->expanded = FALSE;
+
+        if (nareas > 1)
+            i_build_children(dbconn, node, 0);
+
+        /* Restore root cursor after recursion, then advance */
+        SELF_GOTO(area->area, recno);
+        SELF_SKIP(area->area, 1);
+        SELF_EOF(area->area, &eof);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_map_dbconn_to_form(GtNapFDBConn *dbconn)
+{
+    cassert_no_null(dbconn);
+    cassert(dbconn->table == NULL);
+    cassert_no_null(dbconn->form);
+    dbconn->table = nform_get_tableview(dbconn->form->form, tc(dbconn->cellname));
+    if (dbconn->table != NULL)
+    {
+        tableview_tree(dbconn->table, 0);
+        tableview_OnData(dbconn->table, listener(dbconn, i_OnTreeFAreaData, GtNapFDBConn));
+        i_dbconn_refresh(dbconn);
+        tableview_update(dbconn->table);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void hbnap_forms_tree_bind(GtNapForm *form, const char_t *cell, HB_ITEM *areas, HB_ITEM *relations, HB_ITEM *columns)
 {
     HB_SIZE nA = UINT32_MAX;
@@ -6000,36 +6239,7 @@ void hbnap_forms_tree_bind(GtNapForm *form, const char_t *cell, HB_ITEM *areas, 
         }        
     }
 
-    //area = cast(hb_rddGetCurrentWorkAreaPointer(), AREA);
-    //if (area != NULL)
-    //{
-    //    HB_SIZE i;
-    //    form->area = i_create_farea(form, area);
-
-    //    for (i = 2; i <= n; ++i)
-    //    {
-    //        PHB_ITEM bind_item = hb_arrayGetItemPtr(column_bind, i);
-    //        PHB_ITEM block_item = NULL;
-    //        GtNapFColumn *column = NULL;
-    //        /* At the moment, the column-bind item only has one member. The column block */
-    //        cassert(HB_ITEM_TYPE(bind_item) == HB_IT_ARRAY);
-    //        cassert(hb_arrayLen(bind_item) == 1);
-    //        block_item = hb_arrayGetItemPtr(bind_item, 1);
-    //        cassert(HB_ITEM_TYPE(block_item) == HB_IT_BLOCK);
-    //        column = arrst_new0(form->area->columns, GtNapFColumn);
-    //        column->block = block_item ? hb_itemNew(block_item) : NULL;
-    //    }
-
-    //    /* The first element in bind array is the tableView cell name */
-    //    {
-    //        PHB_ITEM name_item = hb_arrayGetItemPtr(column_bind, 1);
-    //        const char *gui_id = NULL;
-    //        cassert(HB_ITEM_TYPE(name_item) == HB_IT_STRING);
-    //        gui_id = hb_itemGetCPtr(name_item);
-    //        form->area->cellname = str_c(cast_const(gui_id, char_t));
-    //        i_map_bind_area_to_form(form->area);
-    //    }
-    //}
+    i_map_dbconn_to_form(form->dbconn);
 }
 
 /*---------------------------------------------------------------------------*/
