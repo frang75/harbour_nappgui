@@ -5332,6 +5332,8 @@ static void i_remove_farea2(GtNapFArea2 *area)
     cassert_no_null(area);
     area->area = NULL; /* The life cycle of the area is managed exclusively by Harbour */
 
+    arrst_destroy(&area->columns, i_remove_fcolumn, GtNapFColumn);
+
     if (area->relfrom != NULL)
         hb_itemRelease(area->relfrom);
 
@@ -5694,11 +5696,11 @@ static GtNapFArea *i_create_farea(GtNapForm *form, AREA *area)
 
 /*---------------------------------------------------------------------------*/
 
-static GtNapFDBConn *i_create_dbconn(GtNapForm *form)
+static GtNapFDBConn *i_create_dbconn(GtNapForm *form, const char_t *cell)
 {
     GtNapFDBConn *dbconn = heap_new0(GtNapFDBConn);
     dbconn->form = form;
-    dbconn->cellname = NULL;
+    dbconn->cellname = str_c(cell);
     dbconn->table = NULL;
     dbconn->areas = arrst_create(GtNapFArea2);
     return dbconn;
@@ -5924,7 +5926,7 @@ void hbnap_forms_tree_bind(GtNapForm *form, const char_t *cell, HB_ITEM *areas, 
     cassert(HB_ITEM_TYPE(areas) == HB_IT_ARRAY);
     cassert(HB_ITEM_TYPE(relations) == HB_IT_ARRAY);
     cassert(HB_ITEM_TYPE(columns) == HB_IT_ARRAY);
-    form->dbconn = i_create_dbconn(form);
+    form->dbconn = i_create_dbconn(form, cell);
     nA = hb_arrayLen(areas);
     nR = hb_arrayLen(relations);
     nB = hb_arrayLen(columns);
@@ -5997,8 +5999,7 @@ void hbnap_forms_tree_bind(GtNapForm *form, const char_t *cell, HB_ITEM *areas, 
             area->relto = NULL;
         }        
     }
-    
-    unref(cell);
+
     //area = cast(hb_rddGetCurrentWorkAreaPointer(), AREA);
     //if (area != NULL)
     //{

@@ -10,6 +10,7 @@ PROC TST_FORM_TREEVIEW(O_PARENT_FORM)
 ********************************
 
 LOCAL C_INFO
+LOCAL N_RES := 0
 LOCAL O_FORM := HBNAP_FORMS_LOAD(DIRET_FORMS() + "TreeView.nfm", DIRET_FORMS(), hb_bitOr(HBNAP_FORMS_RESIZABLE, HBNAP_FORMS_CLOSE_ON_ESC, HBNAP_FORMS_CLOSE_ON_RETURN))
 
 LOCAL V_AREAS := { "CUSTOMER", "INVOICES", "DETAILS" }
@@ -67,14 +68,25 @@ GOTO TOP
 HBNAP_FORMS_TITLE(O_FORM, "TreeView with database relations")
 HBNAP_FORMS_TREE_BIND(O_FORM, "table", V_AREAS, V_RELS, V_COLS)
 
+N_RES := HBNAP_FORMS_MODAL(O_FORM, O_PARENT_FORM)
+
+IF N_RES == HBNAP_CLOSED_BY_ESC
+    INFO_MESSAGE_BOX("Form closed by pressing [ESC] key", O_FORM)
+ELSEIF N_RES == HBNAP_CLOSED_BY_RETURN
+    INFO_MESSAGE_BOX("Form closed by pressing [RETURN] key", O_FORM)
+ELSEIF N_RES == HBNAP_CLOSED_BY_BUTTON
+    INFO_MESSAGE_BOX("Form closed by pressing [X] button", O_FORM)
+ELSE
+    INFO_MESSAGE_BOX("Form closed by user func with code: " + hb_ntos(N_RES), O_FORM)
+ENDIF
+
 C_INFO := "Bases de dados abertas:" + HB_EOL() + ;
           "  customer  : " + hb_ntos(CUSTOMER->(LASTREC())) + " registros" + HB_EOL() + ;
           "  invoices  : " + hb_ntos(INVOICES->(LASTREC())) + " registros" + HB_EOL() + ;
           "  details   : " + hb_ntos(DETAILS->(LASTREC())) + " registros"
 
-// C_INFO := "Bases de dados abertas:"
-
 INFO_MESSAGE_BOX(C_INFO, O_PARENT_FORM)
+HBNAP_FORMS_DESTROY(O_FORM)
 
 CLOSE CUSTOMER
 CLOSE INVOICES
