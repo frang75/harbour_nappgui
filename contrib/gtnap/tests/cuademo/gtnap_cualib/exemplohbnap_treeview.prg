@@ -16,8 +16,8 @@ LOCAL O_FORM := HBNAP_FORMS_LOAD(DIRET_FORMS() + "TreeView.nfm", DIRET_FORMS(), 
 LOCAL V_AREAS := { "CUSTOMER", "INVOICES", "DETAILS" }
 
 LOCAL V_RELS := { ;
-    { {|| CUSTOMER->CODIGO},  {|| INVOICES->CODCLIENTE} }, ;
-    { {|| INVOICES->NUMERO},  {|| DETAILS->CODINVOICE}  } ;
+    { {|| CUSTOMER->CODIGO}, "CODCLI" }, ;
+    { {|| INVOICES->NUMERO}, "CODINV" } ;
 }
 
 LOCAL V_COLS := { ;
@@ -48,19 +48,11 @@ LOCAL V_COLS := { ;
 }
 
 USE ../dados/customer NEW SHARED
-SET INDEX TO ../dados/customer
 SET ORDER TO TAG CODIGO
 GOTO TOP
 
 USE ../dados/invoices NEW SHARED
-SET INDEX TO ../dados/invoices
-SET ORDER TO TAG CODCLI
-GOTO TOP
-
 USE ../dados/details NEW SHARED
-SET INDEX TO ../dados/details
-SET ORDER TO TAG CODINV
-GOTO TOP
 
 HBNAP_FORMS_TITLE(O_FORM, "TreeView with database relations")
 HBNAP_FORMS_TREE_BIND(O_FORM, "table", V_AREAS, V_RELS, V_COLS)

@@ -256,8 +256,7 @@ struct _gtnap_farea2_t
 {
     AREA *area;
     ArrSt(GtNapFColumn) *columns;
-    HB_ITEM *relfrom;
-    HB_ITEM *relto;
+    HB_ITEM *relkey;
 };
 
 struct _gtnap_farea_t
@@ -5353,11 +5352,8 @@ static void i_remove_farea2(GtNapFArea2 *area)
 
     arrst_destroy(&area->columns, i_remove_fcolumn, GtNapFColumn);
 
-    if (area->relfrom != NULL)
-        hb_itemRelease(area->relfrom);
-
-    if (area->relto != NULL)
-        hb_itemRelease(area->relto);
+    if (area->relkey != NULL)
+        hb_itemRelease(area->relkey);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -6019,14 +6015,19 @@ static void i_OnTreeFAreaData(GtNapFDBConn *dbconn, Event *e)
 
 static bool_t i_items_equal(PHB_ITEM a, PHB_ITEM b)
 {
-    HB_TYPE t = HB_ITEM_TYPE(a);
-    cassert(t == HB_ITEM_TYPE(b));
+    HB_TYPE ta = HB_ITEM_TYPE(a);
+    HB_TYPE tb = HB_ITEM_TYPE(b);
 
-    if (t & HB_IT_NUMERIC)
+    /* Numeric subtypes (INTEGER, LONG, DOUBLE) are interchangeable:
+     * DBOI_KEYVAL always returns DOUBLE while code blocks may return INTEGER */
+    if ((ta & HB_IT_NUMERIC) && (tb & HB_IT_NUMERIC))
         return (bool_t)(hb_itemGetND(a) == hb_itemGetND(b));
-    if (t & HB_IT_STRING)
+
+    cassert(ta == tb);
+
+    if (ta & HB_IT_STRING)
         return (bool_t)(hb_stricmp(hb_itemGetCPtr(a), hb_itemGetCPtr(b)) == 0);
-    if (t & HB_IT_LOGICAL)
+    if (ta & HB_IT_LOGICAL)
         return (bool_t)(hb_itemGetL(a) == hb_itemGetL(b));
 
     cassert(FALSE);
@@ -6095,11 +6096,11 @@ static void i_build_children(GtNapFDBConn *dbconn, NodeSt(GtNapFNode) *parent, u
     carea = arrst_get(dbconn->areas, level + 1, GtNapFArea2);
     pdata = treest_node_data(parent, GtNapFNode);
 
-    /* Position parent at its record so relfrom block reads the right value */
+    /* Position parent at its record so relkey block reads the right value */
     SELF_GOTO(parea->area, pdata->recno);
 
-    /* Evaluate parent relfrom block → seek key for child area */
-    key = hb_itemDo(parea->relfrom, 0);
+    /* Evaluate parent relkey block → seek key for child area */
+    key = hb_itemDo(parea->relkey, 0);
 
     /* 
      * SEEK in child area (order already set by Harbour SET ORDER TO TAG). 
@@ -6120,10 +6121,14 @@ static void i_build_children(GtNapFDBConn *dbconn, NodeSt(GtNapFNode) *parent, u
         SELF_EOF(carea->area, &eof);
         while (eof == HB_FALSE)
         {
-            /* Child key must still match parent key */
-            PHB_ITEM ckey = hb_itemDo(parea->relto, 0);
-            bool_t equ = i_items_equal(key, ckey);
-            hb_itemRelease(ckey);
+            /* Child key must still match parent key (read from active index) */
+            DBORDERINFO kinfo;
+            bool_t equ = FALSE;
+            memset(&kinfo, 0, sizeof(kinfo));
+            kinfo.itmResult = hb_itemNew(NULL);
+            SELF_ORDINFO(carea->area, DBOI_KEYVAL, &kinfo);
+            equ = i_items_equal(key, kinfo.itmResult);
+            hb_itemRelease(kinfo.itmResult);
 
             if (equ == TRUE)
             {
@@ -6287,28 +6292,106 @@ void hbnap_forms_tree_bind(GtNapForm *form, const char_t *cell, HB_ITEM *areas, 
             }
         }
 
-        /* Relation with next area */
+        /* Relation with next area: { parent_key_block, "CHILD_TAG" } */
         if (i < nA)
         {
             PHB_ITEM rel_item = hb_arrayGetItemPtr(relations, i);
-            PHB_ITEM from_item = NULL;
-            PHB_ITEM to_item = NULL;                
+            PHB_ITEM key_item = NULL;
+            PHB_ITEM tag_item = NULL;
+            const char *tag_name = NULL;
             cassert(HB_ITEM_TYPE(rel_item) == HB_IT_ARRAY);
             cassert(hb_arrayLen(rel_item) == 2);
-            from_item = hb_arrayGetItemPtr(rel_item, 1);
-            to_item = hb_arrayGetItemPtr(rel_item, 2);                
-            cassert_no_null(from_item);
-            cassert_no_null(to_item);
-            cassert(HB_ITEM_TYPE(from_item) == HB_IT_BLOCK);
-            cassert(HB_ITEM_TYPE(to_item) == HB_IT_BLOCK);
-            area->relfrom = hb_itemNew(from_item);
-            area->relto = hb_itemNew(to_item);
+            key_item = hb_arrayGetItemPtr(rel_item, 1);
+            tag_item = hb_arrayGetItemPtr(rel_item, 2);
+            cassert(HB_ITEM_TYPE(key_item) == HB_IT_BLOCK);
+            cassert(HB_ITEM_TYPE(tag_item) == HB_IT_STRING);
+            area->relkey = hb_itemNew(key_item);
+            tag_name = hb_itemGetCPtr(tag_item);
+
+            /* Open CDX and activate tag on the child area */
+            {
+                HB_ERRCODE hbres;
+                int iCArea = 0;
+                AREA *carea = NULL;
+                char cdx_path[HB_PATH_MAX];
+
+                {
+                    PHB_ITEM carea_item = hb_arrayGetItemPtr(areas, i + 1);
+                    cassert(HB_ITEM_TYPE(carea_item) == HB_IT_STRING);
+                    hbres = hb_rddGetAliasNumber(hb_itemGetCPtr(carea_item), &iCArea);
+                    cassert_unref(hbres == HB_SUCCESS, hbres);
+                    carea = cast(hb_rddGetWorkAreaPointer(iCArea), AREA);
+                    cassert_no_null(carea);
+                }
+
+                /* Derive CDX path from DBF full path */
+                {
+                    PHB_ITEM pPath = hb_itemNew(NULL);
+                    hbres = SELF_INFO(carea, DBI_FULLPATH, pPath);
+                    cassert_unref(hbres == HB_SUCCESS, hbres);
+                    hb_strncpy(cdx_path, hb_itemGetCPtr(pPath), sizeof(cdx_path) - 1);
+                    hb_itemRelease(pPath);
+                }
+
+                /* Replace .dbf extension with .cdx */
+                {
+                    HB_SIZE len = strlen(cdx_path);
+                    if (len > 4 && hb_stricmp(cdx_path + len - 4, ".dbf") == 0)
+                        hb_strncpy(cdx_path + len - 4, ".cdx", 5);
+                }
+
+                /* 
+                 * Open CDX and activate the specified tag.
+                 * SELF_ORDLSTADD evaluates the key expression via the Harbour VM
+                 * macro compiler, which resolves fields against the CURRENTLY
+                 * SELECTED work area — not the area pointer argument. We must
+                 * select the child area first so field names resolve correctly. 
+                 */
+                {
+                    DBORDERINFO oinfo;
+                    int iSavedArea = hb_rddGetCurrentWorkAreaNumber();
+                    hbres = hb_rddSelectWorkAreaNumber(iCArea);
+                    cassert_unref(hbres == HB_SUCCESS, hbres);
+                    hbres = SELF_ORDLSTCLEAR(carea);
+                    cassert_unref(hbres == HB_SUCCESS, hbres);
+                    memset(&oinfo, 0, sizeof(oinfo));
+                    oinfo.atomBagName = hb_itemPutC(NULL, cdx_path);
+                    oinfo.itmResult = hb_itemNew(NULL);
+                    hbres = SELF_ORDLSTADD(carea, &oinfo);
+                    cassert_unref(hbres == HB_SUCCESS, hbres);
+                    hb_itemRelease(oinfo.atomBagName);
+                    oinfo.atomBagName = NULL;
+                    oinfo.itmOrder = hb_itemPutC(NULL, tag_name);
+                    hbres = SELF_ORDLSTFOCUS(carea, &oinfo);
+                    cassert_unref(hbres == HB_SUCCESS, hbres);
+                    hb_itemRelease(oinfo.itmOrder);
+                    hb_itemRelease(oinfo.itmResult);
+
+                    /* 
+                     * ORDLSTFOCUS returns HB_SUCCESS even if tag name does not exist 
+                     * verify by checking the active order number 
+                     */
+                    {
+                        DBORDERINFO vinfo;
+                        int pos = 0;
+                        memset(&vinfo, 0, sizeof(vinfo));
+                        vinfo.itmResult = hb_itemNew(NULL);
+                        hbres = SELF_ORDINFO(carea, DBOI_NUMBER, &vinfo);
+                        cassert_unref(hbres == HB_SUCCESS, hbres);
+                        pos = hb_itemGetNI(vinfo.itmResult);
+                        cassert(pos != 0);
+                        hb_itemRelease(vinfo.itmResult);
+                    }
+
+                    hbres = hb_rddSelectWorkAreaNumber(iSavedArea);
+                    cassert_unref(hbres == HB_SUCCESS, hbres);
+                }
+            }
         }
         else
         {
-            area->relfrom = NULL;
-            area->relto = NULL;
-        }        
+            area->relkey = NULL;
+        }
     }
 
     i_map_dbconn_to_form(form->dbconn);
