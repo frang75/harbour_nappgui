@@ -22,34 +22,28 @@ LOCAL V_RELS := { ;
 
 LOCAL V_COLS := { ;
     { ; // Customer table columns
-        { HBNAP_LEFT,  {|| "Customer-Col1"} }, ;
-        { HBNAP_LEFT,  {|| "Customer-Col2"} }, ;
-        { HBNAP_LEFT,  {|| "Customer-Col3"} }, ;
-        { HBNAP_LEFT,  {|| "Customer-Col4"} }, ;
-        { HBNAP_LEFT,  {|| "Customer-Col5"} }, ;
-        { HBNAP_LEFT,  {|| "Customer-Col6"} }, ;
-        { HBNAP_LEFT,  {|| "Customer-Col7"} }, ;
-        { HBNAP_LEFT,  {|| "Customer-Col8"} } ;
+        { HBNAP_LEFT,  {|| TRIM(CUSTOMER->NOME) + " (" + TRIM(CUSTOMER->NIF) + ")"} }, ; // Nome
+        { HBNAP_LEFT,  {|| ""} }, ; // Quantia
+        { HBNAP_LEFT,  {|| ""} }, ; // Preço
+        { HBNAP_RIGHT, {|| "--"} }, ; // Subtotal
+        { HBNAP_RIGHT, {|| "--"} }, ; // Impostos
+        { HBNAP_RIGHT, {|| "--"} } ;  // Total
     }, ;
     { ; // Invoice table columns
-        { HBNAP_LEFT,  {|| "Invoice-Col1"} }, ;
-        { HBNAP_LEFT,  {|| "Invoice-Col2"} }, ;
-        { HBNAP_LEFT,  {|| "Invoice-Col3"} }, ;
-        { HBNAP_LEFT,  {|| "Invoice-Col4"} }, ;
-        { HBNAP_LEFT,  {|| "Invoice-Col5"} }, ;
-        { HBNAP_LEFT,  {|| "Invoice-Col6"} }, ;
-        { HBNAP_LEFT,  {|| "Invoice-Col7"} }, ;
-        { HBNAP_LEFT,  {|| "Invoice-Col8"} } ;
+        { HBNAP_LEFT,  {|| "Invoice: " + hb_ntos(INVOICES->NUMERO) + " (" + DTOC(INVOICES->DATE) + ")"} }, ; // Nome
+        { HBNAP_LEFT,  {|| ""} }, ; // Quantia
+        { HBNAP_LEFT,  {|| ""} }, ; // Preço
+        { HBNAP_RIGHT, {|| hb_ntos(INVOICES->SUBTOTAL)} }, ; // Subtotal
+        { HBNAP_RIGHT, {|| hb_ntos(INVOICES->IMPOSTOS)} }, ; // Impostos
+        { HBNAP_RIGHT, {|| hb_ntos(INVOICES->TOTAL)} } ;     // Total
     }, ;
     { ; // Details table columns
-        { HBNAP_LEFT,  {|| "Details-Col1"} }, ;
-        { HBNAP_LEFT,  {|| "Details-Col2"} }, ;
-        { HBNAP_LEFT,  {|| "Details-Col3"} }, ;
-        { HBNAP_LEFT,  {|| "Details-Col4"} }, ;
-        { HBNAP_LEFT,  {|| "Details-Col5"} }, ;
-        { HBNAP_LEFT,  {|| "Details-Col6"} }, ;
-        { HBNAP_LEFT,  {|| "Details-Col7"} }, ;
-        { HBNAP_LEFT,  {|| "Details-Col8"} } ;
+        { HBNAP_LEFT,  {|| PADL(hb_ntos(DETAILS->NUMLINHA), 3, "0") + "-" + TRIM(DETAILS->CONCEITO) } }, ; // Nome
+        { HBNAP_RIGHT, {|| hb_ntos(DETAILS->QUANTIDADE)} }, ; // Quantia
+        { HBNAP_RIGHT, {|| hb_ntos(DETAILS->PRECUNIT)} }, ;   // Preço
+        { HBNAP_RIGHT,  {|| hb_ntos(DETAILS->SUBTOTAL)} }, ;  // Subtotal
+        { HBNAP_RIGHT,  {|| hb_ntos(DETAILS->IMPOSTOS)} }, ;  // Impostos
+        { HBNAP_RIGHT,  {|| hb_ntos(DETAILS->TOTAL)} } ;      // Total
     } ;
 }
 
