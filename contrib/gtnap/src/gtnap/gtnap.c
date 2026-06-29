@@ -6014,6 +6014,53 @@ static bool_t i_items_equal(PHB_ITEM a, PHB_ITEM b)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_dump_area_order(AREA *area, const char_t *label)
+{
+    DBORDERINFO info;
+    memset(&info, 0, sizeof(info));
+    info.itmResult = hb_itemNew(NULL);
+
+    /* Orden activo (número) */
+    SELF_ORDINFO(area, DBOI_NUMBER, &info);
+    int nOrder = hb_itemGetNI(info.itmResult);
+
+    /* Nombre del tag activo */
+    SELF_ORDINFO(area, DBOI_NAME, &info);
+    const char *szName = hb_itemGetCPtr(info.itmResult);
+
+    bstd_printf("%s → order=%d  tag='%s'\n", label, nOrder, szName);
+
+    hb_itemRelease(info.itmResult);
+}
+
+static void i_dump_area_tags(AREAP area, const char *label)
+{
+    DBORDERINFO info;
+    int i, nTotal;
+
+    memset(&info, 0, sizeof(info));
+    info.itmResult = hb_itemNew(NULL);
+    info.itmOrder  = hb_itemNew(NULL);
+
+    /* Total de órdenes disponibles en el área */
+    SELF_ORDINFO(area, DBOI_ORDERCOUNT, &info);
+    nTotal = hb_itemGetNI(info.itmResult);
+    bstd_printf("%s: %d tag(s)\n", label, nTotal);
+
+    /* Nombre de cada tag (índice 1-based) */
+    for (i = 1; i <= nTotal; i++)
+    {
+        hb_itemPutNI(info.itmOrder, i);
+        SELF_ORDINFO(area, DBOI_NAME, &info);
+        bstd_printf("  [%d] '%s'\n", i, hb_itemGetCPtr(info.itmResult));
+    }
+
+    hb_itemRelease(info.itmResult);
+    hb_itemRelease(info.itmOrder);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_build_children(GtNapFDBConn *dbconn, NodeSt(GtNapFNode) *parent, uint32_t level)
 {
     GtNapFArea2 *parea = NULL;
@@ -6038,6 +6085,8 @@ static void i_build_children(GtNapFDBConn *dbconn, NodeSt(GtNapFNode) *parent, u
      * Hard seek (HB_FALSE remains in EOF if it not found) 
      * Find last (HB_FALSE find the first record match)
      */
+    i_dump_area_tags(carea->area, "INVOICES");
+    i_dump_area_order(carea->area, "Label");
     SELF_SEEK(carea->area, HB_FALSE, key, HB_FALSE);
 
     SELF_FOUND(carea->area, &found);

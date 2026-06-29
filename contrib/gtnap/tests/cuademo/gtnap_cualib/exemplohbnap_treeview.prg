@@ -54,14 +54,17 @@ LOCAL V_COLS := { ;
 }
 
 USE ../dados/customer NEW SHARED
+SET INDEX TO ../dados/customer
 SET ORDER TO TAG CODIGO
 GOTO TOP
 
 USE ../dados/invoices NEW SHARED
+SET INDEX TO ../dados/invoices
 SET ORDER TO TAG CODCLI
 GOTO TOP
 
 USE ../dados/details NEW SHARED
+SET INDEX TO ../dados/details
 SET ORDER TO TAG CODINV
 GOTO TOP
 
