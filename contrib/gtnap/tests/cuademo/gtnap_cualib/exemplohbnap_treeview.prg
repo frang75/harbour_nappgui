@@ -16,8 +16,8 @@ LOCAL O_FORM := HBNAP_FORMS_LOAD(DIRET_FORMS() + "TreeView.nfm", DIRET_FORMS(), 
 LOCAL V_AREAS := { "CUSTOMER", "INVOICES", "DETAILS" }
 
 LOCAL V_RELS := { ;
-    { {|| CUSTOMER->CODIGO}, "CODCLI" }, ;
-    { {|| INVOICES->NUMERO}, "CODINV" } ;
+    { {|| CUSTOMER->CODIGO}, "../dados/invoices.cdx", "CODCLI" }, ;
+    { {|| INVOICES->NUMERO}, "../dados/details.cdx", "CODINV" } ;
 }
 
 LOCAL V_COLS := { ;

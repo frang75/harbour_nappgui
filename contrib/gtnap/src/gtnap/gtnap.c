@@ -6292,20 +6292,25 @@ void hbnap_forms_tree_bind(GtNapForm *form, const char_t *cell, HB_ITEM *areas, 
             }
         }
 
-        /* Relation with next area: { parent_key_block, "CHILD_TAG" } */
+        /* Relation with next area: { parent_key_block, "cdx_path", "CHILD_TAG" } */
         if (i < nA)
         {
             PHB_ITEM rel_item = hb_arrayGetItemPtr(relations, i);
             PHB_ITEM key_item = NULL;
+            PHB_ITEM cdx_item = NULL;
             PHB_ITEM tag_item = NULL;
+            const char *cdx_path = NULL;
             const char *tag_name = NULL;
             cassert(HB_ITEM_TYPE(rel_item) == HB_IT_ARRAY);
-            cassert(hb_arrayLen(rel_item) == 2);
+            cassert(hb_arrayLen(rel_item) == 3);
             key_item = hb_arrayGetItemPtr(rel_item, 1);
-            tag_item = hb_arrayGetItemPtr(rel_item, 2);
+            cdx_item = hb_arrayGetItemPtr(rel_item, 2);
+            tag_item = hb_arrayGetItemPtr(rel_item, 3);
             cassert(HB_ITEM_TYPE(key_item) == HB_IT_BLOCK);
+            cassert(HB_ITEM_TYPE(cdx_item) == HB_IT_STRING);
             cassert(HB_ITEM_TYPE(tag_item) == HB_IT_STRING);
             area->relkey = hb_itemNew(key_item);
+            cdx_path = hb_itemGetCPtr(cdx_item);
             tag_name = hb_itemGetCPtr(tag_item);
 
             /* Open CDX and activate tag on the child area */
@@ -6313,7 +6318,6 @@ void hbnap_forms_tree_bind(GtNapForm *form, const char_t *cell, HB_ITEM *areas, 
                 HB_ERRCODE hbres;
                 int iCArea = 0;
                 AREA *carea = NULL;
-                char cdx_path[HB_PATH_MAX];
 
                 {
                     PHB_ITEM carea_item = hb_arrayGetItemPtr(areas, i + 1);
@@ -6322,22 +6326,6 @@ void hbnap_forms_tree_bind(GtNapForm *form, const char_t *cell, HB_ITEM *areas, 
                     cassert_unref(hbres == HB_SUCCESS, hbres);
                     carea = cast(hb_rddGetWorkAreaPointer(iCArea), AREA);
                     cassert_no_null(carea);
-                }
-
-                /* Derive CDX path from DBF full path */
-                {
-                    PHB_ITEM pPath = hb_itemNew(NULL);
-                    hbres = SELF_INFO(carea, DBI_FULLPATH, pPath);
-                    cassert_unref(hbres == HB_SUCCESS, hbres);
-                    hb_strncpy(cdx_path, hb_itemGetCPtr(pPath), sizeof(cdx_path) - 1);
-                    hb_itemRelease(pPath);
-                }
-
-                /* Replace .dbf extension with .cdx */
-                {
-                    HB_SIZE len = strlen(cdx_path);
-                    if (len > 4 && hb_stricmp(cdx_path + len - 4, ".dbf") == 0)
-                        hb_strncpy(cdx_path + len - 4, ".cdx", 5);
                 }
 
                 /* 
