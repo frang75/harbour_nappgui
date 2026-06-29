@@ -5978,11 +5978,35 @@ static void i_OnTreeFAreaData(GtNapFDBConn *dbconn, Event *e)
 
     case ekGUI_EVENT_TBL_CELL:
     {
-        EvTbCell *cell = event_result(e, EvTbCell);
         const EvTbPos *pos = event_params(e, EvTbPos);
-        bstd_sprintf(TEMP_BUFFER, sizeof(TEMP_BUFFER), "Data (%d, %d)", pos->col, pos->row);
-        cell->text = TEMP_BUFFER;
-        //cell->text = i_farea_eval_field(area, pos->col + 1, pos->row);
+        NodeSt(GtNapFNode) *node = cast(pos->node, NodeSt(GtNapFNode));
+        GtNapFNode *data = treest_node_data(node, GtNapFNode);
+        const GtNapFColumn *col = arrst_get_const(data->area->columns, pos->col, GtNapFColumn);
+
+        /* Position current node cursor */
+        SELF_GOTO(data->area->area, data->recno);
+
+        /* Position all ancestor cursors (bottom-up walk, skip virtual root) */
+        {
+            NodeSt(GtNapFNode) *anode = treest_node_parent(node, GtNapFNode);
+            while (anode != NULL)
+            {
+                GtNapFNode *adata = treest_node_data(anode, GtNapFNode);
+                if (adata->area != NULL)
+                    SELF_GOTO(adata->area->area, adata->recno);
+                anode = treest_node_parent(anode, GtNapFNode);
+            }
+        }
+
+        {
+            EvTbCell *cell = event_result(e, EvTbCell);
+            PHB_ITEM ritem = hb_itemDo(col->block, 0);
+            i_hbitem_to_char(ritem, TEMP_BUFFER, sizeof(TEMP_BUFFER), TRUE);
+            hb_itemRelease(ritem);
+            cell->text = TEMP_BUFFER;
+            cell->align = col->align;
+        }
+
         break;
     }
 
