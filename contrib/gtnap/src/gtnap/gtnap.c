@@ -241,6 +241,7 @@ struct _gtnap_fnode_t
     GtNapFArea2 *area;
     HB_ULONG recno;
     bool_t expanded;
+    uint32_t nchildren; /* Child count forward. Stops recursion for collapsed nodes. */
 };
 
 struct _gtnap_fbdconn_t
@@ -5929,6 +5930,186 @@ static align_t i_hbalign(int hbalign)
 
 /*---------------------------------------------------------------------------*/
 
+static bool_t i_items_equal(PHB_ITEM a, PHB_ITEM b)
+{
+    HB_TYPE ta = HB_ITEM_TYPE(a);
+    HB_TYPE tb = HB_ITEM_TYPE(b);
+
+    /* Numeric subtypes (INTEGER, LONG, DOUBLE) are interchangeable:
+     * DBOI_KEYVAL always returns DOUBLE while code blocks may return INTEGER */
+    if ((ta & HB_IT_NUMERIC) && (tb & HB_IT_NUMERIC))
+        return (bool_t)(hb_itemGetND(a) == hb_itemGetND(b));
+
+    cassert(ta == tb);
+
+    if (ta & HB_IT_STRING)
+        return (bool_t)(hb_stricmp(hb_itemGetCPtr(a), hb_itemGetCPtr(b)) == 0);
+    if (ta & HB_IT_LOGICAL)
+        return (bool_t)(hb_itemGetL(a) == hb_itemGetL(b));
+
+    cassert(FALSE);
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static uint32_t i_count_db_children(GtNapFArea2 *parea, HB_ULONG precno, GtNapFArea2 *carea)
+{
+    PHB_ITEM key = NULL;
+    HB_BOOL found = HB_FALSE;
+    uint32_t count = 0;
+    SELF_GOTO(parea->area, precno);
+    key = hb_itemDo(parea->relkey, 0);
+    SELF_SEEK(carea->area, HB_FALSE, key, HB_FALSE);
+    SELF_FOUND(carea->area, &found);
+    if (found == HB_TRUE)
+    {
+        HB_BOOL eof = HB_FALSE;
+        SELF_EOF(carea->area, &eof);
+        while (eof == HB_FALSE)
+        {
+            DBORDERINFO kinfo;
+            bool_t equ = FALSE;
+            memset(&kinfo, 0, sizeof(kinfo));
+            kinfo.itmResult = hb_itemNew(NULL);
+            SELF_ORDINFO(carea->area, DBOI_KEYVAL, &kinfo);
+            equ = i_items_equal(key, kinfo.itmResult);
+            hb_itemRelease(kinfo.itmResult);
+            if (equ == TRUE)
+            {
+                SELF_SKIP(carea->area, 1);
+                SELF_EOF(carea->area, &eof);
+                count++;
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+
+    hb_itemRelease(key);
+    return count;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_build_children(GtNapFDBConn *dbconn, NodeSt(GtNapFNode) *parent, uint32_t level)
+{
+    GtNapFArea2 *parea = NULL;
+    GtNapFArea2 *carea = NULL;
+    GtNapFNode *pdata = NULL;    
+    PHB_ITEM key = NULL;
+    HB_BOOL found = HB_FALSE;
+
+    cassert_no_null(dbconn);
+    parea = arrst_get(dbconn->areas, level, GtNapFArea2);
+    carea = arrst_get(dbconn->areas, level + 1, GtNapFArea2);
+    pdata = treest_node_data(parent, GtNapFNode);
+
+    /* Position parent at its record so relkey block reads the right value */
+    SELF_GOTO(parea->area, pdata->recno);
+
+    /* Evaluate parent relkey block, seek key for child area */
+    key = hb_itemDo(parea->relkey, 0);
+
+    /*
+    i_dump_area_tags(carea->area, "INVOICES");
+    i_dump_area_order(carea->area, "Label");
+    */
+
+    /* 
+     * SEEK in child area (order already set).
+     * Hard seek (HB_FALSE remains in EOF if it not found) 
+     * Find last (HB_FALSE find the first record match)
+     */
+    SELF_SEEK(carea->area, HB_FALSE, key, HB_FALSE);
+
+    SELF_FOUND(carea->area, &found);
+    if (found == HB_TRUE)
+    {
+        HB_BOOL eof = HB_FALSE;
+        uint32_t nareas = arrst_size(dbconn->areas, GtNapFArea2);
+        SELF_EOF(carea->area, &eof);
+        while (eof == HB_FALSE)
+        {
+            /* Child key must still match parent key (read from active index) */
+            DBORDERINFO kinfo;
+            bool_t equ = FALSE;
+            memset(&kinfo, 0, sizeof(kinfo));
+            kinfo.itmResult = hb_itemNew(NULL);
+            SELF_ORDINFO(carea->area, DBOI_KEYVAL, &kinfo);
+            equ = i_items_equal(key, kinfo.itmResult);
+            hb_itemRelease(kinfo.itmResult);
+
+            if (equ == TRUE)
+            {
+                /* Add child node to tree */
+                NodeSt(GtNapFNode) *child = treest_node_insert(parent, UINT32_MAX, GtNapFNode);
+                GtNapFNode *cdata = treest_node_data(child, GtNapFNode);
+                HB_ULONG crecno = 0;
+
+                SELF_RECNO(carea->area, &crecno);
+                cdata->area = carea;
+                cdata->recno = crecno;
+                if (carea->expanded_field != 0)
+                {
+                    PHB_ITEM pExp = hb_itemNew(NULL);
+                    SELF_GETVALUE(carea->area, carea->expanded_field, pExp);
+                    cdata->expanded = (bool_t)hb_itemGetL(pExp);
+                    hb_itemRelease(pExp);
+                }
+                else
+                {
+                    cdata->expanded = FALSE;
+                }
+
+                cdata->nchildren = 0;
+                /* Exists grandchildren */
+                if (level + 2 < nareas)
+                {
+                    /* Recurse for grandchildren only if expanded, collapsed nodes get a count without building */
+                    if (cdata->expanded == TRUE)
+                    {
+                        i_build_children(dbconn, child, level + 1);
+                    }
+                    else
+                    {
+                        GtNapFArea2 *gcarea = arrst_get(dbconn->areas, level + 2, GtNapFArea2);
+                        cdata->nchildren = i_count_db_children(carea, crecno, gcarea);
+                    }
+                }
+
+                /* Restore child cursor after recursion, then advance */
+                SELF_GOTO(carea->area, crecno);
+                SELF_SKIP(carea->area, 1);
+                SELF_EOF(carea->area, &eof);
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+
+    hb_itemRelease(key);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static uint32_t i_area_level(const GtNapFDBConn *dbconn, const GtNapFArea2 *area)
+{
+    cassert_no_null(dbconn);
+    arrst_foreach_const(larea, dbconn->areas, GtNapFArea2)
+        if (larea == area)
+            return larea_i;
+    arrst_end();
+    cassert(FALSE);
+    return UINT32_MAX;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnTreeFAreaData(GtNapFDBConn *dbconn, Event *e)
 {
     uint32_t etype = event_type(e);
@@ -5959,7 +6140,14 @@ static void i_OnTreeFAreaData(GtNapFDBConn *dbconn, Event *e)
         child = treest_node_get(parent, node->child, GtNapFNode);
         data = treest_node_data(child, GtNapFNode);
         info->node = child;
-        info->nchildren = treest_node_size(child, GtNapFNode);
+
+        {
+            /* If children are built, use tree count, otherwise use the pre-counted DB children */
+            uint32_t nc = treest_node_size(child, GtNapFNode);
+            cassert((nc > 0 && data->nchildren == 0) || nc == 0);
+            info->nchildren = (nc > 0) ? nc : data->nchildren;
+        }
+
         info->expanded = data->expanded;
         break;
     }
@@ -5972,6 +6160,15 @@ static void i_OnTreeFAreaData(GtNapFDBConn *dbconn, Event *e)
         cassert_no_null(data);
         cassert_no_null(data->area);
         data->expanded = p->expanded;
+
+        /* Expanding a node whose subtree was counted but not built */
+        if (p->expanded == TRUE && data->nchildren > 0 && treest_node_size(node, GtNapFNode) == 0)
+        {
+            uint32_t level = i_area_level(dbconn, data->area);
+            i_build_children(dbconn, node, level);
+        }
+
+        /* Mark expanded/collapsed in DB */
         if (data->area->expanded_field != 0)
         {
             DBLOCKINFO linfo;
@@ -6063,29 +6260,6 @@ static HB_USHORT i_area_expanded_field(AREA *area)
 
 /*---------------------------------------------------------------------------*/
 
-static bool_t i_items_equal(PHB_ITEM a, PHB_ITEM b)
-{
-    HB_TYPE ta = HB_ITEM_TYPE(a);
-    HB_TYPE tb = HB_ITEM_TYPE(b);
-
-    /* Numeric subtypes (INTEGER, LONG, DOUBLE) are interchangeable:
-     * DBOI_KEYVAL always returns DOUBLE while code blocks may return INTEGER */
-    if ((ta & HB_IT_NUMERIC) && (tb & HB_IT_NUMERIC))
-        return (bool_t)(hb_itemGetND(a) == hb_itemGetND(b));
-
-    cassert(ta == tb);
-
-    if (ta & HB_IT_STRING)
-        return (bool_t)(hb_stricmp(hb_itemGetCPtr(a), hb_itemGetCPtr(b)) == 0);
-    if (ta & HB_IT_LOGICAL)
-        return (bool_t)(hb_itemGetL(a) == hb_itemGetL(b));
-
-    cassert(FALSE);
-    return FALSE;
-}
-
-/*---------------------------------------------------------------------------*/
-
 /*
 static void i_dump_area_order(AREA *area, const char_t *label)
 {
@@ -6098,7 +6272,7 @@ static void i_dump_area_order(AREA *area, const char_t *label)
 
     SELF_ORDINFO(area, DBOI_NAME, &info);
     const char *szName = hb_itemGetCPtr(info.itmResult);
-    bstd_printf("%s → order=%d  tag='%s'\n", label, nOrder, szName);
+    bstd_printf("%s order=%d  tag='%s'\n", label, nOrder, szName);
     hb_itemRelease(info.itmResult);
 } 
 */
@@ -6130,96 +6304,6 @@ static void i_dump_area_tags(AREAP area, const char *label)
     hb_itemRelease(info.itmOrder);
 }
 */
-
-/*---------------------------------------------------------------------------*/
-
-static void i_build_children(GtNapFDBConn *dbconn, NodeSt(GtNapFNode) *parent, uint32_t level)
-{
-    GtNapFArea2 *parea = NULL;
-    GtNapFArea2 *carea = NULL;
-    GtNapFNode *pdata = NULL;    
-    PHB_ITEM key = NULL;
-    HB_BOOL found = HB_FALSE;
-
-    cassert_no_null(dbconn);
-    parea = arrst_get(dbconn->areas, level, GtNapFArea2);
-    carea = arrst_get(dbconn->areas, level + 1, GtNapFArea2);
-    pdata = treest_node_data(parent, GtNapFNode);
-
-    /* Position parent at its record so relkey block reads the right value */
-    SELF_GOTO(parea->area, pdata->recno);
-
-    /* Evaluate parent relkey block → seek key for child area */
-    key = hb_itemDo(parea->relkey, 0);
-
-    /* 
-     * SEEK in child area (order already set by Harbour SET ORDER TO TAG). 
-     * Hard seek (HB_FALSE remains in EOF if it not found) 
-     * Find last (HB_FALSE find the first record match)
-     */
-    /*
-    i_dump_area_tags(carea->area, "INVOICES");
-    i_dump_area_order(carea->area, "Label");
-    */
-    SELF_SEEK(carea->area, HB_FALSE, key, HB_FALSE);
-
-    SELF_FOUND(carea->area, &found);
-    if (found == HB_TRUE)
-    {
-        HB_BOOL eof = HB_FALSE;
-        uint32_t nareas = arrst_size(dbconn->areas, GtNapFArea2);
-        SELF_EOF(carea->area, &eof);
-        while (eof == HB_FALSE)
-        {
-            /* Child key must still match parent key (read from active index) */
-            DBORDERINFO kinfo;
-            bool_t equ = FALSE;
-            memset(&kinfo, 0, sizeof(kinfo));
-            kinfo.itmResult = hb_itemNew(NULL);
-            SELF_ORDINFO(carea->area, DBOI_KEYVAL, &kinfo);
-            equ = i_items_equal(key, kinfo.itmResult);
-            hb_itemRelease(kinfo.itmResult);
-
-            if (equ == TRUE)
-            {
-                /* Add child node to tree */
-                NodeSt(GtNapFNode) *child = treest_node_insert(parent, UINT32_MAX, GtNapFNode);
-                GtNapFNode *cdata = treest_node_data(child, GtNapFNode);
-                HB_ULONG crecno = 0;
-
-                SELF_RECNO(carea->area, &crecno);
-                cdata->area = carea;
-                cdata->recno = crecno;
-                if (carea->expanded_field != 0)
-                {
-                    PHB_ITEM pExp = hb_itemNew(NULL);
-                    SELF_GETVALUE(carea->area, carea->expanded_field, pExp);
-                    cdata->expanded = (bool_t)hb_itemGetL(pExp);
-                    hb_itemRelease(pExp);
-                }
-                else
-                {
-                    cdata->expanded = FALSE;
-                }
-
-                /* Recurse for grandchildren if more levels exist */
-                if (level + 2 < nareas)
-                    i_build_children(dbconn, child, level + 1);
-
-                /* Restore child cursor after recursion, then advance */
-                SELF_GOTO(carea->area, crecno);
-                SELF_SKIP(carea->area, 1);
-                SELF_EOF(carea->area, &eof);
-            }
-            else
-            {
-                break;
-            }
-        }
-    }
-
-    hb_itemRelease(key);
-}
 
 /*---------------------------------------------------------------------------*/
 
@@ -6271,8 +6355,21 @@ static void i_dbconn_refresh(GtNapFDBConn *dbconn)
             data->expanded = FALSE;
         }
 
+        data->nchildren = 0;
+        /* Exists node hierarchy */
         if (nareas > 1)
-            i_build_children(dbconn, node, 0);
+        {
+            /* Only recurse into children if this node is expanded */
+            if (data->expanded == TRUE)
+            {
+                i_build_children(dbconn, node, 0);
+            }
+            else
+            {
+                GtNapFArea2 *carea = arrst_get(dbconn->areas, 1, GtNapFArea2);
+                data->nchildren = i_count_db_children(area, recno, carea);
+            }
+        }
 
         /* Restore root cursor after recursion, then advance */
         SELF_GOTO(area->area, recno);
