@@ -1,4 +1,4 @@
-# HBNAP API
+ï»¿# HBNAP API
 
 * [Introduction](#introduction)
 * [Build HBNAP](#build-hbnap)
@@ -8,6 +8,7 @@
 * [Runtime connection](#runtime-connection)
 * [Data binding](#data-binding)
 * [Area binding (TableView)](#area-binding-tableview)
+* [Tree binding (TableView)](#tree-binding-tableview)
 * [HBNAP API Reference](#hbnap-api-reference)
     - [HBNAP_FORMS_LOAD](#hbnap_forms_load)
     - [HBNAP_FORMS_DESTROY](#hbnap_forms_destroy)
@@ -22,6 +23,7 @@
     - [HBNAP_FORMS_AREA_BIND](#hbnap_forms_area_bind)
     - [HBNAP_FORMS_AREA_REFRESH](#hbnap_forms_area_refresh)
     - [HBNAP_FORMS_AREA_RECNO](#hbnap_forms_area_recno)
+    - [HBNAP_FORMS_TREE_BIND](#hbnap_forms_tree_bind)
     - [HBNAP_FORMS_ITEM_LIST](#hbnap_forms_item_list)
     - [HBNAP_FORMS_ONCLICK](#hbnap_forms_onclick)
     - [HBNAP_FORMS_MAXIMIZE](#hbnap_forms_maximize)
@@ -71,13 +73,13 @@ bash ./build.sh -b [Debug|Release]
 
 Examples in Harbour on the use of the HBNAP API can be found in [exemplohbnap.prg](../tests/cuademo/gtnap_cualib/exemplohbnap.prg) and [exemplohbnap_company.prg](../tests/cuademo/gtnap_cualib/exemplohbnap_company.prg).
 
-To see the running examples, launch the application [Example](../Readme.md#compile-and-run-cualib-example). Then press the `HBNAP support` option and in the interactive menu press `Orçamento`. This will launch the forms implemented in the files cited above.
+To see the running examples, launch the application [Example](../Readme.md#compile-and-run-cualib-example). Then press the `HBNAP support` option and in the interactive menu press `OrÃ§amento`. This will launch the forms implemented in the files cited above.
 
 ![hbnap1](./images/hbnap1.png)
 
 ## HBNAP Menu
 
-HBNAP provides an API to create dynamic menus and submenus at runtime. In the [Example](../Readme.md#compile-and-run-cualib-example) application, press the `HBNAP support` option and in the interactive menu press `Contábil SIAFIC (Check Menus)`. This will display an HBNAP form where you can interact with the HBNAP Menu API. You have the implementation of this example in [exemplohbnap_menu.prg](../tests/cuademo/gtnap_cualib/exemplohbnap_menu.prg).
+HBNAP provides an API to create dynamic menus and submenus at runtime. In the [Example](../Readme.md#compile-and-run-cualib-example) application, press the `HBNAP support` option and in the interactive menu press `ContÃ¡bil SIAFIC (Check Menus)`. This will display an HBNAP form where you can interact with the HBNAP Menu API. You have the implementation of this example in [exemplohbnap_menu.prg](../tests/cuademo/gtnap_cualib/exemplohbnap_menu.prg).
 
 ![hbnapmenu1](./images/hbnap_menu1.png)
 
@@ -120,7 +122,7 @@ HBNAP uses the **UTF8 format** throughout its API. We must be careful to save al
 The runtime interaction between the form, loaded via a `*.nfm` file, and the Harbour code will be done through the widget cell name. For example, to change the text of a `Label` widget:
 
 ```
-HBNAP_FORMS_SET_TEXT(O_MAINWINDOW, "version", "New Versão 28.1h(b765)-S09999")
+HBNAP_FORMS_SET_TEXT(O_MAINWINDOW, "version", "New VersÃ£o 28.1h(b765)-S09999")
 ```
 
 ![hbnap3](./images/hbnap3.png)
@@ -175,6 +177,87 @@ The first value of the `V_DBBIND` vector will be the `cellName` that contains th
 
 ![hbnap7](./images/hbnap7.png)
 
+## Tree binding (TableView)
+
+`HBNAP_FORMS_TREE_BIND()` links a `TableView` control to a hierarchy of N related Harbour databases (DBF/CDX), displaying them as an expandable tree. Each level of the tree corresponds to one database area.
+
+The function requires at least two open areas. The root area must already have an active index order (via `SET ORDER TO TAG`). For child areas, the index is opened and activated by HBNAP itself. No `SET INDEX TO` or `SET ORDER TO` is needed in Harbour.
+
+```harbour
+LOCAL V_AREAS := { "CUSTOMER", "INVOICES", "DETAILS" }
+
+LOCAL V_RELS := { ;
+    { {|| CUSTOMER->CODIGO}, "../dados/invoices.cdx", "CODCLI"  }, ;
+    { {|| INVOICES->NUMERO}, "../dados/details.cdx",  "CODINV"  } ;
+}
+
+LOCAL V_COLS := { ;
+    { ; // Customer columns
+        { HBNAP_LEFT,  {|| TRIM(CUSTOMER->NOME) + " (" + TRIM(CUSTOMER->NIF) + ")"} }, ;
+        { HBNAP_RIGHT, {|| "--"} } ;
+    }, ;
+    { ; // Invoice columns
+        { HBNAP_LEFT,  {|| "Invoice: " + hb_ntos(INVOICES->NUMERO) + " (" + DTOC(INVOICES->DATE) + ")"} }, ;
+        { HBNAP_RIGHT, {|| hb_ntos(INVOICES->TOTAL)} } ;
+    }, ;
+    { ; // Detail columns
+        { HBNAP_LEFT,  {|| PADL(hb_ntos(DETAILS->NUMLINHA), 3, "0") + "-" + TRIM(DETAILS->CONCEITO)} }, ;
+        { HBNAP_RIGHT, {|| hb_ntos(DETAILS->TOTAL)} } ;
+    } ;
+}
+
+USE ../dados/customer NEW SHARED
+SET ORDER TO TAG CODIGO
+GOTO TOP
+
+USE ../dados/invoices NEW SHARED
+USE ../dados/details  NEW SHARED
+
+HBNAP_FORMS_TREE_BIND(O_FORM, "table", V_AREAS, V_RELS, V_COLS)
+```
+
+**`V_AREAS`** is an array of N area alias strings in parent->child order. Each alias must correspond to a database opened with `USE...SHARED`.
+
+**`V_RELS`** is an array of N-1 relation descriptors, each connecting level[i] to level[i+1]. Every element has exactly three values:
+
+```
+{ {|| parent_key_block}, "path/to/child_index.cdx", "TAG_NAME" }
+
+- Element 1: Code block evaluated in the parent area context. Returns the join key value.
+- Element 2: Path to the CDX compound index file of the child area. Extension .cdx is optional.
+- Element 3: Tag name within the CDX to activate on the child area.
+```
+
+HBNAP opens the CDX and sets the active order on the child area automatically. The key expression in the CDX tag must reference fields of the child area.
+
+**`V_COLS`** is an array M sets (one per area) of N column descriptor arrays, one table column. Each entry is `{ alignment, {|| value_block} }`:
+
+```
+- Element 1: Column alignment constant HBNAP_LEFT, HBNAP_CENTER or HBNAP_RIGHT (hbnap.ch).
+- Element 2: Code block evaluated to produce the cell text for a record.
+             All ancestor cursors are pre-positioned, so the block may freely
+             reference fields from any parent area in the hierarchy.
+```
+
+All column arrays must have the same number of columns, which determines the total columns in the `TableView`.
+
+### Persist expanded/collapsed state
+
+If any area contains a logical field named `EXPANDED`, HBNAP reads and writes it automatically to persist the expand/collapse state of each node across sessions. The field name is case-insensitive.
+
+```
+// Field definition in the DBF structure
+{ "EXPANDED", "L", 1, 0 }
+```
+
+When the field is present, nodes initialize their expanded state from the database. Collapsing or expanding a node updates the record immediately (with automatic record locking).
+
+### Performance lazy expansion
+
+HBNAP uses lazy expansion: nodes with `expanded = .F.` do not have their subtree built at startup. This speeds up initial rendering on very large datasets. Instead, only the child count is computed via an indexed SEEK, so the expand arrow is shown without loading all descendant records into memory. The subtree is built on demand when the user expands the node.
+
+![hbnap11](./images/hbnap11.png)
+
 ## HBNAP API Reference
 
 ### HBNAP_FORMS_LOAD
@@ -211,7 +294,7 @@ PAR1: Form object.
 Set a title for the form window.
 
 ```
-HBNAP_FORMS_TITLE(O_FORM, "Inclusão de empresa")
+HBNAP_FORMS_TITLE(O_FORM, "InclusÃ£o de empresa")
 
 PAR1: Form object.
 PAR2: Text string in UTF8 with the title.
@@ -230,7 +313,7 @@ Sets the text for a widget within the form. Access to the widget is done using t
 - Text View
 
 ```
-HBNAP_FORMS_SET_TEXT(O_MAINWINDOW, "version", "Versão 25.1h(b426)-S07688")
+HBNAP_FORMS_SET_TEXT(O_MAINWINDOW, "version", "VersÃ£o 25.1h(b426)-S07688")
 
 PAR1: Form object.
 PAR2: Widget cell name.
@@ -379,9 +462,28 @@ PAR1: Form object.
 RET: The current selected recno.
 ```
 
+### HBNAP_FORMS_TREE_BIND
+
+Links a `TableView` control to a hierarchy of N related Harbour databases, displaying them as an expandable relational tree. See [Tree binding (TableView)](#tree-binding-tableview).
+
+```
+HBNAP_FORMS_TREE_BIND(O_FORM, "table", V_AREAS, V_RELS, V_COLS)
+
+PAR1: Form object.
+PAR2: TableView cell name.
+PAR3: Array of N area alias strings (N >= 2), in parent->child order.
+      The root area (first element) must have an active index order already set.
+      All areas must be opened with USE...SHARED.
+PAR4: Array of N-1 relation descriptors { block, cdx_path, tag_name }.
+      The CDX is opened and the tag is activated by HBNAP on the child area.
+PAR5: Array of N column descriptor arrays { { align, block }, ... }.
+      All arrays must have the same number of columns.
+      Alignment constants (hbnap.ch): HBNAP_LEFT, HBNAP_CENTER, HBNAP_RIGHT.
+```
+
 ### HBNAP_FORMS_ITEM_LIST
 
-Sets a list of values ??in those widgets that support lists of items. These are:
+Sets a list of values in those widgets that support lists of items. These are:
 
 - Pop Up
 - Combo Box
@@ -389,9 +491,9 @@ Sets a list of values ??in those widgets that support lists of items. These are:
 
 ```
 LOCAL C_CIDADE := { ;
-                    "São Paulo", ;
+                    "SÃ£o Paulo", ;
                     "Rio de Janeiro", ;
-                    "Brasília", ;
+                    "BrasÃ­lia", ;
                     "Salvador", ;
                     "Fortaleza", ;
                     "Belo Horizonte", ;
@@ -399,11 +501,11 @@ LOCAL C_CIDADE := { ;
                     "Curitiba", ;
                     "Recife", ;
                     "Porto Alegre", ;
-                    "Goiânia", ;
-                    "Belém", ;
+                    "GoiÃ¢nia", ;
+                    "BelÃ©m", ;
                     "Guarulhos", ;
                     "Campinas", ;
-                    "São Luís" ;
+                    "SÃ£o LuÃ­s" ;
               }
 
 HBNAP_FORMS_ITEM_LIST(O_FORM, "cidade_combo", C_CIDADE)
@@ -416,7 +518,7 @@ PAR3: Vector with the list of values ??(in UTF8).
 
 ### HBNAP_FORMS_ONCLICK
 
-Establece un manejador de evento, en el caso de que se pulse un botón del formulario.
+Sets an event handler, in case a button on the form is pressed.
 
 ```
 HBNAP_FORMS_ONCLICK(O_FORM, "add_button", {|| ADD_EMPRESA(O_FORM) })
@@ -484,7 +586,7 @@ RET: Integer with the modal execution result. Same as HBNAP_FORMS_MODAL().
 
 ### HBNAP_FORMS_STOP_MODAL
 
-Detiene el ciclo modal de un formulario lanzado previamente con `HBNAP_FORMS_MODAL()` o `HBNAP_FORMS_MODAL_GTNAP()`. Se pasará el valor entero a devolver por estas funciones.
+Detiene el ciclo modal de un formulario lanzado previamente con `HBNAP_FORMS_MODAL()` o `HBNAP_FORMS_MODAL_GTNAP()`. Se pasarÃ¡ el valor entero a devolver por estas funciones.
 
 > **Important:** Stopping a modal form does not mean destroying it. We can launch it several times and we will have to call `HBNAP_FORMS_DESTROY()` when it is no longer necessary.
 
@@ -515,7 +617,7 @@ RET: Widget frame
 
 ### HBNAP_FORMS_UPDATE
 
-Actualiza la composición del formulario, en caso de que se haya realizado alguna opción que modifique su estructura. Por ejemplo, añadir una barra de menú.
+Updates the composition of the form, in case any option has been made that modifies its structure. For example, add a menu bar.
 
 ```
 HBNAP_FORMS_UPDATE(O_FORM)
@@ -537,19 +639,19 @@ For each item we will provide this data:
 
 ```
 LOCAL V_COVER := { ;
-    { "Orçamento", DIRET_FORMS() + "images/main/grid.png", "#20B2AA", "", .F., { || BUDGET_START() }}, ;
-    { "Contábil SIAFIC", DIRET_FORMS() + "images/main/calc.png", "#1E90FF", "", .F., { || ACCOUNTING_START() }}, ;
-    { "Licitaçao", DIRET_FORMS() + "images/main/auction.png", "#DAA520", "Lei 8.666/1993", .F., { || BIDDING_START() }}, ;
-    { "Licitaçao", DIRET_FORMS() + "images/main/auction.png", "#DAA520", "Lei 14.133/2021", .T., { || BIDDING_NEW_START() }}, ;
+    { "OrÃ§amento", DIRET_FORMS() + "images/main/grid.png", "#20B2AA", "", .F., { || BUDGET_START() }}, ;
+    { "ContÃ¡bil SIAFIC", DIRET_FORMS() + "images/main/calc.png", "#1E90FF", "", .F., { || ACCOUNTING_START() }}, ;
+    { "LicitaÃ§ao", DIRET_FORMS() + "images/main/auction.png", "#DAA520", "Lei 8.666/1993", .F., { || BIDDING_START() }}, ;
+    { "LicitaÃ§ao", DIRET_FORMS() + "images/main/auction.png", "#DAA520", "Lei 14.133/2021", .T., { || BIDDING_NEW_START() }}, ;
     { "PPA", DIRET_FORMS() + "images/main/trend.png", "#FF6347", "", .F., { || TREND_START() }}, ;
     { "Patrimonial", DIRET_FORMS() + "images/main/skyline.png", "#CD853F", "", .F., { || ASSETS_START() }}, ;
     { "Almoxarifado", DIRET_FORMS() + "images/main/cubes.png", "#6A5ACD", "", .F., { || WAREHOUSE_START() }}, ;
     { "Frota", DIRET_FORMS() + "images/main/fleet.png", "#5B5784", "", .F., { || FLEET_START() }}, ;
-    { "Doações", DIRET_FORMS() + "images/main/carry.png", "#8FBC8F", "", .F., { || DONATIONS_START() }}, ;
+    { "DoaÃ§Ãµes", DIRET_FORMS() + "images/main/carry.png", "#8FBC8F", "", .F., { || DONATIONS_START() }}, ;
     { "Backup", DIRET_FORMS() + "images/main/backup.png", "#C0C0C0", "", .F., { || BACKUP_START() }} ;
 }
 
-HBNAP_FORMS_MAIN_COVER(O_MAINWINDOW, "canvas", "Sistema de Gestão Pública", DIRET_FORMS() + "images/logo_aspec.png", V_COVER)
+HBNAP_FORMS_MAIN_COVER(O_MAINWINDOW, "canvas", "Sistema de GestÃ£o PÃºblica", DIRET_FORMS() + "images/logo_aspec.png", V_COVER)
 
 PAR1: Form object.
 PAR2: Scroll View cell name.

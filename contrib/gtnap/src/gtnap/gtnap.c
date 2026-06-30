@@ -48,6 +48,7 @@
 #include <core/hfile.h>
 #include <core/strings.h>
 #include <core/stream.h>
+#include <core/treest.h>
 #include <osbs/bfile.h>
 #include <osbs/btime.h>
 #include <osbs/log.h>
@@ -76,7 +77,10 @@ typedef struct _gtnap_geom_t GtNapGeom;
 typedef struct _gtnap_window_t GtNapWindow;
 typedef struct _gtnap_bind_t GtNapBind;
 typedef struct _gtnap_fcolumn_t GtNapFColumn;
+typedef struct _gtnap_fbdconn_t GtNapFDBConn;
 typedef struct _gtnap_farea_t GtNapFArea;
+typedef struct _gtnap_farea2_t GtNapFArea2;
+typedef struct _gtnap_fnode_t GtNapFNode;
 typedef struct _gtnap_prop_t GtNapProp;
 typedef struct _gtnap_t GtNap;
 
@@ -228,7 +232,33 @@ struct _gtnap_bind_t
 
 struct _gtnap_fcolumn_t
 {
+    align_t align;
     HB_ITEM *block;
+};
+
+struct _gtnap_fnode_t
+{
+    GtNapFArea2 *area;
+    HB_ULONG recno;
+    bool_t expanded;
+    uint32_t nchildren; /* Child count forward. Stops recursion for collapsed nodes. */
+};
+
+struct _gtnap_fbdconn_t
+{
+    GtNapForm *form;
+    String *cellname;
+    TableView *table;
+    ArrSt(GtNapFArea2) *areas;
+    TreeSt(GtNapFNode) *tdata;
+};
+
+struct _gtnap_farea2_t
+{
+    AREA *area;
+    ArrSt(GtNapFColumn) *columns;
+    HB_ITEM *relkey;
+    HB_USHORT fexpanded;
 };
 
 struct _gtnap_farea_t
@@ -250,6 +280,7 @@ struct _gtnap_form_t
     String *respath;
     uint32_t modal_ret;
     GtNapFArea *area;
+    GtNapFDBConn *dbconn;
     HB_ITEM *OnClose_block;
     bool_t is_resizable;
     ArrSt(GtNapBind) *binds;
@@ -300,6 +331,8 @@ DeclSt(GtNapBind);
 DeclPt(GtNapWindow);
 DeclPt(GuiComponent);
 DeclSt(GtNapProp);
+DeclSt(GtNapFArea2);
+DeclSt(GtNapFNode);
 
 /*---------------------------------------------------------------------------*/
 
@@ -5306,6 +5339,40 @@ static void i_destroy_farea(GtNapFArea **area)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_remove_fnode(GtNapFNode *node)
+{
+    cassert_no_null(node);
+    node->area = NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_remove_farea2(GtNapFArea2 *area)
+{
+    cassert_no_null(area);
+    area->area = NULL; /* The life cycle of the area is managed exclusively by Harbour */
+
+    arrst_destroy(&area->columns, i_remove_fcolumn, GtNapFColumn);
+
+    if (area->relkey != NULL)
+        hb_itemRelease(area->relkey);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_destroy_fdbconn(GtNapFDBConn **dbconn)
+{
+    cassert_no_null(dbconn);
+    (*dbconn)->form = NULL;
+    (*dbconn)->table = NULL;
+    str_destroy(&(*dbconn)->cellname);
+    treest_destroy(&(*dbconn)->tdata, i_remove_fnode, GtNapFNode);
+    arrst_destroy(&(*dbconn)->areas, i_remove_farea2, GtNapFArea2);
+    heap_delete(dbconn, GtNapFDBConn);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_remove_bind(GtNapBind *bind)
 {
     cassert_no_null(bind);
@@ -5336,6 +5403,7 @@ void hbnap_forms_destroy(GtNapForm **form)
     arrst_destroy(&(*form)->binds, i_remove_bind, GtNapBind);
     arrpt_destroy(&(*form)->callbacks, i_destroy_callback, GtNapCallback);
     ptr_destopt(i_destroy_farea, &(*form)->area, GtNapFArea);
+    ptr_destopt(i_destroy_fdbconn, &(*form)->dbconn, GtNapFDBConn);
     nform_destroy(&(*form)->form);
     heap_delete(form, GtNapForm);
 }
@@ -5643,6 +5711,19 @@ static GtNapFArea *i_create_farea(GtNapForm *form, AREA *area)
 
 /*---------------------------------------------------------------------------*/
 
+static GtNapFDBConn *i_create_dbconn(GtNapForm *form, const char_t *cell)
+{
+    GtNapFDBConn *dbconn = heap_new0(GtNapFDBConn);
+    dbconn->form = form;
+    dbconn->cellname = str_c(cell);
+    dbconn->table = NULL;
+    dbconn->tdata = treest_create(GtNapFNode);
+    dbconn->areas = arrst_create(GtNapFArea2);
+    return dbconn;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_map_bind_to_form(NForm *form, ArrSt(GtNapBind) *binds)
 {
     arrst_foreach(bind, binds, GtNapBind)
@@ -5826,6 +5907,666 @@ uint32_t hbnap_forms_area_recno(GtNapForm *form)
     {
         return UINT32_MAX;
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static align_t i_hbalign(int hbalign)
+{
+    switch (hbalign)
+    {
+    case HBNAP_LEFT:
+        return ekLEFT;
+    case HBNAP_CENTER:
+        return ekCENTER;
+    case HBNAP_RIGHT:
+        return ekRIGHT;
+    default:
+        cassert_default(hbalign);
+    }
+
+    return ekLEFT;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_items_equal(PHB_ITEM a, PHB_ITEM b)
+{
+    HB_TYPE ta = HB_ITEM_TYPE(a);
+    HB_TYPE tb = HB_ITEM_TYPE(b);
+
+    /* Numeric subtypes (INTEGER, LONG, DOUBLE) are interchangeable:
+     * DBOI_KEYVAL always returns DOUBLE while code blocks may return INTEGER */
+    if ((ta & HB_IT_NUMERIC) && (tb & HB_IT_NUMERIC))
+        return (bool_t)(hb_itemGetND(a) == hb_itemGetND(b));
+
+    cassert(ta == tb);
+
+    if (ta & HB_IT_STRING)
+        return (bool_t)(hb_stricmp(hb_itemGetCPtr(a), hb_itemGetCPtr(b)) == 0);
+    if (ta & HB_IT_LOGICAL)
+        return (bool_t)(hb_itemGetL(a) == hb_itemGetL(b));
+
+    cassert(FALSE);
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static uint32_t i_count_db_children(GtNapFArea2 *parea, HB_ULONG precno, GtNapFArea2 *carea)
+{
+    PHB_ITEM key = NULL;
+    HB_BOOL found = HB_FALSE;
+    uint32_t count = 0;
+    SELF_GOTO(parea->area, precno);
+    key = hb_itemDo(parea->relkey, 0);
+    SELF_SEEK(carea->area, HB_FALSE, key, HB_FALSE);
+    SELF_FOUND(carea->area, &found);
+    if (found == HB_TRUE)
+    {
+        HB_BOOL eof = HB_FALSE;
+        SELF_EOF(carea->area, &eof);
+        while (eof == HB_FALSE)
+        {
+            DBORDERINFO kinfo;
+            bool_t equ = FALSE;
+            memset(&kinfo, 0, sizeof(kinfo));
+            kinfo.itmResult = hb_itemNew(NULL);
+            SELF_ORDINFO(carea->area, DBOI_KEYVAL, &kinfo);
+            equ = i_items_equal(key, kinfo.itmResult);
+            hb_itemRelease(kinfo.itmResult);
+            if (equ == TRUE)
+            {
+                SELF_SKIP(carea->area, 1);
+                SELF_EOF(carea->area, &eof);
+                count++;
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+
+    hb_itemRelease(key);
+    return count;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_build_children(GtNapFDBConn *dbconn, NodeSt(GtNapFNode) *parent, uint32_t level)
+{
+    GtNapFArea2 *parea = NULL;
+    GtNapFArea2 *carea = NULL;
+    GtNapFNode *pdata = NULL;    
+    PHB_ITEM key = NULL;
+    HB_BOOL found = HB_FALSE;
+
+    cassert_no_null(dbconn);
+    parea = arrst_get(dbconn->areas, level, GtNapFArea2);
+    carea = arrst_get(dbconn->areas, level + 1, GtNapFArea2);
+    pdata = treest_node_data(parent, GtNapFNode);
+
+    /* Position parent at its record so relkey block reads the right value */
+    SELF_GOTO(parea->area, pdata->recno);
+
+    /* Evaluate parent relkey block, seek key for child area */
+    key = hb_itemDo(parea->relkey, 0);
+
+    /*
+    i_dump_area_tags(carea->area, "INVOICES");
+    i_dump_area_order(carea->area, "Label");
+    */
+
+    /* 
+     * SEEK in child area (order already set).
+     * Hard seek (HB_FALSE remains in EOF if it not found) 
+     * Find last (HB_FALSE find the first record match)
+     */
+    SELF_SEEK(carea->area, HB_FALSE, key, HB_FALSE);
+
+    SELF_FOUND(carea->area, &found);
+    if (found == HB_TRUE)
+    {
+        HB_BOOL eof = HB_FALSE;
+        uint32_t nareas = arrst_size(dbconn->areas, GtNapFArea2);
+        SELF_EOF(carea->area, &eof);
+        while (eof == HB_FALSE)
+        {
+            /* Child key must still match parent key (read from active index) */
+            DBORDERINFO kinfo;
+            bool_t equ = FALSE;
+            memset(&kinfo, 0, sizeof(kinfo));
+            kinfo.itmResult = hb_itemNew(NULL);
+            SELF_ORDINFO(carea->area, DBOI_KEYVAL, &kinfo);
+            equ = i_items_equal(key, kinfo.itmResult);
+            hb_itemRelease(kinfo.itmResult);
+
+            if (equ == TRUE)
+            {
+                /* Add child node to tree */
+                NodeSt(GtNapFNode) *child = treest_node_insert(parent, UINT32_MAX, GtNapFNode);
+                GtNapFNode *cdata = treest_node_data(child, GtNapFNode);
+                HB_ULONG crecno = 0;
+
+                SELF_RECNO(carea->area, &crecno);
+                cdata->area = carea;
+                cdata->recno = crecno;
+                if (carea->fexpanded != 0)
+                {
+                    PHB_ITEM pExp = hb_itemNew(NULL);
+                    SELF_GETVALUE(carea->area, carea->fexpanded, pExp);
+                    cdata->expanded = (bool_t)hb_itemGetL(pExp);
+                    hb_itemRelease(pExp);
+                }
+                else
+                {
+                    cdata->expanded = FALSE;
+                }
+
+                cdata->nchildren = 0;
+                /* Exists grandchildren */
+                if (level + 2 < nareas)
+                {
+                    /* Recurse for grandchildren only if expanded, collapsed nodes get a count without building */
+                    if (cdata->expanded == TRUE)
+                    {
+                        i_build_children(dbconn, child, level + 1);
+                    }
+                    else
+                    {
+                        GtNapFArea2 *gcarea = arrst_get(dbconn->areas, level + 2, GtNapFArea2);
+                        cdata->nchildren = i_count_db_children(carea, crecno, gcarea);
+                    }
+                }
+
+                /* Restore child cursor after recursion, then advance */
+                SELF_GOTO(carea->area, crecno);
+                SELF_SKIP(carea->area, 1);
+                SELF_EOF(carea->area, &eof);
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+
+    hb_itemRelease(key);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static uint32_t i_area_level(const GtNapFDBConn *dbconn, const GtNapFArea2 *area)
+{
+    cassert_no_null(dbconn);
+    arrst_foreach_const(larea, dbconn->areas, GtNapFArea2)
+        if (larea == area)
+            return larea_i;
+    arrst_end();
+    cassert(FALSE);
+    return UINT32_MAX;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/*
+static void i_dump_node_count(const TreeSt(GtNapFNode) *tree)
+{
+    uint32_t n = 0;
+    treest_foreach_const(node, tree, GtNapFNode)
+        n += 1;
+    treest_end()
+    bstd_printf("Node count: %d\n", n);
+}
+*/
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnTreeFAreaData(GtNapFDBConn *dbconn, Event *e)
+{
+    uint32_t etype = event_type(e);
+    cassert_no_null(dbconn);
+
+    switch (etype)
+    {
+
+    case ekGUI_EVENT_TBL_NROOTS:
+    {
+        uint32_t *nroots = event_result(e, uint32_t);
+        NodeSt(GtNapFNode) *root = treest_root_get(dbconn->tdata, GtNapFNode);
+        *nroots = root ? treest_node_size(root, GtNapFNode) : 0;
+        break;
+    }
+
+    case ekGUI_EVENT_TBL_NODEINFO:
+    {
+        const EvTbNode *node = event_params(e, EvTbNode);
+        EvTbNodeInfo *info = event_result(e, EvTbNodeInfo);
+        NodeSt(GtNapFNode) *parent = cast(node->parent, NodeSt(GtNapFNode));
+        NodeSt(GtNapFNode) *child = NULL;
+        GtNapFNode *data = NULL;
+
+        if (parent == NULL)
+            parent = treest_root_get(dbconn->tdata, GtNapFNode);
+
+        child = treest_node_get(parent, node->child, GtNapFNode);
+        data = treest_node_data(child, GtNapFNode);
+        info->node = child;
+
+        {
+            /* If children are built, use tree count, otherwise use the pre-counted DB children */
+            uint32_t nc = treest_node_size(child, GtNapFNode);
+            cassert((nc > 0 && data->nchildren == 0) || nc == 0);
+            info->nchildren = (nc > 0) ? nc : data->nchildren;
+        }
+
+        info->expanded = data->expanded;
+        break;
+    }
+
+    case ekGUI_EVENT_TBL_EXPAND:
+    {
+        const EvTbExpand *p = event_params(e, EvTbExpand);
+        NodeSt(GtNapFNode) *node = cast(p->node, NodeSt(GtNapFNode));
+        GtNapFNode *data = treest_node_data(node, GtNapFNode);
+        cassert_no_null(data);
+        cassert_no_null(data->area);
+        data->expanded = p->expanded;
+
+        /* Expanding a node whose subtree was counted but not built */
+        if (p->expanded == TRUE && data->nchildren > 0 && treest_node_size(node, GtNapFNode) == 0)
+        {
+            uint32_t level = i_area_level(dbconn, data->area);
+            i_build_children(dbconn, node, level);
+            /*i_dump_node_count(dbconn->tdata);*/
+        }
+
+        /* Mark expanded/collapsed in DB */
+        if (data->area->fexpanded != 0)
+        {
+            DBLOCKINFO linfo;
+            HB_ERRCODE hbres;
+            PHB_ITEM pVal = hb_itemPutL(NULL, (HB_BOOL)p->expanded);
+            SELF_GOTO(data->area->area, data->recno);
+            memset(&linfo, 0, sizeof(linfo));
+            linfo.uiMethod = REC_LOCK;
+            hbres = SELF_LOCK(data->area->area, &linfo);
+            cassert_unref(hbres == HB_SUCCESS, hbres);
+
+            if (linfo.fResult)
+            {
+                hbres = SELF_PUTVALUE(data->area->area, data->area->fexpanded, pVal);
+                cassert_unref(hbres == HB_SUCCESS, hbres);
+                linfo.uiMethod = REC_UNLOCK;
+                hbres = SELF_LOCK(data->area->area, &linfo);
+                cassert_unref(hbres == HB_SUCCESS, hbres);
+            }
+
+            hb_itemRelease(pVal);
+        }
+        break;
+    }
+
+    case ekGUI_EVENT_TBL_CELL:
+    {
+        const EvTbPos *pos = event_params(e, EvTbPos);
+        NodeSt(GtNapFNode) *node = cast(pos->node, NodeSt(GtNapFNode));
+        GtNapFNode *data = treest_node_data(node, GtNapFNode);
+        const GtNapFColumn *col = arrst_get_const(data->area->columns, pos->col, GtNapFColumn);
+
+        /* Position current node cursor */
+        SELF_GOTO(data->area->area, data->recno);
+
+        /* Position all ancestor cursors (bottom-up walk, skip virtual root) */
+        {
+            NodeSt(GtNapFNode) *anode = treest_node_parent(node, GtNapFNode);
+            while (anode != NULL)
+            {
+                GtNapFNode *adata = treest_node_data(anode, GtNapFNode);
+                if (adata->area != NULL)
+                    SELF_GOTO(adata->area->area, adata->recno);
+                anode = treest_node_parent(anode, GtNapFNode);
+            }
+        }
+
+        {
+            EvTbCell *cell = event_result(e, EvTbCell);
+            PHB_ITEM ritem = hb_itemDo(col->block, 0);
+            i_hbitem_to_char(ritem, TEMP_BUFFER, sizeof(TEMP_BUFFER), TRUE);
+            hb_itemRelease(ritem);
+            cell->text = TEMP_BUFFER;
+            cell->align = col->align;
+        }
+
+        break;
+    }
+
+    default:
+        break;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static HB_USHORT i_area_expanded_field(AREA *area)
+{
+    HB_USHORT n = 0;
+    HB_USHORT i;
+    char szName[64];
+    SELF_FIELDCOUNT(area, &n);
+    for (i = 1; i <= n; ++i)
+    {
+        SELF_FIELDNAME(area, i, szName);
+        if (hb_stricmp(szName, "EXPANDED") == 0)
+        {
+            PHB_ITEM pType = hb_itemNew(NULL);
+            bool_t islogic = FALSE;
+            SELF_FIELDINFO(area, i, DBS_TYPE, pType);
+            islogic = (bool_t)(hb_itemGetCPtr(pType)[0] == 'L');
+            hb_itemRelease(pType);
+            return islogic ? i : 0;
+        }
+    }
+
+    return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/*
+static void i_dump_area_order(AREA *area, const char_t *label)
+{
+    DBORDERINFO info;
+    memset(&info, 0, sizeof(info));
+    info.itmResult = hb_itemNew(NULL);
+
+    SELF_ORDINFO(area, DBOI_NUMBER, &info);
+    int nOrder = hb_itemGetNI(info.itmResult);
+
+    SELF_ORDINFO(area, DBOI_NAME, &info);
+    const char *szName = hb_itemGetCPtr(info.itmResult);
+    bstd_printf("%s order=%d  tag='%s'\n", label, nOrder, szName);
+    hb_itemRelease(info.itmResult);
+} 
+*/
+
+/*---------------------------------------------------------------------------*/
+
+/*
+static void i_dump_area_tags(AREAP area, const char *label)
+{
+    DBORDERINFO info;
+    int i, nTotal;
+
+    memset(&info, 0, sizeof(info));
+    info.itmResult = hb_itemNew(NULL);
+    info.itmOrder  = hb_itemNew(NULL);
+
+    SELF_ORDINFO(area, DBOI_ORDERCOUNT, &info);
+    nTotal = hb_itemGetNI(info.itmResult);
+    bstd_printf("%s: %d tag(s)\n", label, nTotal);
+
+    for (i = 1; i <= nTotal; i++)
+    {
+        hb_itemPutNI(info.itmOrder, i);
+        SELF_ORDINFO(area, DBOI_NAME, &info);
+        bstd_printf("  [%d] '%s'\n", i, hb_itemGetCPtr(info.itmResult));
+    }
+
+    hb_itemRelease(info.itmResult);
+    hb_itemRelease(info.itmOrder);
+}
+*/
+
+/*---------------------------------------------------------------------------*/
+
+static void i_dbconn_refresh(GtNapFDBConn *dbconn)
+{
+    uint32_t nareas = 0;
+    NodeSt(GtNapFNode) *root = NULL;
+    GtNapFNode *vdata = NULL;
+    GtNapFArea2 *area = NULL;
+    HB_BOOL eof = HB_FALSE;
+
+    cassert_no_null(dbconn);
+    treest_clear(dbconn->tdata, i_remove_fnode, GtNapFNode);
+    nareas = arrst_size(dbconn->areas, GtNapFArea2);
+    cassert(nareas > 0);
+
+    /* Virtual root: invisible container for all top-level nodes */
+    root = treest_root_new(dbconn->tdata, GtNapFNode);
+    vdata = treest_node_data(root, GtNapFNode);
+    vdata->area = NULL;
+    vdata->recno = UINT32_MAX;
+    vdata->expanded = TRUE;
+
+    /* Navigate root area and build one top-level node per record */
+    area = arrst_get(dbconn->areas, 0, GtNapFArea2);
+    SELF_GOTOP(area->area);
+    SELF_EOF(area->area, &eof);
+
+    while (eof == HB_FALSE)
+    {
+        HB_ULONG recno = 0;
+        NodeSt(GtNapFNode) *node = NULL;
+        GtNapFNode *data = NULL;
+
+        SELF_RECNO(area->area, &recno);
+        node = treest_node_insert(root, UINT32_MAX, GtNapFNode);
+        data = treest_node_data(node, GtNapFNode);
+        data->area = area;
+        data->recno = recno;
+        if (area->fexpanded != 0)
+        {
+            PHB_ITEM pExp = hb_itemNew(NULL);
+            SELF_GETVALUE(area->area, area->fexpanded, pExp);
+            data->expanded = (bool_t)hb_itemGetL(pExp);
+            hb_itemRelease(pExp);
+        }
+        else
+        {
+            data->expanded = FALSE;
+        }
+
+        /* Exists node hierarchy */
+        data->nchildren = 0;
+        if (nareas > 1)
+        {
+            /* Only recurse into children if this node is expanded */
+            if (data->expanded == TRUE)
+            {
+                i_build_children(dbconn, node, 0);
+            }
+            else
+            {
+                GtNapFArea2 *carea = arrst_get(dbconn->areas, 1, GtNapFArea2);
+                data->nchildren = i_count_db_children(area, recno, carea);
+            }
+        }
+
+        /* Restore root cursor after recursion, then advance */
+        SELF_GOTO(area->area, recno);
+        SELF_SKIP(area->area, 1);
+        SELF_EOF(area->area, &eof);
+    }
+
+    /*i_dump_node_count(dbconn->tdata);*/
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_map_dbconn_to_form(GtNapFDBConn *dbconn)
+{
+    cassert_no_null(dbconn);
+    cassert(dbconn->table == NULL);
+    cassert_no_null(dbconn->form);
+    dbconn->table = nform_get_tableview(dbconn->form->form, tc(dbconn->cellname));
+    if (dbconn->table != NULL)
+    {
+        tableview_tree(dbconn->table, 0);
+        tableview_OnData(dbconn->table, listener(dbconn, i_OnTreeFAreaData, GtNapFDBConn));
+        i_dbconn_refresh(dbconn);
+        tableview_update(dbconn->table);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_tree_bind(GtNapForm *form, const char_t *cell, HB_ITEM *areas, HB_ITEM *relations, HB_ITEM *columns)
+{
+    HB_SIZE nA = UINT32_MAX;
+    HB_SIZE nR = UINT32_MAX;
+    HB_SIZE nB = UINT32_MAX;
+    HB_SIZE i = 0;
+    cassert_no_null(form);
+    cassert(form->area == NULL);
+    cassert(form->dbconn == NULL);
+    cassert(HB_ITEM_TYPE(areas) == HB_IT_ARRAY);
+    cassert(HB_ITEM_TYPE(relations) == HB_IT_ARRAY);
+    cassert(HB_ITEM_TYPE(columns) == HB_IT_ARRAY);
+    form->dbconn = i_create_dbconn(form, cell);
+    nA = hb_arrayLen(areas);
+    nR = hb_arrayLen(relations);
+    nB = hb_arrayLen(columns);
+    cassert(nA > 1);
+    cassert(nR == nA - 1);
+    cassert(nB == nA);
+
+    for (i = 1; i <= nA; ++i)
+    {
+        GtNapFArea2 *area = arrst_new0(form->dbconn->areas, GtNapFArea2);
+
+        /* Database area */
+        {
+            PHB_ITEM area_item = hb_arrayGetItemPtr(areas, i);
+            const char *area_id = NULL;
+            int iArea = 0;
+            HB_ERRCODE hbres;
+            cassert(HB_ITEM_TYPE(area_item) == HB_IT_STRING);
+            area_id = hb_itemGetCPtr(area_item);
+            hbres = hb_rddGetAliasNumber(area_id, &iArea);
+            cassert_unref(hbres == HB_SUCCESS, hbres);
+            area->area = cast(hb_rddGetWorkAreaPointer(iArea), AREA);
+            cassert_no_null(area->area);
+            area->fexpanded = i_area_expanded_field(area->area);
+        }
+
+        /* Area->Columns data mappings */
+        {
+            PHB_ITEM bind_item = hb_arrayGetItemPtr(columns, i);
+            HB_SIZE j, nCols = UINT32_MAX;
+            area->columns = arrst_create(GtNapFColumn);
+            cassert(HB_ITEM_TYPE(bind_item) == HB_IT_ARRAY);
+            nCols = hb_arrayLen(bind_item);
+            for (j = 1; j <= nCols; ++j)
+            {
+                GtNapFColumn *col = arrst_new0(area->columns, GtNapFColumn);
+                PHB_ITEM col_item = hb_arrayGetItemPtr(bind_item, j);
+                PHB_ITEM align_item = NULL;
+                PHB_ITEM block_item = NULL;                
+                cassert(HB_ITEM_TYPE(col_item) == HB_IT_ARRAY);
+                cassert(hb_arrayLen(col_item) == 2);
+                align_item = hb_arrayGetItemPtr(col_item, 1);
+                block_item = hb_arrayGetItemPtr(col_item, 2);                
+                cassert(HB_ITEM_TYPE(align_item) == HB_IT_INTEGER);
+                cassert(HB_ITEM_TYPE(block_item) == HB_IT_BLOCK);
+                col->align = i_hbalign(hb_itemGetNI(align_item));
+                col->block = block_item ? hb_itemNew(block_item) : NULL;
+            }
+        }
+
+        /* Relation with next area: { parent_key_block, "cdx_path", "CHILD_TAG" } */
+        if (i < nA)
+        {
+            PHB_ITEM rel_item = hb_arrayGetItemPtr(relations, i);
+            PHB_ITEM key_item = NULL;
+            PHB_ITEM cdx_item = NULL;
+            PHB_ITEM tag_item = NULL;
+            const char *cdx_path = NULL;
+            const char *tag_name = NULL;
+            cassert(HB_ITEM_TYPE(rel_item) == HB_IT_ARRAY);
+            cassert(hb_arrayLen(rel_item) == 3);
+            key_item = hb_arrayGetItemPtr(rel_item, 1);
+            cdx_item = hb_arrayGetItemPtr(rel_item, 2);
+            tag_item = hb_arrayGetItemPtr(rel_item, 3);
+            cassert(HB_ITEM_TYPE(key_item) == HB_IT_BLOCK);
+            cassert(HB_ITEM_TYPE(cdx_item) == HB_IT_STRING);
+            cassert(HB_ITEM_TYPE(tag_item) == HB_IT_STRING);
+            area->relkey = hb_itemNew(key_item);
+            cdx_path = hb_itemGetCPtr(cdx_item);
+            tag_name = hb_itemGetCPtr(tag_item);
+
+            /* Open CDX and activate tag on the child area */
+            {
+                HB_ERRCODE hbres;
+                int iCArea = 0;
+                AREA *carea = NULL;
+
+                {
+                    PHB_ITEM carea_item = hb_arrayGetItemPtr(areas, i + 1);
+                    cassert(HB_ITEM_TYPE(carea_item) == HB_IT_STRING);
+                    hbres = hb_rddGetAliasNumber(hb_itemGetCPtr(carea_item), &iCArea);
+                    cassert_unref(hbres == HB_SUCCESS, hbres);
+                    carea = cast(hb_rddGetWorkAreaPointer(iCArea), AREA);
+                    cassert_no_null(carea);
+                }
+
+                /* 
+                 * Open CDX and activate the specified tag.
+                 * SELF_ORDLSTADD evaluates the key expression via the Harbour VM
+                 * macro compiler, which resolves fields against the CURRENTLY
+                 * SELECTED work area — not the area pointer argument. We must
+                 * select the child area first so field names resolve correctly. 
+                 */
+                {
+                    DBORDERINFO oinfo;
+                    int iSavedArea = hb_rddGetCurrentWorkAreaNumber();
+                    hbres = hb_rddSelectWorkAreaNumber(iCArea);
+                    cassert_unref(hbres == HB_SUCCESS, hbres);
+                    hbres = SELF_ORDLSTCLEAR(carea);
+                    cassert_unref(hbres == HB_SUCCESS, hbres);
+                    memset(&oinfo, 0, sizeof(oinfo));
+                    oinfo.atomBagName = hb_itemPutC(NULL, cdx_path);
+                    oinfo.itmResult = hb_itemNew(NULL);
+                    hbres = SELF_ORDLSTADD(carea, &oinfo);
+                    cassert_unref(hbres == HB_SUCCESS, hbres);
+                    hb_itemRelease(oinfo.atomBagName);
+                    oinfo.atomBagName = NULL;
+                    oinfo.itmOrder = hb_itemPutC(NULL, tag_name);
+                    hbres = SELF_ORDLSTFOCUS(carea, &oinfo);
+                    cassert_unref(hbres == HB_SUCCESS, hbres);
+                    hb_itemRelease(oinfo.itmOrder);
+                    hb_itemRelease(oinfo.itmResult);
+
+                    /* 
+                     * ORDLSTFOCUS returns HB_SUCCESS even if tag name does not exist 
+                     * verify by checking the active order number 
+                     */
+                    {
+                        DBORDERINFO vinfo;
+                        int pos = 0;
+                        memset(&vinfo, 0, sizeof(vinfo));
+                        vinfo.itmResult = hb_itemNew(NULL);
+                        hbres = SELF_ORDINFO(carea, DBOI_NUMBER, &vinfo);
+                        cassert_unref(hbres == HB_SUCCESS, hbres);
+                        pos = hb_itemGetNI(vinfo.itmResult);
+                        cassert(pos != 0);
+                        hb_itemRelease(vinfo.itmResult);
+                    }
+
+                    hbres = hb_rddSelectWorkAreaNumber(iSavedArea);
+                    cassert_unref(hbres == HB_SUCCESS, hbres);
+                }
+            }
+        }
+        else
+        {
+            area->relkey = NULL;
+        }
+    }
+
+    i_map_dbconn_to_form(form->dbconn);
 }
 
 /*---------------------------------------------------------------------------*/

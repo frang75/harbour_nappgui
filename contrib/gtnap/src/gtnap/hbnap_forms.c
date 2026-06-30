@@ -144,6 +144,18 @@ HB_FUNC(HBNAP_FORMS_AREA_RECNO)
 
 /*---------------------------------------------------------------------------*/
 
+HB_FUNC(HBNAP_FORMS_TREE_BIND)
+{
+    GtNapForm *form = cast(hb_parptr(1), GtNapForm);
+    const char_t *cell = hb_parcx(2);
+    HB_ITEM *areas = hb_param(3, HB_IT_ARRAY);
+    HB_ITEM *relations = hb_param(4, HB_IT_ARRAY);
+    HB_ITEM *columns = hb_param(5, HB_IT_ARRAY);
+    hbnap_forms_tree_bind(form, cell, areas, relations, columns);
+}
+
+/*---------------------------------------------------------------------------*/
+
 HB_FUNC(HBNAP_FORMS_ITEM_LIST)
 {
     GtNapForm *form = cast(hb_parptr(1), GtNapForm);
