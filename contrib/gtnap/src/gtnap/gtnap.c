@@ -6110,6 +6110,19 @@ static uint32_t i_area_level(const GtNapFDBConn *dbconn, const GtNapFArea2 *area
 
 /*---------------------------------------------------------------------------*/
 
+/*
+static void i_dump_node_count(const TreeSt(GtNapFNode) *tree)
+{
+    uint32_t n = 0;
+    treest_foreach_const(node, tree, GtNapFNode)
+        n += 1;
+    treest_end()
+    bstd_printf("Node count: %d\n", n);
+}
+*/
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnTreeFAreaData(GtNapFDBConn *dbconn, Event *e)
 {
     uint32_t etype = event_type(e);
@@ -6166,6 +6179,7 @@ static void i_OnTreeFAreaData(GtNapFDBConn *dbconn, Event *e)
         {
             uint32_t level = i_area_level(dbconn, data->area);
             i_build_children(dbconn, node, level);
+            /*i_dump_node_count(dbconn->tdata);*/
         }
 
         /* Mark expanded/collapsed in DB */
@@ -6376,6 +6390,8 @@ static void i_dbconn_refresh(GtNapFDBConn *dbconn)
         SELF_SKIP(area->area, 1);
         SELF_EOF(area->area, &eof);
     }
+
+    /*i_dump_node_count(dbconn->tdata);*/
 }
 
 /*---------------------------------------------------------------------------*/
