@@ -258,7 +258,7 @@ struct _gtnap_farea2_t
     AREA *area;
     ArrSt(GtNapFColumn) *columns;
     HB_ITEM *relkey;
-    HB_USHORT expanded_field;
+    HB_USHORT fexpanded;
 };
 
 struct _gtnap_farea_t
@@ -6052,10 +6052,10 @@ static void i_build_children(GtNapFDBConn *dbconn, NodeSt(GtNapFNode) *parent, u
                 SELF_RECNO(carea->area, &crecno);
                 cdata->area = carea;
                 cdata->recno = crecno;
-                if (carea->expanded_field != 0)
+                if (carea->fexpanded != 0)
                 {
                     PHB_ITEM pExp = hb_itemNew(NULL);
-                    SELF_GETVALUE(carea->area, carea->expanded_field, pExp);
+                    SELF_GETVALUE(carea->area, carea->fexpanded, pExp);
                     cdata->expanded = (bool_t)hb_itemGetL(pExp);
                     hb_itemRelease(pExp);
                 }
@@ -6169,7 +6169,7 @@ static void i_OnTreeFAreaData(GtNapFDBConn *dbconn, Event *e)
         }
 
         /* Mark expanded/collapsed in DB */
-        if (data->area->expanded_field != 0)
+        if (data->area->fexpanded != 0)
         {
             DBLOCKINFO linfo;
             HB_ERRCODE hbres;
@@ -6182,7 +6182,7 @@ static void i_OnTreeFAreaData(GtNapFDBConn *dbconn, Event *e)
 
             if (linfo.fResult)
             {
-                hbres = SELF_PUTVALUE(data->area->area, data->area->expanded_field, pVal);
+                hbres = SELF_PUTVALUE(data->area->area, data->area->fexpanded, pVal);
                 cassert_unref(hbres == HB_SUCCESS, hbres);
                 linfo.uiMethod = REC_UNLOCK;
                 hbres = SELF_LOCK(data->area->area, &linfo);
@@ -6343,10 +6343,10 @@ static void i_dbconn_refresh(GtNapFDBConn *dbconn)
         data = treest_node_data(node, GtNapFNode);
         data->area = area;
         data->recno = recno;
-        if (area->expanded_field != 0)
+        if (area->fexpanded != 0)
         {
             PHB_ITEM pExp = hb_itemNew(NULL);
-            SELF_GETVALUE(area->area, area->expanded_field, pExp);
+            SELF_GETVALUE(area->area, area->fexpanded, pExp);
             data->expanded = (bool_t)hb_itemGetL(pExp);
             hb_itemRelease(pExp);
         }
@@ -6355,8 +6355,8 @@ static void i_dbconn_refresh(GtNapFDBConn *dbconn)
             data->expanded = FALSE;
         }
 
-        data->nchildren = 0;
         /* Exists node hierarchy */
+        data->nchildren = 0;
         if (nareas > 1)
         {
             /* Only recurse into children if this node is expanded */
@@ -6433,7 +6433,7 @@ void hbnap_forms_tree_bind(GtNapForm *form, const char_t *cell, HB_ITEM *areas, 
             cassert_unref(hbres == HB_SUCCESS, hbres);
             area->area = cast(hb_rddGetWorkAreaPointer(iArea), AREA);
             cassert_no_null(area->area);
-            area->expanded_field = i_area_expanded_field(area->area);
+            area->fexpanded = i_area_expanded_field(area->area);
         }
 
         /* Area->Columns data mappings */
