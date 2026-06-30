@@ -40,13 +40,13 @@ The main goal this year is to consolidate the use of GTNAP/Forms in the Aspec pr
 - Sprint 3: macOS panels with scrollbar (remains at fixed pos). **Done Sprint 97 15/01/26**
 - Sprint 4: Improve NAppGUI layout algorithm to take into account panel scrollbars width/height.
 - Sprint 5: Implement line widgets (hor/ver) in NAppGUI and add them to designer. **Done Sprint 101 15/03/26**
-- Sprint 6: --> Possible maintenance tasks for current projects.
+- Sprint 6: --> Possible maintenance tasks for current projects. **Done Sprint 100 28/02/26** (Fully documentation review).
 - Sprint 7: Implement group widget in NAppGUI. **Done Sprint 102 31/03/26**
 - Sprint 8: Add panel widget and group widget to designer. **Done Sprint 103 15/04/26**
 - Sprint 9: Implement TabBar widget in NAppGUI. **Done Sprint 105 15/05/26**
-- Sprint 10: Implement TreeView widget in NAppGUI.
+- Sprint 10: Implement TreeView widget in NAppGUI. **Done Sprint 107 15/06/26**
 - Sprint 11: Implement ToolButton texts in NAppGUI/designer. **Done Sprint 104 30/04/26**
-- Sprint 12: Add TabBar and TreeView to designer.
+- Sprint 12: Add TabBar and TreeView to designer. **Done Sprint 106 31/05/26**
 - Sprint 13: Implement HiDPI support in NAppGUI Win32 backend (I).
 - Sprint 14: Implement HiDPI support in NAppGUI Win32 backend (II).
 - Sprint 15: Implement support in NAppGUI for GTK3/Wayland backend. Ubuntu 24+ application icon.
@@ -59,3 +59,9 @@ The main goal this year is to consolidate the use of GTNAP/Forms in the Aspec pr
 - Sprint 22: Aspec-clone app: Keyboard navigation within the form. Hotkeys.
 - Sprint 23: Aspec-clone app: Messagebox, secondary windows.
 - Sprint 24: Aspec-clone app: Reuse parts in designer.
+
+## Non planned sprints
+
+- **Sprint 98 31/01/26**: Beginning HBNAP.
+- **Sprint 99 15/02/26**: HBNAP integration into CUALIB/GTNAP.
+- **Sprint 108 30/06/26**: HBNAP TreeView for DB relations.
