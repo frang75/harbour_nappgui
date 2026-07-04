@@ -268,7 +268,7 @@ void hb_cdpBuildTransTable( PHB_UNITABLE uniTable )
    if( uniTable->uniTrans == NULL )
    {
       HB_UCHAR * uniTrans;
-      HB_WCHAR wcMax;
+      HB_WCHAR wcMax = 0;
       HB_BOOL fLatinFallback = HB_TRUE;
       int i;
 
@@ -1505,11 +1505,11 @@ HB_WCHAR32 hb_cdpUTF8StringPeek( const char * pSrc, HB_SIZE nLen, HB_SIZE nPos )
 {
    HB_SIZE nIndex = 0;
 
-   while( nPos && nIndex < nLen )
+   while( nIndex < nLen )
    {
-      HB_WCHAR wc;
-      hb_cdpUTF8GetU16( pSrc, nLen, &nIndex, &wc );
-      if( --nPos == 0 )
+      HB_WCHAR32 wc;
+      hb_cdpUTF8GetU32( pSrc, nLen, &nIndex, &wc );
+      if( nPos-- == 0 )
          return wc;
    }
    return 0;

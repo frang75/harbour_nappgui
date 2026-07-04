@@ -495,15 +495,16 @@ char * hb_timeStr( char * szTime, long lMilliSec )
 
 HB_BOOL hb_timeStrGetUTC( const char * szTime,
                           int * piHour, int * piMinutes,
-                          int * piSeconds, int * piMSec, int *piUTCOffset )
+                          int * piSeconds, int * piMSec,
+                          int * piUTCOffset, HB_BOOL * pfUTC )
 {
    int iHour, iMinutes, iSeconds, iMSec, iUTCOffset, iBlocks;
-   HB_BOOL fValid;
+   HB_BOOL fValid, fUTC;
 
-   HB_TRACE( HB_TR_DEBUG, ( "hb_timeStrGetUTC(%s, %p, %p, %p, %p, %p)", szTime, ( void * ) piHour, ( void * ) piMinutes, ( void * ) piSeconds, ( void * ) piMSec, ( void * ) piUTCOffset ) );
+   HB_TRACE( HB_TR_DEBUG, ( "hb_timeStrGetUTC(%s, %p, %p, %p, %p, %p, %p)", szTime, ( void * ) piHour, ( void * ) piMinutes, ( void * ) piSeconds, ( void * ) piMSec, ( void * ) piUTCOffset, ( void * ) pfUTC ) );
 
    iHour = iMinutes = iSeconds = iMSec = iUTCOffset = iBlocks = 0;
-   fValid = HB_FALSE;
+   fValid = fUTC = HB_FALSE;
 
    if( szTime )
    {
@@ -538,15 +539,21 @@ HB_BOOL hb_timeStrGetUTC( const char * szTime,
                   {
                      iMSec += ( *szTime++ - '0' ) * 10;
                      if( HB_ISDIGIT( *szTime ) )
+                     {
+                        int iFrac = 3;
                         iMSec += ( *szTime++ - '0' );
+                        while( HB_ISDIGIT( *szTime ) && ++iFrac <= 9 )
+                           ++szTime;
+                     }
                   }
-                  if( HB_ISDIGIT( *szTime ) )
-                     ++szTime;
                }
             }
          }
          if( iBlocks > 0 && ( szTime[ 0 ] == 'Z' || szTime[ 0 ] == 'z' ) )
+         {
+            fUTC = HB_TRUE;
             ++szTime;
+         }
          else
          {
             while( HB_ISSPACE( *szTime ) )
@@ -598,6 +605,7 @@ HB_BOOL hb_timeStrGetUTC( const char * szTime,
                   iUTCOffset *= 60;
                   if( fMinus )
                      iUTCOffset = -iUTCOffset;
+                  fUTC = HB_TRUE;
                }
             }
          }
@@ -608,7 +616,10 @@ HB_BOOL hb_timeStrGetUTC( const char * szTime,
              iUTCOffset >= -43200 && iUTCOffset <= 43200 )
             fValid = HB_TRUE;
          else
-            iHour = iMinutes = iSeconds = iMSec = 0;
+         {
+            iHour = iMinutes = iSeconds = iMSec = iUTCOffset = 0;
+            fUTC = HB_FALSE;
+         }
       }
    }
 
@@ -622,6 +633,8 @@ HB_BOOL hb_timeStrGetUTC( const char * szTime,
       *piMSec = iMSec;
    if( piUTCOffset )
       *piUTCOffset = iUTCOffset;
+   if( pfUTC )
+      *pfUTC = fUTC;
 
    return fValid;
 }
@@ -633,7 +646,7 @@ HB_BOOL hb_timeStrGet( const char * szTime,
    HB_TRACE( HB_TR_DEBUG, ( "hb_timeStrGet(%s, %p, %p, %p, %p)", szTime, ( void * ) piHour, ( void * ) piMinutes, ( void * ) piSeconds, ( void * ) piMSec ) );
 
    return hb_timeStrGetUTC( szTime, piHour, piMinutes,
-                            piSeconds, piMSec, NULL );
+                            piSeconds, piMSec, NULL, NULL );
 }
 
 void hb_timeStrRawGet( const char * szTime,
@@ -757,12 +770,12 @@ char * hb_timeStampStr( char * szDateTime, long lJulian, long lMilliSec )
 HB_BOOL hb_timeStampStrGetUTC( const char * szDateTime,
                                int * piYear, int * piMonth, int * piDay,
                                int * piHour, int * piMinutes, int * piSeconds,
-                               int * piMSec, int * piUTCOffset )
+                               int * piMSec, int * piUTCOffset, HB_BOOL * pfUTC )
 {
    int iYear, iMonth, iDay;
    HB_BOOL fValid;
 
-   HB_TRACE( HB_TR_DEBUG, ( "hb_timeStampStrGetUTC(%s, %p, %p, %p, %p, %p, %p, %p, %p)", szDateTime, ( void * ) piYear, ( void * ) piMonth, ( void * ) piDay, ( void * ) piHour, ( void * ) piMinutes, ( void * ) piSeconds, ( void * ) piMSec, ( void * ) piUTCOffset ) );
+   HB_TRACE( HB_TR_DEBUG, ( "hb_timeStampStrGetUTC(%s, %p, %p, %p, %p, %p, %p, %p, %p, %p)", szDateTime, ( void * ) piYear, ( void * ) piMonth, ( void * ) piDay, ( void * ) piHour, ( void * ) piMinutes, ( void * ) piSeconds, ( void * ) piMSec, ( void * ) piUTCOffset, ( void * ) pfUTC ) );
 
    iYear = iMonth = iDay = 0;
    fValid = HB_FALSE;
@@ -862,7 +875,7 @@ HB_BOOL hb_timeStampStrGetUTC( const char * szDateTime,
        ( ! fValid && szDateTime ) )
    {
       if( hb_timeStrGetUTC( szDateTime, piHour, piMinutes, piSeconds,
-                            piMSec, piUTCOffset ) )
+                            piMSec, piUTCOffset, pfUTC ) )
          fValid = HB_TRUE;
       else if( szDateTime )
          fValid = HB_FALSE;
@@ -889,24 +902,26 @@ HB_BOOL hb_timeStampStrGet( const char * szDateTime,
 
    return hb_timeStampStrGetUTC( szDateTime, piYear, piMonth, piDay,
                                  piHour, piMinutes, piSeconds,
-                                 piMSec, NULL );
+                                 piMSec, NULL, NULL );
 }
 
-HB_BOOL hb_timeStampStrGetDT( const char * szDateTime,
-                              long * plJulian, long * plMilliSec )
+HB_BOOL hb_timeStampStrGetDTU( const char * szDateTime,
+                              long * plJulian, long * plMilliSec, HB_BOOL * pfUTC )
 {
    int iYear, iMonth, iDay, iHour, iMinutes, iSeconds, iMSec, iUTCOffset;
-   HB_BOOL fValid;
+   HB_BOOL fValid, fUTC;
 
-   HB_TRACE( HB_TR_DEBUG, ( "hb_timeStampStrGetDT(%s, %p, %p)", szDateTime, ( void * ) plJulian, ( void * ) plMilliSec ) );
+   HB_TRACE( HB_TR_DEBUG, ( "hb_timeStampStrGetDTU(%s, %p, %p, %p)", szDateTime, ( void * ) plJulian, ( void * ) plMilliSec, ( void * ) pfUTC ) );
 
    fValid = hb_timeStampStrGetUTC( szDateTime, &iYear, &iMonth, &iDay,
                                    &iHour, &iMinutes, &iSeconds, &iMSec,
-                                   &iUTCOffset );
+                                   &iUTCOffset, &fUTC );
    if( plJulian )
       *plJulian = hb_dateEncode( iYear, iMonth, iDay );
    if( plMilliSec )
       *plMilliSec = hb_timeEncode( iHour, iMinutes, iSeconds, iMSec );
+   if( pfUTC )
+      *pfUTC = fUTC;
 
    if( iUTCOffset != 0 && fValid )
    {
@@ -925,6 +940,14 @@ HB_BOOL hb_timeStampStrGetDT( const char * szDateTime,
    }
 
    return fValid;
+}
+
+HB_BOOL hb_timeStampStrGetDT( const char * szDateTime,
+                              long * plJulian, long * plMilliSec )
+{
+   HB_TRACE( HB_TR_DEBUG, ( "hb_timeStampStrGetDT(%s, %p, %p)", szDateTime, ( void * ) plJulian, ( void * ) plMilliSec ) );
+
+   return hb_timeStampStrGetDTU( szDateTime, plJulian, plMilliSec, NULL );
 }
 
 double hb_timeStampPackDT( long lJulian, long lMilliSec )
@@ -1175,6 +1198,86 @@ double hb_timeLocalToUTC( double dTimeStamp )
    return dTimeStamp - ( double )
           hb_timeStampUTCOffset( iYear, iMonth, iDay,
                                  iHour, iMinutes, iSeconds ) / HB_SECONDS_PER_DAY;
+}
+
+double hb_timeUTCToLocal( double dTimeStamp, int * piUTCOffset )
+{
+   double dLocal;
+
+#if defined( HB_OS_WIN )
+   {
+      typedef BOOL ( WINAPI * P_SYSTEMTIMETOTZSPECIFICLOCALTIME )( LPTIME_ZONE_INFORMATION, LPSYSTEMTIME, LPSYSTEMTIME );
+
+      static HB_BOOL s_fInit = HB_TRUE;
+      static P_SYSTEMTIMETOTZSPECIFICLOCALTIME s_pSystemTimeToTzSpecificLocalTime = NULL;
+
+      int iYear, iMonth, iDay, iHour, iMinutes, iSeconds, iMSec;
+
+      hb_timeStampUnpack( dTimeStamp,
+                          &iYear, &iMonth, &iDay,
+                          &iHour, &iMinutes, &iSeconds, &iMSec );
+      if( s_fInit )
+      {
+         HMODULE hModule = GetModuleHandle( TEXT( "kernel32" ) );
+         if( hModule )
+            s_pSystemTimeToTzSpecificLocalTime = ( P_SYSTEMTIMETOTZSPECIFICLOCALTIME )
+               HB_WINAPI_GETPROCADDRESS( hModule, "SystemTimeToTzSpecificLocalTime" );
+         s_fInit = HB_FALSE;
+      }
+
+      if( s_pSystemTimeToTzSpecificLocalTime )
+      {
+         SYSTEMTIME lt, st;
+
+         st.wYear         = ( WORD ) iYear;
+         st.wMonth        = ( WORD ) iMonth;
+         st.wDay          = ( WORD ) iDay;
+         st.wHour         = ( WORD ) iHour;
+         st.wMinute       = ( WORD ) iMinutes;
+         st.wSecond       = ( WORD ) iSeconds;
+         st.wMilliseconds = ( WORD ) iMSec;
+         st.wDayOfWeek    = 0;
+
+         if( s_pSystemTimeToTzSpecificLocalTime( NULL, &st, &lt ) )
+         {
+            dLocal = hb_timeStampPack( lt.wYear, lt.wMonth, lt.wDay,
+                                       lt.wHour, lt.wMinute, lt.wSecond,
+                                       lt.wMilliseconds );
+         }
+         else
+            dLocal = dTimeStamp + ( double )
+                     hb_timeStampUTCOffset( iYear, iMonth, iDay,
+                              iHour, iMinutes, iSeconds ) / HB_SECONDS_PER_DAY;
+      }
+      else
+         dLocal = dTimeStamp + ( double )
+                  hb_timeStampUTCOffset( iYear, iMonth, iDay,
+                              iHour, iMinutes, iSeconds ) / HB_SECONDS_PER_DAY;
+   }
+#else
+   {
+      long lJulian, lMilliSec;
+      struct tm lt;
+      time_t utc;
+
+      hb_timeStampUnpackDT( dTimeStamp, &lJulian, &lMilliSec );
+      utc = ( time_t ) ( ( lJulian - HB_SYS_DATE_BASE ) * HB_SECONDS_PER_DAY + lMilliSec / 1000 );
+#if defined( HB_HAS_LOCALTIME_R )
+      localtime_r( &utc, &lt );
+#else
+      lt = *localtime( &utc );
+#endif
+      lJulian = hb_dateEncode( lt.tm_year + 1900, lt.tm_mon + 1, lt.tm_mday );
+      lMilliSec = hb_timeEncode( lt.tm_hour, lt.tm_min, lt.tm_sec, lMilliSec % 1000 );
+      dLocal = hb_timeStampPackDT( lJulian, lMilliSec );
+   }
+#endif
+
+   if( piUTCOffset )
+      *piUTCOffset = ( int ) ( ( dLocal - dTimeStamp ) * HB_SECONDS_PER_DAY +
+                               ( dLocal < dTimeStamp ? -0.5 : 0.5 ) );
+
+   return dLocal;
 }
 
 HB_MAXUINT hb_timerGet( void )
