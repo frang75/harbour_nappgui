@@ -11,7 +11,11 @@
 #        ifdef AWS_SDKUTILS_EXPORTS
 #            define AWS_SDKUTILS_API __declspec(dllexport)
 #        else
-#            define AWS_SDKUTILS_API __declspec(dllimport)
+#            ifdef _MSC_VER
+#                define AWS_SDKUTILS_API __declspec(dllimport)
+#            else
+#                define AWS_SDKUTILS_API
+#            endif
 #        endif /* AWS_SDKUTILS_EXPORTS */
 #    else
 #        define AWS_SDKUTILS_API

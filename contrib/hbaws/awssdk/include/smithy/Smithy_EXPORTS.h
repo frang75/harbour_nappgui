@@ -18,7 +18,11 @@
         #ifdef SMITHY_EXPORTS
             #define SMITHY_API __declspec(dllexport)
         #else
-            #define SMITHY_API __declspec(dllimport)
+            #ifdef _MSC_VER
+                #define SMITHY_API __declspec(dllimport)
+            #else
+                #define SMITHY_API
+            #endif
         #endif /* SMITHY_EXPORTS */
     #else
         #define SMITHY_API

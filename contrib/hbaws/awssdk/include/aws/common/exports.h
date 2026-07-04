@@ -9,7 +9,11 @@
 #        ifdef AWS_COMMON_EXPORTS
 #            define AWS_COMMON_API __declspec(dllexport)
 #        else
-#            define AWS_COMMON_API __declspec(dllimport)
+#            ifdef _MSC_VER
+#                define AWS_COMMON_API __declspec(dllimport)
+#            else
+#                define AWS_COMMON_API
+#            endif
 #        endif /* AWS_COMMON_EXPORTS */
 #    else
 #        define AWS_COMMON_API

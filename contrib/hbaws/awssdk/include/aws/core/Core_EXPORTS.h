@@ -16,7 +16,11 @@
         #ifdef AWS_CORE_EXPORTS
             #define  AWS_CORE_API __declspec(dllexport)
         #else // AWS_CORE_EXPORTS
-            #define  AWS_CORE_API __declspec(dllimport)
+            #ifdef _MSC_VER
+                #define  AWS_CORE_API __declspec(dllimport)
+            #else
+                #define  AWS_CORE_API
+            #endif
         #endif // AWS_CORE_EXPORTS
         #define AWS_CORE_EXTERN
     #else // USE_IMPORT_EXPORT

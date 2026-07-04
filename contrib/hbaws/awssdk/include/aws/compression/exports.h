@@ -9,7 +9,11 @@
 #        ifdef AWS_COMPRESSION_EXPORTS
 #            define AWS_COMPRESSION_API __declspec(dllexport)
 #        else
-#            define AWS_COMPRESSION_API __declspec(dllimport)
+#            ifdef _MSC_VER
+#                define AWS_COMPRESSION_API __declspec(dllimport)
+#            else
+#                define AWS_COMPRESSION_API
+#            endif
 #        endif /* AWS_COMPRESSION_EXPORTS */
 #    else
 #        define AWS_COMPRESSION_API

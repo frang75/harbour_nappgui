@@ -23,7 +23,11 @@
 #        ifdef AWS_CRT_CPP_EXPORTS
 #            define AWS_CRT_CPP_API __declspec(dllexport)
 #        else
-#            define AWS_CRT_CPP_API __declspec(dllimport)
+#            ifdef _MSC_VER
+#                define AWS_CRT_CPP_API __declspec(dllimport)
+#            else
+#                define AWS_CRT_CPP_API
+#            endif
 #        endif /* AWS_CRT_CPP_API */
 #    else
 #        define AWS_CRT_CPP_API

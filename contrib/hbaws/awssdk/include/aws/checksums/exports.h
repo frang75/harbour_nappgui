@@ -9,7 +9,11 @@
 #        ifdef AWS_CHECKSUMS_EXPORTS
 #            define AWS_CHECKSUMS_API __declspec(dllexport)
 #        else
-#            define AWS_CHECKSUMS_API __declspec(dllimport)
+#            ifdef _MSC_VER
+#                define AWS_CHECKSUMS_API __declspec(dllimport)
+#            else
+#                define AWS_CHECKSUMS_API
+#            endif
 #        endif /* AWS_CHECKSUMS_EXPORTS */
 #    else
 #        define AWS_CHECKSUMS_API
