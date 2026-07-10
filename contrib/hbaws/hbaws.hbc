@@ -1,16 +1,20 @@
 # hbaws options for projects that use it
 
 incpaths=.
-{allmingw&!debug}libpaths=build/Release/lib ${AWS_SDK_ROOT}/mingw64/Release/bin ${AWS_SDK_ROOT}/mingw64/Release/lib
-{allmingw&debug}libpaths=build/Debug/lib ${AWS_SDK_ROOT}/mingw64/Debug/bin ${AWS_SDK_ROOT}/mingw64/Debug/lib
-{clang&!debug}libpaths=build/Release/lib ${AWS_SDK_ROOT}/clang/Release/bin ${AWS_SDK_ROOT}/clang/Release/lib
-{clang&debug}libpaths=build/Debug/lib ${AWS_SDK_ROOT}/clang/Debug/bin ${AWS_SDK_ROOT}/clang/Debug/lib
-{allmsvc&!debug}libpaths=build/Release/lib ${AWS_SDK_ROOT}/msvc64/Release/bin
-{allmsvc&debug}libpaths=build/Debug/lib ${AWS_SDK_ROOT}/msvc64/Debug/bin
+
+# MSVC: vendored AWS-SDK binaries (awssdk/bin/win/msvc). Built with MSVC, so
+# only usable from MSVC consumers (MSVC C++ name mangling is ABI-incompatible
+# with mingw64/clang, confirmed empirically in tests/aws-hello). mingw64/clang
+# are not supported as hbaws consumers yet.
+{allmsvc&!debug}libpaths=build/Release/lib awssdk/bin/win/msvc
+{allmsvc&debug}libpaths=build/Debug/lib awssdk/bin/win/msvc
+
+# Linux (gcc): still relies on a user-built AWS-SDK via AWS_SDK_ROOT (not vendored yet)
 {allgcc&!debug}libpaths=build/Release/lib ${AWS_SDK_ROOT}/gcc/Release/lib ${AWS_SDK_ROOT}/gcc/Release/bin
 {allgcc&debug}libpaths=build/Debug/lib ${AWS_SDK_ROOT}/gcc/Debug/lib ${AWS_SDK_ROOT}/gcc/Debug/bin
+
 libs=hbaws aws-cpp-sdk-core aws-cpp-sdk-s3
-{allmingw|allgcc}libs=aws-crt-cpp
+{allgcc}libs=aws-crt-cpp
 {allmsvc}cflags=/MD
 {allmsvc}ldflags=/NODEFAULTLIB:LIBCMT.lib
-{allmingw|allgcc}libs=stdc++
+{allgcc}libs=stdc++

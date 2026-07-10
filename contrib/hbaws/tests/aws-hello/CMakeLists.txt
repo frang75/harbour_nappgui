@@ -11,14 +11,19 @@ project(hello_s3)
 set(CMAKE_CXX_STANDARD 11)
 
 if (WIN32)
-    # Vendored AWS-SDK binaries (contrib/hbaws/awssdk), shared across all
-    # Windows compilers (MSVC, MinGW, Clang): a single bin/win folder, no
-    # per-compiler subfolder and no AWSSDK CMake package to find_package().
+    # Vendored AWS-SDK binaries (contrib/hbaws/awssdk). No AWSSDK CMake
+    # package to find_package() - headers/libs are used directly.
+    # bin/win/msvc was built with MSVC, so its C++ name mangling is
+    # ABI-incompatible with mingw64/clang (confirmed empirically: linking
+    # this project with MinGW against these binaries fails with "undefined
+    # reference" for every AWS symbol). Only MSVC consumers are supported
+    # until compiler-specific binaries are vendored under bin/win/<compiler>.
     set(AWSDIR "${CMAKE_CURRENT_SOURCE_DIR}/../../awssdk")
+    set(AWSBIN "${AWSDIR}/bin/win/msvc")
 
     add_executable(${PROJECT_NAME} hello.cpp)
     target_include_directories(${PROJECT_NAME} PRIVATE "${AWSDIR}/include")
-    target_link_directories(${PROJECT_NAME} PRIVATE "${AWSDIR}/bin/win")
+    target_link_directories(${PROJECT_NAME} PRIVATE "${AWSBIN}")
     target_link_libraries(${PROJECT_NAME} aws-cpp-sdk-core aws-cpp-sdk-s3)
 
     # Same defines as contrib/hbaws/hbaws.hbp, required for the AWS-SDK
@@ -47,9 +52,10 @@ if (WIN32)
         target_compile_options(${PROJECT_NAME} PRIVATE -Wno-ignored-attributes)
     endif()
 
-    # Copy every runtime DLL in bin/win (aws-cpp-sdk-* plus their transitive
-    # aws-c-*/aws-crt-cpp dependencies) next to the executable so it can run.
-    file(GLOB AWS_RUNTIME_DLLS "${AWSDIR}/bin/win/*.dll")
+    # Copy every runtime DLL in bin/win/msvc (aws-cpp-sdk-* plus their
+    # transitive aws-c-*/aws-crt-cpp dependencies) next to the executable
+    # so it can run.
+    file(GLOB AWS_RUNTIME_DLLS "${AWSBIN}/*.dll")
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${AWS_RUNTIME_DLLS}
