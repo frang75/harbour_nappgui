@@ -9,3 +9,5 @@ download
 # Tests
 tests/harbour/upload
 tests/harbour/credentials.prg
+
+!awssdk/bin/**/*
