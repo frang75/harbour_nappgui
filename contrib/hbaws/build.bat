@@ -3,6 +3,8 @@
 ::
 :: Will generate the hbaws.lib with the Harbour AWS wrapper.
 :: Visual Studio (msvc64) or MinGW (mingw64) or Clang allowed
+:: Set Visual Studio 2026 64bit compiler for hbmk2 (msvc)
+:: "%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 :: build -b [Debug|Release] -comp [msvc64|mingw64|clang]
 
 @echo off
