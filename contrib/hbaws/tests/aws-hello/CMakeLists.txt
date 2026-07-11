@@ -1,6 +1,8 @@
 # Windows
-# cmake -G "Visual Studio 17 2022" -S . -B build
+# cmake -G "Visual Studio 18 2026" -S . -B build
 # cmake -G "MinGW Makefiles" -S . -B build
+# cmake -G "MinGW Makefiles" -S . -B build -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+# cmake --build build
 # Linux / macOS
 # cmake -S . -B build
 # cmake -S . -B build
@@ -13,18 +15,29 @@ set(CMAKE_CXX_STANDARD 11)
 if (WIN32)
     # Vendored AWS-SDK binaries (contrib/hbaws/awssdk). No AWSSDK CMake
     # package to find_package() - headers/libs are used directly.
-    # bin/win/msvc was built with MSVC, so its C++ name mangling is
-    # ABI-incompatible with mingw64/clang (confirmed empirically: linking
-    # this project with MinGW against these binaries fails with "undefined
-    # reference" for every AWS symbol). Only MSVC consumers are supported
-    # until compiler-specific binaries are vendored under bin/win/<compiler>.
+    # bin/win/msvc was built with MSVC (MSVC C++ name mangling, ABI-
+    # incompatible with mingw64/clang - confirmed empirically: linking this
+    # project with MinGW against MSVC binaries fails with "undefined
+    # reference" for every AWS symbol). bin/win/gcc was built with mingw64;
+    # the "clang" toolchain here is MSYS2 UCRT64's clang, which targets
+    # x86_64-w64-windows-gnu and links against libstdc++ - same GNU/Itanium
+    # ABI as mingw64 - so it also uses bin/win/gcc.
     set(AWSDIR "${CMAKE_CURRENT_SOURCE_DIR}/../../awssdk")
-    set(AWSBIN "${AWSDIR}/bin/win/msvc")
+    if (MSVC)
+        set(AWSBIN "${AWSDIR}/bin/win/msvc")
+    else()
+        set(AWSBIN "${AWSDIR}/bin/win/gcc")
+    endif()
 
     add_executable(${PROJECT_NAME} hello.cpp)
     target_include_directories(${PROJECT_NAME} PRIVATE "${AWSDIR}/include")
     target_link_directories(${PROJECT_NAME} PRIVATE "${AWSBIN}")
     target_link_libraries(${PROJECT_NAME} aws-cpp-sdk-core aws-cpp-sdk-s3)
+    if (NOT MSVC)
+        # aws-cpp-sdk-core/s3 import Aws::Crt::* symbols from aws-crt-cpp;
+        # MSVC's .lib resolves them via forwarding, GNU ld needs it explicit.
+        target_link_libraries(${PROJECT_NAME} aws-crt-cpp)
+    endif()
 
     # Same defines as contrib/hbaws/hbaws.hbp, required for the AWS-SDK
     # headers to correctly declare dllimport-ed symbols.
@@ -52,9 +65,8 @@ if (WIN32)
         target_compile_options(${PROJECT_NAME} PRIVATE -Wno-ignored-attributes)
     endif()
 
-    # Copy every runtime DLL in bin/win/msvc (aws-cpp-sdk-* plus their
-    # transitive aws-c-*/aws-crt-cpp dependencies) next to the executable
-    # so it can run.
+    # Copy every runtime DLL in AWSBIN (aws-cpp-sdk-* plus their transitive
+    # aws-c-*/aws-crt-cpp dependencies) next to the executable so it can run.
     file(GLOB AWS_RUNTIME_DLLS "${AWSBIN}/*.dll")
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
