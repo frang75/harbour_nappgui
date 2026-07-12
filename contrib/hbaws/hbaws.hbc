@@ -1,37 +1,23 @@
 # hbaws options for projects that use it
-#
-# NOTE: 'clang' alone is a platform-agnostic hbmk2 compiler token (matches
-# clang on Windows, Linux AND macOS). It must always be paired with an
-# explicit platform token (win/linux/darwin) here, otherwise a rule meant
-# for one platform's clang leaks into the others.
+# Windows / MSVC: vendored AWS-SDK binaries (awssdk/bin/win/msvc).
+# Windows / mingw64|clang: vendored AWS-SDK binaries (awssdk/bin/win/gcc).
+# ABI-incompatible MSVC/mingw64. They need separate builds.
+# Linux / gcc|clang: vendored AWS-SDK binaries (awssdk/bin/linux/gcc).
+# macOS / clang: vendored AWS-SDK binaries (awssdk/bin/macos/clang).
 
 incpaths=.
 
-# Windows / MSVC: vendored AWS-SDK binaries (awssdk/bin/win/msvc). Built with
-# MSVC, so only usable from MSVC consumers (MSVC C++ name mangling is
-# ABI-incompatible with mingw64/clang, confirmed empirically in tests/aws-hello).
 {allmsvc&!debug}libpaths=build/Release/lib awssdk/bin/win/msvc
 {allmsvc&debug}libpaths=build/Debug/lib awssdk/bin/win/msvc
-
-# Windows / mingw64+clang: vendored AWS-SDK binaries (awssdk/bin/win/gcc),
-# built with mingw64. Windows "clang" here is MSYS2 UCRT64's clang, which
-# targets x86_64-w64-windows-gnu and links against libstdc++ - same
-# GNU/Itanium C++ ABI as mingw64 - so one build serves both.
 {(allmingw|(win&clang))&!debug}libpaths=build/Release/lib awssdk/bin/win/gcc
 {(allmingw|(win&clang))&debug}libpaths=build/Debug/lib awssdk/bin/win/gcc
-
-# Linux / gcc+clang: vendored AWS-SDK binaries (awssdk/bin/linux/gcc). Linux
-# clang also defaults to libstdc++ and the Itanium C++ ABI, same as gcc, so
-# one build serves both.
 {linux&!debug}libpaths=build/Release/lib awssdk/bin/linux/gcc
 {linux&debug}libpaths=build/Debug/lib awssdk/bin/linux/gcc
-
-# macOS: still relies on a user-built AWS-SDK via AWS_SDK_ROOT (not vendored yet)
-{darwin&!debug}libpaths=build/Release/lib ${AWS_SDK_ROOT}/clang/Release/lib ${AWS_SDK_ROOT}/clang/Release/bin
-{darwin&debug}libpaths=build/Debug/lib ${AWS_SDK_ROOT}/clang/Debug/lib ${AWS_SDK_ROOT}/clang/Debug/bin
+{darwin&!debug}libpaths=build/Release/lib awssdk/bin/macos/clang
+{darwin&debug}libpaths=build/Debug/lib awssdk/bin/macos/clang
 
 libs=hbaws aws-cpp-sdk-core aws-cpp-sdk-s3
-{allmingw|(win&clang)|linux}libs=aws-crt-cpp
+{allmingw|(win&clang)|linux|darwin}libs=aws-crt-cpp
 {allmsvc}cflags=/MD
 {allmsvc}ldflags=/NODEFAULTLIB:LIBCMT.lib
 {allmingw|(win&clang)|linux}libs=stdc++
