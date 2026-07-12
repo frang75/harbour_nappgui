@@ -9,7 +9,7 @@
 # test -comp [gcc|clang]
 #
 # Preserve LD_LIBRARY_PATH/DYLD_LIBRARY_PATH in the current shell.
-# source test -comp [gcc|clang]
+# source ./test.sh -comp [gcc|clang]
 #
 
 COMPILER=gcc
