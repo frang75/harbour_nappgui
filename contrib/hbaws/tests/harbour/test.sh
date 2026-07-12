@@ -8,6 +8,9 @@
 #
 # test -comp [gcc|clang]
 #
+# Preserve LD_LIBRARY_PATH/DYLD_LIBRARY_PATH in the current shell.
+# source test -comp [gcc|clang]
+#
 
 COMPILER=gcc
 PLATFORM=linux
@@ -52,7 +55,10 @@ fi
 
 for P in listall listpage upload uploadm copy copym download delete restore; do
     echo Compiling $P.prg...
-    $HBMK_PATH/hbmk2 $P.prg credentials.prg hbaws.hbc -comp=$COMPILER || exit 1
+    # 'return' if this script is sourced (keeps the shell alive so the
+    # LD_LIBRARY_PATH/DYLD_LIBRARY_PATH exported above stays set), 'exit'
+    # if it's run as a normal subprocess.
+    $HBMK_PATH/hbmk2 $P.prg credentials.prg hbaws.hbc -comp=$COMPILER || { return 1 2>/dev/null || exit 1; }
 done
 
 echo ------------------------
