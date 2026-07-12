@@ -5998,7 +5998,7 @@ static void i_build_children(GtNapFDBConn *dbconn, NodeSt(GtNapFNode) *parent, u
 {
     GtNapFArea2 *parea = NULL;
     GtNapFArea2 *carea = NULL;
-    GtNapFNode *pdata = NULL;    
+    GtNapFNode *pdata = NULL;
     PHB_ITEM key = NULL;
     HB_BOOL found = HB_FALSE;
 
@@ -6018,9 +6018,9 @@ static void i_build_children(GtNapFDBConn *dbconn, NodeSt(GtNapFNode) *parent, u
     i_dump_area_order(carea->area, "Label");
     */
 
-    /* 
+    /*
      * SEEK in child area (order already set).
-     * Hard seek (HB_FALSE remains in EOF if it not found) 
+     * Hard seek (HB_FALSE remains in EOF if it not found)
      * Find last (HB_FALSE find the first record match)
      */
     SELF_SEEK(carea->area, HB_FALSE, key, HB_FALSE);
@@ -6288,7 +6288,7 @@ static void i_dump_area_order(AREA *area, const char_t *label)
     const char *szName = hb_itemGetCPtr(info.itmResult);
     bstd_printf("%s order=%d  tag='%s'\n", label, nOrder, szName);
     hb_itemRelease(info.itmResult);
-} 
+}
 */
 
 /*---------------------------------------------------------------------------*/
@@ -6430,8 +6430,8 @@ void hbnap_forms_tree_bind(GtNapForm *form, const char_t *cell, HB_ITEM *areas, 
     nR = hb_arrayLen(relations);
     nB = hb_arrayLen(columns);
     cassert(nA > 1);
-    cassert(nR == nA - 1);
-    cassert(nB == nA);
+    cassert_unref(nR == nA - 1, nR);
+    cassert_unref(nB == nA, nB);
 
     for (i = 1; i <= nA; ++i)
     {
@@ -6464,11 +6464,11 @@ void hbnap_forms_tree_bind(GtNapForm *form, const char_t *cell, HB_ITEM *areas, 
                 GtNapFColumn *col = arrst_new0(area->columns, GtNapFColumn);
                 PHB_ITEM col_item = hb_arrayGetItemPtr(bind_item, j);
                 PHB_ITEM align_item = NULL;
-                PHB_ITEM block_item = NULL;                
+                PHB_ITEM block_item = NULL;
                 cassert(HB_ITEM_TYPE(col_item) == HB_IT_ARRAY);
                 cassert(hb_arrayLen(col_item) == 2);
                 align_item = hb_arrayGetItemPtr(col_item, 1);
-                block_item = hb_arrayGetItemPtr(col_item, 2);                
+                block_item = hb_arrayGetItemPtr(col_item, 2);
                 cassert(HB_ITEM_TYPE(align_item) == HB_IT_INTEGER);
                 cassert(HB_ITEM_TYPE(block_item) == HB_IT_BLOCK);
                 col->align = i_hbalign(hb_itemGetNI(align_item));
@@ -6512,12 +6512,12 @@ void hbnap_forms_tree_bind(GtNapForm *form, const char_t *cell, HB_ITEM *areas, 
                     cassert_no_null(carea);
                 }
 
-                /* 
+                /*
                  * Open CDX and activate the specified tag.
                  * SELF_ORDLSTADD evaluates the key expression via the Harbour VM
                  * macro compiler, which resolves fields against the CURRENTLY
                  * SELECTED work area — not the area pointer argument. We must
-                 * select the child area first so field names resolve correctly. 
+                 * select the child area first so field names resolve correctly.
                  */
                 {
                     DBORDERINFO oinfo;
@@ -6539,9 +6539,9 @@ void hbnap_forms_tree_bind(GtNapForm *form, const char_t *cell, HB_ITEM *areas, 
                     hb_itemRelease(oinfo.itmOrder);
                     hb_itemRelease(oinfo.itmResult);
 
-                    /* 
-                     * ORDLSTFOCUS returns HB_SUCCESS even if tag name does not exist 
-                     * verify by checking the active order number 
+                    /*
+                     * ORDLSTFOCUS returns HB_SUCCESS even if tag name does not exist
+                     * verify by checking the active order number
                      */
                     {
                         DBORDERINFO vinfo;
@@ -6551,7 +6551,7 @@ void hbnap_forms_tree_bind(GtNapForm *form, const char_t *cell, HB_ITEM *areas, 
                         hbres = SELF_ORDINFO(carea, DBOI_NUMBER, &vinfo);
                         cassert_unref(hbres == HB_SUCCESS, hbres);
                         pos = hb_itemGetNI(vinfo.itmResult);
-                        cassert(pos != 0);
+                        cassert_unref(pos != 0, pos);
                         hb_itemRelease(vinfo.itmResult);
                     }
 
