@@ -73,8 +73,25 @@ if (WIN32)
             ${AWS_RUNTIME_DLLS}
             "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
     )
+elseif (UNIX AND NOT APPLE)
+    # Linux: vendored AWS-SDK binaries (contrib/hbaws/awssdk), same approach
+    # as Windows - no AWSSDK CMake package to find_package(), headers/libs
+    # used directly. Linux gcc and clang share the same GNU/Itanium C++ ABI,
+    # so bin/linux/gcc serves both.
+    set(AWSDIR "${CMAKE_CURRENT_SOURCE_DIR}/../../awssdk")
+    set(AWSBIN "${AWSDIR}/bin/linux/gcc")
+
+    add_executable(${PROJECT_NAME} hello.cpp)
+    target_include_directories(${PROJECT_NAME} PRIVATE "${AWSDIR}/include")
+    target_link_directories(${PROJECT_NAME} PRIVATE "${AWSBIN}")
+    target_link_libraries(${PROJECT_NAME} aws-cpp-sdk-core aws-cpp-sdk-s3 aws-crt-cpp stdc++)
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wno-ignored-attributes)
+
+    # CMake automatically adds a build-tree RPATH for target_link_directories
+    # paths, so the executable finds these .so files without needing
+    # LD_LIBRARY_PATH when run straight from the build directory.
 else()
-    # Linux / macOS: still relies on a user-built AWS-SDK via AWS_SDK_ROOT
+    # macOS: still relies on a user-built AWS-SDK via AWS_SDK_ROOT
     # (not vendored yet).
     set(AWSROOT "$ENV{AWS_SDK_ROOT}")
 
@@ -84,15 +101,7 @@ else()
         message(FATAL_ERROR "AWS_SDK_ROOT environment variable is required to compile ${PROJECT_NAME}")
     endif()
 
-    if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-        set(AWSROOT ${AWSROOT}/gcc)
-    elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang")
-        set(AWSROOT ${AWSROOT}/clang)
-    else()
-        message(FATAL_ERROR "Unknown compiler ${CMAKE_CXX_COMPILER_ID}")
-    endif()
-
-    set(AWSROOT ${AWSROOT}/Release)
+    set(AWSROOT ${AWSROOT}/clang/Release)
     set(CMAKE_PREFIX_PATH "${AWSROOT}" ${CMAKE_PREFIX_PATH})
     find_package(AWSSDK REQUIRED COMPONENTS s3)
     add_executable(${PROJECT_NAME} hello.cpp)
