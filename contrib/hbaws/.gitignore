@@ -5,6 +5,11 @@
 listall
 listpage
 download
+copy
+copym
+delete
+restore
+uploadm
 
 # Tests
 tests/harbour/upload

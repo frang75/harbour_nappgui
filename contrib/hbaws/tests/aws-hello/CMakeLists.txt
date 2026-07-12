@@ -3,9 +3,11 @@
 # cmake -G "MinGW Makefiles" -S . -B build
 # cmake -G "MinGW Makefiles" -S . -B build -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
 # cmake --build build
-# Linux / macOS
+
+# Linux
 # cmake -S . -B build
-# cmake -S . -B build
+# cmake -S . -B build -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+# cmake --build build
 
 cmake_minimum_required(VERSION 3.13)
 project(hello_s3)
