@@ -16,7 +16,7 @@ COMPILER=gcc
 PLATFORM=linux
 CWD=$(pwd)
 
-if [ "$(uname)" == "Darwin" ]; then
+if [ "$(uname)" = "Darwin" ]; then
     COMPILER=clang
     PLATFORM=darwin
 fi
@@ -44,7 +44,7 @@ echo ---------------------------
 
 HBMK_PATH=../../../../bin/$PLATFORM/$COMPILER
 
-if [ "$PLATFORM" == "linux" ]; then
+if [ "$PLATFORM" = "linux" ]; then
     export LD_LIBRARY_PATH=$CWD/../../awssdk/bin/linux/gcc:$LD_LIBRARY_PATH
 else
     export DYLD_LIBRARY_PATH=$CWD/../../awssdk/bin/macos/clang:$DYLD_LIBRARY_PATH
