@@ -17,3 +17,5 @@ tests/harbour/credentials.prg
 tests/aws-hello/hello.cpp
 
 !awssdk/bin/**/*
+
+**/.DS_Store
