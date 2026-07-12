@@ -3,7 +3,7 @@
 # Windows / mingw64|clang: vendored AWS-SDK binaries (awssdk/bin/win/gcc).
 # ABI-incompatible MSVC/mingw64. They need separate builds.
 # Linux / gcc|clang: vendored AWS-SDK binaries (awssdk/bin/linux/gcc).
-# macOS / clang: vendored AWS-SDK binaries (awssdk/bin/macos/clang).
+# macOS / clang: vendored AWS-SDK binaries (awssdk/bin/darwin/clang).
 
 incpaths=.
 
@@ -13,8 +13,8 @@ incpaths=.
 {(allmingw|(win&clang))&debug}libpaths=build/Debug/lib awssdk/bin/win/gcc
 {linux&!debug}libpaths=build/Release/lib awssdk/bin/linux/gcc
 {linux&debug}libpaths=build/Debug/lib awssdk/bin/linux/gcc
-{darwin&!debug}libpaths=build/Release/lib awssdk/bin/macos/clang
-{darwin&debug}libpaths=build/Debug/lib awssdk/bin/macos/clang
+{darwin&!debug}libpaths=build/Release/lib awssdk/bin/darwin/clang
+{darwin&debug}libpaths=build/Debug/lib awssdk/bin/darwin/clang
 
 libs=hbaws aws-cpp-sdk-core aws-cpp-sdk-s3
 {allmingw|(win&clang)|linux|darwin}libs=aws-crt-cpp

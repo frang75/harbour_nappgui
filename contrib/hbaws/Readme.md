@@ -25,7 +25,7 @@
 
 **hbaws** communicates with Amazon servers through the AWS-SDK-CPP, a project maintained by Amazon that encapsulates the complexity of making calls using the REST-API. The required AWS-SDK-CPP headers and binaries are vendored directly in the `awssdk` folder, platform by platform, so end users don't need to download/build AWS-SDK-CPP themselves once their platform is vendored.
 
-> **Important:** The AWSSDK binaries corresponding to each build (`awssdk/bin/win/msvc`, `awssdk/bin/win/gcc`, `awssdk/bin/linux/gcc` or `awssdk/bin/macos/clang`) must be distributed with the final application for it to work.
+> **Important:** The AWSSDK binaries corresponding to each build (`awssdk/bin/win/msvc`, `awssdk/bin/win/gcc`, `awssdk/bin/linux/gcc` or `awssdk/bin/darwin/clang`) must be distributed with the final application for it to work.
 
 > **Important:** In Windows, MSVC binaries (`awssdk/bin/win/msvc`) and mingw64/clang binaries (`awssdk/bin/win/gcc`) are **not** ABI-compatible with each other (different C++ name mangling/runtime), therefore they are not interchangeable.
 

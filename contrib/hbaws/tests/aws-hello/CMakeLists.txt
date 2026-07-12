@@ -29,7 +29,7 @@ if (WIN32)
 elseif (UNIX AND NOT APPLE)
     set(AWSBIN "${AWSDIR}/bin/linux/gcc")
 else()
-    set(AWSBIN "${AWSDIR}/bin/macos/clang")
+    set(AWSBIN "${AWSDIR}/bin/darwin/clang")
 endif()
 
 add_executable(${PROJECT_NAME} hello.cpp)

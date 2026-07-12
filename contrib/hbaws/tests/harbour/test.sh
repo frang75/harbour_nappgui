@@ -47,7 +47,7 @@ HBMK_PATH=../../../../bin/$PLATFORM/$COMPILER
 if [ "$PLATFORM" = "linux" ]; then
     export LD_LIBRARY_PATH=$CWD/../../awssdk/bin/linux/gcc:$LD_LIBRARY_PATH
 else
-    export DYLD_LIBRARY_PATH=$CWD/../../awssdk/bin/macos/clang:$DYLD_LIBRARY_PATH
+    export DYLD_LIBRARY_PATH=$CWD/../../awssdk/bin/$PLATFORM/clang:$DYLD_LIBRARY_PATH
 fi
 
 for P in listall listpage upload uploadm copy copym download delete restore; do
