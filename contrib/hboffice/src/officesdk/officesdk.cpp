@@ -2,7 +2,6 @@
 #include "sheetsdk.h"
 #include "writersdk.h"
 #include <core/core.h>
-#include <core/strings.h>
 #include <osbs/bproc.h>
 #include <osbs/dlib.h>
 #include <osbs/bthread.h>
@@ -14,6 +13,9 @@
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 #include <sewer/unicode.h>
+#include <string>
+#include <cstring>
+#include <algorithm>
 
 #include <sewer/nowarn.hxx>
 #include <cppuhelper/bootstrap.hxx>
@@ -172,33 +174,48 @@ OfficeSdk::~OfficeSdk()
 
 /*---------------------------------------------------------------------------*/
 
-static String *i_url_spaces(const char_t *url)
+static bool i_str_empty(const char_t *str)
 {
-    return str_repl(url, " ", "%20", 0);
+    return str == NULL || str[0] == '\0';
 }
 
 /*---------------------------------------------------------------------------*/
 
-static String *i_file_url(const char_t *url)
+static std::string i_url_spaces(const std::string &url)
 {
-    String *str = NULL;
-    String *curl = NULL;
+    std::string result;
+    result.reserve(url.size());
+    for (std::string::size_type i = 0; i < url.size(); ++i)
+    {
+        if (url[i] == ' ')
+            result += "%20";
+        else
+            result += url[i];
+    }
+
+    return result;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static std::string i_file_url(const char_t *url)
+{
+    std::string path;
     cassert_no_null(url);
     if (url[0] == '/' || url[0] == '\\')
-        str = str_path(ekLINUX, "file://%s", url);
+        path = std::string("file://") + url;
     else
-        str = str_path(ekLINUX, "file:///%s", url);
+        path = std::string("file:///") + url;
 
-    curl = i_url_spaces(tc(str));
-    str_destroy(&str);
-    return curl;
+    std::replace(path.begin(), path.end(), '\\', '/');
+    return i_url_spaces(path);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static ::rtl::OUString i_OUStringFromString(const String *str)
+static ::rtl::OUString i_OUStringFromString(const std::string &str)
 {
-    return rtl::OUString(tc(str), (sal_Int32)str_len(str), RTL_TEXTENCODING_UTF8);
+    return rtl::OUString(str.c_str(), (sal_Int32)str.size(), RTL_TEXTENCODING_UTF8);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -206,31 +223,29 @@ static ::rtl::OUString i_OUStringFromString(const String *str)
 static ::rtl::OUString i_OUStringFromUTF8(const char_t *str)
 {
     cassert_no_null(str);
-    return rtl::OUString(str, (sal_Int32)str_len_c(str), RTL_TEXTENCODING_UTF8);
+    return rtl::OUString(str, (sal_Int32)std::strlen(str), RTL_TEXTENCODING_UTF8);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static ::rtl::OUString i_OUStringFileUrl(const char_t *str)
 {
-    String *url = i_file_url(str);
-    ::rtl::OUString ostr = i_OUStringFromString(url);
-    str_destroy(&url);
-    return ostr;
+    std::string url = i_file_url(str);
+    return i_OUStringFromString(url);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static String *i_StringFromOUString(const ::rtl::OUString &ostr)
+static std::string i_StringFromOUString(const ::rtl::OUString &ostr)
 {
     sal_Int32 l = ostr.getLength();
     const sal_Unicode *b = ostr.getStr();
     uint32_t nbytes = 0, nused = 0;
-    String *str = NULL;
+    std::string str;
     cassert(sizeof(sal_Unicode) == 2);
     nbytes = unicode_convers_nbytes_n((const char_t *)b, (uint32_t)l * sizeof(sal_Unicode), ekUTF16, ekUTF8);
-    str = str_reserve(nbytes);
-    nused = unicode_convers((const char_t *)b, tcc(str), ekUTF16, ekUTF8, nbytes);
+    str.resize(nbytes);
+    nused = unicode_convers((const char_t *)b, nbytes > 0 ? &str[0] : NULL, ekUTF16, ekUTF8, nbytes);
     cassert_unref(nused == nbytes, nused);
     return str;
 }
@@ -248,7 +263,7 @@ sdkres_t OfficeSdk::Init()
         chome = blib_getenv("LIBREOFFICE_HOME");
 
         // Check the LIBREOFFICE_HOME environment variable
-        if (str_empty_c(chome) == TRUE)
+        if (i_str_empty(chome))
             res = ekSDKRES_NO_ENVAR;
 
 #if defined(__MACOS__)
@@ -256,11 +271,10 @@ sdkres_t OfficeSdk::Init()
         if (res == ekSDKRES_OK)
         {
             const char_t *cpath = blib_getenv("PATH");
-            if (str_empty_c(cpath) == FALSE)
+            if (!i_str_empty(cpath))
             {
-                String *npath = str_printf("%s:%s/Contents/MacOS", cpath, chome);
-                blib_setenv("PATH", tc(npath));
-                str_destroy(&npath);
+                std::string npath = std::string(cpath) + ":" + chome + "/Contents/MacOS";
+                blib_setenv("PATH", npath.c_str());
             }
             else
             {
@@ -272,33 +286,31 @@ sdkres_t OfficeSdk::Init()
         // Apache UNO global variables
         if (res == ekSDKRES_OK)
         {
-            String *types = NULL;
-            String *boots = NULL;
+            std::string types;
+            std::string boots;
 
             {
 #if defined(__MACOS__)
-                String *path = str_path(ekLINUX, "%s/Contents/Resources/types/offapi.rdb", chome);
+                std::string path = std::string(chome) + "/Contents/Resources/types/offapi.rdb";
 #else
-                String *path = str_path(ekLINUX, "%s/program/types/offapi.rdb", chome);
+                std::string path = std::string(chome) + "/program/types/offapi.rdb";
 #endif
-                types = i_file_url(tc(path));
-                str_destroy(&path);
+                std::replace(path.begin(), path.end(), '\\', '/');
+                types = i_file_url(path.c_str());
             }
 
             {
 #if defined(__MACOS__)
-                String *path = str_path(ekLINUX, "vnd.sun.star.pathname:%s/Contents/Resources/fundamentalrc", chome);
+                std::string path = std::string("vnd.sun.star.pathname:") + chome + "/Contents/Resources/fundamentalrc";
 #else
-                String *path = str_path(ekLINUX, "vnd.sun.star.pathname:%s/program/fundamentalrc", chome);
+                std::string path = std::string("vnd.sun.star.pathname:") + chome + "/program/fundamentalrc";
 #endif
-                boots = i_url_spaces(tc(path));
-                str_destroy(&path);
+                std::replace(path.begin(), path.end(), '\\', '/');
+                boots = i_url_spaces(path);
             }
 
             rtl::Bootstrap::set("URE_MORE_TYPES", i_OUStringFromString(types));
             rtl::Bootstrap::set("URE_BOOTSTRAP", i_OUStringFromString(boots));
-            str_destroy(&types);
-            str_destroy(&boots);
         }
 
         // Kill a previous instance of LibreOffice
@@ -374,22 +386,22 @@ sdkres_t OfficeSdk::KillLibreOffice()
 sdkres_t OfficeSdk::WakeUpServer()
 {
     sdkres_t res = ekSDKRES_OK;
-    String *connect = NULL;
+    std::string connect;
     Proc *proc = NULL;
     platform_t pt = osbs_platform();
 
     switch (pt)
     {
     case ekWINDOWS:
-        connect = str_c("soffice \"--accept=socket,host=localhost,port=2083;urp\" --nodefault --nologo --headless");
+        connect = "soffice \"--accept=socket,host=localhost,port=2083;urp\" --nodefault --nologo --headless";
         break;
     case ekLINUX:
-        connect = str_c("libreoffice \"--accept=socket,host=0,port=2083;urp\" --nodefault --nologo --headless");
+        connect = "libreoffice \"--accept=socket,host=0,port=2083;urp\" --nodefault --nologo --headless";
         break;
     case ekMACOS:
     {
         const char_t *env = blib_getenv("LIBREOFFICE_HOME");
-        connect = str_printf("%s/Contents/MacOS/soffice --accept=\"socket,host=localhost,port=2083;urp\" --nodefault --nologo --headless", env);
+        connect = std::string(env) + "/Contents/MacOS/soffice --accept=\"socket,host=localhost,port=2083;urp\" --nodefault --nologo --headless";
         break;
     }
     case ekIOS:
@@ -400,7 +412,7 @@ sdkres_t OfficeSdk::WakeUpServer()
     // /Applications/LibreOffice.app/Content/MacOS/soffice --accept="socket,host=localhost,port=2083;urp;StarOffice.ServiceManager" --nodefault --nologo
     // /Applications/LibreOffice.app/Contents/MacOS/soffice "--accept=socket,host=localhost,port=2083;urp;StarOffice.ServiceManager" --nodefault --nologo
     // /Applications/LibreOffice.app/Contents/MacOS/soffice --accept="socket,host=localhost,port=2083;urp;StarOffice.ServiceManager" --nodefault --nologo
-    proc = bproc_exec(tc(connect), NULL);
+    proc = bproc_exec(connect.c_str(), NULL);
 
     if (proc != NULL)
     {
@@ -411,7 +423,6 @@ sdkres_t OfficeSdk::WakeUpServer()
         res = ekSDKRES_PROC_INIT_FAIL;
     }
 
-    str_destroy(&connect);
     return res;
 }
 
@@ -437,8 +448,8 @@ sdkres_t OfficeSdk::ConnectServer()
     catch (cppu::BootstrapException &exc)
     {
         ::rtl::OUString msg = exc.getMessage();
-        String *str = i_StringFromOUString(msg);
-        str_destroy(&str);
+        std::string str = i_StringFromOUString(msg);
+        unref(str);
         res = ekSDKRES_CONECT_FAIL;
     }
     catch (css::uno::Exception &)
@@ -742,9 +753,8 @@ const char_t *officesdk_error_str(const sdkres_t code)
 
 static void i_browse_file(const char_t *pathname)
 {
-    String *cmd = str_printf("libreoffice %s", pathname);
-    int t = system(tc(cmd));
-    str_destroy(&cmd);
+    std::string cmd = std::string("libreoffice ") + pathname;
+    int t = system(cmd.c_str());
     unref(t);
 }
 
@@ -954,7 +964,7 @@ static sdkres_t i_xprintable_print(
                 // Change the default printer name
                 if (name.equalsAscii("Name"))
                 {
-                    if (str_empty_c(printer) == FALSE)
+                    if (!i_str_empty(printer))
                     {
                         ::rtl::OUString value = i_OUStringFromUTF8(printer);
                         newPrinterProps[i].Value <<= value;
@@ -1015,9 +1025,9 @@ static sdkres_t i_xprintable_print(
         {
             // num_copies, collate_copies
             sal_Int32 nprops = 2, n = 0;
-            if (str_empty_c(filename) == FALSE)
+            if (!i_str_empty(filename))
                 nprops += 1;
-            if (str_empty_c(pages) == FALSE)
+            if (!i_str_empty(pages))
                 nprops += 1;
 
             css::uno::Sequence< css::beans::PropertyValue > printProps(nprops);
@@ -1027,7 +1037,7 @@ static sdkres_t i_xprintable_print(
             printProps[n].Name = "Collate";
             printProps[n].Value <<= (sal_Bool)collate_copies;
             n += 1;
-            if (str_empty_c(filename) == FALSE)
+            if (!i_str_empty(filename))
             {
                 ::rtl::OUString value = i_OUStringFromUTF8(filename);
                 printProps[n].Name = "FileName";
@@ -1035,7 +1045,7 @@ static sdkres_t i_xprintable_print(
                 n += 1;
             }
 
-            if (str_empty_c(pages) == FALSE)
+            if (!i_str_empty(pages))
             {
                 ::rtl::OUString value = i_OUStringFromUTF8(pages);
                 printProps[n].Name = "Pages";
@@ -1316,10 +1326,9 @@ static sdkres_t i_set_cell_formula(
 
     try
     {
-        String *form = str_printf("=%s", formula);
-        ::rtl::OUString sformula = i_OUStringFromUTF8(tc(form));
+        std::string form = std::string("=") + formula;
+        ::rtl::OUString sformula = i_OUStringFromUTF8(form.c_str());
         xCell->setFormula(sformula);
-        str_destroy(&form);
     }
     catch (css::uno::Exception &)
     {
@@ -1873,7 +1882,6 @@ uint32_t officesdk_sheet_add(Sheet *sheet, sdkres_t *err)
 {
     sdkres_t res = ekSDKRES_OK;
     uint32_t id = UINT32_MAX;
-    String *defname = NULL;
 
     try
     {
@@ -1881,7 +1889,7 @@ uint32_t officesdk_sheet_add(Sheet *sheet, sdkres_t *err)
         css::uno::Reference< css::sheet::XSpreadsheets > xSheets = (*xDocument)->getSheets();
         css::uno::Reference< css::container::XIndexAccess > xIndexAccess(xSheets, css::uno::UNO_QUERY_THROW);
         sal_Int32 n = xIndexAccess->getCount();
-        defname = str_printf("Sheet%d", (uint32_t)n);
+        std::string defname = std::string("Sheet") + std::to_string((uint32_t)n);
         xSheets->insertNewByName(i_OUStringFromString(defname), (sal_Int16)n);
         id = (uint32_t)n;
     }
@@ -1890,7 +1898,6 @@ uint32_t officesdk_sheet_add(Sheet *sheet, sdkres_t *err)
         res = ekSDKRES_ACCESS_DOC_ERROR;
     }
 
-    str_destopt(&defname);
     ptr_assign(err, res);
     return id;
 }
@@ -2031,10 +2038,9 @@ void officesdk_sheet_cell_ref(Sheet *sheet, const uint32_t page, const uint32_t 
     if (res == ekSDKRES_OK)
     {
         char_t col_id[64];
-        String *page_id = i_StringFromOUString(pageName);
+        std::string page_id = i_StringFromOUString(pageName);
         i_column_id(col, col_id, sizeof(col_id));
-        bstd_sprintf(cellref, refsize, "$'%s'.%s%d", tc(page_id), col_id, row + 1);
-        str_destroy(&page_id);
+        bstd_sprintf(cellref, refsize, "$'%s'.%s%d", page_id.c_str(), col_id, row + 1);
     }
 
     ptr_assign(err, res);
@@ -2818,9 +2824,8 @@ static sdkres_t i_get_style(
         // for (sal_Int32 i = 0; i < props.getLength(); ++i)
         //{
         //     ::rtl::OUString ostr = props.getConstArray()[i].Name;
-        //     String *str = i_StringFromOUString(ostr);
-        //     bstd_printf("%s\n", tc(str));
-        //     str_destroy(&str);
+        //     std::string str = i_StringFromOUString(ostr);
+        //     bstd_printf("%s\n", str.c_str());
         // }
     }
     catch (css::uno::Exception &)
@@ -3080,7 +3085,7 @@ void officesdk_writer_font_family(Writer *writer, const textspace_t space, const
     if (res == ekSDKRES_OK)
         res = i_get_text(writer, space, xText);
 
-    if (res == ekSDKRES_OK && str_empty_c(font_family) == FALSE)
+    if (res == ekSDKRES_OK && !i_str_empty(font_family))
     {
         ::rtl::OUString fname = i_OUStringFromUTF8(font_family);
         res = i_set_text_property(xText, "CharFontName", css::uno::makeAny(fname));
