@@ -1,9 +1,9 @@
 #include "officesdk.h"
 #include "sheetsdk.h"
 #include "writersdk.h"
+#include "helpers.inl"
 #include <core/core.h>
 #include <osbs/bproc.h>
-#include <osbs/btime.h>
 #include <osbs/osbs.h>
 #include <sewer/blib.h>
 #include <sewer/bstd.h>
@@ -1284,18 +1284,11 @@ static sdkres_t i_set_cell_date(
 
     try
     {
-        Date date;
         uint64_t epoch;
         double value;
-        date.mday = day;
-        date.month = month;
-        date.year = year;
-        date.hour = 0;
-        date.minute = 0;
-        date.second = 0;
 
         // Number of micro-seconds from epoch to date
-        epoch = btime_to_micro(&date);
+        epoch = btime_to_micro(year, month, day);
 
         // We want seconds
         epoch = epoch / 1000000;
