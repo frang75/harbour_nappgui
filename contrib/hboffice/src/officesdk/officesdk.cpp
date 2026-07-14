@@ -3,11 +3,8 @@
 #include "writersdk.h"
 #include <core/core.h>
 #include <osbs/bproc.h>
-#include <osbs/dlib.h>
-#include <osbs/bthread.h>
 #include <osbs/btime.h>
 #include <osbs/osbs.h>
-#include <osbs/log.h>
 #include <sewer/blib.h>
 #include <sewer/bstd.h>
 #include <sewer/cassert.h>
@@ -16,6 +13,8 @@
 #include <string>
 #include <cstring>
 #include <algorithm>
+#include <chrono>
+#include <thread>
 
 #include <sewer/nowarn.hxx>
 #include <cppuhelper/bootstrap.hxx>
@@ -318,7 +317,7 @@ sdkres_t OfficeSdk::Init()
             res = KillLibreOffice();
 
         if (res == ekSDKRES_OK)
-            bthread_sleep(1000);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
         // The LibreOffice server is waked up by
         // cppu::bootstrap() in ConnectServer()
@@ -329,7 +328,7 @@ sdkres_t OfficeSdk::Init()
 
         //// Wait a little to LibreOffice wake up
         // if (res == ekSDKRES_OK)
-        //     bthread_sleep(2000);
+        //     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
         // Connect to LibreOffice instance
         if (res == ekSDKRES_OK)
