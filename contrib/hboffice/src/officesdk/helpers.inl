@@ -5,6 +5,7 @@
  * vendored NAppGUI sewer/osbs/core libraries.
  */
 
+#include "officesdk.hxx"
 #include <cstdint>
 
 uint64_t btime_to_micro(const int16_t year, const uint8_t month, const uint8_t mday);
@@ -12,3 +13,5 @@ uint64_t btime_to_micro(const int16_t year, const uint8_t month, const uint8_t m
 const char *blib_getenv(const char *name);
 
 int blib_setenv(const char *name, const char *value);
+
+platform_t osbs_platform(void);

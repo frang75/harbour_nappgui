@@ -4,7 +4,6 @@
 #include "helpers.inl"
 #include <core/core.h>
 #include <osbs/bproc.h>
-#include <osbs/osbs.h>
 #include <sewer/bstd.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>

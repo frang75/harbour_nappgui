@@ -10,6 +10,21 @@ const char *blib_getenv(const char *name)
 
 /*---------------------------------------------------------------------------*/
 
+platform_t osbs_platform(void)
+{
+#if defined(_WIN32)
+    return ekWINDOWS;
+#elif defined(__APPLE__)
+    return ekMACOS;
+#elif defined(__linux__)
+    return ekLINUX;
+#else
+#error Unknown platform
+#endif
+}
+
+/*---------------------------------------------------------------------------*/
+
 #if defined(_WIN32)
 
 #pragma warning(push, 0)
