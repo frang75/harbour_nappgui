@@ -4,12 +4,12 @@
 #include "helpers.inl"
 #include <core/core.h>
 #include <osbs/bproc.h>
-#include <sewer/bstd.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 #include <sewer/unicode.h>
 #include <string>
 #include <cstring>
+#include <cstdio>
 #include <algorithm>
 #include <chrono>
 #include <thread>
@@ -2030,7 +2030,7 @@ void officesdk_sheet_cell_ref(Sheet *sheet, const uint32_t page, const uint32_t 
         char_t col_id[64];
         std::string page_id = i_StringFromOUString(pageName);
         i_column_id(col, col_id, sizeof(col_id));
-        bstd_sprintf(cellref, refsize, "$'%s'.%s%d", page_id.c_str(), col_id, row + 1);
+        std::snprintf(cellref, refsize, "$'%s'.%s%d", page_id.c_str(), col_id, row + 1);
     }
 
     ptr_assign(err, res);
@@ -2815,7 +2815,7 @@ static sdkres_t i_get_style(
         //{
         //     ::rtl::OUString ostr = props.getConstArray()[i].Name;
         //     std::string str = i_StringFromOUString(ostr);
-        //     bstd_printf("%s\n", str.c_str());
+        //     std::printf("%s\n", str.c_str());
         // }
     }
     catch (css::uno::Exception &)
