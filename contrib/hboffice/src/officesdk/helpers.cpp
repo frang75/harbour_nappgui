@@ -1,4 +1,14 @@
 #include "helpers.inl"
+#include <cstdlib>
+
+/*---------------------------------------------------------------------------*/
+
+const char *blib_getenv(const char *name)
+{
+    return std::getenv(name);
+}
+
+/*---------------------------------------------------------------------------*/
 
 #if defined(_WIN32)
 
@@ -37,6 +47,13 @@ uint64_t btime_to_micro(const int16_t year, const uint8_t month, const uint8_t m
 
 /*---------------------------------------------------------------------------*/
 
+int blib_setenv(const char *name, const char *value)
+{
+    return (int)_putenv_s(name, value);
+}
+
+/*---------------------------------------------------------------------------*/
+
 #else /* Linux / macOS */
 
 #include <ctime>
@@ -57,6 +74,13 @@ uint64_t btime_to_micro(const int16_t year, const uint8_t month, const uint8_t m
     /* timegm interprets tm as UTC, unlike mktime (local time) */
     seconds = timegm(&tm_date);
     return (uint64_t)seconds * 1000000ULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+int blib_setenv(const char *name, const char *value)
+{
+    return setenv(name, value, 1);
 }
 
 #endif
