@@ -5,7 +5,17 @@
 listall
 listpage
 download
+copy
+copym
+delete
+restore
+uploadm
 
 # Tests
 tests/harbour/upload
 tests/harbour/credentials.prg
+tests/aws-hello/hello.cpp
+
+!awssdk/bin/**/*
+
+**/.DS_Store

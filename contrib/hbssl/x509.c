@@ -153,6 +153,30 @@ HB_FUNC( X509_NAME_ONELINE )
 #endif
 }
 
+HB_FUNC( X509_GET_SERIALNUMBER )
+{
+   if( hb_X509_is( 1 ) )
+   {
+      X509 * x509 = hb_X509_par( 1 );
+
+      if( x509 )
+      {
+         ASN1_INTEGER * a = X509_get_serialNumber( x509 );
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+         int64_t r = 0;
+         if( ASN1_INTEGER_get_int64( &r, a ) > 0 )
+            hb_retnint( r );
+         else
+            hb_retni( -1 );
+#else
+         hb_retnint( ASN1_INTEGER_get( a ) );
+#endif
+      }
+   }
+   else
+      hb_errRT_BASE( EG_ARG, 2010, NULL, HB_ERR_FUNCNAME, HB_ERR_ARGS_BASEPARAMS );
+}
+
 HB_FUNC( X509_GET_PUBKEY )
 {
    if( hb_X509_is( 1 ) )

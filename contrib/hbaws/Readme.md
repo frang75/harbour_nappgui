@@ -1,23 +1,9 @@
 # Harbour AWS wrapper (hbaws)
 
 * [Introduction](#introduction)
-* [Installation of AWS-SDK-C++](#installation-of-aws-sdk-c++)
-    - [AWS-SDK with MinGW](#aws-sdk-with-mingw)
-    - [AWS-SDK with Clang](#aws-sdk-with-clang)
-    - [AWS-SDK with MSVC](#aws-sdk-with-msvc)
-    - [AWS-SDK with GCC Linux](#aws-sdk-with-gcc-linux)
-    - [AWS-SDK with CLANG Linux](#aws-sdk-with-clang-linux)
-    - [AWS-SDK with CLANG macOS](#aws-sdk-with-clang-macos)
-    - [AWS-SDK result](#aws-sdk-result)
-
-* [Build HBAWS](#build-hbaws)
-    - [Build HBAWS with MinGW](#build-hbaws-with-mingw)
-    - [Build HBAWS with Clang](#build-hbaws-with-clang)
-    - [Build HBAWS with MSVC](#build-hbaws-with-msvc)
-    - [Build HBAWS with GCC Linux](#build-hbaws-with-gcc-linux)
-    - [Build HBAWS with CLANG Linux](#build-hbaws-with-clang-linux)
-    - [Build HBAWS with CLANG macOS](#build-hbaws-with-clang-macos)
-
+* [Build HBAWS in Windows](#build-hbaws-in-windows)
+* [Build HBAWS in Linux](#build-hbaws-in-linux)
+* [Build HBAWS in macOS](#build-hbaws-in-macos)
 * [HBAWS examples](#hbaws-examples)
 * [Reference guide](#reference-guide)
     - [HBAWS_INIT](#hbaws_init)
@@ -31,182 +17,49 @@
     - [HBAWS_S3_DOWNLOAD](#hbaws_s3_download)
     - [HBAWS_S3_DELETE](#hbaws_s3_delete)
     - [HBAWS_S3_RESTORE](#hbaws_s3_restore)
+* [For hbaws developers](#for-hbaws-developers)
 
 ## Introduction
 
 **hbaws** is a project that allows us to connect to Amazon Web Services (AWS) directly from Harbour. At the moment, only some features of the S3 service are accessible, but this may be expanded in the future. It provides high-level functions in C that hide the complexity of HTTP requests. This C API is easily portable to Harbour.
 
-## Installation of AWS-SDK-C++
+**hbaws** communicates with Amazon servers through the AWS-SDK-CPP, a project maintained by Amazon that encapsulates the complexity of making calls using the REST-API. The required AWS-SDK-CPP headers and binaries are vendored directly in the `awssdk` folder, platform by platform, so end users don't need to download/build AWS-SDK-CPP themselves once their platform is vendored.
 
-**hbaws** communicates with Amazon servers through the AWS-SDK-CPP, a project maintained by Amazon that encapsulates the complexity of making calls using the REST-API. The first step is to download the AWS-SDK code from GitHub and compile it. This task has been automated using two scripts: `awssdk.bat` (Windows) and `awssdk.sh` (Linux/macOS).
+> **Important:** The AWSSDK binaries corresponding to each build (`awssdk/bin/win/msvc`, `awssdk/bin/win/gcc`, `awssdk/bin/linux/gcc` or `awssdk/bin/darwin/clang`) must be distributed with the final application for it to work.
 
-- Download and install Git if not present in your machine. Access to Git from the command line is required.
-    ```
-    :$ git --version
-    git version 2.25.1
-    ```
+> **Important:** In Windows, MSVC binaries (`awssdk/bin/win/msvc`) and mingw64/clang binaries (`awssdk/bin/win/gcc`) are **not** ABI-compatible with each other (different C++ name mangling/runtime), therefore they are not interchangeable.
 
-- Download and install CMake if not present in your machine. Access to CMake from the command line is required.
-    ```
-    :$ cmake --version
-    cmake version 3.25.2
-    ```
 
-- In **Linux system** you have to install the development packages of **libcurl** and **libssl**. E.g: In a Debian-based system:
-    ```
-    sudo apt-get install libcurl-dev
-    sudo apt-get install libssl-dev
-    ```
+## Build HBAWS in Windows
 
-- Set the `AWS_SDK_ROOT` environment variable. This path will be used to download and compile the code, as well as to install the headers and binaries once they are generated. E.g: `C:\aws-sdk` (Windows), `/home/user/aws-sdk` (Linux) or `/Users/user/aws-sdk` (macOS).
-
-### AWS-SDK with MinGW
+To build the `hbaws` library, just run the `build.bat` script. We can use `mingw64`, `clang` or `msvc64`.
 
 ```
 cd contrib\hbaws
-set AWS_SDK_ROOT=C:\aws-sdk
-awssdk -b [Debug|Release] -comp mingw64
-```
-
-### AWS-SDK with Clang
-
-```
-cd contrib\hbaws
-set AWS_SDK_ROOT=C:\aws-sdk
-awssdk -b [Debug|Release] -comp clang
-```
-
-### AWS-SDK with MSVC
-
-At least Visual Studio 2015 is required. First, you need to set the `CMAKE_GENERATOR` environment variable to the version you plan to use.
-
-```
-set CMAKE_GENERATOR=Visual Studio 18 2026
-set CMAKE_GENERATOR=Visual Studio 17 2022
-set CMAKE_GENERATOR=Visual Studio 16 2019
-set CMAKE_GENERATOR=Visual Studio 15 2017
-set CMAKE_GENERATOR=Visual Studio 14 2015
-```
-```
-cd contrib\hbaws
-set AWS_SDK_ROOT=C:\aws-sdk
-awssdk -b [Debug|Release] -comp msvc64
-```
-
-### AWS-SDK with GCC Linux
-
-```
-AWS_SDK_ROOT=/home/user/aws-sdk
-cd contrib/hbaws
-./awssdk -comp gcc -b [Debug|Release]
-```
-
-### AWS-SDK with CLANG Linux
-
-```
-AWS_SDK_ROOT=/home/user/aws-sdk
-cd contrib/hbaws
-./awssdk -comp clang -b [Debug|Release]
-```
-
-### AWS-SDK with CLANG macOS
-
-```
-export AWS_SDK_ROOT=/Users/user/aws-sdk
-export MACOSX_DEPLOYMENT_TARGET=13.0  # Ventura
-cd contrib/hbaws
-./awssdk.sh -comp clang -b [Debug|Release]
-```
-
-### AWS-SDK result
-
-If the `awssdk` script runs successfully, you will have the AWS-SDK headers and libraries in `$AWS_SDK_ROOT/$COMPILER/$BUILD`.
-
-> **Important:** The first time you run the `awssdk` script, it can be take several minutes. AWS-SDK-CPP is a heavy source project (> 1.5Gb).
-
-> **Important:** Several different builds can be done from same source code: E.g: `$AWS_SDK_ROOT/mingw64/Debug`, `$AWS_SDK_ROOT/msvc64/Release`, etc.
-
-> **Important:** The AWS-SDK-CPP source code will be `$AWS_SDK_ROOT/src` and will not be deleted after compilation. Once the AWS-SDK is successfully generated, you can remove this folder.
-
-> **Important:** The AWS-SDK dynamic libraries must be re-distributed with the Harbour-based executables. You will find them in the `/bin` folder of each installation. See the [HBAWS examples](#hbaws-examples) section.
-
-**Windows redistributables DLLs** in `/bin` folder.
-
-![awssdk_dlls](https://github.com/user-attachments/assets/697e5470-a848-412d-a31b-119633cc4e56)
-
-**Linux redistributables .so** in `/lib` folder.
-
-![linux_aws_so](https://github.com/user-attachments/assets/d8529946-c9a0-4ee1-b576-fa05a26c6514)
-
-**macOS redistributables .dylib** in `/lib` folder.
-
-![macos_aws_dylib](https://github.com/user-attachments/assets/bc42e9b1-422f-4b74-88c7-a65ac998b44d)
-
-## Build HBAWS
-
-To build the `hbaws` library, just run the `build.bat` or `build.sh` scripts. This library will be statically linked to applications and contains the Harbour binding.
-
-### Build HBAWS with MinGW
-
-```
-cd contrib\hbaws
-set AWS_SDK_ROOT=C:\aws-sdk
 build -b [Debug|Release] -comp mingw64
-```
-
-The `libhbaws.a` will be generated in `hbaws\build\[Debug|Release]\lib`.
-
-### Build HBAWS with Clang
-
-```
-cd contrib\hbaws
-set AWS_SDK_ROOT=C:\aws-sdk
 build -b [Debug|Release] -comp clang
-```
 
-The `libhbaws.a` will be generated in `hbaws\build\[Debug|Release]\lib`.
-
-### Build HBAWS with MSVC
-
-The HBMK2 system needs access to MSVC compilers (cl). To do this, you need to run the corresponding script according to the version of VisualStudio installed. For example, for VS 2026.
-
-```
 :: Set Visual Studio 2026 64bit compiler for hbmk2 (msvc)
 "%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
-```
-```
-cd contrib\hbaws
-set AWS_SDK_ROOT=C:\aws-sdk
 build -b [Debug|Release] -comp msvc64
 ```
 
-The `hbaws.lib` will be generated in `hbaws\build\[Debug|Release]\lib`.
+The `libhbaws.a` (mingw64, clang) or `hbaws.lib` (msvc64) will be generated in `hbaws\build\[Debug|Release]\lib`.
 
-### Build HBAWS with GCC Linux
+## Build HBAWS in Linux
 
 ```
 cd contrib/hbaws
-export AWS_SDK_ROOT=/home/user/aws-sdk
 build -comp gcc -b [Debug|Release]
-```
-
-The `libhbaws.a` will be generated in `hbaws/build/[Debug|Release]/lib`.
-
-### Build HBAWS with CLANG Linux
-
-```
-cd contrib/hbaws
-export AWS_SDK_ROOT=/home/user/aws-sdk
 build -comp clang -b [Debug|Release]
 ```
 
 The `libhbaws.a` will be generated in `hbaws/build/[Debug|Release]/lib`.
 
-### Build HBAWS with CLANG macOS
+## Build HBAWS in macOS
 
 ```
 cd contrib/hbaws
-export AWS_SDK_ROOT=/Users/user/aws-sdk
 export MACOSX_DEPLOYMENT_TARGET=13.0  # Ventura
 ./build.sh -comp clang -b [Debug|Release]
 ```
@@ -219,112 +72,35 @@ Some examples have been provided in `contrib/hbaws/tests/harbour`.
 
 > **Important:** Before running examples, open the `credentials.prg` and fill the required data.
 
-> **Important:** AWS-SDK DLLs must be accesible by the executables.
+On **Windows**, `tests/harbour/test.bat` builds all the examples and points `PATH` to the vendored AWS-SDK DLLs, for any of the three supported compilers.
 
-    # Windows MinGW
-    set PATH=%AWS_SDK_ROOT%\mingw64\Release\bin;%PATH%
+```
+cd contrib\hbaws\tests\harbour
+test -comp mingw64
+test -comp clang
 
-    # Windows Clang
-    set PATH=%AWS_SDK_ROOT%\mingw64\Release\bin;%PATH%
+:: Set Visual Studio 2026 64bit compiler for hbmk2 (msvc)
+"%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
+test -comp msvc64
+```
 
-    # Windows MSVC
-    set PATH=%AWS_SDK_ROOT%\msvc64\Release\bin;%PATH%
+On **Linux/macOS** `tests/harbour/test.sh` will perform the compilation, setting `LD_LIBRARY_PATH` or `DYLD_LIBRARY_PATH`. Run it with `source` (or `.`) if you want that variable to stay set in your shell afterwards, to run the resulting executables right away:
 
-    # Linux GCC
-    export LD_LIBRARY_PATH=$AWS_SDK_ROOT/gcc/Release/lib:$LD_LIBRARY_PATH
-
-    # macOS Clang
-    export DYLD_LIBRARY_PATH=$AWS_SDK_ROOT/clang/Release/lib:$DYLD_LIBRARY_PATH
+```
+cd contrib/hbaws/tests/harbour
+source test.sh -comp gcc
+source test.sh -comp clang
+```
 
 * `listall`: Use of `HBAWS_S3_LIST_ALL` function.
-    ```
-    cd contrib\hbaws\tests\harbour
-    ..\..\..\..\bin\win\mingw64\hbmk2 listall.prg credentials.prg hbaws.hbc -comp=mingw64
-    ..\..\..\..\bin\win\clang\hbmk2 listall.prg credentials.prg hbaws.hbc -comp=clang
-    ..\..\..\..\bin\win\msvc64\hbmk2 listall.prg credentials.prg hbaws.hbc -comp=msvc64
-    ../../../../bin/linux/gcc/hbmk2 listall.prg credentials.prg hbaws.hbc
-    ../../../../bin/darwin/clang/hbmk2 listall.prg credentials.prg hbaws.hbc
-    ```
-
 * `listpage`: Use of `HBAWS_S3_LIST_PAGINATED` function.
-    ```
-    cd contrib\hbaws\tests\harbour
-    ..\..\..\..\bin\win\mingw64\hbmk2 listpage.prg credentials.prg hbaws.hbc -comp=mingw64
-    ..\..\..\..\bin\win\clang\hbmk2 listpage.prg credentials.prg hbaws.hbc -comp=clang
-    ..\..\..\..\bin\win\msvc64\hbmk2 listpage.prg credentials.prg hbaws.hbc -comp=msvc64
-    ../../../../bin/linux/gcc/hbmk2 listpage.prg credentials.prg hbaws.hbc
-    ../../../../bin/darwin/clang/hbmk2 listpage.prg credentials.prg hbaws.hbc
-    ```
-
 * `upload`: Use of `HBAWS_S3_UPLOAD_SIMPLE` function.
-    ```
-    cd contrib\hbaws\tests\harbour
-    ..\..\..\..\bin\win\mingw64\hbmk2 upload.prg credentials.prg hbaws.hbc -comp=mingw64
-    ..\..\..\..\bin\win\clang\hbmk2 upload.prg credentials.prg hbaws.hbc -comp=clang
-    ..\..\..\..\bin\win\msvc64\hbmk2 upload.prg credentials.prg hbaws.hbc -comp=msvc64
-    ../../../../bin/linux/gcc/hbmk2 upload.prg credentials.prg hbaws.hbc
-    ../../../../bin/darwin/clang/hbmk2 upload.prg credentials.prg hbaws.hbc
-    ```
-
 * `uploadm`: Use of `HBAWS_S3_UPLOAD_MULTIPART` function.
-    ```
-    cd contrib\hbaws\tests\harbour
-    ..\..\..\..\bin\win\mingw64\hbmk2 uploadm.prg credentials.prg hbaws.hbc -comp=mingw64
-    ..\..\..\..\bin\win\clang\hbmk2 uploadm.prg credentials.prg hbaws.hbc -comp=clang
-    ..\..\..\..\bin\win\msvc64\hbmk2 uploadm.prg credentials.prg hbaws.hbc -comp=msvc64
-    ../../../../bin/linux/gcc/hbmk2 uploadm.prg credentials.prg hbaws.hbc
-    ../../../../bin/darwin/clang/hbmk2 uploadm.prg credentials.prg hbaws.hbc
-    ```
-
 * `copy`: Use of `HBAWS_S3_COPY_SIMPLE` function.
-    ```
-    cd contrib\hbaws\tests\harbour
-    ..\..\..\..\bin\win\mingw64\hbmk2 copy.prg credentials.prg hbaws.hbc -comp=mingw64
-    ..\..\..\..\bin\win\clang\hbmk2 copy.prg credentials.prg hbaws.hbc -comp=clang
-    ..\..\..\..\bin\win\msvc64\hbmk2 copy.prg credentials.prg hbaws.hbc -comp=msvc64
-    ../../../../bin/linux/gcc/hbmk2 copy.prg credentials.prg hbaws.hbc
-    ../../../../bin/darwin/clang/hbmk2 copy.prg credentials.prg hbaws.hbc
-    ```
-
 * `copym`: Use of `HBAWS_S3_COPY_MULTIPART` function.
-    ```
-    cd contrib\hbaws\tests\harbour
-    ..\..\..\..\bin\win\mingw64\hbmk2 copym.prg credentials.prg hbaws.hbc -comp=mingw64
-    ..\..\..\..\bin\win\clang\hbmk2 copym.prg credentials.prg hbaws.hbc -comp=clang
-    ..\..\..\..\bin\win\msvc64\hbmk2 copym.prg credentials.prg hbaws.hbc -comp=msvc64
-    ../../../../bin/linux/gcc/hbmk2 copym.prg credentials.prg hbaws.hbc
-    ../../../../bin/darwin/clang/hbmk2 copym.prg credentials.prg hbaws.hbc
-    ```
-
 * `download`: Use of `HBAWS_S3_DOWNLOAD` function.
-    ```
-    cd contrib\hbaws\tests\harbour
-    ..\..\..\..\bin\win\mingw64\hbmk2 download.prg credentials.prg hbaws.hbc -comp=mingw64
-    ..\..\..\..\bin\win\clang\hbmk2 download.prg credentials.prg hbaws.hbc -comp=clang
-    ..\..\..\..\bin\win\msvc64\hbmk2 download.prg credentials.prg hbaws.hbc -comp=msvc64
-    ../../../../bin/linux/gcc/hbmk2 download.prg credentials.prg hbaws.hbc
-    ../../../../bin/darwin/clang/hbmk2 download.prg credentials.prg hbaws.hbc
-    ```
-
 * `delete`: Use of `HBAWS_S3_DELETE` function.
-    ```
-    cd contrib\hbaws\tests\harbour
-    ..\..\..\..\bin\win\mingw64\hbmk2 delete.prg credentials.prg hbaws.hbc -comp=mingw64
-    ..\..\..\..\bin\win\clang\hbmk2 delete.prg credentials.prg hbaws.hbc -comp=clang
-    ..\..\..\..\bin\win\msvc64\hbmk2 delete.prg credentials.prg hbaws.hbc -comp=msvc64
-    ../../../../bin/linux/gcc/hbmk2 delete.prg credentials.prg hbaws.hbc
-    ../../../../bin/darwin/clang/hbmk2 delete.prg credentials.prg hbaws.hbc
-    ```
-
 * `restore`: Use of `HBAWS_S3_RESTORE` function.
-    ```
-    cd contrib\hbaws\tests\harbour
-    ..\..\..\..\bin\win\mingw64\hbmk2 restore.prg credentials.prg hbaws.hbc -comp=mingw64
-    ..\..\..\..\bin\win\clang\hbmk2 restore.prg credentials.prg hbaws.hbc -comp=clang
-    ..\..\..\..\bin\win\msvc64\hbmk2 restore.prg credentials.prg hbaws.hbc -comp=msvc64
-    ../../../../bin/linux/gcc/hbmk2 restore.prg credentials.prg hbaws.hbc
-    ../../../../bin/darwin/clang/hbmk2 restore.prg credentials.prg hbaws.hbc
-    ```
 
 ## Reference guide
 
@@ -536,3 +312,11 @@ The Tier values are defined in 'hbaws.ch'
 #define TIER_STANDARD 1
 #define TIER_BULK 2
 #define TIER_EXPEDITED 3
+
+## For hbaws developers
+
+End users of `hbaws` never need to build the AWS-SDK-CPP, it is already vendored in `awssdk/include` and `awssdk/bin/**/{msvc,gcc,clang}`. The `contrib/hbaws/prj` folder holds the tooling only needed to *regenerate* that vendored SDK (e.g. to bump the AWS-SDK-CPP version, or to add a platform that isn't vendored yet):
+
+* `prj/Readme.md`: the previous, full version of this document, with the original step-by-step instructions to download and self-build AWS-SDK-CPP with every supported compiler (MinGW, Clang, MSVC, GCC Linux, Clang macOS).
+* `prj/awssdk.bat` / `prj/awssdk.sh`: the scripts that document/perform that self-build.
+* `prj/awssdk.patch`: header-only patch required on top of a freshly self-built AWS-SDK-CPP for it to compile under GCC-family compilers (mingw64, Linux gcc). Apply with `git apply contrib/hbaws/prj/awssdk.patch` from the repo root; see `prj/Readme.md` for background.

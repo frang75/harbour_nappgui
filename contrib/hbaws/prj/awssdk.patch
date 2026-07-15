@@ -1,0 +1,255 @@
+diff --git a/contrib/hbaws/awssdk/include/aws/auth/exports.h b/contrib/hbaws/awssdk/include/aws/auth/exports.h
+index e514aef0e6..f47b893f26 100644
+--- a/contrib/hbaws/awssdk/include/aws/auth/exports.h
++++ b/contrib/hbaws/awssdk/include/aws/auth/exports.h
+@@ -11,7 +11,11 @@
+ #        ifdef AWS_AUTH_EXPORTS
+ #            define AWS_AUTH_API __declspec(dllexport)
+ #        else
+-#            define AWS_AUTH_API __declspec(dllimport)
++#            ifdef _MSC_VER
++#                define AWS_AUTH_API __declspec(dllimport)
++#            else
++#                define AWS_AUTH_API
++#            endif
+ #        endif /* AWS_AUTH_EXPORTS */
+ #    else
+ #        define AWS_AUTH_API
+diff --git a/contrib/hbaws/awssdk/include/aws/cal/exports.h b/contrib/hbaws/awssdk/include/aws/cal/exports.h
+index a0074e540c..35d9f7c436 100644
+--- a/contrib/hbaws/awssdk/include/aws/cal/exports.h
++++ b/contrib/hbaws/awssdk/include/aws/cal/exports.h
+@@ -9,7 +9,11 @@
+ #        ifdef AWS_CAL_EXPORTS
+ #            define AWS_CAL_API __declspec(dllexport)
+ #        else
+-#            define AWS_CAL_API __declspec(dllimport)
++#            ifdef _MSC_VER
++#                define AWS_CAL_API __declspec(dllimport)
++#            else
++#                define AWS_CAL_API
++#            endif
+ #        endif /* AWS_CAL_EXPORTS */
+ #    else
+ #        define AWS_CAL_API
+diff --git a/contrib/hbaws/awssdk/include/aws/checksums/exports.h b/contrib/hbaws/awssdk/include/aws/checksums/exports.h
+index fd9f2d885e..1819e55a6d 100644
+--- a/contrib/hbaws/awssdk/include/aws/checksums/exports.h
++++ b/contrib/hbaws/awssdk/include/aws/checksums/exports.h
+@@ -9,7 +9,11 @@
+ #        ifdef AWS_CHECKSUMS_EXPORTS
+ #            define AWS_CHECKSUMS_API __declspec(dllexport)
+ #        else
+-#            define AWS_CHECKSUMS_API __declspec(dllimport)
++#            ifdef _MSC_VER
++#                define AWS_CHECKSUMS_API __declspec(dllimport)
++#            else
++#                define AWS_CHECKSUMS_API
++#            endif
+ #        endif /* AWS_CHECKSUMS_EXPORTS */
+ #    else
+ #        define AWS_CHECKSUMS_API
+diff --git a/contrib/hbaws/awssdk/include/aws/common/exports.h b/contrib/hbaws/awssdk/include/aws/common/exports.h
+index 90f7f174c2..c0ebadf1c7 100644
+--- a/contrib/hbaws/awssdk/include/aws/common/exports.h
++++ b/contrib/hbaws/awssdk/include/aws/common/exports.h
+@@ -9,7 +9,11 @@
+ #        ifdef AWS_COMMON_EXPORTS
+ #            define AWS_COMMON_API __declspec(dllexport)
+ #        else
+-#            define AWS_COMMON_API __declspec(dllimport)
++#            ifdef _MSC_VER
++#                define AWS_COMMON_API __declspec(dllimport)
++#            else
++#                define AWS_COMMON_API
++#            endif
+ #        endif /* AWS_COMMON_EXPORTS */
+ #    else
+ #        define AWS_COMMON_API
+diff --git a/contrib/hbaws/awssdk/include/aws/compression/exports.h b/contrib/hbaws/awssdk/include/aws/compression/exports.h
+index 8c0ac00fbb..7f0c0fc6fd 100644
+--- a/contrib/hbaws/awssdk/include/aws/compression/exports.h
++++ b/contrib/hbaws/awssdk/include/aws/compression/exports.h
+@@ -9,7 +9,11 @@
+ #        ifdef AWS_COMPRESSION_EXPORTS
+ #            define AWS_COMPRESSION_API __declspec(dllexport)
+ #        else
+-#            define AWS_COMPRESSION_API __declspec(dllimport)
++#            ifdef _MSC_VER
++#                define AWS_COMPRESSION_API __declspec(dllimport)
++#            else
++#                define AWS_COMPRESSION_API
++#            endif
+ #        endif /* AWS_COMPRESSION_EXPORTS */
+ #    else
+ #        define AWS_COMPRESSION_API
+diff --git a/contrib/hbaws/awssdk/include/aws/core/Core_EXPORTS.h b/contrib/hbaws/awssdk/include/aws/core/Core_EXPORTS.h
+index ecd5a39db7..99c32197e7 100644
+--- a/contrib/hbaws/awssdk/include/aws/core/Core_EXPORTS.h
++++ b/contrib/hbaws/awssdk/include/aws/core/Core_EXPORTS.h
+@@ -16,7 +16,11 @@
+         #ifdef AWS_CORE_EXPORTS
+             #define  AWS_CORE_API __declspec(dllexport)
+         #else // AWS_CORE_EXPORTS
+-            #define  AWS_CORE_API __declspec(dllimport)
++            #ifdef _MSC_VER
++                #define  AWS_CORE_API __declspec(dllimport)
++            #else
++                #define  AWS_CORE_API
++            #endif
+         #endif // AWS_CORE_EXPORTS
+         #define AWS_CORE_EXTERN
+     #else // USE_IMPORT_EXPORT
+diff --git a/contrib/hbaws/awssdk/include/aws/crt/Exports.h b/contrib/hbaws/awssdk/include/aws/crt/Exports.h
+index 61a5956357..566d222420 100644
+--- a/contrib/hbaws/awssdk/include/aws/crt/Exports.h
++++ b/contrib/hbaws/awssdk/include/aws/crt/Exports.h
+@@ -23,7 +23,11 @@
+ #        ifdef AWS_CRT_CPP_EXPORTS
+ #            define AWS_CRT_CPP_API __declspec(dllexport)
+ #        else
+-#            define AWS_CRT_CPP_API __declspec(dllimport)
++#            ifdef _MSC_VER
++#                define AWS_CRT_CPP_API __declspec(dllimport)
++#            else
++#                define AWS_CRT_CPP_API
++#            endif
+ #        endif /* AWS_CRT_CPP_API */
+ #    else
+ #        define AWS_CRT_CPP_API
+diff --git a/contrib/hbaws/awssdk/include/aws/event-stream/event_stream_exports.h b/contrib/hbaws/awssdk/include/aws/event-stream/event_stream_exports.h
+index 239f1cd7d8..5924591103 100644
+--- a/contrib/hbaws/awssdk/include/aws/event-stream/event_stream_exports.h
++++ b/contrib/hbaws/awssdk/include/aws/event-stream/event_stream_exports.h
+@@ -9,7 +9,11 @@
+ #        ifdef AWS_EVENT_STREAM_EXPORTS
+ #            define AWS_EVENT_STREAM_API __declspec(dllexport)
+ #        else
+-#            define AWS_EVENT_STREAM_API __declspec(dllimport)
++#            ifdef _MSC_VER
++#                define AWS_EVENT_STREAM_API __declspec(dllimport)
++#            else
++#                define AWS_EVENT_STREAM_API
++#            endif
+ #        endif /* AWS_EVENT_STREAM_EXPORTS */
+ #    else
+ #        define AWS_EVENT_STREAM_API
+diff --git a/contrib/hbaws/awssdk/include/aws/http/exports.h b/contrib/hbaws/awssdk/include/aws/http/exports.h
+index d2b8aec7e5..eea0f000f0 100644
+--- a/contrib/hbaws/awssdk/include/aws/http/exports.h
++++ b/contrib/hbaws/awssdk/include/aws/http/exports.h
+@@ -11,7 +11,11 @@
+ #        ifdef AWS_HTTP_EXPORTS
+ #            define AWS_HTTP_API __declspec(dllexport)
+ #        else
+-#            define AWS_HTTP_API __declspec(dllimport)
++#            ifdef _MSC_VER
++#                define AWS_HTTP_API __declspec(dllimport)
++#            else
++#                define AWS_HTTP_API
++#            endif
+ #        endif /* AWS_HTTP_EXPORTS */
+ #    else
+ #        define AWS_HTTP_API
+diff --git a/contrib/hbaws/awssdk/include/aws/io/exports.h b/contrib/hbaws/awssdk/include/aws/io/exports.h
+index 49b88f00b9..353eb857da 100644
+--- a/contrib/hbaws/awssdk/include/aws/io/exports.h
++++ b/contrib/hbaws/awssdk/include/aws/io/exports.h
+@@ -11,7 +11,11 @@
+ #        ifdef AWS_IO_EXPORTS
+ #            define AWS_IO_API __declspec(dllexport)
+ #        else
+-#            define AWS_IO_API __declspec(dllimport)
++#            ifdef _MSC_VER
++#                define AWS_IO_API __declspec(dllimport)
++#            else
++#                define AWS_IO_API
++#            endif
+ #        endif /* AWS_IO_EXPORTS */
+ #    else
+ #        define AWS_IO_API
+diff --git a/contrib/hbaws/awssdk/include/aws/mqtt/exports.h b/contrib/hbaws/awssdk/include/aws/mqtt/exports.h
+index b5d83e928f..171750a51d 100644
+--- a/contrib/hbaws/awssdk/include/aws/mqtt/exports.h
++++ b/contrib/hbaws/awssdk/include/aws/mqtt/exports.h
+@@ -9,7 +9,11 @@
+ #        ifdef AWS_MQTT_EXPORTS
+ #            define AWS_MQTT_API __declspec(dllexport)
+ #        else
+-#            define AWS_MQTT_API __declspec(dllimport)
++#            ifdef _MSC_VER
++#                define AWS_MQTT_API __declspec(dllimport)
++#            else
++#                define AWS_MQTT_API
++#            endif
+ #        endif /* AWS_MQTT_EXPORTS */
+ #    else
+ #        define AWS_MQTT_API
+diff --git a/contrib/hbaws/awssdk/include/aws/s3/S3_EXPORTS.h b/contrib/hbaws/awssdk/include/aws/s3/S3_EXPORTS.h
+index f2d187c947..288ae4b583 100644
+--- a/contrib/hbaws/awssdk/include/aws/s3/S3_EXPORTS.h
++++ b/contrib/hbaws/awssdk/include/aws/s3/S3_EXPORTS.h
+@@ -19,7 +19,11 @@
+         #ifdef AWS_S3_EXPORTS
+             #define AWS_S3_API __declspec(dllexport)
+         #else
+-            #define AWS_S3_API __declspec(dllimport)
++            #ifdef _MSC_VER
++                #define AWS_S3_API __declspec(dllimport)
++            #else
++                #define AWS_S3_API
++            #endif
+         #endif /* AWS_S3_EXPORTS */
+         #define AWS_S3_EXTERN
+     #else
+diff --git a/contrib/hbaws/awssdk/include/aws/s3/exports.h b/contrib/hbaws/awssdk/include/aws/s3/exports.h
+index 5da4cdc095..6b00cb8b0d 100644
+--- a/contrib/hbaws/awssdk/include/aws/s3/exports.h
++++ b/contrib/hbaws/awssdk/include/aws/s3/exports.h
+@@ -11,7 +11,11 @@
+ #        ifdef AWS_S3_EXPORTS
+ #            define AWS_S3_API __declspec(dllexport)
+ #        else
+-#            define AWS_S3_API __declspec(dllimport)
++#            ifdef _MSC_VER
++#                define AWS_S3_API __declspec(dllimport)
++#            else
++#                define AWS_S3_API
++#            endif
+ #        endif /* AWS_S3_EXPORTS */
+ #    else
+ #        define AWS_S3_API
+diff --git a/contrib/hbaws/awssdk/include/aws/sdkutils/exports.h b/contrib/hbaws/awssdk/include/aws/sdkutils/exports.h
+index 30503fc7ea..55a62c0003 100644
+--- a/contrib/hbaws/awssdk/include/aws/sdkutils/exports.h
++++ b/contrib/hbaws/awssdk/include/aws/sdkutils/exports.h
+@@ -11,7 +11,11 @@
+ #        ifdef AWS_SDKUTILS_EXPORTS
+ #            define AWS_SDKUTILS_API __declspec(dllexport)
+ #        else
+-#            define AWS_SDKUTILS_API __declspec(dllimport)
++#            ifdef _MSC_VER
++#                define AWS_SDKUTILS_API __declspec(dllimport)
++#            else
++#                define AWS_SDKUTILS_API
++#            endif
+ #        endif /* AWS_SDKUTILS_EXPORTS */
+ #    else
+ #        define AWS_SDKUTILS_API
+diff --git a/contrib/hbaws/awssdk/include/smithy/Smithy_EXPORTS.h b/contrib/hbaws/awssdk/include/smithy/Smithy_EXPORTS.h
+index 101a29edeb..a35fbd7490 100644
+--- a/contrib/hbaws/awssdk/include/smithy/Smithy_EXPORTS.h
++++ b/contrib/hbaws/awssdk/include/smithy/Smithy_EXPORTS.h
+@@ -18,7 +18,11 @@
+         #ifdef SMITHY_EXPORTS
+             #define SMITHY_API __declspec(dllexport)
+         #else
+-            #define SMITHY_API __declspec(dllimport)
++            #ifdef _MSC_VER
++                #define SMITHY_API __declspec(dllimport)
++            #else
++                #define SMITHY_API
++            #endif
+         #endif /* SMITHY_EXPORTS */
+     #else
+         #define SMITHY_API
