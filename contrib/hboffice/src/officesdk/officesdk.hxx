@@ -7,7 +7,32 @@
 #define __OFFICESDK_HXX__
 
 #include "officesdk.def"
-#include <core/core.hxx>
+#include <stdint.h>
+
+typedef char char_t;
+typedef char bool_t;
+typedef float real32_t;
+typedef double real64_t;
+
+#undef FALSE
+#undef TRUE
+#define FALSE (bool_t)0
+#define TRUE (bool_t)1
+
+#define ENUM_MAX(type) (type) INT32_MAX
+#define cast(ptr, type) ((type *)(ptr))
+#define cast_const(ptr, type) ((const type *)(ptr))
+#define unref(x) (void)(x)
+
+#ifdef __cplusplus
+#define __EXTERN_C \
+    extern "C" \
+    {
+#define __END_C }
+#else
+#define __EXTERN_C
+#define __END_C
+#endif
 
 typedef struct _write_t Writer;
 typedef struct _sheet_t Sheet;

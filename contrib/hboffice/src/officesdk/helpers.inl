@@ -5,11 +5,18 @@
  * vendored NAppGUI sewer/osbs/core libraries.
  */
 
-#include "officesdk.hxx"
 #include <cstdint>
 #include <string>
 
 typedef struct _osproc_t OsProc;
+
+typedef enum _platform_t
+{
+    ekWINDOWS = 1,
+    ekMACOS,
+    ekLINUX,
+    ekIOS
+} platform_t;
 
 const char *blib_getenv(const char *name);
 

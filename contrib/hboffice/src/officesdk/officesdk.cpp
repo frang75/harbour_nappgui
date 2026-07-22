@@ -2,17 +2,24 @@
 #include "sheetsdk.h"
 #include "writersdk.h"
 #include "helpers.inl"
-#include <core/core.h>
 #include <string>
 #include <cstring>
 #include <cstdio>
+#include <cstddef>
 #include <algorithm>
 #include <chrono>
 #include <thread>
 #include <cassert>
 #include <vector>
 
-#include <sewer/nowarn.hxx>
+#if defined(_MSC_VER)
+#pragma warning(push, 0)
+#elif defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wall"
+#pragma GCC diagnostic ignored "-Wextra"
+#endif
+
 #include <cppuhelper/bootstrap.hxx>
 #include <rtl/bootstrap.hxx>
 #include <container/XNamed.hpp>
@@ -67,12 +74,17 @@
 #include <awt/FontSlant.hpp>
 #include <awt/FontWeight.hpp>
 #include <iostream>
-#include <sewer/warn.hxx>
 
-#if defined(__WINDOWS__)
-#include <sewer/nowarn.hxx>
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#elif defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+
+#if defined(_WIN32)
+#pragma warning(push, 0)
 #include <Windows.h>
-#include <sewer/warn.hxx>
+#pragma warning(pop)
 #endif
 
 class OfficeSdk
@@ -163,7 +175,6 @@ OfficeSdk::~OfficeSdk()
 
         this->KillLibreOffice();
         this->m_init = false;
-        core_finish();
     }
 }
 
@@ -248,14 +259,13 @@ sdkres_t OfficeSdk::Init()
     {
         const char_t *chome = NULL;
 
-        core_start();
         chome = blib_getenv("LIBREOFFICE_HOME");
 
         // Check the LIBREOFFICE_HOME environment variable
         if (i_str_empty(chome))
             res = ekSDKRES_NO_ENVAR;
 
-#if defined(__MACOS__)
+#if defined(__APPLE__)
         // The libreoffice process path must to be in PATH envvar
         if (res == ekSDKRES_OK)
         {
@@ -279,7 +289,7 @@ sdkres_t OfficeSdk::Init()
             std::string boots;
 
             {
-#if defined(__MACOS__)
+#if defined(__APPLE__)
                 std::string path = std::string(chome) + "/Contents/Resources/types/offapi.rdb";
 #else
                 std::string path = std::string(chome) + "/program/types/offapi.rdb";
@@ -289,7 +299,7 @@ sdkres_t OfficeSdk::Init()
             }
 
             {
-#if defined(__MACOS__)
+#if defined(__APPLE__)
                 std::string path = std::string("vnd.sun.star.pathname:") + chome + "/Contents/Resources/fundamentalrc";
 #else
                 std::string path = std::string("vnd.sun.star.pathname:") + chome + "/program/fundamentalrc";
@@ -742,7 +752,7 @@ const char_t *officesdk_error_str(const sdkres_t code)
 
 /*---------------------------------------------------------------------------*/
 
-#if defined(__LINUX__) || defined(__MACOS__)
+#if defined(__linux__) || defined(__APPLE__)
 
 static void i_browse_file(const char_t *pathname)
 {
@@ -753,7 +763,7 @@ static void i_browse_file(const char_t *pathname)
 
 /*---------------------------------------------------------------------------*/
 
-#elif defined(__WINDOWS__)
+#elif defined(_WIN32)
 
 /*---------------------------------------------------------------------------*/
 
