@@ -1,5 +1,7 @@
 #include "helpers.inl"
 #include <cstdlib>
+#include <cassert>
+#include <vector>
 
 /*---------------------------------------------------------------------------*/
 
@@ -118,9 +120,51 @@ int blib_setenv(const char *name, const char *value)
 
 /*---------------------------------------------------------------------------*/
 
+struct _osproc_t
+{
+    PROCESS_INFORMATION info;
+};
+
+OsProc *bproc_exec(const char *command)
+{
+    STARTUPINFOA si;
+    PROCESS_INFORMATION pi;
+    /* CreateProcess requires a writable command line buffer */
+    std::string cmdline = std::string("cmd /c ") + command;
+    std::vector<char> buf(cmdline.begin(), cmdline.end());
+    buf.push_back('\0');
+
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+
+    if (!CreateProcessA(NULL, buf.data(), NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
+        return nullptr;
+
+    CloseHandle(pi.hThread);
+
+    OsProc *proc = new OsProc();
+    proc->info = pi;
+    return proc;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void bproc_close(OsProc **proc)
+{
+    assert(proc != nullptr && *proc != nullptr);
+    CloseHandle((*proc)->info.hProcess);
+    delete *proc;
+    *proc = nullptr;
+}
+
+/*---------------------------------------------------------------------------*/
+
 #else /* Linux / macOS */
 
 #include <ctime>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/wait.h>
 
 /*---------------------------------------------------------------------------*/
 
@@ -145,6 +189,52 @@ uint64_t btime_to_micro(const int16_t year, const uint8_t month, const uint8_t m
 int blib_setenv(const char *name, const char *value)
 {
     return setenv(name, value, 1);
+}
+
+/*---------------------------------------------------------------------------*/
+
+struct _osproc_t
+{
+    pid_t pid;
+};
+
+OsProc *bproc_exec(const char *command)
+{
+    pid_t pid = fork();
+
+    if (pid == -1)
+        return nullptr;
+
+    /* Child: run the command through the shell, discarding its std streams */
+    if (pid == 0)
+    {
+        int devnull = open("/dev/null", O_RDWR);
+        if (devnull >= 0)
+        {
+            dup2(devnull, STDIN_FILENO);
+            dup2(devnull, STDOUT_FILENO);
+            dup2(devnull, STDERR_FILENO);
+            close(devnull);
+        }
+
+        execl("/bin/sh", "sh", "-c", command, (char *)NULL);
+        _exit(127);
+    }
+
+    OsProc *proc = new OsProc();
+    proc->pid = pid;
+    return proc;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void bproc_close(OsProc **proc)
+{
+    assert(proc != nullptr && *proc != nullptr);
+    /* WNOHANG: reap the child if it has already finished, without blocking */
+    waitpid((*proc)->pid, NULL, WNOHANG);
+    delete *proc;
+    *proc = nullptr;
 }
 
 #endif

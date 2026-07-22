@@ -3,7 +3,6 @@
 #include "writersdk.h"
 #include "helpers.inl"
 #include <core/core.h>
-#include <osbs/bproc.h>
 #include <string>
 #include <cstring>
 #include <cstdio>
@@ -342,7 +341,7 @@ sdkres_t OfficeSdk::KillLibreOffice()
 {
     sdkres_t res = ekSDKRES_OK;
     const char_t *kill = NULL;
-    Proc *proc = NULL;
+    OsProc *proc = NULL;
     platform_t pt = osbs_platform();
 
     switch (pt)
@@ -362,7 +361,7 @@ sdkres_t OfficeSdk::KillLibreOffice()
         unref(pt);
     }
 
-    proc = bproc_exec(kill, NULL);
+    proc = bproc_exec(kill);
 
     if (proc != NULL)
         bproc_close(&proc);
@@ -378,7 +377,7 @@ sdkres_t OfficeSdk::WakeUpServer()
 {
     sdkres_t res = ekSDKRES_OK;
     std::string connect;
-    Proc *proc = NULL;
+    OsProc *proc = NULL;
     platform_t pt = osbs_platform();
 
     switch (pt)
@@ -404,7 +403,7 @@ sdkres_t OfficeSdk::WakeUpServer()
     // /Applications/LibreOffice.app/Content/MacOS/soffice --accept="socket,host=localhost,port=2083;urp;StarOffice.ServiceManager" --nodefault --nologo
     // /Applications/LibreOffice.app/Contents/MacOS/soffice "--accept=socket,host=localhost,port=2083;urp;StarOffice.ServiceManager" --nodefault --nologo
     // /Applications/LibreOffice.app/Contents/MacOS/soffice --accept="socket,host=localhost,port=2083;urp;StarOffice.ServiceManager" --nodefault --nologo
-    proc = bproc_exec(connect.c_str(), NULL);
+    proc = bproc_exec(connect.c_str());
 
     if (proc != NULL)
     {
