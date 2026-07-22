@@ -4,7 +4,6 @@
 #include "helpers.inl"
 #include <core/core.h>
 #include <osbs/bproc.h>
-#include <sewer/cassert.h>
 #include <sewer/ptr.h>
 #include <sewer/unicode.h>
 #include <string>
@@ -13,6 +12,7 @@
 #include <algorithm>
 #include <chrono>
 #include <thread>
+#include <cassert>
 
 #include <sewer/nowarn.hxx>
 #include <cppuhelper/bootstrap.hxx>
@@ -198,7 +198,7 @@ static std::string i_url_spaces(const std::string &url)
 static std::string i_file_url(const char_t *url)
 {
     std::string path;
-    cassert_no_null(url);
+    assert(url != nullptr);
     if (url[0] == '/' || url[0] == '\\')
         path = std::string("file://") + url;
     else
@@ -219,7 +219,7 @@ static ::rtl::OUString i_OUStringFromString(const std::string &str)
 
 static ::rtl::OUString i_OUStringFromUTF8(const char_t *str)
 {
-    cassert_no_null(str);
+    assert(str != nullptr);
     return rtl::OUString(str, (sal_Int32)std::strlen(str), RTL_TEXTENCODING_UTF8);
 }
 
@@ -239,11 +239,12 @@ static std::string i_StringFromOUString(const ::rtl::OUString &ostr)
     const sal_Unicode *b = ostr.getStr();
     uint32_t nbytes = 0, nused = 0;
     std::string str;
-    cassert(sizeof(sal_Unicode) == 2);
+    assert(sizeof(sal_Unicode) == 2);
     nbytes = unicode_convers_nbytes_n((const char_t *)b, (uint32_t)l * sizeof(sal_Unicode), ekUTF16, ekUTF8);
     str.resize(nbytes);
     nused = unicode_convers((const char_t *)b, nbytes > 0 ? &str[0] : NULL, ekUTF16, ekUTF8, nbytes);
-    cassert_unref(nused == nbytes, nused);
+    assert(nused == nbytes);
+    unref(nused);
     return str;
 }
 
@@ -365,7 +366,8 @@ sdkres_t OfficeSdk::KillLibreOffice()
         break;
     case ekIOS:
     default:
-        cassert_default(pt);
+        assert(false);
+        unref(pt);
     }
 
     proc = bproc_exec(kill, NULL);
@@ -403,7 +405,8 @@ sdkres_t OfficeSdk::WakeUpServer()
     }
     case ekIOS:
     default:
-        cassert_default(pt);
+        assert(false);
+        unref(pt);
     }
 
     // /Applications/LibreOffice.app/Content/MacOS/soffice --accept="socket,host=localhost,port=2083;urp;StarOffice.ServiceManager" --nodefault --nologo
@@ -613,7 +616,8 @@ sdkres_t OfficeSdk::SaveTextDocument(const css::uno::Reference< css::text::XText
         }
 
         default:
-            cassert_default(format);
+            assert(false);
+            unref(format);
         }
 
         xStorable->storeToURL(docUrl, storeProps);
@@ -662,7 +666,8 @@ sdkres_t OfficeSdk::SaveSheetDocument(const css::uno::Reference< css::sheet::XSp
         }
 
         default:
-            cassert_default(format);
+            assert(false);
+            unref(format);
         }
 
         xStorable->storeToURL(docUrl, storeProps);
@@ -766,7 +771,7 @@ static void i_browse_file(const char_t *pathname)
     WCHAR wpathname[512];
     uint32_t num_bytes = 0;
     num_bytes = unicode_convers(pathname, (char_t *)wpathname, ekUTF8, ekUTF16, sizeof(wpathname));
-    cassert(num_bytes < sizeof(wpathname));
+    assert(num_bytes < sizeof(wpathname));
     ShellExecute(NULL, L"open", wpathname, NULL, NULL, SW_RESTORE);
 }
 
@@ -794,7 +799,7 @@ Sheet *officesdk_sheet_open(const char_t *pathname, sdkres_t *err)
     sdkres_t res = i_OFFICE_SDK.Init();
     Sheet *sheet = NULL;
     css::uno::Reference< css::sheet::XSpreadsheetDocument > *xDocument = nullptr;
-    cassert_no_null(pathname);
+    assert(pathname != nullptr);
     if (res == ekSDKRES_OK)
     {
         xDocument = new css::uno::Reference< css::sheet::XSpreadsheetDocument >();
@@ -853,8 +858,8 @@ Sheet *officesdk_sheet_create(sdkres_t *err)
 static void i_sheet_save(Sheet *sheet, const char_t *pathname, const fileformat_t format, sdkres_t *err)
 {
     sdkres_t res = i_OFFICE_SDK.Init();
-    cassert_no_null(sheet);
-    cassert_no_null(pathname);
+    assert(sheet != nullptr);
+    assert(pathname != nullptr);
 
     if (res == ekSDKRES_OK)
     {
@@ -1050,7 +1055,7 @@ static sdkres_t i_xprintable_print(
                 n += 1;
             }
 
-            cassert(n == nprops);
+            assert(n == nprops);
             xPrintable->print(printProps);
         }
         catch (css::uno::Exception &)
@@ -1068,7 +1073,7 @@ void officesdk_sheet_print(Sheet *sheet, const char_t *filename, const char_t *p
 {
     sdkres_t res = i_OFFICE_SDK.Init();
     css::uno::Reference< css::view::XPrintable > xPrintable;
-    cassert_no_null(sheet);
+    assert(sheet != nullptr);
 
     if (res == ekSDKRES_OK)
     {
@@ -2657,7 +2662,7 @@ Writer *officesdk_writer_open(const char_t *pathname, sdkres_t *err)
     sdkres_t res = i_OFFICE_SDK.Init();
     Writer *writer = NULL;
     css::uno::Reference< css::text::XTextDocument > *xDocument = nullptr;
-    cassert_no_null(pathname);
+    assert(pathname != nullptr);
     if (res == ekSDKRES_OK)
     {
         xDocument = new css::uno::Reference< css::text::XTextDocument >();
@@ -2716,8 +2721,8 @@ Writer *officesdk_writer_create(sdkres_t *err)
 static void i_writer_save(Writer *writer, const char_t *pathname, const fileformat_t format, sdkres_t *err)
 {
     sdkres_t res = i_OFFICE_SDK.Init();
-    cassert_no_null(writer);
-    cassert_no_null(pathname);
+    assert(writer != nullptr);
+    assert(pathname != nullptr);
 
     if (res == ekSDKRES_OK)
     {
@@ -2748,7 +2753,7 @@ void officesdk_writer_print(Writer *writer, const char_t *filename, const char_t
 {
     sdkres_t res = i_OFFICE_SDK.Init();
     css::uno::Reference< css::view::XPrintable > xPrintable;
-    cassert_no_null(writer);
+    assert(writer != nullptr);
 
     if (res == ekSDKRES_OK)
     {
@@ -2880,7 +2885,7 @@ static sdkres_t i_get_text(
                 }
                 else
                 {
-                    cassert(space == ekTEXT_SPACE_FOOTER);
+                    assert(space == ekTEXT_SPACE_FOOTER);
                     res = i_get_page_property(xPageStyle, "FooterText", textValue);
                 }
             }
