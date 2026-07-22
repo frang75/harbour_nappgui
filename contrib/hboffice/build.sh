@@ -84,9 +84,6 @@ if [ $OPERATION == "dll" ]; then
         make -j 4 || exit 1
     fi
 
-    rm $BUILD/lib/*core*
-    rm $BUILD/lib/*osbs*
-    rm $BUILD/lib/*sewer*
     echo ---------------------------
     echo OFFICESDK DLL build succeed
     echo ---------------------------

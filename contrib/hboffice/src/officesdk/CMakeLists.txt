@@ -1,12 +1,34 @@
 set(TARGET_NAME officesdk)
 
 if (HBOFFICE_DEVELOPER_MODE)
+    # Invoked from the combined NAppGUI/GTNAP/HBOffice Debug solution (root CMakeLists.txt)
     set(OFFICESDK_SHARED NO)
+    nap_library(${TARGET_NAME} "core" ${OFFICESDK_SHARED} NRC_NONE)
 else()
+    # Standalone build (build.bat/build.sh): officesdk has no NAppGUI dependency
     set(OFFICESDK_SHARED YES)
+
+    file(GLOB OFFICESDK_SOURCES "*.cpp")
+    file(GLOB OFFICESDK_HEADERS "*.h" "*.hxx" "*.inl")
+    add_library(${TARGET_NAME} SHARED ${OFFICESDK_SOURCES} ${OFFICESDK_HEADERS})
+    target_compile_definitions(${TARGET_NAME} PRIVATE NAPPGUI_OFFICESDK_EXPORT_DLL)
+
+    if (WIN32)
+        target_compile_definitions(${TARGET_NAME} PRIVATE UNICODE _UNICODE)
+    endif()
+
+    if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+        target_compile_options(${TARGET_NAME} PRIVATE "-fPIC" "-fvisibility=hidden")
+    endif()
+
+    foreach(config ${CMAKE_CONFIGURATION_TYPES})
+        string(TOUPPER ${config} configUpper)
+        set_property(TARGET ${TARGET_NAME} APPEND PROPERTY ARCHIVE_OUTPUT_DIRECTORY_${configUpper} "${CMAKE_BINARY_DIR}/${config}/lib")
+        set_property(TARGET ${TARGET_NAME} APPEND PROPERTY LIBRARY_OUTPUT_DIRECTORY_${configUpper} "${CMAKE_BINARY_DIR}/${config}/bin")
+        set_property(TARGET ${TARGET_NAME} APPEND PROPERTY RUNTIME_OUTPUT_DIRECTORY_${configUpper} "${CMAKE_BINARY_DIR}/${config}/bin")
+    endforeach()
 endif()
 
-nap_library(${TARGET_NAME} "core" ${OFFICESDK_SHARED} NRC_NONE)
 target_include_directories(${TARGET_NAME} PUBLIC "..")
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
