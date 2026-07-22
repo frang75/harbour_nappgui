@@ -25,6 +25,55 @@ platform_t osbs_platform(void)
 
 /*---------------------------------------------------------------------------*/
 
+std::string utf16_to_utf8(const uint16_t *str, const uint32_t nchars)
+{
+    std::string result;
+    result.reserve(nchars);
+
+    for (uint32_t i = 0; i < nchars; ++i)
+    {
+        uint32_t codepoint = str[i];
+
+        /* High surrogate followed by a low surrogate -> combine into one codepoint */
+        if (codepoint >= 0xD800 && codepoint <= 0xDBFF && i + 1 < nchars)
+        {
+            uint32_t low = str[i + 1];
+            if (low >= 0xDC00 && low <= 0xDFFF)
+            {
+                codepoint = 0x10000 + ((codepoint - 0xD800) << 10) + (low - 0xDC00);
+                i += 1;
+            }
+        }
+
+        if (codepoint < 0x80)
+        {
+            result += (char)codepoint;
+        }
+        else if (codepoint < 0x800)
+        {
+            result += (char)(0xC0 | (codepoint >> 6));
+            result += (char)(0x80 | (codepoint & 0x3F));
+        }
+        else if (codepoint < 0x10000)
+        {
+            result += (char)(0xE0 | (codepoint >> 12));
+            result += (char)(0x80 | ((codepoint >> 6) & 0x3F));
+            result += (char)(0x80 | (codepoint & 0x3F));
+        }
+        else
+        {
+            result += (char)(0xF0 | (codepoint >> 18));
+            result += (char)(0x80 | ((codepoint >> 12) & 0x3F));
+            result += (char)(0x80 | ((codepoint >> 6) & 0x3F));
+            result += (char)(0x80 | (codepoint & 0x3F));
+        }
+    }
+
+    return result;
+}
+
+/*---------------------------------------------------------------------------*/
+
 #if defined(_WIN32)
 
 #pragma warning(push, 0)

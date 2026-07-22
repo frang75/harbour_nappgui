@@ -4,8 +4,6 @@
 #include "helpers.inl"
 #include <core/core.h>
 #include <osbs/bproc.h>
-#include <sewer/ptr.h>
-#include <sewer/unicode.h>
 #include <string>
 #include <cstring>
 #include <cstdio>
@@ -13,6 +11,7 @@
 #include <chrono>
 #include <thread>
 #include <cassert>
+#include <vector>
 
 #include <sewer/nowarn.hxx>
 #include <cppuhelper/bootstrap.hxx>
@@ -237,15 +236,8 @@ static std::string i_StringFromOUString(const ::rtl::OUString &ostr)
 {
     sal_Int32 l = ostr.getLength();
     const sal_Unicode *b = ostr.getStr();
-    uint32_t nbytes = 0, nused = 0;
-    std::string str;
     assert(sizeof(sal_Unicode) == 2);
-    nbytes = unicode_convers_nbytes_n((const char_t *)b, (uint32_t)l * sizeof(sal_Unicode), ekUTF16, ekUTF8);
-    str.resize(nbytes);
-    nused = unicode_convers((const char_t *)b, nbytes > 0 ? &str[0] : NULL, ekUTF16, ekUTF8, nbytes);
-    assert(nused == nbytes);
-    unref(nused);
-    return str;
+    return utf16_to_utf8(reinterpret_cast<const uint16_t *>(b), (uint32_t)l);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -768,11 +760,11 @@ static void i_browse_file(const char_t *pathname)
 
 static void i_browse_file(const char_t *pathname)
 {
-    WCHAR wpathname[512];
-    uint32_t num_bytes = 0;
-    num_bytes = unicode_convers(pathname, (char_t *)wpathname, ekUTF8, ekUTF16, sizeof(wpathname));
-    assert(num_bytes < sizeof(wpathname));
-    ShellExecute(NULL, L"open", wpathname, NULL, NULL, SW_RESTORE);
+    std::vector<WCHAR> wpathname(std::strlen(pathname) + 1);
+    int n = MultiByteToWideChar(CP_UTF8, 0, pathname, -1, wpathname.data(), (int)wpathname.size());
+    assert(n > 0);
+    unref(n);
+    ShellExecute(NULL, L"open", wpathname.data(), NULL, NULL, SW_RESTORE);
 }
 
 #endif
