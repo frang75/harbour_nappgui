@@ -1,3 +1,11 @@
+# Only declare a project when this is configured directly (officesdk/build.bat|.sh).
+if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    cmake_minimum_required(VERSION 3.10)
+    project(OfficeSDK)
+    set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE INTERNAL "Configuration Types" FORCE)
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif()
+
 set(TARGET_NAME officesdk)
 
 if (HBOFFICE_DEVELOPER_MODE)
@@ -8,8 +16,8 @@ else()
     # Standalone build (build.bat/build.sh): officesdk has no NAppGUI dependency
     set(OFFICESDK_SHARED YES)
 
-    file(GLOB OFFICESDK_SOURCES "*.cpp")
-    file(GLOB OFFICESDK_HEADERS "*.h" "*.hxx" "*.inl")
+    file(GLOB OFFICESDK_SOURCES "src/*.cpp")
+    file(GLOB OFFICESDK_HEADERS "include/*.h" "include/*.hxx" "include/*.inl")
     add_library(${TARGET_NAME} SHARED ${OFFICESDK_SOURCES} ${OFFICESDK_HEADERS})
     target_compile_definitions(${TARGET_NAME} PRIVATE NAPPGUI_OFFICESDK_EXPORT_DLL)
 
@@ -21,15 +29,24 @@ else()
         target_compile_options(${TARGET_NAME} PRIVATE "-fPIC" "-fvisibility=hidden")
     endif()
 
+    # Vendored artifact: build output goes to bin/
+    if (WIN32)
+        set(OFFICESDK_BIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bin/win")
+    elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+        set(OFFICESDK_BIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bin/darwin")
+    else()
+        set(OFFICESDK_BIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bin/linux")
+    endif()
+
     foreach(config ${CMAKE_CONFIGURATION_TYPES})
         string(TOUPPER ${config} configUpper)
-        set_property(TARGET ${TARGET_NAME} APPEND PROPERTY ARCHIVE_OUTPUT_DIRECTORY_${configUpper} "${CMAKE_BINARY_DIR}/${config}/lib")
-        set_property(TARGET ${TARGET_NAME} APPEND PROPERTY LIBRARY_OUTPUT_DIRECTORY_${configUpper} "${CMAKE_BINARY_DIR}/${config}/bin")
-        set_property(TARGET ${TARGET_NAME} APPEND PROPERTY RUNTIME_OUTPUT_DIRECTORY_${configUpper} "${CMAKE_BINARY_DIR}/${config}/bin")
+        set_property(TARGET ${TARGET_NAME} APPEND PROPERTY ARCHIVE_OUTPUT_DIRECTORY_${configUpper} "${OFFICESDK_BIN_DIR}")
+        set_property(TARGET ${TARGET_NAME} APPEND PROPERTY LIBRARY_OUTPUT_DIRECTORY_${configUpper} "${OFFICESDK_BIN_DIR}")
+        set_property(TARGET ${TARGET_NAME} APPEND PROPERTY RUNTIME_OUTPUT_DIRECTORY_${configUpper} "${OFFICESDK_BIN_DIR}")
     endforeach()
 endif()
 
-target_include_directories(${TARGET_NAME} PUBLIC "..")
+target_include_directories(${TARGET_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     target_compile_options(${TARGET_NAME} PUBLIC "-Wno-inline" "-Wno-attributes")
