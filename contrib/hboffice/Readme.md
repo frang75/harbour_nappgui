@@ -131,40 +131,39 @@ The `libhboffice.a` will be generated in `hboffice/build/[Debug|Release]/lib`.
 
 ## hboffice examples
 
-In the `/hboffice/tests` folder there are different examples of use.
+In the `/hboffice/tests` folder there are different examples of use: `sheet1`, `sheet2` (LibreOffice Calc) and `doc1`, `doc2` (LibreOffice Writer).
+
+`hboffice.hbc` already points `hbmk2` at the vendored `officesdk.dll`/`.so`/`.dylib` in `officesdk/bin` at **link** time, so it doesn't need to be copied anywhere to compile the examples. But the resulting executables still need to **find** it at **runtime** (`PATH`/`LD_LIBRARY_PATH`/`DYLD_LIBRARY_PATH`), which is what `test.bat`/`test.sh` set up for you before compiling.
+
+On **Windows**, `tests/test.bat` compiles all four examples and points `PATH` to the vendored officesdk DLL, for any of the three supported compilers.
 
 ```
-:: In Windows
-cd \contrib\hboffice\tests
-..\..\..\bin\win\mingw64\hbmk2 sheet1.prg hboffice.hbc -comp=mingw64
-..\..\..\bin\win\clang\hbmk2 sheet1.prg hboffice.hbc -comp=clang
-..\..\..\bin\win\msvc64\hbmk2 sheet1.prg hboffice.hbc -comp=msvc64
+cd contrib\hboffice\tests
+test -comp mingw64
+test -comp clang
+
+:: Set Visual Studio 2026 64bit compiler for hbmk2 (msvc)
+"%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
+test -comp msvc64
 
 :: Just run
 sheet1.exe
 ```
 
-```
-# In Linux
-cd /contrib/hboffice/tests
-../../../bin/linux/gcc/hbmk2 sheet1.prg hboffice.hbc
-
-# Just run
-./sheet1
-```
+On **Linux/macOS**, `tests/test.sh` does the same, setting `LD_LIBRARY_PATH`/`DYLD_LIBRARY_PATH`. Run it with `source` (or `.`) if you want that variable to stay set in your shell afterwards, to run the resulting executables right away:
 
 ```
-# In macOS
-cd /contrib/hboffice/tests
-../../../bin/darwin/clang/hbmk2 sheet1.prg hboffice.hbc
-export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$(pwd)/../officesdk/bin/darwin
+cd contrib/hboffice/tests
+source test.sh -comp gcc
+source test.sh -comp clang
+
 # Just run
 ./sheet1
 ```
 
 The results documents will be saved in `/tests/result`.
 
-> **Important:** `hboffice.hbc` already points `hbmk2` at the vendored `officesdk.dll`/`.so`/`.dylib` in `officesdk/bin`, so it is picked up automatically at link time. It must still be distributed alongside the final executables (copy it next to the `.exe`/binary, or make sure it's on `PATH`/`LD_LIBRARY_PATH`/`DYLD_LIBRARY_PATH`).
+> **Important:** the vendored `officesdk.dll`/`.so`/`.dylib` used by `test.bat`/`test.sh` must still be distributed alongside your own final executables (copy it next to the binary, or make sure it's on `PATH`/`LD_LIBRARY_PATH`/`DYLD_LIBRARY_PATH`).
 
 ## For hboffice developers
 

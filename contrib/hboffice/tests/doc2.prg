@@ -1,7 +1,3 @@
-// Office example 'doc1'
-// From \contrib\hboffice\tests
-// ..\..\..\bin\win\mingw64\hbmk2 doc2.prg hboffice.hbc -comp=mingw64
-// ../../../bin/linux/gcc/hbmk2 doc2.prg hboffice.hbc
 #include "hboffice.ch"
 
 REQUEST HB_CODEPAGE_PTISO
@@ -417,6 +413,7 @@ IF OFFICE_ERROR("Erro ao fechar o documento")
 ENDIF
 
 ? "Documento criado com sucesso."
+? hb_eol() + hb_eol()
 
 HBOFFICE_FINISH()
 RETURN
