@@ -25,7 +25,9 @@
 
 * **hboffice.lib**/**libhboffice.a**: Static library that contains the Harbour wrapper. You can use any compiler (MSVC, MinGW, GCC, Clang, etc). This is the only thing `build.bat`/`build.sh` builds.
 
-> **Important:** The same vendored `officesdk.dll`/`.lib` is used regardless of the compiler chosen for `hboffice.lib` (`msvc64`, `mingw64` or `clang`). `officesdk` exposes a flat C API, so there's no C++ ABI incompatibility between compilers here.
+> **Important:** In Windows, the same vendored `officesdk.dll`/`.lib` is used regardless of the compiler chosen for `hboffice.lib` (`msvc64`, `mingw64` or `clang`). `officesdk` exposes a flat C API, so there's no C++ ABI incompatibility between compilers here.
+
+> **Important:** `officesdk.dll`/`libofficesdk.so`/`libofficesdk.dylib` is a **runtime** dependency, not something statically embedded into `hboffice.lib`. Any application built with `hboffice` must ship a copy of it, reachable by the OS at runtime through the system's library search path (`PATH` on Windows, `LD_LIBRARY_PATH` on Linux, `DYLD_LIBRARY_PATH` on macOS), either by copying it next to the final executable or by adding its folder to that variable. This applies to **your own applications**, not just the bundled tests (see [hboffice examples](#hboffice-examples) below for how `test.bat`/`test.sh` do it).
 
 ## Installation of LibreOffice
 
@@ -163,7 +165,7 @@ source test.sh -comp clang
 
 The results documents will be saved in `/tests/result`.
 
-> **Important:** the vendored `officesdk.dll`/`.so`/`.dylib` used by `test.bat`/`test.sh` must still be distributed alongside your own final executables (copy it next to the binary, or make sure it's on `PATH`/`LD_LIBRARY_PATH`/`DYLD_LIBRARY_PATH`).
+> **Important:** `test.bat`/`test.sh` only set up `PATH`/`LD_LIBRARY_PATH`/`DYLD_LIBRARY_PATH` for this session, as a convenience to run these examples right after compiling them. Remember that the same requirement applies to any application you build with `hboffice` (see the note in the [Introduction](#introduction)). It's your responsibility to make sure `officesdk.dll`/`.so`/`.dylib` is reachable at runtime wherever you deploy it.
 
 ## For hboffice developers
 
