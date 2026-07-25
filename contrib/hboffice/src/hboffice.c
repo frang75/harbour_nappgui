@@ -4,9 +4,9 @@
  */
 
 #include "hboffice.h"
-#include <officesdk/officesdk.h>
-#include <officesdk/sheetsdk.h>
-#include <officesdk/writersdk.h>
+#include <officesdk.h>
+#include <sheetsdk.h>
+#include <writersdk.h>
 
 #include "hbapiitm.h"
 #include "hbapistr.h"

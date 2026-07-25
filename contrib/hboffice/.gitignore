@@ -5,4 +5,4 @@ build
 /tests/doc2
 /tests/result
 
-!officesdk/bin/win/*
+!officesdk/bin/**/*

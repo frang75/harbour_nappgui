@@ -8,7 +8,7 @@
 
 #include "hbvmint.h"
 #include "hbgtcore.h"
-#include <officesdk/officesdk.hxx>
+#include <officesdk.hxx>
 
 HB_EXTERN_BEGIN
 

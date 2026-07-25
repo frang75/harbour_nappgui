@@ -6,6 +6,7 @@
 # Include directories
 -i.
 -isrc
+-iofficesdk/include
 
 # Avoid linker error '__gxx_personality_v0'
 # GTNAP need to be linked with g++
@@ -34,7 +35,7 @@
 -hbx=${hb_name}.hbx
 
 # Files
-src/hboffice/hboffice.c
-src/hboffice/hb_office.c
-src/hboffice/hb_sheet.c
-src/hboffice/hb_writer.c
+src/hboffice.c
+src/hb_office.c
+src/hb_sheet.c
+src/hb_writer.c
