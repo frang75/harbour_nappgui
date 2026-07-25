@@ -96,6 +96,8 @@ class OfficeSdk
 
     sdkres_t Init();
 
+    void Finish();
+
     sdkres_t KillLibreOffice();
 
     sdkres_t ConnectServer();
@@ -134,6 +136,13 @@ OfficeSdk::OfficeSdk()
 /*---------------------------------------------------------------------------*/
 
 OfficeSdk::~OfficeSdk()
+{
+    this->Finish();
+}
+
+/*---------------------------------------------------------------------------*/
+
+void OfficeSdk::Finish()
 {
     if (this->m_init == true)
     {
@@ -651,7 +660,7 @@ void officesdk_init(sdkres_t *err)
 
 void officesdk_finish(void)
 {
-    i_OFFICE_SDK.~OfficeSdk();
+    i_OFFICE_SDK.Finish();
 }
 
 /*---------------------------------------------------------------------------*/
