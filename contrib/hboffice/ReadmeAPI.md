@@ -15,7 +15,8 @@ Harbour interface for access to LibreOffice documents. The HBOFFICE-SDK function
 
 ## Initialize
 
-* `HBOFFICE_INIT()` must be called first, before any other HBOFFICE function.
+* `HBOFFICE_INIT()` must be called first, before any other HBOFFICE function. Returns `.F.` if it fails to connect to LibreOffice (check `HBOFFICE_LAST_ERROR()` for the reason). Calling any `HBOFFICE_XLS_??`/`HBOFFICE_DOC_??` function without a successful `HBOFFICE_INIT()` first returns `HBOFFICE_RES_NOT_INITIALIZED`.
+
 * `HBOFFICE_FINISH()` must be called at end, before program exit or when HBOFFICE support not necessary.
 
 ## Errors
@@ -55,6 +56,7 @@ The numeric error codes are in `hboffice.ch`
 #define HBOFFICE_RES_PAGE_PROPERTY_ERROR 21
 #define HBOFFICE_RES_PRINTER_CONFIG_ERROR 22
 #define HBOFFICE_RES_PRINT_ERROR 23
+#define HBOFFICE_RES_NOT_INITIALIZED 24
 ```
 
 ## String parameters
@@ -168,7 +170,7 @@ RET: The page index (0-based).
 ### Set the page name
 
 ```
-HBOFFICE_XLS_NAME(O_XLS, 0, "DEMOSTRAÇAO RECEITA E DESPESA")
+HBOFFICE_XLS_NAME(O_XLS, 0, "DEMOSTRAÃ‡AO RECEITA E DESPESA")
 
 PAR1: The sheet document.
 PAR2: Page index (0-based).

@@ -100,10 +100,12 @@ bool_t hb_office_init(void)
 {
     if (HBOFFICE_GLOBAL.init == FALSE)
     {
+        sdkres_t res = ekSDKRES_OK;
+        officesdk_init(&res);
         HBOFFICE_GLOBAL.text_space = ekTEXT_SPACE_PAGE;
         HBOFFICE_GLOBAL.last_cell_ref[0] = '\0';
-        HBOFFICE_GLOBAL.last_error = ENUM_MAX(sdkres_t);
-        HBOFFICE_GLOBAL.init = TRUE;
+        HBOFFICE_GLOBAL.last_error = res;
+        HBOFFICE_GLOBAL.init = (bool_t)(res == ekSDKRES_OK);
     }
 
     return HBOFFICE_GLOBAL.init;

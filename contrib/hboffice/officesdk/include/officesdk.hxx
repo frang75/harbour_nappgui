@@ -63,7 +63,8 @@ typedef enum _sdkres_t
     ekSDKRES_TEXT_ADD_ERROR,
     ekSDKRES_PAGE_PROPERTY_ERROR,
     ekSDKRES_PRINTER_CONFIG_ERROR,
-    ekSDKRES_PRINT_ERROR
+    ekSDKRES_PRINT_ERROR,
+    ekSDKRES_NOT_INITIALIZED
 } sdkres_t;
 
 typedef enum _halign_t

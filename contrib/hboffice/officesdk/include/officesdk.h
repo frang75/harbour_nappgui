@@ -7,6 +7,8 @@
 
 __EXTERN_C
 
+_office_api void officesdk_init(sdkres_t *err);
+
 _office_api void officesdk_finish(void);
 
 _office_api const char_t *officesdk_error_str(const sdkres_t code);

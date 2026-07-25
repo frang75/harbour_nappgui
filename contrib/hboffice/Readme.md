@@ -90,7 +90,7 @@ It is necessary to **correctly install the LibreOffice package** on the machine 
     ln -s soffice libreoffice
     ```
 
-> **Important:** The first time a hboffice program uses a LibreOffice function, an instance of the LibreOffice application will be started invisibly (`soffice.bin` process). This first call will have a small delay due to the initialization of the process. It is imperative that LibreOffice is running in order to use the SDK from Harbour.
+> **Important:** `HBOFFICE_INIT()` connects to LibreOffice (starting an instance invisibly if none is already running, `soffice.bin` process), so that call, has a small delay while the process initializes.
 
 ## Build hboffice
 

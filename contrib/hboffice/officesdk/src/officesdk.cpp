@@ -642,6 +642,13 @@ static OfficeSdk i_OFFICE_SDK;
 
 /*---------------------------------------------------------------------------*/
 
+void officesdk_init(sdkres_t *err)
+{
+    ptr_assign(err, i_OFFICE_SDK.Init());
+}
+
+/*---------------------------------------------------------------------------*/
+
 void officesdk_finish(void)
 {
     i_OFFICE_SDK.~OfficeSdk();
@@ -699,6 +706,8 @@ const char_t *officesdk_error_str(const sdkres_t code)
         return "Error in printer configuration";
     case ekSDKRES_PRINT_ERROR:
         return "Error when printing a document";
+    case ekSDKRES_NOT_INITIALIZED:
+        return "officesdk_init() has not been called";
     default:
         return "Unknown error";
     }
@@ -751,7 +760,7 @@ uint32_t officesdk_rgb(const uint8_t red, const uint8_t green, const uint8_t blu
 
 Sheet *officesdk_sheet_open(const char_t *pathname, sdkres_t *err)
 {
-    sdkres_t res = i_OFFICE_SDK.Init();
+    sdkres_t res = i_OFFICE_SDK.m_init ? ekSDKRES_OK : ekSDKRES_NOT_INITIALIZED;
     Sheet *sheet = NULL;
     css::uno::Reference< css::sheet::XSpreadsheetDocument > *xDocument = nullptr;
     assert(pathname != nullptr);
@@ -782,7 +791,7 @@ Sheet *officesdk_sheet_open(const char_t *pathname, sdkres_t *err)
 
 Sheet *officesdk_sheet_create(sdkres_t *err)
 {
-    sdkres_t res = i_OFFICE_SDK.Init();
+    sdkres_t res = i_OFFICE_SDK.m_init ? ekSDKRES_OK : ekSDKRES_NOT_INITIALIZED;
     Sheet *sheet = NULL;
     css::uno::Reference< css::sheet::XSpreadsheetDocument > *xDocument = nullptr;
     if (res == ekSDKRES_OK)
@@ -812,7 +821,7 @@ Sheet *officesdk_sheet_create(sdkres_t *err)
 
 static void i_sheet_save(Sheet *sheet, const char_t *pathname, const fileformat_t format, sdkres_t *err)
 {
-    sdkres_t res = i_OFFICE_SDK.Init();
+    sdkres_t res = i_OFFICE_SDK.m_init ? ekSDKRES_OK : ekSDKRES_NOT_INITIALIZED;
     assert(sheet != nullptr);
     assert(pathname != nullptr);
 
@@ -1026,7 +1035,7 @@ static sdkres_t i_xprintable_print(
 
 void officesdk_sheet_print(Sheet *sheet, const char_t *filename, const char_t *printer, const paperorient_t orient, const paperformat_t format, const uint32_t paper_width, const uint32_t paper_height, const uint32_t num_copies, const bool_t collate_copies, const char_t *pages, sdkres_t *err)
 {
-    sdkres_t res = i_OFFICE_SDK.Init();
+    sdkres_t res = i_OFFICE_SDK.m_init ? ekSDKRES_OK : ekSDKRES_NOT_INITIALIZED;
     css::uno::Reference< css::view::XPrintable > xPrintable;
     assert(sheet != nullptr);
 
@@ -1043,7 +1052,9 @@ void officesdk_sheet_print(Sheet *sheet, const char_t *filename, const char_t *p
         }
     }
 
-    res = i_xprintable_print(xPrintable, filename, printer, orient, format, paper_width, paper_height, num_copies, collate_copies, pages);
+    if (res == ekSDKRES_OK)
+        res = i_xprintable_print(xPrintable, filename, printer, orient, format, paper_width, paper_height, num_copies, collate_copies, pages);
+
     ptr_assign(err, res);
 }
 
@@ -2614,7 +2625,7 @@ void officesdk_sheet_row_height(Sheet *sheet, const uint32_t page, const uint32_
 
 Writer *officesdk_writer_open(const char_t *pathname, sdkres_t *err)
 {
-    sdkres_t res = i_OFFICE_SDK.Init();
+    sdkres_t res = i_OFFICE_SDK.m_init ? ekSDKRES_OK : ekSDKRES_NOT_INITIALIZED;
     Writer *writer = NULL;
     css::uno::Reference< css::text::XTextDocument > *xDocument = nullptr;
     assert(pathname != nullptr);
@@ -2645,7 +2656,7 @@ Writer *officesdk_writer_open(const char_t *pathname, sdkres_t *err)
 
 Writer *officesdk_writer_create(sdkres_t *err)
 {
-    sdkres_t res = i_OFFICE_SDK.Init();
+    sdkres_t res = i_OFFICE_SDK.m_init ? ekSDKRES_OK : ekSDKRES_NOT_INITIALIZED;
     Writer *writer = NULL;
     css::uno::Reference< css::text::XTextDocument > *xDocument = nullptr;
     if (res == ekSDKRES_OK)
@@ -2675,7 +2686,7 @@ Writer *officesdk_writer_create(sdkres_t *err)
 
 static void i_writer_save(Writer *writer, const char_t *pathname, const fileformat_t format, sdkres_t *err)
 {
-    sdkres_t res = i_OFFICE_SDK.Init();
+    sdkres_t res = i_OFFICE_SDK.m_init ? ekSDKRES_OK : ekSDKRES_NOT_INITIALIZED;
     assert(writer != nullptr);
     assert(pathname != nullptr);
 
@@ -2706,7 +2717,7 @@ void officesdk_writer_pdf(Writer *writer, const char_t *pathname, sdkres_t *err)
 
 void officesdk_writer_print(Writer *writer, const char_t *filename, const char_t *printer, const paperorient_t orient, const paperformat_t format, const uint32_t paper_width, const uint32_t paper_height, const uint32_t num_copies, const bool_t collate_copies, const char_t *pages, sdkres_t *err)
 {
-    sdkres_t res = i_OFFICE_SDK.Init();
+    sdkres_t res = i_OFFICE_SDK.m_init ? ekSDKRES_OK : ekSDKRES_NOT_INITIALIZED;
     css::uno::Reference< css::view::XPrintable > xPrintable;
     assert(writer != nullptr);
 
@@ -2723,7 +2734,9 @@ void officesdk_writer_print(Writer *writer, const char_t *filename, const char_t
         }
     }
 
-    res = i_xprintable_print(xPrintable, filename, printer, orient, format, paper_width, paper_height, num_copies, collate_copies, pages);
+    if (res == ekSDKRES_OK)
+        res = i_xprintable_print(xPrintable, filename, printer, orient, format, paper_width, paper_height, num_copies, collate_copies, pages);
+
     ptr_assign(err, res);
 }
 
