@@ -35,8 +35,7 @@ It is necessary to **correctly install the LibreOffice package** on the machine 
 
 ### Installation in Windows
 
-* Install the LibreOffice package.
-    ![download_libreoffice](https://github.com/frang75/harbour_nappgui/assets/42999199/c410187b-3f27-473e-b756-4dce9b91fecd)
+* [LibreOffice Windows download](https://download.documentfoundation.org/libreoffice/stable/26.2.5/win/x86_64/LibreOffice_26.2.5_Win_x86-64.msi)
 
 * Set the `LIBREOFFICE_HOME` environment variable with the path to the LibreOffice home directory (usually `C:\Program Files\LibreOffice`). hboffice will connect to the LibreOffice program at runtime using this variable.
 

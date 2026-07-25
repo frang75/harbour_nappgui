@@ -30,9 +30,9 @@ This directory is **self-contained**: it has its own `CMakeLists.txt` and `build
     > **Important:** LibreOffice-SDK is available in 32-bit and 64-bit versions. You will need to compile `officesdk` in 32 or 64 bits depending on the version of LibreOffice installed. It is not possible to mix 32 and 64 bit binaries. **By default, in Windows, officesdk will be compiled in 64bit**.
     > **Important:** The SDK version must be the same as the LibreOffice application version.
 
-    ![download_libreoffice_sdk](https://github.com/frang75/harbour_nappgui/assets/42999199/4821de74-7e38-486a-94f6-ffd59d0f14a0)
+* [LibreOffice Windows download](https://download.documentfoundation.org/libreoffice/stable/26.2.5/win/x86_64/LibreOffice_26.2.5_Win_x86-64.msi)
 
-* [Latest Windows SDK download](https://download.documentfoundation.org/libreoffice/stable/26.2.5/win/x86_64/LibreOffice_26.2.5_Win_x86-64_sdk.msi)
+* [LibreOffice Windows SDK download](https://download.documentfoundation.org/libreoffice/stable/26.2.5/win/x86_64/LibreOffice_26.2.5_Win_x86-64_sdk.msi)
 
 * Make sure `LIBREOFFICE_HOME` is set (see main Readme), it's also used to locate the SDK headers/libs (`%LIBREOFFICE_HOME%\sdk`).
 
