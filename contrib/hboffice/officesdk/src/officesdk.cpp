@@ -98,8 +98,6 @@ class OfficeSdk
 
     sdkres_t KillLibreOffice();
 
-    sdkres_t WakeUpServer();
-
     sdkres_t ConnectServer();
 
     sdkres_t OpenTextDocument(const char_t *url, css::uno::Reference< css::text::XTextDocument > &xDocument);
@@ -173,7 +171,9 @@ OfficeSdk::~OfficeSdk()
             }
         }
 
-        this->KillLibreOffice();
+        // Don't kill the LibreOffice process: officesdk may be connected to
+        // the user's own interactive instance (desktop app), not one it
+        // launched itself, so it has no business terminating it.
         this->m_init = false;
     }
 }
@@ -312,27 +312,27 @@ sdkres_t OfficeSdk::Init()
             rtl::Bootstrap::set("URE_BOOTSTRAP", i_OUStringFromString(boots));
         }
 
-        // Kill a previous instance of LibreOffice
-        if (res == ekSDKRES_OK)
-            res = KillLibreOffice();
-
-        if (res == ekSDKRES_OK)
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-        // The LibreOffice server is waked up by
-        // cppu::bootstrap() in ConnectServer()
-        // Avoid launch LibreOffice by ourselves
-        //// WakeUp LibreOffice
-        // if (res == ekSDKRES_OK)
-        //     res = WakeUpServer();
-
-        //// Wait a little to LibreOffice wake up
-        // if (res == ekSDKRES_OK)
-        //     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-
-        // Connect to LibreOffice instance
+        // Connect to a running LibreOffice instance, interactive or headless
+        // (desktop users may have LibreOffice-GUI open at the same time).
+        // cppu::bootstrap() launches a new instance itself if none is found,
+        // reusing the same per-user pipe LibreOffice already uses for its own
+        // single-instance coordination, so no manual launch is needed here.
         if (res == ekSDKRES_OK)
             res = ConnectServer();
+
+        // Connecting can only fail this way if a stale/broken soffice.bin is
+        // running (e.g. left over from a crash). Kill it and retry once,
+        // instead of pre-emptively killing every time.
+        if (res == ekSDKRES_CONECT_FAIL)
+        {
+            res = KillLibreOffice();
+
+            if (res == ekSDKRES_OK)
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+            if (res == ekSDKRES_OK)
+                res = ConnectServer();
+        }
 
         if (res == ekSDKRES_OK)
             this->m_init = true;
@@ -377,52 +377,6 @@ sdkres_t OfficeSdk::KillLibreOffice()
         bproc_close(&proc);
     else
         res = ekSDKRES_PROC_KILL_FAIL;
-
-    return res;
-}
-
-/*---------------------------------------------------------------------------*/
-
-sdkres_t OfficeSdk::WakeUpServer()
-{
-    sdkres_t res = ekSDKRES_OK;
-    std::string connect;
-    OsProc *proc = NULL;
-    platform_t pt = osbs_platform();
-
-    switch (pt)
-    {
-    case ekWINDOWS:
-        connect = "soffice \"--accept=socket,host=localhost,port=2083;urp\" --nodefault --nologo --headless";
-        break;
-    case ekLINUX:
-        connect = "libreoffice \"--accept=socket,host=0,port=2083;urp\" --nodefault --nologo --headless";
-        break;
-    case ekMACOS:
-    {
-        const char_t *env = blib_getenv("LIBREOFFICE_HOME");
-        connect = std::string(env) + "/Contents/MacOS/soffice --accept=\"socket,host=localhost,port=2083;urp\" --nodefault --nologo --headless";
-        break;
-    }
-    case ekIOS:
-    default:
-        assert(false);
-        unref(pt);
-    }
-
-    // /Applications/LibreOffice.app/Content/MacOS/soffice --accept="socket,host=localhost,port=2083;urp;StarOffice.ServiceManager" --nodefault --nologo
-    // /Applications/LibreOffice.app/Contents/MacOS/soffice "--accept=socket,host=localhost,port=2083;urp;StarOffice.ServiceManager" --nodefault --nologo
-    // /Applications/LibreOffice.app/Contents/MacOS/soffice --accept="socket,host=localhost,port=2083;urp;StarOffice.ServiceManager" --nodefault --nologo
-    proc = bproc_exec(connect.c_str());
-
-    if (proc != NULL)
-    {
-        // bproc_close(&proc);
-    }
-    else
-    {
-        res = ekSDKRES_PROC_INIT_FAIL;
-    }
 
     return res;
 }
