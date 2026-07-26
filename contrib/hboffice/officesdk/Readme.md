@@ -81,7 +81,8 @@ cmake version 3.10.2
 
 ### Build officesdk in Windows
 
-> **Important:** Visual Studio is imperative to build `officesdk.dll` (MinGW is not supported).
+> **Important:** Visual Studio is imperative to build `officesdk.dll` (MinGW is not supported). LibreOffice-SDK does not distribute the source code of these libraries: `icppu`, `icppuhelper`, `ipurpenvhelper`, `isal`, `isalhelper`
+located in `LIBREOFFICE_HOME/sdk/lib`. Only the already compiled .lib, generated with MSVC. The real problem is that they are C++ libraries, not a flat C API: they expose classes (Reference<>, UNO exceptions, etc.) whose name mangling of C++ symbols depends on the compiler's ABI. MSVC uses its own mangling scheme and its own exception model. MinGW and Clang-on-Windows use the Itanium ABI (the same as GCC on Linux). They are incompatible with each other: the MinGW/Clang linker looks for symbols with a mangling that simply does not exist in the .lib compiled by MSVC.
 
 ```
 cd contrib\hboffice\officesdk
