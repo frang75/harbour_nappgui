@@ -69,12 +69,10 @@ It is necessary to **correctly install the LibreOffice package** on the machine 
 ### Installation in macOS
 
 * Download and install the [LibreOffice.app](https://www.libreoffice.org/download/download-libreoffice/) bundle, typically in the `/Applications` directory.
-    ![libreoffice_download_macos](https://github.com/frang75/harbour_nappgui/assets/42999199/1c0bae9a-6751-4ebc-9cc1-463bee184492)
-    ![libreoffice_macos_app](https://github.com/frang75/harbour_nappgui/assets/42999199/5b04ca49-d54c-43a9-9db6-b72c9f7dfc1c)
 
 * Set the `LIBREOFFICE_HOME` environment variable with the path to the `LibreOffice.app` bundle (usually `/Applications/LibreOffice.app`). hboffice will connect to the LibreOffice program at runtime using this variable.
 
-* Add `$LIBREOFFICE_HOME$/Contents/Frameworks` path to `DYLD_LIBRARY_PATH` environment variable. In order to run any hboffice-based application, LibreOffice shared libraries `.dylib` must be accesible and located.
+* Add `$LIBREOFFICE_HOME/Contents/Frameworks` path to `DYLD_LIBRARY_PATH` environment variable. In order to run any hboffice-based application, LibreOffice shared libraries `.dylib` must be accesible and located.
 
     ```
     nano .zshrc
@@ -125,7 +123,7 @@ The `libhboffice.a` will be generated in `hboffice/build/[Debug|Release]/lib`.
 ```
 cd contrib/hboffice
 export MACOSX_DEPLOYMENT_TARGET=13.0
-./build.sh -comp clang -b [Debug|Release]
+./build.sh -b [Debug|Release]
 ```
 
 The `libhboffice.a` will be generated in `hboffice/build/[Debug|Release]/lib`.

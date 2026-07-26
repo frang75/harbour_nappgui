@@ -50,8 +50,6 @@ This directory is **self-contained**: it has its own `CMakeLists.txt` and `build
 ### Installation in macOS
 
 * Download the LibreOffice-SDK package (`LibreOffice-SDK.dmg`). Move the extracted folder wherever you want, e.g. `/Applications/libreoffice-sdk`.
-    ![libreoffice_sdk_download_macos](https://github.com/frang75/harbour_nappgui/assets/42999199/756e5a57-446f-46c4-b53c-c87739a1f599)
-    ![libreoffice_sdk_install_macos](https://github.com/frang75/harbour_nappgui/assets/42999199/6d332b5b-862b-4730-809a-afbffcb3942a)
 
 * Set the `LIBREOFFICE_SDK` environment variable with the path to the LibreOffice-SDK folder (`/Applications/libreoffice-sdk` in this example).
     ```
@@ -60,7 +58,13 @@ This directory is **self-contained**: it has its own `CMakeLists.txt` and `build
     source .zshrc
     ```
 
-* Go to `$LIBREOFFICE_HOME$/Contents/Frameworks` and create the symbolic links for these libraries (the final `.3` version can differ in your installation):
+* Set the `DYLD_LIBRARY_PATH` environment variable to point the main package framework libraries.
+    ```
+    nano .zshrc
+    export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$LIBREOFFICE_HOME/Contents/Frameworks
+    ```
+
+* Go to `$LIBREOFFICE_HOME/Contents/Frameworks` and create the symbolic links for these libraries (the final `.3` version can differ in your installation):
     ```
     /Applications/LibreOffice.app/Contents/Frameworks
     ln -s libuno_cppu.dylib.3 libuno_cppu.dylib
