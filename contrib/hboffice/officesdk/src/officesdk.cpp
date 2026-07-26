@@ -150,7 +150,12 @@ void OfficeSdk::Finish()
         {
             try
             {
-                this->m_xComponentLoader->dispose();
+                // Don't dispose() it: "com.sun.star.frame.Desktop" is a UNO
+                // singleton shared by the whole running LibreOffice instance,
+                // not a per-connection resource. Disposing it would tear down
+                // the remote Desktop object for every connection (including a
+                // future reconnect from this same process, or the user's own
+                // interactive session), not just release our local reference.
                 this->m_xComponentLoader.set(nullptr);
             }
             catch (css::uno::Exception &)
@@ -266,9 +271,7 @@ sdkres_t OfficeSdk::Init()
     sdkres_t res = ekSDKRES_OK;
     if (this->m_init == false)
     {
-        const char_t *chome = NULL;
-
-        chome = blib_getenv("LIBREOFFICE_HOME");
+        const char_t *chome = blib_getenv("LIBREOFFICE_HOME");
 
         // Check the LIBREOFFICE_HOME environment variable
         if (i_str_empty(chome))
