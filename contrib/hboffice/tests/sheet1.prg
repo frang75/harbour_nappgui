@@ -184,7 +184,6 @@ IF OFFICE_ERROR("ERROR Fechando planilha")
 ENDIF
 
 ? "A planilha foi criada com sucesso."
-? hb_eol() + hb_eol()
 
 HBOFFICE_FINISH()
 RETURN

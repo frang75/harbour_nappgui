@@ -7,7 +7,13 @@
 
 const char *blib_getenv(const char *name)
 {
+#if defined(_MSC_VER)
+#pragma warning(disable : 4996)
+#endif
     return std::getenv(name);
+#if defined(_MSC_VER)
+#pragma warning(default : 4996)
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

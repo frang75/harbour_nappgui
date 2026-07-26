@@ -96,15 +96,18 @@ echo ----------------------------------
 cd contrib\hboffice
 rmdir /s /q build
 
-:: The LibreOffice dll MUST to be compiled with Visual Studio (no MinGW/Clang support from LibreOffice)
-:: This command allow all MSVC tools available for Harbour compiler.
-call build.bat -dll -b %BUILD% || goto error_hboffice_dll
+:: officesdk.dll is vendored in officesdk\bin\win, only maintainers need to
+:: rebuild it here. It MUST to be compiled with Visual Studio (no MinGW/Clang
+:: support from the LibreOffice-SDK).
+cd officesdk
+call build.bat -b %BUILD% || goto error_hboffice_dll
+cd ..
 echo --------------------------------
-echo hboffice dll build successfully
+echo officesdk build successfully
 echo --------------------------------
 
 :hboffice_lib_build
-call build.bat -lib -comp %ALL_BUILD_COMPILER% -b %BUILD% || goto error_hboffice_lib
+call build.bat -comp %ALL_BUILD_COMPILER% -b %BUILD% || goto error_hboffice_lib
 echo --------------------------------
 echo hboffice %ALL_BUILD_COMPILER% lib build successfully
 echo --------------------------------
@@ -146,7 +149,7 @@ echo -------------------------
 cd tests/cuademo/gtnap_cualib
 del /q *.exe
 ..\..\..\..\..\bin\win\%ALL_BUILD_COMPILER%\hbmk2.exe %HBMK_FLAGS% -comp=%ALL_BUILD_COMPILER% exemplo.hbp
-set PATH=%PATH%;%HARBOUR_HOME%\contrib\hboffice\build\%BUILD%\bin
+set PATH=%PATH%;%HARBOUR_HOME%\contrib\hboffice\officesdk\bin\win
 exemplo --hb:gtnap
 
 :: Return to gtnap path

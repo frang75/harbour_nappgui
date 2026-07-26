@@ -141,7 +141,6 @@ IF OFFICE_ERROR("Erro ao fechar o documento")
 ENDIF
 
 ? "Documento criado com sucesso."
-? hb_eol() + hb_eol()
 
 HBOFFICE_FINISH()
 RETURN

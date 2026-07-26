@@ -3,6 +3,8 @@
 ::
 :: Will generate the hboffice.lib with the Harbour wrapper.
 :: Visual Studio (msvc64) or MinGW (mingw64) or Clang allowed
+:: Only for Visual Studio
+:: "%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 :: build -b [Debug|Release] -comp [msvc64|mingw64|clang]
 
 @echo off
