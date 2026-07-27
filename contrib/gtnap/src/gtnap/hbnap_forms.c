@@ -2,7 +2,7 @@
  * HBNAP Forms API. Support for new full graphics applications.
  */
 
-#include "gtnap.h"
+#include "hbnap.h"
 #include "gtnap.inl"
 
 /*---------------------------------------------------------------------------*/

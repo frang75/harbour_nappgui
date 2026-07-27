@@ -2,7 +2,7 @@
  * HBNAP Forms API. Dynamic menus support
  */
 
-#include "gtnap.h"
+#include "hbnap.h"
 #include "gtnap.inl"
 #include <gui/menuitem.h>
 #include <gui/menu.h>
