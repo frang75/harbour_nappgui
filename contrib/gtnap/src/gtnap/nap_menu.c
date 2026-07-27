@@ -464,7 +464,7 @@ void nap_menu_add(Panel *panel, Window *window, HB_ITEM *text_block, HB_ITEM *cl
 {
     MenuVert *menu = panel_get_data(panel, MenuVert);
     MenuOpt *opt = arrst_new0(menu->opts, MenuOpt);
-    opt->text = hb_block_to_utf8(text_block);
+    opt->text = hb_item_to_string(text_block);
     opt->block = click_block ? hb_itemNew(click_block) : NULL;
     opt->kpos = (kpos == 0) ? UINT32_MAX : kpos - 1;
     opt->key = ENUM_MAX(vkey_t);

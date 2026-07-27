@@ -4476,64 +4476,6 @@ static void i_rtrim(char_t *buffer)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_hbitem_to_char(HB_ITEM *item, char_t *buffer, const uint32_t size, const bool_t utf8)
-{
-    HB_TYPE type = HB_ITEM_TYPE(item);
-    buffer[0] = '\0';
-
-    switch (type)
-    {
-    case HB_IT_STRING:
-        if (utf8 == TRUE)
-        {
-            const char_t *text = hb_itemGetCPtr(item);
-            str_copy_c(buffer, size, text);
-        }
-        else
-        {
-            hb_itemCopyStrUTF8(item, buffer, size);
-        }
-
-        i_rtrim(buffer);
-        break;
-
-    case HB_IT_DATE:
-    {
-        char date[16];
-        hb_itemGetDS(item, date);
-        hb_dateFormat(date, buffer, hb_setGetDateFormat());
-        break;
-    }
-
-    case HB_IT_DOUBLE:
-    {
-        double value = hb_itemGetND(item);
-        bstd_sprintf(buffer, size, "%12.4f", value);
-        break;
-    }
-
-    case HB_IT_LONG:
-    case HB_IT_INTEGER:
-    {
-        HB_MAXINT value = hb_itemGetNInt(item);
-        bstd_sprintf(buffer, size, "%d", (int)value);
-        break;
-    }
-
-    case HB_IT_LOGICAL:
-    {
-        HB_BOOL value = hb_itemGetL(item);
-        bstd_sprintf(buffer, size, "%s", value ? "true" : "false");
-        break;
-    }
-
-    default:
-        buffer[0] = '\0';
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
 static const char_t *i_area_eval_field(GtNapArea *gtarea, const uint32_t field_id, const uint32_t row_id, align_t *align)
 {
     uint32_t recno = 0;
@@ -4556,7 +4498,7 @@ static const char_t *i_area_eval_field(GtNapArea *gtarea, const uint32_t field_i
     ritem = hb_itemDo(column->block, 0);
 
     /* Fill the temporal cell buffer with cell result */
-    i_hbitem_to_char(ritem, TEMP_BUFFER, sizeof(TEMP_BUFFER), FALSE);
+    hb_item_to_char(ritem, TEMP_BUFFER, sizeof(TEMP_BUFFER), FALSE);
 
     hb_itemRelease(ritem);
 
@@ -4697,7 +4639,7 @@ static const char_t *i_data_eval_field(GtNapObject *gtobj, const uint32_t col_id
     ritem = hb_itemDo(column->block, 1, pitem);
 
     /* Fill the temporal cell buffer with cell result */
-    i_hbitem_to_char(ritem, TEMP_BUFFER, sizeof(TEMP_BUFFER), FALSE);
+    hb_item_to_char(ritem, TEMP_BUFFER, sizeof(TEMP_BUFFER), FALSE);
 
     hb_itemRelease(pitem);
     hb_itemRelease(ritem);
@@ -5488,7 +5430,7 @@ static const char_t *i_farea_eval_field(GtNapFArea *area, const uint32_t field_i
     ritem = hb_itemDo(column->block, 0);
 
     /* Fill the temporal cell buffer with cell result */
-    i_hbitem_to_char(ritem, TEMP_BUFFER, sizeof(TEMP_BUFFER), TRUE);
+    hb_item_to_char(ritem, TEMP_BUFFER, sizeof(TEMP_BUFFER), TRUE);
 
     hb_itemRelease(ritem);
     return TEMP_BUFFER;
@@ -6233,7 +6175,7 @@ static void i_OnTreeFAreaData(GtNapFDBConn *dbconn, Event *e)
         {
             EvTbCell *cell = event_result(e, EvTbCell);
             PHB_ITEM ritem = hb_itemDo(col->block, 0);
-            i_hbitem_to_char(ritem, TEMP_BUFFER, sizeof(TEMP_BUFFER), TRUE);
+            hb_item_to_char(ritem, TEMP_BUFFER, sizeof(TEMP_BUFFER), TRUE);
             hb_itemRelease(ritem);
             cell->text = TEMP_BUFFER;
             cell->align = col->align;
@@ -7314,7 +7256,7 @@ GtNapMenu *hbnap_menuitem_get_submenu(GtNapMenuItem *item)
 
 /*---------------------------------------------------------------------------*/
 
-String *hb_block_to_utf8(HB_ITEM *item)
+String *hb_item_to_string(HB_ITEM *item)
 {
     String *str = NULL;
 
@@ -7335,6 +7277,64 @@ String *hb_block_to_utf8(HB_ITEM *item)
     }
 
     return str;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hb_item_to_char(HB_ITEM *item, char_t *buffer, const uint32_t size, const bool_t utf8)
+{
+    HB_TYPE type = HB_ITEM_TYPE(item);
+    buffer[0] = '\0';
+
+    switch (type)
+    {
+    case HB_IT_STRING:
+        if (utf8 == TRUE)
+        {
+            const char_t *text = hb_itemGetCPtr(item);
+            str_copy_c(buffer, size, text);
+        }
+        else
+        {
+            hb_itemCopyStrUTF8(item, buffer, size);
+        }
+
+        i_rtrim(buffer);
+        break;
+
+    case HB_IT_DATE:
+    {
+        char date[16];
+        hb_itemGetDS(item, date);
+        hb_dateFormat(date, buffer, hb_setGetDateFormat());
+        break;
+    }
+
+    case HB_IT_DOUBLE:
+    {
+        double value = hb_itemGetND(item);
+        bstd_sprintf(buffer, size, "%12.4f", value);
+        break;
+    }
+
+    case HB_IT_LONG:
+    case HB_IT_INTEGER:
+    {
+        HB_MAXINT value = hb_itemGetNInt(item);
+        bstd_sprintf(buffer, size, "%d", (int)value);
+        break;
+    }
+
+    case HB_IT_LOGICAL:
+    {
+        HB_BOOL value = hb_itemGetL(item);
+        bstd_sprintf(buffer, size, "%s", value ? "true" : "false");
+        break;
+    }
+
+    default:
+        buffer[0] = '\0';
+    }
 }
 
 /*---------------------------------------------------------------------------*/
