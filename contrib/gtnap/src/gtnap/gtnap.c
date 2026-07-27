@@ -2819,7 +2819,7 @@ static void i_gtnap_update(GtNap *gtnap, const real64_t prtime, const real64_t c
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_init(const char_t *title, const uint32_t rows, const uint32_t cols, PHB_ITEM begin_block)
+void gtnap_init(const char_t *title, const uint32_t rows, const uint32_t cols, PHB_ITEM begin_block)
 {
     void *hInstance = NULL;
 
@@ -2843,7 +2843,7 @@ void hb_gtnap_init(const char_t *title, const uint32_t rows, const uint32_t cols
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_log(const char_t *text)
+void gtnap_log(const char_t *text)
 {
     String *str = i_cp_to_utf8_string(text);
     log_printf("%s", tc(str));
@@ -2861,7 +2861,7 @@ static void i_OnTerminalClose(GtNapWindow *gtwin, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_width(void)
+uint32_t gtnap_width(void)
 {
     cassert_no_null(GTNAP_GLOBAL);
     return (uint32_t)(GTNAP_GLOBAL->cell_x_sizef * GTNAP_GLOBAL->cols);
@@ -2869,7 +2869,7 @@ uint32_t hb_gtnap_width(void)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_height(void)
+uint32_t gtnap_height(void)
 {
     cassert_no_null(GTNAP_GLOBAL);
     return (uint32_t)(GTNAP_GLOBAL->cell_y_sizef * GTNAP_GLOBAL->rows);
@@ -2877,12 +2877,12 @@ uint32_t hb_gtnap_height(void)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_terminal(void)
+void gtnap_terminal(void)
 {
     GtNap *gtnap = GTNAP_GLOBAL;
     GtNapWindow *gtwin = NULL;
     cassert(arrpt_size(gtnap->windows, GtNapWindow) == 0);
-    hb_gtnap_window(0, 0, gtnap->rows - 1, gtnap->cols - 1, "wid", tc(gtnap->title), FALSE, TRUE, TRUE, FALSE);
+    gtnap_window(0, 0, gtnap->rows - 1, gtnap->cols - 1, "wid", tc(gtnap->title), FALSE, TRUE, TRUE, FALSE);
     gtwin = i_current_gtwin(gtnap);
     i_gtwin_configure(gtnap, gtwin, gtwin);
     window_OnClose(gtwin->window, listener(gtwin, i_OnTerminalClose, GtNapWindow));
@@ -2891,7 +2891,7 @@ void hb_gtnap_terminal(void)
 
 /*---------------------------------------------------------------------------*/
 
-int32_t hb_gtnap_inkey(const vkey_t vkey)
+int32_t gtnap_inkey(const vkey_t vkey)
 {
     uint32_t i, n = sizeof(KEYMAPS) / sizeof(GtNapKey);
     for (i = 0; i < n; ++i)
@@ -2997,7 +2997,7 @@ static GtNapWindow *i_new_window(GtNap *gtnap, uint32_t parent_id, const int32_t
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *hb_gtnap_working_path(void)
+const char_t *gtnap_working_path(void)
 {
     return tc(GTNAP_GLOBAL->working_path);
 }
@@ -3021,112 +3021,112 @@ const char_t *hb_gtnap_working_path(void)
 
 /*---------------------------------------------------------------------------*/
 
-color_t hb_gtnap_color_black(void)
+color_t gtnap_color_black(void)
 {
     return i_COLORS[COL_BLACK];
 }
 
 /*---------------------------------------------------------------------------*/
 
-color_t hb_gtnap_color_blue(void)
+color_t gtnap_color_blue(void)
 {
     return i_COLORS[COL_BLUE];
 }
 
 /*---------------------------------------------------------------------------*/
 
-color_t hb_gtnap_color_green(void)
+color_t gtnap_color_green(void)
 {
     return i_COLORS[COL_GREEN];
 }
 
 /*---------------------------------------------------------------------------*/
 
-color_t hb_gtnap_color_cyan(void)
+color_t gtnap_color_cyan(void)
 {
     return i_COLORS[COL_CYAN];
 }
 
 /*---------------------------------------------------------------------------*/
 
-color_t hb_gtnap_color_red(void)
+color_t gtnap_color_red(void)
 {
     return i_COLORS[COL_RED];
 }
 
 /*---------------------------------------------------------------------------*/
 
-color_t hb_gtnap_color_magenta(void)
+color_t gtnap_color_magenta(void)
 {
     return i_COLORS[COL_MAGENTA];
 }
 
 /*---------------------------------------------------------------------------*/
 
-color_t hb_gtnap_color_brown(void)
+color_t gtnap_color_brown(void)
 {
     return i_COLORS[COL_BROWN];
 }
 
 /*---------------------------------------------------------------------------*/
 
-color_t hb_gtnap_color_white(void)
+color_t gtnap_color_white(void)
 {
     return i_COLORS[COL_WHITE];
 }
 
 /*---------------------------------------------------------------------------*/
 
-color_t hb_gtnap_color_light_gray(void)
+color_t gtnap_color_light_gray(void)
 {
     return i_COLORS[COL_LIGHT_GRAY];
 }
 
 /*---------------------------------------------------------------------------*/
 
-color_t hb_gtnap_color_bright_blue(void)
+color_t gtnap_color_bright_blue(void)
 {
     return i_COLORS[COL_BRIGHT_BLUE];
 }
 
 /*---------------------------------------------------------------------------*/
 
-color_t hb_gtnap_color_bright_green(void)
+color_t gtnap_color_bright_green(void)
 {
     return i_COLORS[COL_BRIGHT_GREEN];
 }
 
 /*---------------------------------------------------------------------------*/
 
-color_t hb_gtnap_color_bright_cyan(void)
+color_t gtnap_color_bright_cyan(void)
 {
     return i_COLORS[COL_BRIGHT_CYAN];
 }
 
 /*---------------------------------------------------------------------------*/
 
-color_t hb_gtnap_color_bright_red(void)
+color_t gtnap_color_bright_red(void)
 {
     return i_COLORS[COL_BRIGHT_RED];
 }
 
 /*---------------------------------------------------------------------------*/
 
-color_t hb_gtnap_color_bright_magenta(void)
+color_t gtnap_color_bright_magenta(void)
 {
     return i_COLORS[COL_BRIGHT_MAGENTA];
 }
 
 /*---------------------------------------------------------------------------*/
 
-color_t hb_gtnap_color_yellow(void)
+color_t gtnap_color_yellow(void)
 {
     return i_COLORS[COL_YELLOW];
 }
 
 /*---------------------------------------------------------------------------*/
 
-color_t hb_gtnap_color_bright_white(void)
+color_t gtnap_color_bright_white(void)
 {
     return i_COLORS[COL_BRIGHT_WHITE];
 }
@@ -3143,7 +3143,7 @@ static void i_OnWindowMoved(GtNapWindow *gtwin, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_window(const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, const char_t *nameid, const char_t *title, const bool_t close_return, const bool_t close_esc, const bool_t minimize_button, const bool_t buttons_navigation)
+uint32_t gtnap_window(const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, const char_t *nameid, const char_t *title, const bool_t close_return, const bool_t close_esc, const bool_t minimize_button, const bool_t buttons_navigation)
 {
     GtNapWindow *gtwin = i_new_window(GTNAP_GLOBAL, UINT32_MAX, top, left, bottom, right, nameid, FALSE);
     uint32_t flags = i_window_flags(close_return, close_esc, minimize_button);
@@ -3169,7 +3169,7 @@ uint32_t hb_gtnap_window(const int32_t top, const int32_t left, const int32_t bo
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_window_embedded(const uint32_t wid, const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, const char_t *nameid, const bool_t border)
+uint32_t gtnap_window_embedded(const uint32_t wid, const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, const char_t *nameid, const bool_t border)
 {
     GtNapWindow *gtwin = i_new_window(GTNAP_GLOBAL, wid, top, left, bottom, right, nameid, border);
     return gtwin->id;
@@ -3212,7 +3212,7 @@ static void i_dettach_embedded(GtNap *gtnap, GtNapWindow *gtwin)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_window_destroy(const uint32_t wid)
+void gtnap_window_destroy(const uint32_t wid)
 {
     uint32_t id = i_gtwin_index(GTNAP_GLOBAL, wid);
     GtNapWindow *gtwin = arrpt_get(GTNAP_GLOBAL->windows, id, GtNapWindow);
@@ -3256,7 +3256,7 @@ static void i_OnWindowHotKey(GtNapCallback *callback, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_window_hotkey(const uint32_t wid, const int32_t key, HB_ITEM *block, const bool_t autoclose)
+void gtnap_window_hotkey(const uint32_t wid, const int32_t key, HB_ITEM *block, const bool_t autoclose)
 {
     GtNapWindow *gtwin = i_gtwin(GTNAP_GLOBAL, wid);
     const GtNapKey *nkey = i_convert_key(key);
@@ -3291,7 +3291,7 @@ void hb_gtnap_window_hotkey(const uint32_t wid, const int32_t key, HB_ITEM *bloc
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_window_editable(const uint32_t wid, HB_ITEM *is_editable_block)
+void gtnap_window_editable(const uint32_t wid, HB_ITEM *is_editable_block)
 {
     GtNapWindow *gtwin = i_gtwin(GTNAP_GLOBAL, wid);
     cassert_no_null(gtwin);
@@ -3301,7 +3301,7 @@ void hb_gtnap_window_editable(const uint32_t wid, HB_ITEM *is_editable_block)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_window_confirm(const uint32_t wid, HB_ITEM *confirm_block)
+void gtnap_window_confirm(const uint32_t wid, HB_ITEM *confirm_block)
 {
     GtNapWindow *gtwin = i_gtwin(GTNAP_GLOBAL, wid);
     cassert_no_null(gtwin);
@@ -3311,7 +3311,7 @@ void hb_gtnap_window_confirm(const uint32_t wid, HB_ITEM *confirm_block)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_window_desist(const uint32_t wid, HB_ITEM *desist_block)
+void gtnap_window_desist(const uint32_t wid, HB_ITEM *desist_block)
 {
     GtNapWindow *gtwin = i_gtwin(GTNAP_GLOBAL, wid);
     cassert_no_null(gtwin);
@@ -3321,7 +3321,7 @@ void hb_gtnap_window_desist(const uint32_t wid, HB_ITEM *desist_block)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_window_errdate(const uint32_t wid, HB_ITEM *error_date_block)
+void gtnap_window_errdate(const uint32_t wid, HB_ITEM *error_date_block)
 {
     GtNapWindow *gtwin = i_gtwin(GTNAP_GLOBAL, wid);
     cassert_no_null(gtwin);
@@ -3331,7 +3331,7 @@ void hb_gtnap_window_errdate(const uint32_t wid, HB_ITEM *error_date_block)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_window_scroll(const uint32_t wid, const int32_t top, const int32_t left, const int32_t bottom, const int32_t right)
+void gtnap_window_scroll(const uint32_t wid, const int32_t top, const int32_t left, const int32_t bottom, const int32_t right)
 {
     GtNapWindow *gtwin = i_gtwin(GTNAP_GLOBAL, wid);
     cassert(gtwin->scroll_top == INT32_MIN);
@@ -3359,7 +3359,7 @@ static GtNapObject *i_focus_obj(GtNapWindow *gtwin)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_window_copy(const uint32_t wid)
+void gtnap_window_copy(const uint32_t wid)
 {
     GtNapWindow *gtwin = i_gtwin(GTNAP_GLOBAL, wid);
     GtNapObject *gtobj = i_focus_obj(gtwin);
@@ -3374,7 +3374,7 @@ void hb_gtnap_window_copy(const uint32_t wid)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_window_paste(const uint32_t wid)
+void gtnap_window_paste(const uint32_t wid)
 {
     GtNapWindow *gtwin = i_gtwin(GTNAP_GLOBAL, wid);
     GtNapObject *gtobj = i_focus_obj(gtwin);
@@ -3389,7 +3389,7 @@ void hb_gtnap_window_paste(const uint32_t wid)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_window_cut(const uint32_t wid)
+void gtnap_window_cut(const uint32_t wid)
 {
     GtNapWindow *gtwin = i_gtwin(GTNAP_GLOBAL, wid);
     GtNapObject *gtobj = i_focus_obj(gtwin);
@@ -3404,7 +3404,7 @@ void hb_gtnap_window_cut(const uint32_t wid)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_window_undo(const uint32_t wid)
+void gtnap_window_undo(const uint32_t wid)
 {
     GtNapWindow *gtwin = i_gtwin(GTNAP_GLOBAL, wid);
     GtNapObject *gtobj = i_focus_obj(gtwin);
@@ -3419,7 +3419,7 @@ void hb_gtnap_window_undo(const uint32_t wid)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_window_modal(const uint32_t wid, const uint32_t pwid, const uint32_t delay_seconds)
+uint32_t gtnap_window_modal(const uint32_t wid, const uint32_t pwid, const uint32_t delay_seconds)
 {
     GtNapWindow *gtwin = i_gtwin(GTNAP_GLOBAL, wid);
     GtNapWindow *pgtwin = pwid > 0 ? i_gtwin(GTNAP_GLOBAL, pwid) : NULL;
@@ -3521,7 +3521,7 @@ uint32_t hb_gtnap_window_modal(const uint32_t wid, const uint32_t pwid, const ui
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_window_stop_modal(const uint32_t wid, const uint32_t result)
+void gtnap_window_stop_modal(const uint32_t wid, const uint32_t result)
 {
     GtNapWindow *gtwin = i_gtwin(GTNAP_GLOBAL, wid);
     i_stop_modal(GTNAP_GLOBAL, gtwin, result);
@@ -3569,7 +3569,7 @@ static uint32_t i_add_label(const int32_t top, const int32_t left, const bool_t 
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_label(const uint32_t wid, const int32_t top, const int32_t left, HB_ITEM *text_block, const bool_t in_scroll)
+uint32_t gtnap_label(const uint32_t wid, const int32_t top, const int32_t left, HB_ITEM *text_block, const bool_t in_scroll)
 {
     GtNapWindow *gtwin = i_gtwin(GTNAP_GLOBAL, wid);
     uint32_t id;
@@ -3599,7 +3599,7 @@ uint32_t hb_gtnap_label(const uint32_t wid, const int32_t top, const int32_t lef
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_label_message(const uint32_t wid, const int32_t top, const int32_t left, const bool_t in_scroll)
+uint32_t gtnap_label_message(const uint32_t wid, const int32_t top, const int32_t left, const bool_t in_scroll)
 {
     GtNapWindow *gtwin = i_gtwin(GTNAP_GLOBAL, wid);
     cassert(gtwin->is_configured == FALSE);
@@ -3610,7 +3610,7 @@ uint32_t hb_gtnap_label_message(const uint32_t wid, const int32_t top, const int
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_label_update(const uint32_t wid, const uint32_t id, const int32_t top, const int32_t left, HB_ITEM *text_block)
+void gtnap_label_update(const uint32_t wid, const uint32_t id, const int32_t top, const int32_t left, HB_ITEM *text_block)
 {
     GtNapObject *gtobj = i_gtobj(GTNAP_GLOBAL, wid, id);
     GtNapWindow *gtwin = NULL;
@@ -3648,7 +3648,7 @@ void hb_gtnap_label_update(const uint32_t wid, const uint32_t id, const int32_t 
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_label_fgcolor(const uint32_t wid, const uint32_t id, const color_t color)
+void gtnap_label_fgcolor(const uint32_t wid, const uint32_t id, const color_t color)
 {
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
     cassert_no_null(obj);
@@ -3658,7 +3658,7 @@ void hb_gtnap_label_fgcolor(const uint32_t wid, const uint32_t id, const color_t
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_label_bgcolor(const uint32_t wid, const uint32_t id, const color_t color)
+void gtnap_label_bgcolor(const uint32_t wid, const uint32_t id, const color_t color)
 {
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
     cassert_no_null(obj);
@@ -3668,7 +3668,7 @@ void hb_gtnap_label_bgcolor(const uint32_t wid, const uint32_t id, const color_t
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_label_color(const uint32_t wid, const uint32_t id, const char_t *hb_color)
+void gtnap_label_color(const uint32_t wid, const uint32_t id, const char_t *hb_color)
 {
     int attr = hb_gtColorToN(hb_color);
     int fore = attr & 0x000F;
@@ -3718,7 +3718,7 @@ static void i_set_button_text(GtNapObject *obj)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_button(const uint32_t wid, const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, HB_ITEM *text_block, HB_ITEM *click_block, const bool_t autoclose, const bool_t in_scroll)
+uint32_t gtnap_button(const uint32_t wid, const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, HB_ITEM *text_block, HB_ITEM *click_block, const bool_t autoclose, const bool_t in_scroll)
 {
     GtNapWindow *gtwin = i_gtwin(GTNAP_GLOBAL, wid);
     uint32_t autoclose_id = autoclose ? i_num_buttons(gtwin) + 1 : UINT32_MAX;
@@ -3768,7 +3768,7 @@ static void i_OnImageClick(GtNapCallback *callback, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_image(const uint32_t wid, const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, const char_t *pathname, HB_ITEM *click_block, const bool_t autoclose, const bool_t in_scroll)
+uint32_t gtnap_image(const uint32_t wid, const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, const char_t *pathname, HB_ITEM *click_block, const bool_t autoclose, const bool_t in_scroll)
 {
     Image *image = NULL;
     char_t utf8[STATIC_TEXT_SIZE];
@@ -3799,7 +3799,7 @@ uint32_t hb_gtnap_image(const uint32_t wid, const int32_t top, const int32_t lef
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_edit(const uint32_t wid, const int32_t top, const int32_t left, const uint32_t width, const char_t type, HB_ITEM *get_set_block, HB_ITEM *is_editable_block, HB_ITEM *when_block, HB_ITEM *valida_block, HB_ITEM *message_block, HB_ITEM *keyfilter_block, const bool_t in_scroll)
+uint32_t gtnap_edit(const uint32_t wid, const int32_t top, const int32_t left, const uint32_t width, const char_t type, HB_ITEM *get_set_block, HB_ITEM *is_editable_block, HB_ITEM *when_block, HB_ITEM *valida_block, HB_ITEM *message_block, HB_ITEM *keyfilter_block, const bool_t in_scroll)
 {
     GtNapWindow *gtwin = i_gtwin(GTNAP_GLOBAL, wid);
     Edit *edit = edit_create();
@@ -3857,7 +3857,7 @@ uint32_t hb_gtnap_edit(const uint32_t wid, const int32_t top, const int32_t left
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_edit_color(const uint32_t wid, const uint32_t id, const char_t *hb_color)
+void gtnap_edit_color(const uint32_t wid, const uint32_t id, const char_t *hb_color)
 {
     ArrPt(String) *hbcols = str_splits(hb_color, ",", TRUE, FALSE);
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
@@ -3925,7 +3925,7 @@ static void i_OnKeyWizard(GtNapWindow *gtwin, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_edit_wizard(const uint32_t wid, const uint32_t id, const uint32_t bid, int32_t key, HB_ITEM *auto_block, HB_ITEM *wizard_block)
+void gtnap_edit_wizard(const uint32_t wid, const uint32_t id, const uint32_t bid, int32_t key, HB_ITEM *auto_block, HB_ITEM *wizard_block)
 {
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
     const GtNapKey *nkey = i_convert_key(key);
@@ -3964,7 +3964,7 @@ void hb_gtnap_edit_wizard(const uint32_t wid, const uint32_t id, const uint32_t 
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_textview(const uint32_t wid, const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, HB_ITEM *get_set_block, HB_ITEM *valida_block, HB_ITEM *keyfilter_block, const bool_t in_scroll)
+uint32_t gtnap_textview(const uint32_t wid, const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, HB_ITEM *get_set_block, HB_ITEM *valida_block, HB_ITEM *keyfilter_block, const bool_t in_scroll)
 {
     GtNapWindow *gtwin = i_gtwin(GTNAP_GLOBAL, wid);
     TextView *view = textview_create();
@@ -4001,7 +4001,7 @@ uint32_t hb_gtnap_textview(const uint32_t wid, const int32_t top, const int32_t 
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_textview_scroll(const uint32_t wid, const uint32_t id, const bool_t horizontal, const bool_t vertical)
+void gtnap_textview_scroll(const uint32_t wid, const uint32_t id, const bool_t horizontal, const bool_t vertical)
 {
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
     cassert_no_null(obj);
@@ -4011,7 +4011,7 @@ void hb_gtnap_textview_scroll(const uint32_t wid, const uint32_t id, const bool_
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_textview_caret(const uint32_t wid, const uint32_t id, const int64_t pos)
+void gtnap_textview_caret(const uint32_t wid, const uint32_t id, const int64_t pos)
 {
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
     cassert_no_null(obj);
@@ -4094,7 +4094,7 @@ static void i_OnTextConfirm(GtNapObject *gtobj, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_textview_button(const uint32_t wid, const uint32_t id, const uint32_t bid)
+void gtnap_textview_button(const uint32_t wid, const uint32_t id, const uint32_t bid)
 {
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
     GtNapObject *bobj = i_gtobj(GTNAP_GLOBAL, wid, bid);
@@ -4107,7 +4107,7 @@ void hb_gtnap_textview_button(const uint32_t wid, const uint32_t id, const uint3
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_textview_hotkey(uint32_t wid, uint32_t id, int32_t key)
+void gtnap_textview_hotkey(uint32_t wid, uint32_t id, int32_t key)
 {
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
     const GtNapKey *nkey = i_convert_key(key);
@@ -4122,7 +4122,7 @@ void hb_gtnap_textview_hotkey(uint32_t wid, uint32_t id, int32_t key)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_menu(const uint32_t wid, const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, const bool_t autoclose, const bool_t in_scroll)
+uint32_t gtnap_menu(const uint32_t wid, const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, const bool_t autoclose, const bool_t in_scroll)
 {
     GtNapWindow *gtwin = i_gtwin(GTNAP_GLOBAL, wid);
     Panel *panel = nap_menu_create(autoclose, GTNAP_GLOBAL->global_font, GTNAP_GLOBAL->cell_x_sizef, GTNAP_GLOBAL->cell_y_sizef);
@@ -4139,7 +4139,7 @@ uint32_t hb_gtnap_menu(const uint32_t wid, const int32_t top, const int32_t left
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_menu_add(const uint32_t wid, uint32_t id, HB_ITEM *text_block, HB_ITEM *click_block, uint32_t kpos)
+void gtnap_menu_add(const uint32_t wid, uint32_t id, HB_ITEM *text_block, HB_ITEM *click_block, uint32_t kpos)
 {
     GtNapObject *gtobj = i_gtobj(GTNAP_GLOBAL, wid, id);
     cassert_no_null(gtobj);
@@ -4150,7 +4150,7 @@ void hb_gtnap_menu_add(const uint32_t wid, uint32_t id, HB_ITEM *text_block, HB_
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_menu_selected(const uint32_t wid, uint32_t id)
+uint32_t gtnap_menu_selected(const uint32_t wid, uint32_t id)
 {
     GtNapObject *gtobj = i_gtobj(GTNAP_GLOBAL, wid, id);
     cassert_no_null(gtobj);
@@ -4220,7 +4220,7 @@ static void i_OnTableRowClick(GtNapObject *gtobj, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_tableview(const uint32_t wid, const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, const bool_t multisel, const bool_t autoclose, const bool_t in_scroll)
+uint32_t gtnap_tableview(const uint32_t wid, const int32_t top, const int32_t left, const int32_t bottom, const int32_t right, const bool_t multisel, const bool_t autoclose, const bool_t in_scroll)
 {
     GtNapWindow *gtwin = i_gtwin(GTNAP_GLOBAL, wid);
     TableView *view = tableview_create();
@@ -4278,7 +4278,7 @@ static real32_t i_col_widthf(const uint32_t fixed_chars, const uint32_t str_char
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_tableview_column(const uint32_t wid, const uint32_t id, const uint32_t width, HB_ITEM *head_block, HB_ITEM *eval_block)
+void gtnap_tableview_column(const uint32_t wid, const uint32_t id, const uint32_t width, HB_ITEM *head_block, HB_ITEM *eval_block)
 {
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
     GtNapColumn *col = NULL;
@@ -4328,7 +4328,7 @@ void hb_gtnap_tableview_column(const uint32_t wid, const uint32_t id, const uint
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_tableview_scroll(const uint32_t wid, const uint32_t id, const bool_t horizontal, const bool_t vertical)
+void gtnap_tableview_scroll(const uint32_t wid, const uint32_t id, const bool_t horizontal, const bool_t vertical)
 {
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
     cassert_no_null(obj);
@@ -4338,7 +4338,7 @@ void hb_gtnap_tableview_scroll(const uint32_t wid, const uint32_t id, const bool
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_tableview_grid(const uint32_t wid, const uint32_t id, const bool_t hlines, const bool_t vlines)
+void gtnap_tableview_grid(const uint32_t wid, const uint32_t id, const bool_t hlines, const bool_t vlines)
 {
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
     cassert_no_null(obj);
@@ -4348,7 +4348,7 @@ void hb_gtnap_tableview_grid(const uint32_t wid, const uint32_t id, const bool_t
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_tableview_header(const uint32_t wid, const uint32_t id, const bool_t visible)
+void gtnap_tableview_header(const uint32_t wid, const uint32_t id, const bool_t visible)
 {
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
     cassert_no_null(obj);
@@ -4358,7 +4358,7 @@ void hb_gtnap_tableview_header(const uint32_t wid, const uint32_t id, const bool
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_tableview_freeze(const uint32_t wid, const uint32_t id, const uint32_t col_id)
+void gtnap_tableview_freeze(const uint32_t wid, const uint32_t id, const uint32_t col_id)
 {
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
     cassert_no_null(obj);
@@ -4514,7 +4514,7 @@ static void i_OnTableAreaRowSelect(GtNapArea *gtarea, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_tableview_bind_area(const uint32_t wid, const uint32_t id, HB_ITEM *while_block)
+void gtnap_tableview_bind_area(const uint32_t wid, const uint32_t id, HB_ITEM *while_block)
 {
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
     GtNapWindow *gtwin = NULL;
@@ -4610,7 +4610,7 @@ static void i_OnTableData(GtNapObject *gtobj, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_tableview_bind_data(const uint32_t wid, const uint32_t id, const uint32_t num_rows)
+void gtnap_tableview_bind_data(const uint32_t wid, const uint32_t id, const uint32_t num_rows)
 {
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
     GtNapWindow *gtwin = NULL;
@@ -4625,7 +4625,7 @@ void hb_gtnap_tableview_bind_data(const uint32_t wid, const uint32_t id, const u
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_tableview_deselect_all(const uint32_t wid, const uint32_t id)
+void gtnap_tableview_deselect_all(const uint32_t wid, const uint32_t id)
 {
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
     cassert_no_null(obj);
@@ -4635,7 +4635,7 @@ void hb_gtnap_tableview_deselect_all(const uint32_t wid, const uint32_t id)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_tableview_select_row(const uint32_t wid, const uint32_t id, const uint32_t row_id)
+void gtnap_tableview_select_row(const uint32_t wid, const uint32_t id, const uint32_t row_id)
 {
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
     cassert_no_null(obj);
@@ -4646,7 +4646,7 @@ void hb_gtnap_tableview_select_row(const uint32_t wid, const uint32_t id, const 
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_tableview_toggle_row(const uint32_t wid, const uint32_t id, const uint32_t row_id)
+void gtnap_tableview_toggle_row(const uint32_t wid, const uint32_t id, const uint32_t row_id)
 {
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
     const ArrSt(uint32_t) *sel = NULL;
@@ -4659,7 +4659,7 @@ void hb_gtnap_tableview_toggle_row(const uint32_t wid, const uint32_t id, const 
 
 /*---------------------------------------------------------------------------*/
 
-const ArrSt(uint32_t) *hb_gtnap_tableview_selected_rows(const uint32_t wid, const uint32_t id)
+const ArrSt(uint32_t) *gtnap_tableview_selected_rows(const uint32_t wid, const uint32_t id)
 {
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
     cassert_no_null(obj);
@@ -4669,7 +4669,7 @@ const ArrSt(uint32_t) *hb_gtnap_tableview_selected_rows(const uint32_t wid, cons
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_tableview_focus_row(const uint32_t wid, const uint32_t id)
+uint32_t gtnap_tableview_focus_row(const uint32_t wid, const uint32_t id)
 {
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
     uint32_t focused;
@@ -4681,7 +4681,7 @@ uint32_t hb_gtnap_tableview_focus_row(const uint32_t wid, const uint32_t id)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_tableview_recno_from_row(const uint32_t wid, const uint32_t id, const uint32_t row_id)
+uint32_t gtnap_tableview_recno_from_row(const uint32_t wid, const uint32_t id, const uint32_t row_id)
 {
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
     GtNapWindow *gtwin = NULL;
@@ -4713,7 +4713,7 @@ static uint32_t i_row_from_recno(GtNapArea *area, const uint32_t recno)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_tableview_row_from_recno(const uint32_t wid, const uint32_t id, const uint32_t recno)
+uint32_t gtnap_tableview_row_from_recno(const uint32_t wid, const uint32_t id, const uint32_t recno)
 {
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
     GtNapWindow *gtwin = NULL;
@@ -4732,7 +4732,7 @@ uint32_t hb_gtnap_tableview_row_from_recno(const uint32_t wid, const uint32_t id
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_tableview_refresh_current(const uint32_t wid, const uint32_t id)
+void gtnap_tableview_refresh_current(const uint32_t wid, const uint32_t id)
 {
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
     cassert_no_null(obj);
@@ -4874,7 +4874,7 @@ static void i_area_select_row(GtNapArea *gtarea)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_tableview_refresh_all(const uint32_t wid, const uint32_t id)
+void gtnap_tableview_refresh_all(const uint32_t wid, const uint32_t id)
 {
     GtNapObject *obj = i_gtobj(GTNAP_GLOBAL, wid, id);
     GtNapWindow *gtwin = NULL;
@@ -4898,7 +4898,7 @@ void hb_gtnap_tableview_refresh_all(const uint32_t wid, const uint32_t id)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_toolbar(const uint32_t wid, const uint32_t image_pixels)
+void gtnap_toolbar(const uint32_t wid, const uint32_t image_pixels)
 {
     GtNapWindow *gtwin = i_gtwin(GTNAP_GLOBAL, wid);
     cassert_no_null(gtwin);
@@ -4911,7 +4911,7 @@ void hb_gtnap_toolbar(const uint32_t wid, const uint32_t image_pixels)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_toolbar_button(const uint32_t wid, const char_t *pathname, const char_t *tooltip, HB_ITEM *click_block)
+void gtnap_toolbar_button(const uint32_t wid, const char_t *pathname, const char_t *tooltip, HB_ITEM *click_block)
 {
     Image *image = NULL;
     char_t utf8[STATIC_TEXT_SIZE];
@@ -4945,7 +4945,7 @@ void hb_gtnap_toolbar_button(const uint32_t wid, const char_t *pathname, const c
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_toolbar_separator(const uint32_t wid)
+void gtnap_toolbar_separator(const uint32_t wid)
 {
     GtNapWindow *gtwin = i_gtwin(GTNAP_GLOBAL, wid);
     View *separator = _view_create(ekVIEW_BORDER | ekVIEW_CONTROL);
@@ -4956,14 +4956,14 @@ void hb_gtnap_toolbar_separator(const uint32_t wid)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_cualib_init_log(void)
+void gtnap_cualib_init_log(void)
 {
     osbs_start();
 }
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_cualib_window_f4_lista(void)
+void gtnap_cualib_window_f4_lista(void)
 {
     GtNapWindow *gtwin = i_current_gtwin(GTNAP_GLOBAL);
     window_hotkey(gtwin->window, ekKEY_F4, 0, listener(gtwin, i_OnKeyWizard, GtNapWindow));
@@ -4971,7 +4971,7 @@ void hb_gtnap_cualib_window_f4_lista(void)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hb_gtnap_cualib_window_current_edit(void)
+uint32_t gtnap_cualib_window_current_edit(void)
 {
     uint32_t id = 0;
     GtNapWindow *gtwin = i_current_main_gtwin(GTNAP_GLOBAL);
@@ -4988,7 +4988,7 @@ uint32_t hb_gtnap_cualib_window_current_edit(void)
 
 /*---------------------------------------------------------------------------*/
 
-void hb_gtnap_cualib_default_button(const uint32_t nDefault)
+void gtnap_cualib_default_button(const uint32_t nDefault)
 {
     GtNapWindow *gtwin = i_current_gtwin(GTNAP_GLOBAL);
     cassert(gtwin->default_button == UINT32_MAX);

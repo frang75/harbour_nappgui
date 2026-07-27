@@ -18,6 +18,6 @@ HB_FUNC(NAP_BUTTON)
     HB_ITEM *click_block = hb_param(7, HB_IT_BLOCK);
     bool_t autoclose = (bool_t)hb_parl(8);
     bool_t in_scroll = (bool_t)hb_parl(9);
-    uint32_t id = hb_gtnap_button(wid, top, left, bottom, right, text_block, click_block, autoclose, in_scroll);
+    uint32_t id = gtnap_button(wid, top, left, bottom, right, text_block, click_block, autoclose, in_scroll);
     hb_retni(id);
 }
