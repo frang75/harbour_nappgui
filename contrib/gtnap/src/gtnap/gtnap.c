@@ -882,6 +882,14 @@ static GtNapWindow *i_current_gtwin(GtNap *gtnap)
 
 /*---------------------------------------------------------------------------*/
 
+Window *gtnap_current_window(void)
+{
+    GtNapWindow *gtwin = i_current_gtwin(GTNAP_GLOBAL);
+    return gtwin != NULL ? gtwin->window : NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static GtNapWindow *i_current_main_gtwin(GtNap *gtnap)
 {
     cassert_no_null(gtnap);
