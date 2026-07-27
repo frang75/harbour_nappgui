@@ -51,6 +51,7 @@
 #include "hbapiitm.h"
 #include "hbapirdd.h"
 #include "hbapistr.h"
+#include "hbset.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -323,9 +324,10 @@ static void i_destroy_hbnap_callback(HbNapCallback **callback)
 
 /*---------------------------------------------------------------------------*/
 
-static HbNap *i_hbnap_create(void)
+static HbNap *i_hbnap_state_create(void)
 {
     const char_t *build_cfg = NULL;
+    cassert(HBNAP_GLOBAL == NULL);
     HBNAP_GLOBAL = heap_new0(HbNap);
     HBNAP_GLOBAL->menu_callbacks = arrpt_create(HbNapCallback);
     HBNAP_GLOBAL->date_digits = (hb_setGetCentury() == (HB_BOOL)HB_TRUE) ? 8 : 6;
@@ -356,11 +358,37 @@ static HbNap *i_hbnap_create(void)
 
     HBNAP_GLOBAL->properties = setst_create(i_prop_cmp, HbNapProp, char_t);
     i_load_properties(HBNAP_GLOBAL->properties);
+    deblib_init_colors(i_COLORS);
+    return HBNAP_GLOBAL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_hbnap_state_destroy(HbNap **gtnap)
+{
+    cassert_no_null(gtnap);
+    cassert_no_null(*gtnap);
+    cassert(*gtnap == HBNAP_GLOBAL);
+    cassert(arrpt_size((*gtnap)->menu_callbacks, HbNapCallback) == 0);
+    arrpt_destroy(&(*gtnap)->menu_callbacks, i_destroy_hbnap_callback, HbNapCallback);
+    str_destroy(&(*gtnap)->working_path);
+    str_destroy(&(*gtnap)->debugger_path);
+
+    if ((*gtnap)->debugger != NULL)
+        nap_debugger_destroy(&(*gtnap)->debugger);
+
+    setst_destroy(&(*gtnap)->properties, i_remove_property, HbNapProp);
+    heap_delete(gtnap, HbNap);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static HbNap *i_hbnap_create(void)
+{
+    i_hbnap_state_create();
 
     {
-        PHB_ITEM ritem = NULL;
-        deblib_init_colors(i_COLORS);
-        ritem = hb_itemDo(INIT_CODEBLOCK, 0);
+        PHB_ITEM ritem = hb_itemDo(INIT_CODEBLOCK, 0);
         hb_itemRelease(ritem);
     }
 
@@ -384,20 +412,8 @@ static void i_hbnap_update(HbNap *gtnap, const real64_t prtime, const real64_t c
 
 static void i_hbnap_destroy(HbNap **gtnap)
 {
-    cassert_no_null(gtnap);
-    cassert_no_null(*gtnap);
-    cassert(*gtnap == HBNAP_GLOBAL);
-    cassert(arrpt_size((*gtnap)->menu_callbacks, HbNapCallback) == 0);
-    arrpt_destroy(&(*gtnap)->menu_callbacks, i_destroy_hbnap_callback, HbNapCallback);
-    str_destroy(&(*gtnap)->working_path);
-    str_destroy(&(*gtnap)->debugger_path);
-
-    if ((*gtnap)->debugger != NULL)
-        nap_debugger_destroy(&(*gtnap)->debugger);
-
-    setst_destroy(&(*gtnap)->properties, i_remove_property, HbNapProp);
+    i_hbnap_state_destroy(gtnap);
     nforms_finish();
-    heap_delete(&(*gtnap), HbNap);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -426,6 +442,24 @@ void hbnap_forms_init_app(HB_ITEM *main_block)
 void hbnap_forms_exit_app(void)
 {
     osapp_finish();
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_init_indirect(void)
+{
+    cassert(HBNAP_GLOBAL == NULL);
+    nforms_start();
+    i_hbnap_state_create();
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_exit_indirect(void)
+{
+    if (HBNAP_GLOBAL != NULL)
+        i_hbnap_state_destroy(&HBNAP_GLOBAL);
+    nforms_finish();
 }
 
 /*---------------------------------------------------------------------------*/

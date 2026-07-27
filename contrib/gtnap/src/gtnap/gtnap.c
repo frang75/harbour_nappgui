@@ -10,8 +10,6 @@
 #include "hbnap.ch"
 #include "nap_menu.inl"
 #include "nap_debugger.inl"
-#include <nforms/nforms.h>
-#include <nforms/nform.h>
 #include <deblib/deblib.h>
 #include <osapp/osmain.h>
 #include <osapp/osapp.h>
@@ -709,6 +707,7 @@ static void i_gtnap_destroy(GtNap **gtnap)
     cassert_no_null(gtnap);
     cassert_no_null(*gtnap);
     cassert(*gtnap == GTNAP_GLOBAL);
+    hbnap_exit_indirect();
     arrpt_destroy(&(*gtnap)->windows, i_destroy_gtwin, GtNapWindow);
     font_destroy(&(*gtnap)->global_font);
     font_destroy(&(*gtnap)->button_font);
@@ -721,7 +720,6 @@ static void i_gtnap_destroy(GtNap **gtnap)
         nap_debugger_destroy(&(*gtnap)->debugger);
 
     setst_destroy(&(*gtnap)->properties, i_remove_property, GtNapProp);
-    nforms_finish();
     heap_delete(&(*gtnap), GtNap);
 }
 
@@ -1319,6 +1317,8 @@ static GtNap *i_gtnap_create(void)
 {
     S2Df screen;
     const char_t *build_cfg = NULL;
+    hbnap_init_indirect();
+
     GTNAP_GLOBAL = heap_new0(GtNap);
     GTNAP_GLOBAL->title = i_cp_to_utf8_string(INIT_TITLE);
     GTNAP_GLOBAL->rows = INIT_ROWS;
@@ -2827,7 +2827,6 @@ void gtnap_init(const char_t *title, const uint32_t rows, const uint32_t cols, P
     hb_winmainArgGet(&hInstance, NULL, NULL);
 #endif
 
-    nforms_start();
     str_copy_c(INIT_TITLE, sizeof32(INIT_TITLE), title);
     INIT_CODEBLOCK = hb_itemNew(begin_block);
     INIT_ROWS = rows;

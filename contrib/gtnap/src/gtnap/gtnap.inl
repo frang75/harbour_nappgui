@@ -13,5 +13,9 @@ extern void hb_item_to_char(HB_ITEM *item, char_t *buffer, const uint32_t size, 
 
 extern Window *gtnap_current_window(void);
 
+extern void hbnap_init_indirect(void);
+
+extern void hbnap_exit_indirect(void);
+
 __END_C
 
