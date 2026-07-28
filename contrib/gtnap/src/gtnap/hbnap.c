@@ -98,7 +98,7 @@ struct _hbnap_fnode_t
 struct _hbnap_fbdconn_t
 {
     HbNapForm *form;
-    String *cellname;
+    String *gui_id;
     TableView *table;
     ArrSt(HbNapFArea2) *areas;
     ArrSt(uint32_t) *records;
@@ -567,7 +567,7 @@ static void i_destroy_fdbconn(HbNapFDBConn **dbconn)
     cassert_no_null(dbconn);
     (*dbconn)->form = NULL;
     (*dbconn)->table = NULL;
-    str_destroy(&(*dbconn)->cellname);
+    str_destroy(&(*dbconn)->gui_id);
 
     if ((*dbconn)->tdata != NULL)
         treest_destroy(&(*dbconn)->tdata, i_remove_fnode, HbNapFNode);
@@ -836,7 +836,7 @@ static void i_map_bind_area_to_form(HbNapFDBConn *dbconn)
     cassert_no_null(dbconn);
     cassert(dbconn->table == NULL);
     cassert_no_null(dbconn->form);
-    dbconn->table = nform_get_tableview(dbconn->form->form, tc(dbconn->cellname));
+    dbconn->table = nform_get_tableview(dbconn->form->form, tc(dbconn->gui_id));
     if (dbconn->table != NULL)
     {
         tableview_OnData(dbconn->table, listener(dbconn, i_OnTableFAreaData, HbNapFDBConn));
@@ -853,7 +853,7 @@ static HbNapFDBConn *i_create_farea(HbNapForm *form, AREA *area)
     HbNapFDBConn *farea = heap_new0(HbNapFDBConn);
     HbNapFArea2 *area2 = NULL;
     farea->form = form;
-    farea->cellname = NULL;
+    farea->gui_id = NULL;
     farea->table = NULL;
     farea->tdata = NULL;
     farea->records = arrst_create(uint32_t);
@@ -873,7 +873,7 @@ static HbNapFDBConn *i_create_dbconn(HbNapForm *form, const char_t *cell)
 {
     HbNapFDBConn *dbconn = heap_new0(HbNapFDBConn);
     dbconn->form = form;
-    dbconn->cellname = str_c(cell);
+    dbconn->gui_id = str_c(cell);
     dbconn->table = NULL;
     dbconn->tdata = treest_create(HbNapFNode);
     dbconn->areas = arrst_create(HbNapFArea2);
@@ -1050,7 +1050,7 @@ void hbnap_forms_area_bind(HbNapForm *form, HB_ITEM *column_bind)
             const char *gui_id = NULL;
             cassert(HB_ITEM_TYPE(name_item) == HB_IT_STRING);
             gui_id = hb_itemGetCPtr(name_item);
-            form->dbconn->cellname = str_c(cast_const(gui_id, char_t));
+            form->dbconn->gui_id = str_c(cast_const(gui_id, char_t));
             i_map_bind_area_to_form(form->dbconn);
         }
     }
@@ -1510,7 +1510,7 @@ static void i_map_dbconn_to_form(HbNapFDBConn *dbconn)
     cassert_no_null(dbconn);
     cassert(dbconn->table == NULL);
     cassert_no_null(dbconn->form);
-    dbconn->table = nform_get_tableview(dbconn->form->form, tc(dbconn->cellname));
+    dbconn->table = nform_get_tableview(dbconn->form->form, tc(dbconn->gui_id));
     if (dbconn->table != NULL)
     {
         tableview_tree(dbconn->table, 0);
