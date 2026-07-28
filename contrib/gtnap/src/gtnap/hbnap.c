@@ -69,8 +69,8 @@ typedef struct _gtnap_fnode_t GtNapFNode;
 
 struct _hbnap_callback_t
 {
-    GtNapForm *form;
-    GtNapMenuItem *menuitem;
+    HbNapForm *form;
+    HbNapMenuItem *menuitem;
     HB_ITEM *block;
     int32_t key;
     uint32_t autoclose_id;
@@ -99,7 +99,7 @@ struct _gtnap_fnode_t
 
 struct _gtnap_fbdconn_t
 {
-    GtNapForm *form;
+    HbNapForm *form;
     String *cellname;
     TableView *table;
     ArrSt(GtNapFArea2) *areas;
@@ -116,7 +116,7 @@ struct _gtnap_farea2_t
 
 struct _gtnap_farea_t
 {
-    GtNapForm *form;
+    HbNapForm *form;
     String *cellname;
     TableView *table;
     AREA *area;
@@ -125,7 +125,7 @@ struct _gtnap_farea_t
     ArrSt(GtNapFColumn) *columns;
 };
 
-struct _gtnap_form_t
+struct _hbnap_form_t
 {
     NForm *form;
     Window *window;
@@ -464,7 +464,7 @@ void hbnap_exit_indirect(void)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnFormMoved(GtNapForm *form, Event *e)
+static void i_OnFormMoved(HbNapForm *form, Event *e)
 {
     const EvPos *p = event_params(e, EvPos);
     cassert_no_null(form);
@@ -474,7 +474,7 @@ static void i_OnFormMoved(GtNapForm *form, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnFormResize(GtNapForm *form, Event *e)
+static void i_OnFormResize(HbNapForm *form, Event *e)
 {
     const EvSize *p = event_params(e, EvSize);
     Window *window = event_sender(e, Window);
@@ -493,12 +493,12 @@ static void i_OnFormResize(GtNapForm *form, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-GtNapForm *hbnap_forms_load(const char_t *pathname, const char_t *resource_path, const uint32_t flags)
+HbNapForm *hbnap_forms_load(const char_t *pathname, const char_t *resource_path, const uint32_t flags)
 {
     NForm *form = nform_from_file(pathname, NULL);
     if (form != NULL)
     {
-        GtNapForm *gtform = heap_new0(GtNapForm);
+        HbNapForm *gtform = heap_new0(HbNapForm);
         str_split_pathext(pathname, NULL, &gtform->nameid, NULL);
         gtform->form = form;
         gtform->respath = str_c(resource_path);
@@ -527,8 +527,8 @@ GtNapForm *hbnap_forms_load(const char_t *pathname, const char_t *resource_path,
             gtform->window = nform_window(gtform->form, nflags, resource_path);
             if (gtform->window != NULL)
             {
-                window_OnMoved(gtform->window, listener(gtform, i_OnFormMoved, GtNapForm));
-                window_OnResize(gtform->window, listener(gtform, i_OnFormResize, GtNapForm));
+                window_OnMoved(gtform->window, listener(gtform, i_OnFormMoved, HbNapForm));
+                window_OnResize(gtform->window, listener(gtform, i_OnFormResize, HbNapForm));
             }
             else
             {
@@ -614,7 +614,7 @@ static void i_remove_bind(GtNapBind *bind)
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_destroy(GtNapForm **form)
+void hbnap_forms_destroy(HbNapForm **form)
 {
     cassert_no_null(form);
     cassert_no_null(*form);
@@ -633,12 +633,12 @@ void hbnap_forms_destroy(GtNapForm **form)
     ptr_destopt(i_destroy_farea, &(*form)->area, GtNapFArea);
     ptr_destopt(i_destroy_fdbconn, &(*form)->dbconn, GtNapFDBConn);
     nform_destroy(&(*form)->form);
-    heap_delete(form, GtNapForm);
+    heap_delete(form, HbNapForm);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_title(GtNapForm *form, const char_t *text)
+void hbnap_forms_title(HbNapForm *form, const char_t *text)
 {
     cassert_no_null(form);
     window_title(form->window, text);
@@ -646,7 +646,7 @@ void hbnap_forms_title(GtNapForm *form, const char_t *text)
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_set_text(GtNapForm *form, const char_t *cell, const char_t *text)
+void hbnap_forms_set_text(HbNapForm *form, const char_t *cell, const char_t *text)
 {
     cassert_no_null(form);
     nform_set_control_str(form->form, cell, text);
@@ -654,7 +654,7 @@ void hbnap_forms_set_text(GtNapForm *form, const char_t *cell, const char_t *tex
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_set_int(GtNapForm *form, const char_t *cell, const int32_t value)
+void hbnap_forms_set_int(HbNapForm *form, const char_t *cell, const int32_t value)
 {
     cassert_no_null(form);
     nform_set_control_int(form->form, cell, value);
@@ -662,7 +662,7 @@ void hbnap_forms_set_int(GtNapForm *form, const char_t *cell, const int32_t valu
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_insert_text(GtNapForm *form, const char_t *cell, const char_t *text)
+void hbnap_forms_insert_text(HbNapForm *form, const char_t *cell, const char_t *text)
 {
     cassert_no_null(form);
     nform_add_control_str(form->form, cell, text);
@@ -670,7 +670,7 @@ void hbnap_forms_insert_text(GtNapForm *form, const char_t *cell, const char_t *
 
 /*---------------------------------------------------------------------------*/
 
-int32_t hbnap_forms_get_int(GtNapForm *form, const char_t *cell)
+int32_t hbnap_forms_get_int(HbNapForm *form, const char_t *cell)
 {
     int32_t value = 0;
     cassert_no_null(form);
@@ -681,7 +681,7 @@ int32_t hbnap_forms_get_int(GtNapForm *form, const char_t *cell)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t hbnap_forms_embed(GtNapForm *form, GtNapForm *embedded_form, const char_t *cell)
+bool_t hbnap_forms_embed(HbNapForm *form, HbNapForm *embedded_form, const char_t *cell)
 {
     bool_t ok = FALSE;
     cassert_no_null(form);
@@ -924,7 +924,7 @@ static void i_map_bind_area_to_form(GtNapFArea *area)
 
 /*---------------------------------------------------------------------------*/
 
-static GtNapFArea *i_create_farea(GtNapForm *form, AREA *area)
+static GtNapFArea *i_create_farea(HbNapForm *form, AREA *area)
 {
     GtNapFArea *farea = heap_new0(GtNapFArea);
     farea->form = form;
@@ -939,7 +939,7 @@ static GtNapFArea *i_create_farea(GtNapForm *form, AREA *area)
 
 /*---------------------------------------------------------------------------*/
 
-static GtNapFDBConn *i_create_dbconn(GtNapForm *form, const char_t *cell)
+static GtNapFDBConn *i_create_dbconn(HbNapForm *form, const char_t *cell)
 {
     GtNapFDBConn *dbconn = heap_new0(GtNapFDBConn);
     dbconn->form = form;
@@ -1013,7 +1013,7 @@ static void i_map_bind_to_form(NForm *form, ArrSt(GtNapBind) *binds)
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_bind(GtNapForm *form, HB_ITEM *cell_bind)
+void hbnap_forms_bind(HbNapForm *form, HB_ITEM *cell_bind)
 {
     HB_SIZE i, n = UINT32_MAX;
     cassert_no_null(form);
@@ -1041,7 +1041,7 @@ void hbnap_forms_bind(GtNapForm *form, HB_ITEM *cell_bind)
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_bind_store(GtNapForm *form)
+void hbnap_forms_bind_store(HbNapForm *form)
 {
     cassert_no_null(form);
     arrst_foreach(bind, form->binds, GtNapBind)
@@ -1082,7 +1082,7 @@ void hbnap_forms_bind_store(GtNapForm *form)
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_area_bind(GtNapForm *form, HB_ITEM *column_bind)
+void hbnap_forms_area_bind(HbNapForm *form, HB_ITEM *column_bind)
 {
     AREA *area = NULL;
     HB_SIZE n = UINT32_MAX;
@@ -1126,7 +1126,7 @@ void hbnap_forms_area_bind(GtNapForm *form, HB_ITEM *column_bind)
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_area_refresh(GtNapForm *form)
+void hbnap_forms_area_refresh(HbNapForm *form)
 {
     cassert_no_null(form);
     cassert_no_null(form->area);
@@ -1137,7 +1137,7 @@ void hbnap_forms_area_refresh(GtNapForm *form)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hbnap_forms_area_recno(GtNapForm *form)
+uint32_t hbnap_forms_area_recno(HbNapForm *form)
 {
     const ArrSt(uint32_t) *sel = 0;
     cassert_no_null(form);
@@ -1590,7 +1590,7 @@ static void i_map_dbconn_to_form(GtNapFDBConn *dbconn)
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_tree_bind(GtNapForm *form, const char_t *cell, HB_ITEM *areas, HB_ITEM *relations, HB_ITEM *columns)
+void hbnap_forms_tree_bind(HbNapForm *form, const char_t *cell, HB_ITEM *areas, HB_ITEM *relations, HB_ITEM *columns)
 {
     HB_SIZE nA = UINT32_MAX;
     HB_SIZE nR = UINT32_MAX;
@@ -1748,7 +1748,7 @@ void hbnap_forms_tree_bind(GtNapForm *form, const char_t *cell, HB_ITEM *areas, 
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_item_list(GtNapForm *form, const char_t *cell, HB_ITEM *items)
+void hbnap_forms_item_list(HbNapForm *form, const char_t *cell, HB_ITEM *items)
 {
     HB_SIZE i, n = UINT32_MAX;
     cassert_no_null(form);
@@ -1779,7 +1779,7 @@ static HbNapCallback *i_create_hbnap_callback(HB_ITEM *block, ArrPt(HbNapCallbac
 
 /*---------------------------------------------------------------------------*/
 
-static Listener *i_hbnap_form_listener(HB_ITEM *block, GtNapForm *form, FPtr_hbnap_callback func_callback)
+static Listener *i_hbnap_form_listener(HB_ITEM *block, HbNapForm *form, FPtr_hbnap_callback func_callback)
 {
     HbNapCallback *callback;
     cassert_no_null(form);
@@ -1804,7 +1804,7 @@ static void i_OnFormButtonClick(HbNapCallback *callback, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_OnClick(GtNapForm *form, const char_t *cell, HB_ITEM *click_block)
+void hbnap_forms_OnClick(HbNapForm *form, const char_t *cell, HB_ITEM *click_block)
 {
     Listener *listener = i_hbnap_form_listener(click_block, form, i_OnFormButtonClick);
     cassert_no_null(form);
@@ -1813,7 +1813,7 @@ void hbnap_forms_OnClick(GtNapForm *form, const char_t *cell, HB_ITEM *click_blo
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_maximize(GtNapForm *form)
+void hbnap_forms_maximize(HbNapForm *form)
 {
     cassert_no_null(form);
     window_maximize(form->window);
@@ -1821,7 +1821,7 @@ void hbnap_forms_maximize(GtNapForm *form)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnFormClose(GtNapForm *form, Event *e)
+static void i_OnFormClose(HbNapForm *form, Event *e)
 {
     cassert_no_null(form);
     if (form->OnClose_block != NULL)
@@ -1851,7 +1851,7 @@ static V2Df i_center_window(const Window *parent, Window *window)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_form_frame(GtNapForm *form, Window *parent)
+static void i_form_frame(HbNapForm *form, Window *parent)
 {
     S2Df size;
     cassert_no_null(form);
@@ -1879,14 +1879,14 @@ static void i_form_frame(GtNapForm *form, Window *parent)
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_show(GtNapForm *form, HB_ITEM *onclose_block)
+void hbnap_forms_show(HbNapForm *form, HB_ITEM *onclose_block)
 {
     cassert_no_null(form);
     if (form->OnClose_block != NULL)
         hb_itemRelease(form->OnClose_block);
 
     form->OnClose_block = hb_itemNew(onclose_block);
-    window_OnClose(form->window, listener(form, i_OnFormClose, GtNapForm));
+    window_OnClose(form->window, listener(form, i_OnFormClose, HbNapForm));
     window_update(form->window);
     i_form_frame(form, NULL);
     window_show(form->window);
@@ -1894,7 +1894,7 @@ void hbnap_forms_show(GtNapForm *form, HB_ITEM *onclose_block)
 
 /*---------------------------------------------------------------------------*/
 
-static uint32_t i_forms_modal(GtNapForm *form, Window *parent)
+static uint32_t i_forms_modal(HbNapForm *form, Window *parent)
 {
     cassert_no_null(form);
     window_update(form->window);
@@ -1905,7 +1905,7 @@ static uint32_t i_forms_modal(GtNapForm *form, Window *parent)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hbnap_forms_modal(GtNapForm *form, GtNapForm *parent)
+uint32_t hbnap_forms_modal(HbNapForm *form, HbNapForm *parent)
 {
     cassert_no_null(parent);
     return i_forms_modal(form, parent->window);
@@ -1913,7 +1913,7 @@ uint32_t hbnap_forms_modal(GtNapForm *form, GtNapForm *parent)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hbnap_forms_modal_gtnap(GtNapForm *form)
+uint32_t hbnap_forms_modal_gtnap(HbNapForm *form)
 {
     Window *parent = gtnap_current_window();
     cassert_no_null(parent);
@@ -1922,7 +1922,7 @@ uint32_t hbnap_forms_modal_gtnap(GtNapForm *form)
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_stop_modal(GtNapForm *form, const uint32_t value)
+void hbnap_forms_stop_modal(HbNapForm *form, const uint32_t value)
 {
     cassert_no_null(form);
     window_stop_modal(form->window, value);
@@ -1930,7 +1930,7 @@ void hbnap_forms_stop_modal(GtNapForm *form, const uint32_t value)
 
 /*---------------------------------------------------------------------------*/
 
-R2Df hbnap_forms_control_frame(GtNapForm *form, const char_t *cell)
+R2Df hbnap_forms_control_frame(HbNapForm *form, const char_t *cell)
 {
     cassert_no_null(form);
     return nform_get_control_frame(form->form, cell, form->window);
@@ -1938,7 +1938,7 @@ R2Df hbnap_forms_control_frame(GtNapForm *form, const char_t *cell)
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_update(GtNapForm *form)
+void hbnap_forms_update(HbNapForm *form)
 {
     cassert_no_null(form);
     window_update(form->window);
@@ -2079,7 +2079,7 @@ static T2Df i_item_transform(const MainItem *item, const bool_t hover)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnDrawMainView(GtNapForm *form, Event *e)
+static void i_OnDrawMainView(HbNapForm *form, Event *e)
 {
     const EvDraw *p = event_params(e, EvDraw);
     View *view = event_sender(e, View);
@@ -2176,7 +2176,7 @@ static void i_mainitems_locations(View *view, const real32_t width)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnSizeMainView(GtNapForm *form, Event *e)
+static void i_OnSizeMainView(HbNapForm *form, Event *e)
 {
     const EvSize *p = event_params(e, EvSize);
     View *view = event_sender(e, View);
@@ -2186,7 +2186,7 @@ static void i_OnSizeMainView(GtNapForm *form, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnMoveMainView(GtNapForm *form, Event *e)
+static void i_OnMoveMainView(HbNapForm *form, Event *e)
 {
     const EvMouse *p = event_params(e, EvMouse);
     View *view = event_sender(e, View);
@@ -2207,7 +2207,7 @@ static void i_OnMoveMainView(GtNapForm *form, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnClickMainView(GtNapForm *form, Event *e)
+static void i_OnClickMainView(HbNapForm *form, Event *e)
 {
     View *view = event_sender(e, View);
     MainData *data = view_get_data(view, MainData);
@@ -2223,7 +2223,7 @@ static void i_OnClickMainView(GtNapForm *form, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const char_t *title, const char_t *logo_path, HB_ITEM *cover_items)
+void hbnap_forms_main_cover(HbNapForm *form, const char_t *canvas_cell, const char_t *title, const char_t *logo_path, HB_ITEM *cover_items)
 {
     View *view = NULL;
     S2Df view_size;
@@ -2290,20 +2290,20 @@ void hbnap_forms_main_cover(GtNapForm *form, const char_t *canvas_cell, const ch
     }
 
     view_data(view, &data, i_destroy_maindata, MainData);
-    view_OnDraw(view, listener(form, i_OnDrawMainView, GtNapForm));
-    view_OnSize(view, listener(form, i_OnSizeMainView, GtNapForm));
-    view_OnMove(view, listener(form, i_OnMoveMainView, GtNapForm));
-    view_OnClick(view, listener(form, i_OnClickMainView, GtNapForm));
+    view_OnDraw(view, listener(form, i_OnDrawMainView, HbNapForm));
+    view_OnSize(view, listener(form, i_OnSizeMainView, HbNapForm));
+    view_OnMove(view, listener(form, i_OnMoveMainView, HbNapForm));
+    view_OnClick(view, listener(form, i_OnClickMainView, HbNapForm));
     view_get_size(view, &view_size);
     i_mainitems_locations(view, view_size.width);
 }
 
 /*---------------------------------------------------------------------------*/
 
-GtNapMenu *hbnap_menu_create(void)
+HbNapMenu *hbnap_menu_create(void)
 {
     Menu *menu = menu_create();
-    return cast(menu, GtNapMenu);
+    return cast(menu, HbNapMenu);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2318,7 +2318,7 @@ static void i_remove_item_callbacks(MenuItem *item)
     uint32_t callback_id = UINT32_MAX;
 
     arrpt_foreach(callback, HBNAP_GLOBAL->menu_callbacks, HbNapCallback)
-        if (callback->menuitem == cast(item, GtNapMenuItem))
+        if (callback->menuitem == cast(item, HbNapMenuItem))
         {
             callback_id = callback_i;
             break;
@@ -2346,7 +2346,7 @@ static void i_remove_menu_callbacks(Menu *menu)
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_menu_destroy(GtNapMenu *menu)
+void hbnap_menu_destroy(HbNapMenu *menu)
 {
     i_remove_menu_callbacks(cast(menu, Menu));
     menu_destroy(dcast(&menu, Menu));
@@ -2354,21 +2354,21 @@ void hbnap_menu_destroy(GtNapMenu *menu)
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_menu_add_item(GtNapMenu *menu, GtNapMenuItem *item)
+void hbnap_menu_add_item(HbNapMenu *menu, HbNapMenuItem *item)
 {
     menu_add_item(cast(menu, Menu), cast(item, MenuItem));
 }
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_menu_ins_item(GtNapMenu *menu, const uint32_t pos, GtNapMenuItem *item)
+void hbnap_menu_ins_item(HbNapMenu *menu, const uint32_t pos, HbNapMenuItem *item)
 {
     menu_ins_item(cast(menu, Menu), pos, cast(item, MenuItem));
 }
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_menu_del_item(GtNapMenu *menu, const uint32_t pos)
+void hbnap_menu_del_item(HbNapMenu *menu, const uint32_t pos)
 {
     MenuItem *item = menu_get_item(cast(menu, Menu), pos);
     i_remove_item_callbacks(item);
@@ -2377,22 +2377,22 @@ void hbnap_menu_del_item(GtNapMenu *menu, const uint32_t pos)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hbnap_menu_count(const GtNapMenu *menu)
+uint32_t hbnap_menu_count(const HbNapMenu *menu)
 {
     return menu_count(cast(menu, Menu));
 }
 
 /*---------------------------------------------------------------------------*/
 
-GtNapMenuItem *hbnap_menu_get_item(GtNapMenu *menu, const uint32_t index)
+HbNapMenuItem *hbnap_menu_get_item(HbNapMenu *menu, const uint32_t index)
 {
     MenuItem *item = menu_get_item(cast(menu, Menu), index);
-    return cast(item, GtNapMenuItem);
+    return cast(item, HbNapMenuItem);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_menubar(GtNapMenu *menu, GtNapForm *form)
+void hbnap_menubar(HbNapMenu *menu, HbNapForm *form)
 {
     cassert_no_null(form);
     osapp_menubar(cast(menu, Menu), form->window);
@@ -2400,14 +2400,14 @@ void hbnap_menubar(GtNapMenu *menu, GtNapForm *form)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t hbnap_is_menubar(const GtNapMenu *menu)
+bool_t hbnap_is_menubar(const HbNapMenu *menu)
 {
     return menu_is_menubar(cast_const(menu, Menu));
 }
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_menu_popup(GtNapMenu *menu, GtNapForm *form, const int32_t x, const int32_t y)
+void hbnap_menu_popup(HbNapMenu *menu, HbNapForm *form, const int32_t x, const int32_t y)
 {
     cassert_no_null(form);
     menu_launch(cast(menu, Menu), form->window, v2df((real32_t)x, (real32_t)y));
@@ -2431,7 +2431,7 @@ static void i_OnMenuClick(HbNapCallback *callback, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static Listener *i_hbnap_menu_listener(HB_ITEM *block, GtNapMenuItem *item)
+static Listener *i_hbnap_menu_listener(HB_ITEM *block, HbNapMenuItem *item)
 {
     HbNapCallback *callback;
     cassert_no_null(item);
@@ -2442,7 +2442,7 @@ static Listener *i_hbnap_menu_listener(HB_ITEM *block, GtNapMenuItem *item)
 
 /*---------------------------------------------------------------------------*/
 
-GtNapMenuItem *hbnap_menuitem_create(const char_t *text, const char_t *icon_path, HB_ITEM *click_block)
+HbNapMenuItem *hbnap_menuitem_create(const char_t *text, const char_t *icon_path, HB_ITEM *click_block)
 {
     MenuItem *item = menuitem_create();
     menuitem_text(item, text);
@@ -2458,39 +2458,39 @@ GtNapMenuItem *hbnap_menuitem_create(const char_t *text, const char_t *icon_path
     }
 
     {
-        Listener *listener = i_hbnap_menu_listener(click_block, cast(item, GtNapMenuItem));
+        Listener *listener = i_hbnap_menu_listener(click_block, cast(item, HbNapMenuItem));
         menuitem_OnClick(item, listener);
     }
 
-    return cast(item, GtNapMenuItem);
+    return cast(item, HbNapMenuItem);
 }
 
 /*---------------------------------------------------------------------------*/
 
-GtNapMenuItem *hbnap_menuitem_separator(void)
+HbNapMenuItem *hbnap_menuitem_separator(void)
 {
     MenuItem *item = menuitem_separator();
-    return cast(item, GtNapMenuItem);
+    return cast(item, HbNapMenuItem);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_menuitem_submenu(GtNapMenuItem *item, GtNapMenu *submenu)
+void hbnap_menuitem_submenu(HbNapMenuItem *item, HbNapMenu *submenu)
 {
     menuitem_submenu(cast(item, MenuItem), dcast(&submenu, Menu));
 }
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *hbnap_menuitem_get_text(const GtNapMenuItem *item)
+const char_t *hbnap_menuitem_get_text(const HbNapMenuItem *item)
 {
     return menuitem_get_text(cast_const(item, MenuItem));
 }
 
 /*---------------------------------------------------------------------------*/
 
-GtNapMenu *hbnap_menuitem_get_submenu(GtNapMenuItem *item)
+HbNapMenu *hbnap_menuitem_get_submenu(HbNapMenuItem *item)
 {
     Menu *menu = menuitem_get_submenu(cast(item, MenuItem));
-    return cast(menu, GtNapMenu);
+    return cast(menu, HbNapMenu);
 }
