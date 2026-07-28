@@ -61,7 +61,6 @@ typedef struct _hbnap_fcolumn_t HbNapFColumn;
 typedef struct _hbnap_fnode_t HbNapFNode;
 typedef struct _hbnap_fbdconn_t HbNapFDBConn;
 typedef struct _hbnap_farea2_t HbNapFArea2;
-typedef struct _hbnap_farea_t HbNapFArea;
 typedef struct _hbnap_prop_t HbNapProp;
 typedef struct _hbnap_t HbNap;
 typedef void (*FPtr_hbnap_callback)(HbNapCallback *callback, Event *event);
@@ -113,19 +112,6 @@ struct _hbnap_farea2_t
     HB_ITEM *relkey;
     HB_USHORT fexpanded;
     HB_ULONG cache_recno;
-};
-
-/* Unused since HbNapFDBConn now also serves flat-table binding. Kept for
-   reference during the transition. */
-struct _hbnap_farea_t
-{
-    HbNapForm *form;
-    String *cellname;
-    TableView *table;
-    AREA *area;
-    HB_ULONG cache_recno;     /* Store the DB recno while table drawing */
-    ArrSt(uint32_t) *records; /* Records visible in table (index, deleted, filters) */
-    ArrSt(HbNapFColumn) *columns;
 };
 
 struct _hbnap_form_t
@@ -774,7 +760,6 @@ static void i_farea_refresh(HbNapFDBConn *dbconn)
     arrst_clear(dbconn->records, NULL, uint32_t);
 
     /* Generate the record index for TableView */
-    // if (area->while_block == NULL)
     {
         HB_BOOL fEof;
         SELF_GOTOP(area->area);
@@ -788,32 +773,6 @@ static void i_farea_refresh(HbNapFDBConn *dbconn)
             SELF_EOF(area->area, &fEof);
         }
     }
-    // else
-    //{
-    //     HB_BOOL fEof;
-    //     SELF_GOTOP(area->area);
-    //     SELF_EOF(area->area, &fEof);
-    //     while (fEof == HB_FALSE)
-    //     {
-    //         HB_ULONG uiRecNo = 0;
-    //         SELF_RECNO(area->area, &uiRecNo);
-
-    //        {
-    //            PHB_ITEM ritem = hb_itemDo(area->while_block, 0);
-    //            HB_TYPE type = HB_ITEM_TYPE(ritem);
-    //            bool_t add = FALSE;
-    //            cassert_unref(type == HB_IT_LOGICAL, type);
-    //            add = (bool_t)hb_itemGetL(ritem);
-    //            hb_itemRelease(ritem);
-
-    //            if (add == TRUE)
-    //                arrst_append(area->records, (uint32_t)uiRecNo, uint32_t);
-    //        }
-
-    //        SELF_SKIP(area->area, 1);
-    //        SELF_EOF(area->area, &fEof);
-    //    }
-    //}
 
     /* Restore database RECNO() */
     SELF_GOTO(area->area, ulCurRec);
@@ -839,69 +798,33 @@ static void i_farea_select_row(HbNapFDBConn *dbconn)
     HB_ULONG ulCurRec;
     uint32_t sel_row;
     HbNapFArea2 *area = NULL;
-    // TableView *view;
 
     cassert_no_null(dbconn);
     area = arrst_get(dbconn->areas, 0, HbNapFArea2);
-    // cassert_no_null(gtarea->gtobj);
-    // cassert(gtarea->gtobj->type == ekOBJ_TABLEVIEW);
-    // view = (TableView *)gtarea->gtobj->component;
 
     /* Current selected */
     SELF_RECNO(area->area, &ulCurRec);
 
     sel_row = i_frow_from_recno(dbconn, (uint32_t)ulCurRec);
 
-    /* In multisel table, the selected rows comes from  VN_Selecio */
-    // if (gtarea->gtobj->multisel == TRUE)
-    //{
-    //     if (tableview_get_focus_row(view) == UINT32_MAX)
-    //     {
-    //         /* We use RECNO for focused row */
-    //         if (sel_row != UINT32_MAX)
-    //         {
-    //             tableview_focus_row(view, sel_row, ekTOP);
-    //         }
-    //         else
-    //         {
-    //             uint32_t nrecs = arrst_size(gtarea->records, uint32_t);
-    //             sel_row = tableview_get_focus_row(view);
-    //             /* We move recno to current focused row */
-    //             if (sel_row >= nrecs)
-    //             {
-    //                 sel_row = 0;
-    //             }
+    tableview_deselect_all(dbconn->table);
 
-    //            if (sel_row < nrecs)
-    //            {
-    //                uint32_t recno = *arrst_get_const(gtarea->records, sel_row, uint32_t);
-    //                tableview_select(view, &sel_row, 1);
-    //                SELF_GOTO(gtarea->area, recno);
-    //            }
-    //        }
-    //    }
-    //}
-    // else
+    if (sel_row != UINT32_MAX)
     {
-        tableview_deselect_all(dbconn->table);
-
-        if (sel_row != UINT32_MAX)
+        tableview_select(dbconn->table, &sel_row, 1);
+        tableview_focus_row(dbconn->table, sel_row, ekTOP);
+    }
+    /* RECNO() doesn't exists in view (perhaps is deleted) */
+    else
+    {
+        uint32_t nrecs = arrst_size(dbconn->records, uint32_t);
+        sel_row = tableview_get_focus_row(dbconn->table);
+        /* We move recno to current focused row */
+        if (sel_row < nrecs)
         {
+            uint32_t recno = *arrst_get_const(dbconn->records, sel_row, uint32_t);
             tableview_select(dbconn->table, &sel_row, 1);
-            tableview_focus_row(dbconn->table, sel_row, ekTOP);
-        }
-        /* RECNO() doesn't exists in view (perhaps is deleted) */
-        else
-        {
-            uint32_t nrecs = arrst_size(dbconn->records, uint32_t);
-            sel_row = tableview_get_focus_row(dbconn->table);
-            /* We move recno to current focused row */
-            if (sel_row < nrecs)
-            {
-                uint32_t recno = *arrst_get_const(dbconn->records, sel_row, uint32_t);
-                tableview_select(dbconn->table, &sel_row, 1);
-                SELF_GOTO(area->area, recno);
-            }
+            SELF_GOTO(area->area, recno);
         }
     }
 }
