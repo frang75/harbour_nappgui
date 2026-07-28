@@ -40,7 +40,7 @@ extern void hbnap_forms_bind(HbNapForm *form, HB_ITEM *cell_bind);
 
 extern void hbnap_forms_bind_store(HbNapForm *form);
 
-extern void hbnap_forms_area_bind(HbNapForm *form, HB_ITEM *column_bind);
+extern void hbnap_forms_table_bind(HbNapForm *form, const char_t *cell, HB_ITEM *area, HB_ITEM *columns);
 
 extern void hbnap_forms_area_refresh(HbNapForm *form);
 

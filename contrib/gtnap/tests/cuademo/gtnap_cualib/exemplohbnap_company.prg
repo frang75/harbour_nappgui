@@ -129,20 +129,19 @@ LOCAL O_FORM := HBNAP_FORMS_LOAD(DIRET_FORMS() + "Company_list.nfm", DIRET_FORMS
 LOCAL N_RES := 0
 LOCAL C_MESSAGE := ""
 
-LOCAL V_DBBIND := { ;
-    "table", ;
-     { {|| empresas->uf} }, ;
-     { {|| empresas->codcid} }, ;
-     { {|| empresas->cidade} }, ;
-     { {|| empresas->gestora} }, ;
-     { {|| "Principal"} } ;
+LOCAL V_COLS := { ; // table columns
+    { HBNAP_LEFT, {|| empresas->uf} }, ;
+    { HBNAP_LEFT, {|| empresas->codcid} }, ;
+    { HBNAP_LEFT, {|| empresas->cidade} }, ;
+    { HBNAP_LEFT, {|| empresas->gestora} }, ;
+    { HBNAP_LEFT, {|| "Principal"} } ;
 }
 
 USE ../dados/empresas NEW SHARED
 GOTO TOP
 
 HBNAP_FORMS_TITLE(O_FORM, "Empresas")
-HBNAP_FORMS_AREA_BIND(O_FORM, V_DBBIND)
+HBNAP_FORMS_TABLE_BIND(O_FORM, "table", "EMPRESAS", V_COLS)
 HBNAP_FORMS_ONCLICK(O_FORM, "add_button", {|| ADD_EMPRESA(O_FORM) })
 HBNAP_FORMS_ONCLICK(O_FORM, "add_tool", {|| ADD_EMPRESA(O_FORM) })
 HBNAP_FORMS_ONCLICK(O_FORM, "edit_button", {|| EDIT_EMPRESA(O_FORM) })

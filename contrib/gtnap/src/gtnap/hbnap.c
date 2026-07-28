@@ -675,7 +675,7 @@ bool_t hbnap_forms_embed(HbNapForm *form, HbNapForm *embedded_form, const char_t
 
 /*---------------------------------------------------------------------------*/
 
-static const char_t *i_farea_eval_field(HbNapFDBConn *dbconn, const uint32_t field_id, const uint32_t row_id)
+static const char_t *i_farea_eval_field(HbNapFDBConn *dbconn, const uint32_t field_id, const uint32_t row_id, align_t *align)
 {
     uint32_t recno = 0;
     HbNapFArea2 *area = NULL;
@@ -683,6 +683,7 @@ static const char_t *i_farea_eval_field(HbNapFDBConn *dbconn, const uint32_t fie
     HB_ITEM *ritem = NULL;
 
     cassert_no_null(dbconn);
+    cassert_no_null(align);
     cassert(field_id > 0);
     area = arrst_get(dbconn->areas, 0, HbNapFArea2);
 
@@ -692,6 +693,7 @@ static const char_t *i_farea_eval_field(HbNapFDBConn *dbconn, const uint32_t fie
 
     /* Get the table column */
     column = arrst_get_const(area->columns, field_id - 1, HbNapFColumn);
+    *align = column->align;
 
     /* CodeBlock that computes the cell content */
     ritem = hb_itemDo(column->block, 0);
@@ -734,7 +736,7 @@ static void i_OnTableFAreaData(HbNapFDBConn *dbconn, Event *e)
     {
         EvTbCell *cell = event_result(e, EvTbCell);
         const EvTbPos *pos = event_params(e, EvTbPos);
-        cell->text = i_farea_eval_field(dbconn, pos->col + 1, pos->row);
+        cell->text = i_farea_eval_field(dbconn, pos->col + 1, pos->row, &cell->align);
         break;
     }
 
@@ -848,12 +850,12 @@ static void i_map_bind_area_to_form(HbNapFDBConn *dbconn)
 
 /*---------------------------------------------------------------------------*/
 
-static HbNapFDBConn *i_create_farea(HbNapForm *form, AREA *area)
+static HbNapFDBConn *i_create_farea(HbNapForm *form, const char_t *cell, AREA *area)
 {
     HbNapFDBConn *farea = heap_new0(HbNapFDBConn);
     HbNapFArea2 *area2 = NULL;
     farea->form = form;
-    farea->gui_id = NULL;
+    farea->gui_id = str_c(cell);
     farea->table = NULL;
     farea->tdata = NULL;
     farea->records = arrst_create(uint32_t);
@@ -1012,47 +1014,69 @@ void hbnap_forms_bind_store(HbNapForm *form)
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_area_bind(HbNapForm *form, HB_ITEM *column_bind)
+static align_t i_hbalign(int hbalign)
 {
-    AREA *area = NULL;
-    HB_SIZE n = UINT32_MAX;
+    switch (hbalign)
+    {
+    case HBNAP_LEFT:
+        return ekLEFT;
+    case HBNAP_CENTER:
+        return ekCENTER;
+    case HBNAP_RIGHT:
+        return ekRIGHT;
+    default:
+        cassert_default(hbalign);
+    }
+
+    return ekLEFT;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_table_bind(HbNapForm *form, const char_t *cell, HB_ITEM *area, HB_ITEM *columns)
+{
+    AREA *dbarea = NULL;
+    const char *area_id = NULL;
+    int iArea = 0;
+    HB_ERRCODE hbres;
+
     cassert_no_null(form);
     cassert(form->dbconn == NULL);
-    cassert(HB_ITEM_TYPE(column_bind) == HB_IT_ARRAY);
-    n = hb_arrayLen(column_bind);
-    cassert(n > 1);
+    cassert(HB_ITEM_TYPE(area) == HB_IT_STRING);
+    cassert(HB_ITEM_TYPE(columns) == HB_IT_ARRAY);
 
-    area = cast(hb_rddGetCurrentWorkAreaPointer(), AREA);
-    if (area != NULL)
+    /* Database area, resolved by alias, same as hbnap_forms_tree_bind */
+    area_id = hb_itemGetCPtr(area);
+    hbres = hb_rddGetAliasNumber(area_id, &iArea);
+    cassert_unref(hbres == HB_SUCCESS, hbres);
+    dbarea = cast(hb_rddGetWorkAreaPointer(iArea), AREA);
+    cassert_no_null(dbarea);
+
+    if (dbarea != NULL)
     {
-        HB_SIZE i;
+        HB_SIZE i, nCols = hb_arrayLen(columns);
         HbNapFArea2 *area2 = NULL;
-        form->dbconn = i_create_farea(form, area);
+        form->dbconn = i_create_farea(form, cell, dbarea);
         area2 = arrst_get(form->dbconn->areas, 0, HbNapFArea2);
 
-        for (i = 2; i <= n; ++i)
+        for (i = 1; i <= nCols; ++i)
         {
-            PHB_ITEM bind_item = hb_arrayGetItemPtr(column_bind, i);
+            PHB_ITEM col_item = hb_arrayGetItemPtr(columns, i);
+            PHB_ITEM align_item = NULL;
             PHB_ITEM block_item = NULL;
             HbNapFColumn *column = NULL;
-            /* At the moment, the column-bind item only has one member. The column block */
-            cassert(HB_ITEM_TYPE(bind_item) == HB_IT_ARRAY);
-            cassert(hb_arrayLen(bind_item) == 1);
-            block_item = hb_arrayGetItemPtr(bind_item, 1);
+            cassert(HB_ITEM_TYPE(col_item) == HB_IT_ARRAY);
+            cassert(hb_arrayLen(col_item) == 2);
+            align_item = hb_arrayGetItemPtr(col_item, 1);
+            block_item = hb_arrayGetItemPtr(col_item, 2);
+            cassert(HB_ITEM_TYPE(align_item) == HB_IT_INTEGER);
             cassert(HB_ITEM_TYPE(block_item) == HB_IT_BLOCK);
             column = arrst_new0(area2->columns, HbNapFColumn);
+            column->align = i_hbalign(hb_itemGetNI(align_item));
             column->block = block_item ? hb_itemNew(block_item) : NULL;
         }
 
-        /* The first element in bind array is the tableView cell name */
-        {
-            PHB_ITEM name_item = hb_arrayGetItemPtr(column_bind, 1);
-            const char *gui_id = NULL;
-            cassert(HB_ITEM_TYPE(name_item) == HB_IT_STRING);
-            gui_id = hb_itemGetCPtr(name_item);
-            form->dbconn->gui_id = str_c(cast_const(gui_id, char_t));
-            i_map_bind_area_to_form(form->dbconn);
-        }
+        i_map_bind_area_to_form(form->dbconn);
     }
 }
 
@@ -1084,25 +1108,6 @@ uint32_t hbnap_forms_area_recno(HbNapForm *form)
     {
         return UINT32_MAX;
     }
-}
-
-/*---------------------------------------------------------------------------*/
-
-static align_t i_hbalign(int hbalign)
-{
-    switch (hbalign)
-    {
-    case HBNAP_LEFT:
-        return ekLEFT;
-    case HBNAP_CENTER:
-        return ekCENTER;
-    case HBNAP_RIGHT:
-        return ekRIGHT;
-    default:
-        cassert_default(hbalign);
-    }
-
-    return ekLEFT;
 }
 
 /*---------------------------------------------------------------------------*/

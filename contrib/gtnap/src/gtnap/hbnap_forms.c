@@ -118,11 +118,13 @@ HB_FUNC(HBNAP_FORMS_BIND_STORE)
 
 /*---------------------------------------------------------------------------*/
 
-HB_FUNC(HBNAP_FORMS_AREA_BIND)
+HB_FUNC(HBNAP_FORMS_TABLE_BIND)
 {
     HbNapForm *form = cast(hb_parptr(1), HbNapForm);
-    HB_ITEM *column_bind = hb_param(2, HB_IT_ARRAY);
-    hbnap_forms_area_bind(form, column_bind);
+    const char_t *cell = hb_parcx(2);
+    HB_ITEM *area = hb_param(3, HB_IT_STRING);
+    HB_ITEM *columns = hb_param(4, HB_IT_ARRAY);
+    hbnap_forms_table_bind(form, cell, area, columns);
 }
 
 /*---------------------------------------------------------------------------*/
