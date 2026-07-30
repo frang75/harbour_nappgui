@@ -35,7 +35,6 @@
 #include <geom2d/v2d.h>
 #include <core/arrst.h>
 #include <core/arrpt.h>
-#include <core/setst.h>
 #include <core/event.h>
 #include <core/heap.h>
 #include <core/hfile.h>
@@ -61,7 +60,6 @@ typedef struct _hbnap_fcolumn_t HbNapFColumn;
 typedef struct _hbnap_fnode_t HbNapFNode;
 typedef struct _hbnap_fbdconn_t HbNapFDBConn;
 typedef struct _hbnap_farea2_t HbNapFArea2;
-typedef struct _hbnap_prop_t HbNapProp;
 typedef struct _hbnap_t HbNap;
 typedef void (*FPtr_hbnap_callback)(HbNapCallback *callback, Event *event);
 
@@ -128,12 +126,6 @@ struct _hbnap_form_t
     ArrPt(HbNapCallback) *callbacks;
 };
 
-struct _hbnap_prop_t
-{
-    String *key;
-    String *value;
-};
-
 struct _hbnap_t
 {
     String *working_path;
@@ -143,11 +135,9 @@ struct _hbnap_t
     bool_t debugger_visible;
     GtNapDebugger *debugger;
     ArrPt(HbNapCallback) *menu_callbacks;
-    SetSt(HbNapProp) *properties;
 };
 
 DeclPt(HbNapCallback);
-DeclSt(HbNapProp);
 DeclSt(HbNapBind);
 DeclSt(HbNapFColumn);
 DeclSt(HbNapFArea2);
@@ -165,69 +155,95 @@ static const char_t *i_XPOS_PROP = "XPOS";
 static const char_t *i_YPOS_PROP = "YPOS";
 static const char_t *i_WIDTH_PROP = "WIDTH";
 static const char_t *i_HEIGHT_PROP = "HEIGHT";
+static const char_t *i_CONFIG_FILE = "config.txt";
 
 #define HBNAP_TEXT_SIZE 1024
 static char_t HBNAP_TEMP_BUFFER[HBNAP_TEXT_SIZE];
 
 /*---------------------------------------------------------------------------*/
 
-static void i_remove_property(HbNapProp *prop)
+static void i_write_property(const char_t *wnameid, const char_t *propid, const char_t *value)
 {
-    cassert_no_null(prop);
-    str_destroy(&prop->key);
-    str_destroy(&prop->value);
-}
+    String *cfile = hfile_appdata(i_CONFIG_FILE);
+    String *propname = str_printf("%s-%s", wnameid, propid);
+    Stream *mem = stm_memory(1024);
+    Stream *in = stm_from_file(tc(cfile), NULL);
+    bool_t found = FALSE;
 
-/*---------------------------------------------------------------------------*/
-
-static int i_prop_cmp(const HbNapProp *prop, const char_t *key)
-{
-    cassert_no_null(prop);
-    return str_cmp(prop->key, key);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_save_properties(const SetSt(HbNapProp) *properties)
-{
-    String *cfile = hfile_appdata("config.txt");
-    Stream *stm = stm_to_file(tc(cfile), NULL);
-    if (stm != NULL)
+    if (in != NULL)
     {
-        setst_foreach_const(prop, properties, HbNapProp)
-            stm_writef(stm, tc(prop->key));
-            stm_writef(stm, ":");
-            stm_writef(stm, tc(prop->value));
-            stm_writef(stm, "\n");
-        setst_fornext_const(prop, properties, HbNapProp)
-        stm_close(&stm);
+        stm_lines(line, in)
+            String *key = NULL;
+            String *val = NULL;
+            str_split_trim(line, ":", &key, &val);
+
+            if (found == FALSE && str_cmp(key, tc(propname)) == 0)
+            {
+                stm_writef(mem, tc(propname));
+                stm_writef(mem, ":");
+                stm_writef(mem, value);
+                stm_writef(mem, "\n");
+                found = TRUE;
+            }
+            else
+            {
+                stm_writef(mem, tc(key));
+                stm_writef(mem, ":");
+                stm_writef(mem, tc(val));
+                stm_writef(mem, "\n");
+            }
+
+            str_destroy(&key);
+            str_destroy(&val);
+        stm_next(line, in)
+        stm_close(&in);
     }
 
+    if (found == FALSE)
+    {
+        stm_writef(mem, tc(propname));
+        stm_writef(mem, ":");
+        stm_writef(mem, value);
+        stm_writef(mem, "\n");
+    }
+
+    {
+        Stream *out = stm_to_file(tc(cfile), NULL);
+        if (out != NULL)
+        {
+            stm_write(out, stm_buffer(mem), stm_buffer_size(mem));
+            stm_close(&out);
+        }
+    }
+
+    stm_close(&mem);
+    str_destroy(&propname);
     str_destroy(&cfile);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_load_properties(SetSt(HbNapProp) *properties)
+static bool_t i_read_property(const char_t *wnameid, const char_t *propid, char_t *propbuf, const uint32_t bufsize)
 {
-    String *cfile = hfile_appdata("config.txt");
+    String *cfile = hfile_appdata(i_CONFIG_FILE);
     Stream *stm = stm_from_file(tc(cfile), NULL);
+    String *propname = str_printf("%s-%s", wnameid, propid);
+    bool_t found = FALSE;
+
     if (stm != NULL)
     {
         stm_lines(line, stm)
-            String *key = NULL;
-            String *value = NULL;
-            HbNapProp *prop = NULL;
-            str_split_trim(line, ":", &key, &value);
-            prop = setst_insert(properties, tc(key), HbNapProp, char_t);
-            if (prop != NULL)
+            if (found == FALSE)
             {
-                prop->key = key;
-                prop->value = value;
-            }
-            else
-            {
-                /* Duplicated property */
+                String *key = NULL;
+                String *value = NULL;
+                str_split_trim(line, ":", &key, &value);
+                if (str_cmp(key, tc(propname)) == 0)
+                {
+                    str_copy_c(propbuf, bufsize, tc(value));
+                    found = TRUE;
+                }
+
                 str_destroy(&key);
                 str_destroy(&value);
             }
@@ -235,43 +251,9 @@ static void i_load_properties(SetSt(HbNapProp) *properties)
         stm_close(&stm);
     }
 
-    str_destroy(&cfile);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_write_property(SetSt(HbNapProp) *properties, const char_t *wnameid, const char_t *propid, const char_t *value)
-{
-    String *propname = str_printf("%s-%s", wnameid, propid);
-    HbNapProp *prop = setst_get(properties, tc(propname), HbNapProp, char_t);
-    if (prop == NULL)
-    {
-        prop = setst_insert(properties, tc(propname), HbNapProp, char_t);
-        prop->key = propname;
-        prop->value = NULL;
-        propname = NULL;
-    }
-    else
-    {
-        cassert_no_null(prop->value);
-    }
-
-    str_upd(&prop->value, value);
-    str_destopt(&propname);
-    i_save_properties(properties);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static const char_t *i_read_property(const SetSt(HbNapProp) *properties, const char_t *wnameid, const char_t *propid)
-{
-    String *propname = str_printf("%s-%s", wnameid, propid);
-    const HbNapProp *prop = setst_get_const(properties, tc(propname), HbNapProp, char_t);
-    const char_t *ret = NULL;
-    if (prop != NULL)
-        ret = tc(prop->value);
     str_destroy(&propname);
-    return ret;
+    str_destroy(&cfile);
+    return found;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -280,15 +262,15 @@ static void i_write_prop_r32(const char_t *wnameid, const char_t *propid, const 
 {
     char_t svalue[64];
     bstd_sprintf(svalue, sizeof(svalue), "%g", value);
-    i_write_property(HBNAP_GLOBAL->properties, wnameid, propid, svalue);
+    i_write_property(wnameid, propid, svalue);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static real32_t i_read_prop_r32(const char_t *wnameid, const char_t *propid)
 {
-    const char_t *value = i_read_property(HBNAP_GLOBAL->properties, wnameid, propid);
-    if (value != NULL)
+    char_t value[64];
+    if (i_read_property(wnameid, propid, value, sizeof(value)) == TRUE)
     {
         bool_t err = FALSE;
         real32_t val32 = str_to_r32(value, &err);
@@ -344,8 +326,6 @@ static HbNap *i_hbnap_state_create(void)
         HBNAP_GLOBAL->debugger = NULL;
     }
 
-    HBNAP_GLOBAL->properties = setst_create(i_prop_cmp, HbNapProp, char_t);
-    i_load_properties(HBNAP_GLOBAL->properties);
     deblib_init_colors(i_COLORS);
     return HBNAP_GLOBAL;
 }
@@ -365,7 +345,6 @@ static void i_hbnap_state_destroy(HbNap **gtnap)
     if ((*gtnap)->debugger != NULL)
         nap_debugger_destroy(&(*gtnap)->debugger);
 
-    setst_destroy(&(*gtnap)->properties, i_remove_property, HbNapProp);
     heap_delete(gtnap, HbNap);
 }
 
