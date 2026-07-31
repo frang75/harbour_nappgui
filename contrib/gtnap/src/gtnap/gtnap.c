@@ -338,8 +338,6 @@ static const real32_t i_UNDEF_R32 = REAL32_MAX;
 static const real32_t i_MAXIMIZED_SIZE = 1e10f;
 static const char_t *i_XPOS_PROP = "XPOS";
 static const char_t *i_YPOS_PROP = "YPOS";
-static const char_t *i_WIDTH_PROP = "WIDTH";
-static const char_t *i_HEIGHT_PROP = "HEIGHT";
 static const char_t *i_CONFIG_FILE = "config.txt";
 static const char_t *i_FONT_REF_TEXT = "exibicao/edicao de texto em memoria";
 
