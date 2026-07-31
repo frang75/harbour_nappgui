@@ -1,8 +1,16 @@
 # hboffice options for projects that use it
+# officesdk.dll/.so/.dylib is vendored in officesdk/bin/<platform>
+# no build step required for it (same binary works for msvc64/mingw64/clang on Windows).
 
-incpaths=.
-{!debug}libpaths=build/Release/lib build/Release/bin
-{debug}libpaths=build/Debug/lib build/Debug/bin
+incpaths=. officesdk/include
+
+{win&!debug}libpaths=build/Release/lib officesdk/bin/win
+{win&debug}libpaths=build/Debug/lib officesdk/bin/win
+{linux&!debug}libpaths=build/Release/lib officesdk/bin/linux
+{linux&debug}libpaths=build/Debug/lib officesdk/bin/linux
+{darwin&!debug}libpaths=build/Release/lib officesdk/bin/darwin
+{darwin&debug}libpaths=build/Debug/lib officesdk/bin/darwin
+
 {clang}libs=hboffice officesdk
 {!clang}libs=officesdk hboffice
 cpp=yes

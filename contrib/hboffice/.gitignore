@@ -1,6 +1,8 @@
-/build
+build
 /tests/sheet1
 /tests/sheet2
 /tests/doc1
 /tests/doc2
 /tests/result
+
+!officesdk/bin/**/*

@@ -464,7 +464,7 @@ void nap_menu_add(Panel *panel, Window *window, HB_ITEM *text_block, HB_ITEM *cl
 {
     MenuVert *menu = panel_get_data(panel, MenuVert);
     MenuOpt *opt = arrst_new0(menu->opts, MenuOpt);
-    opt->text = hb_block_to_utf8(text_block);
+    opt->text = hb_item_to_string(text_block);
     opt->block = click_block ? hb_itemNew(click_block) : NULL;
     opt->kpos = (kpos == 0) ? UINT32_MAX : kpos - 1;
     opt->key = ENUM_MAX(vkey_t);
@@ -538,7 +538,7 @@ HB_FUNC(NAP_MENU)
     int32_t right = hb_parni(5);
     bool_t autoclose = (bool_t)hb_parl(6);
     bool_t in_scroll = (bool_t)hb_parl(7);
-    uint32_t id = hb_gtnap_menu(wid, top, left, bottom, right, autoclose, in_scroll);
+    uint32_t id = gtnap_menu(wid, top, left, bottom, right, autoclose, in_scroll);
     hb_retni(id);
 }
 
@@ -551,7 +551,7 @@ HB_FUNC(NAP_MENU_ADD)
     HB_ITEM *text_block = hb_param(3, HB_IT_BLOCK);
     HB_ITEM *click_block = hb_param(4, HB_IT_BLOCK);
     uint32_t kpos = hb_parni(5);
-    hb_gtnap_menu_add(wid, id, text_block, click_block, kpos);
+    gtnap_menu_add(wid, id, text_block, click_block, kpos);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -560,6 +560,6 @@ HB_FUNC(NAP_MENU_SELECTED)
 {
     uint32_t wid = hb_parni(1);
     uint32_t id = hb_parni(2);
-    uint32_t sel = hb_gtnap_menu_selected(wid, id);
+    uint32_t sel = gtnap_menu_selected(wid, id);
     hb_retni(sel + 1);
 }

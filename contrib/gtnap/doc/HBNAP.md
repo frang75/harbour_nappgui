@@ -7,7 +7,7 @@
 * [UTF8 based](#utf8-based)
 * [Runtime connection](#runtime-connection)
 * [Data binding](#data-binding)
-* [Area binding (TableView)](#area-binding-tableview)
+* [Table binding (TableView)](#table-binding-tableview)
 * [Tree binding (TableView)](#tree-binding-tableview)
 * [HBNAP API Reference](#hbnap-api-reference)
     - [HBNAP_FORMS_LOAD](#hbnap_forms_load)
@@ -20,7 +20,7 @@
     - [HBNAP_FORMS_EMBED](#hbnap_forms_embed)
     - [HBNAP_FORMS_BIND](#hbnap_forms_bind)
     - [HBNAP_FORMS_BIND_STORE](#hbnap_forms_bind_store)
-    - [HBNAP_FORMS_AREA_BIND](#hbnap_forms_area_bind)
+    - [HBNAP_FORMS_TABLE_BIND](#hbnap_forms_table_bind)
     - [HBNAP_FORMS_AREA_REFRESH](#hbnap_forms_area_refresh)
     - [HBNAP_FORMS_AREA_RECNO](#hbnap_forms_area_recno)
     - [HBNAP_FORMS_TREE_BIND](#hbnap_forms_tree_bind)
@@ -151,27 +151,26 @@ HBNAP_FORMS_BIND_STORE(O_FORM)
 
 ![hbnap5](./images/hbnap5.png)
 
-## Area binding (TableView)
+## Table binding (TableView)
 
-In addition to binding widgets with variables, we can bind a database with a data view (TableView). To do this we will use the `HBNAP_FORMS_AREA_BIND()` function.
+In addition to binding widgets with variables, we can bind a database with a data view (TableView). To do this we will use the `HBNAP_FORMS_TABLE_BIND()` function.
 
 ```
-LOCAL V_DBBIND := { ;
-    "table", ;
-     { {|| empresas->uf} }, ;
-     { {|| empresas->codcid} }, ;
-     { {|| empresas->cidade} }, ;
-     { {|| empresas->gestora} }, ;
-     { {|| "Principal"} } ;
+LOCAL V_COLS := { ; // table columns
+    { HBNAP_LEFT, {|| empresas->uf} }, ;
+    { HBNAP_LEFT, {|| empresas->codcid} }, ;
+    { HBNAP_LEFT, {|| empresas->cidade} }, ;
+    { HBNAP_LEFT, {|| empresas->gestora} }, ;
+    { HBNAP_LEFT, {|| "Principal"} } ;
 }
 
 USE ../dados/empresas NEW SHARED
 GOTO TOP
 
-HBNAP_FORMS_AREA_BIND(O_FORM, V_DBBIND)
+HBNAP_FORMS_TABLE_BIND(O_FORM, "table", "EMPRESAS", V_COLS)
 ```
 
-The first value of the `V_DBBIND` vector will be the `cellName` that contains the `TableView` control. The subsequent values ??will correspond to the code blocks that will be executed for each column of the table, for each record in the database.
+`"table"` is the `cellName` of the `TableView` control. `"EMPRESAS"` is the alias of the database opened with `USE...SHARED`. `V_COLS` is an array of column descriptors `{ alignment, {|| value_block} }`, one per table column — alignment constants (`hbnap.ch`): `HBNAP_LEFT`, `HBNAP_CENTER`, `HBNAP_RIGHT`.
 
 ![hbnap6](./images/hbnap6.png)
 
@@ -413,27 +412,29 @@ HBNAP_FORMS_BIND_STORE(O_FORM)
 PAR1: Form object.
 ```
 
-### HBNAP_FORMS_AREA_BIND
+### HBNAP_FORMS_TABLE_BIND
 
-Links a `TableView` control on the form to a Harbour database. See [Area Binding](#area-binding-tableview).
+Links a `TableView` control on the form to a single Harbour database. See [Table binding](#table-binding-tableview).
 
 ```
-LOCAL V_DBBIND := { ;
-    "table", ;
-     { {|| empresas->uf} }, ;
-     { {|| empresas->codcid} }, ;
-     { {|| empresas->cidade} }, ;
-     { {|| empresas->gestora} }, ;
-     { {|| "Principal"} } ;
+LOCAL V_COLS := { ; // table columns
+    { HBNAP_LEFT, {|| empresas->uf} }, ;
+    { HBNAP_LEFT, {|| empresas->codcid} }, ;
+    { HBNAP_LEFT, {|| empresas->cidade} }, ;
+    { HBNAP_LEFT, {|| empresas->gestora} }, ;
+    { HBNAP_LEFT, {|| "Principal"} } ;
 }
 
 USE ../dados/empresas NEW SHARED
 GOTO TOP
 
-HBNAP_FORMS_AREA_BIND(O_FORM, V_DBBIND)
+HBNAP_FORMS_TABLE_BIND(O_FORM, "table", "EMPRESAS", V_COLS)
 
 PAR1: Form object.
-PAR2: Vector. First element is the TableView cellName. The other elements will contain the code block to execute on each column of the table.
+PAR2: TableView cell name.
+PAR3: Area alias string. Must be opened with USE...SHARED.
+PAR4: Array of column descriptors { { align, block }, ... }.
+      Alignment constants (hbnap.ch): HBNAP_LEFT, HBNAP_CENTER, HBNAP_RIGHT.
 ```
 
 ### HBNAP_FORMS_AREA_REFRESH

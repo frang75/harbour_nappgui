@@ -7,7 +7,15 @@
 
 __EXTERN_C
 
-extern String *hb_block_to_utf8(HB_ITEM *item);
+extern String *hb_item_to_string(HB_ITEM *item);
+
+extern void hb_item_to_char(HB_ITEM *item, char_t *buffer, const uint32_t size, const bool_t utf8);
+
+extern Window *gtnap_current_window(void);
+
+extern void hbnap_init_indirect(void);
+
+extern void hbnap_exit_indirect(void);
 
 __END_C
 

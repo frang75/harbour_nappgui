@@ -136,8 +136,8 @@ add_subdirectory(${NAPPGUI_ROOT_PATH}/src/nforms)
 add_subdirectory(${NAPPGUI_ROOT_PATH}/src/napdesign)
 
 # HBOffice
-add_subdirectory(${HBOFFICE_ROOT_PATH}/src/officesdk)
-add_subdirectory(${HBOFFICE_ROOT_PATH}/src/hboffice)
+add_subdirectory(${HBOFFICE_ROOT_PATH}/officesdk)
+add_subdirectory(${HBOFFICE_ROOT_PATH}/src)
 
 # HBAWS
 add_subdirectory(${HBAWS_ROOT_PATH}/src)

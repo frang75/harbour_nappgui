@@ -1,7 +1,3 @@
-// Office example 'sheet1'
-// From \contrib\hboffice\tests
-// ..\..\..\bin\win\mingw64\hbmk2 sheet1.prg hboffice.hbc -comp=mingw64
-// ../../../bin/linux/gcc/hbmk2 sheet1.prg hboffice.hbc
 #include "hboffice.ch"
 
 REQUEST HB_CODEPAGE_PTISO
@@ -187,7 +183,7 @@ IF OFFICE_ERROR("ERROR Fechando planilha")
     RETURN
 ENDIF
 
-? "A planilha foi criada com sucesso." + hb_eol()
+? "A planilha foi criada com sucesso."
 
 HBOFFICE_FINISH()
 RETURN

@@ -74,18 +74,20 @@ if [[ "$BUILD_HARBOUR" == "yes" ]]; then
     echo ----------------------------------------
 fi
 
-# Compile LibreOffice
+# Compile HBOffice
 cd contrib/hboffice
 rm -rf build
 
-# First, the LibreOffice dll
-bash build.sh -dll -comp $ALL_BUILD_COMPILER -b $BUILD || { echo "Error building HBOffice DLL" ; exit 1; }
+# First, the vendored officesdk.so/.dylib (only maintainers need to rebuild it)
+cd officesdk
+bash build.sh -comp $ALL_BUILD_COMPILER -b $BUILD || { echo "Error building HBOffice officesdk" ; exit 1; }
+cd ..
 echo --------------------------------
-echo hboffice dll build successfully
+echo hboffice officesdk build successfully
 echo --------------------------------
 
-# Then, the LibreOffice lib
-bash build.sh -lib -comp $ALL_BUILD_COMPILER -b $BUILD || { echo "Error building HBOffice LIB" ; exit 1; }
+# Then, the hboffice lib
+bash build.sh -comp $ALL_BUILD_COMPILER -b $BUILD || { echo "Error building HBOffice LIB" ; exit 1; }
 echo --------------------------------
 echo hboffice $ALL_BUILD_COMPILER lib build successfully
 echo --------------------------------
@@ -119,9 +121,9 @@ rm exemplo
 
 if [ "$(uname)" == "Darwin" ]; then
     export PATH=$PATH:/Applications/LibreOffice.app/Contents/MacOS
-    export DYLD_LIBRARY_PATH=$AWS_SDK_ROOT/$ALL_BUILD_COMPILER/Release/lib:$LIBREOFFICE_HOME/Contents/Frameworks:$HARBOUR_HOME/contrib/hboffice/build/Release/bin
+    export DYLD_LIBRARY_PATH=$AWS_SDK_ROOT/$ALL_BUILD_COMPILER/Release/lib:$LIBREOFFICE_HOME/Contents/Frameworks:$HARBOUR_HOME/contrib/hboffice/officesdk/bin/$PLATFORM
 else
-    export LD_LIBRARY_PATH=$AWS_SDK_ROOT/$ALL_BUILD_COMPILER/Release/lib:$LIBREOFFICE_HOME/program:$HARBOUR_HOME/contrib/hboffice/build/Release/bin
+    export LD_LIBRARY_PATH=$AWS_SDK_ROOT/$ALL_BUILD_COMPILER/Release/lib:$LIBREOFFICE_HOME/program:$HARBOUR_HOME/contrib/hboffice/officesdk/bin/$PLATFORM
 fi
 
 ../../../../../bin/$PLATFORM/$ALL_BUILD_COMPILER/hbmk2 -comp=$ALL_BUILD_COMPILER exemplo.hbp
