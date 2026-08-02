@@ -6,6 +6,10 @@
 :: Only for Visual Studio
 :: "%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 :: build -b [Debug|Release] -comp [msvc64|mingw64|clang]
+::
+:: Run in text mode
+:: .\gtnap.exe --hb:GT:WIN
+::
 
 @echo off
 
