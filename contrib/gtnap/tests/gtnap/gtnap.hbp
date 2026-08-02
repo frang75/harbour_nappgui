@@ -8,8 +8,9 @@
 -gui
 
 # GT
--gtwin{msvc}
+-gtwin{win}
 -gttrm{gcc}
+-gtwvt{win}
 -gtnap
 
 # Sources

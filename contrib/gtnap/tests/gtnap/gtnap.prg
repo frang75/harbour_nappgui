@@ -21,6 +21,8 @@ IF HB_GTVERSION()=="NAP"
     NAP_TERMINAL()
 ENDIF
 
+SET CURSOR OFF
+
 aMenu := { ;
     { "Text demo", { ;
         { "Sequential Text", {|| SEQUENTIAL_TEXT_DEMO() } }, ;
