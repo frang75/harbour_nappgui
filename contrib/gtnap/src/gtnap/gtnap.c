@@ -1306,6 +1306,7 @@ static GtNap *i_gtnap_create(void)
 {
     S2Df screen;
     const char_t *build_cfg = NULL;
+    gui_dpi_aware(FALSE);
     hbnap_init_indirect();
 
     GTNAP_GLOBAL = heap_new0(GtNap);
