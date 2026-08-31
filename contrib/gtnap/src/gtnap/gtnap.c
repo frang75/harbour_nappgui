@@ -956,12 +956,22 @@ static real32_t i_edit_size(const Font *font)
 
 /*---------------------------------------------------------------------------*/
 
+static Font *i_font_monospace_cell_size(const real32_t fsize)
+{
+    Font *font = font_monospace(fsize, 0);
+    Font *fcell = font_with_cell_size(font, fsize);
+    font_destroy(&font);
+    return fcell;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static bool_t i_font_fit_height(GtNap *gtnap, const real32_t fsize, const real32_t height, const real32_t tolerance)
 {
     real32_t w = 0, h = 0;
     cassert_no_null(gtnap);
     ptr_destopt(font_destroy, &gtnap->global_font, Font);
-    gtnap->global_font = font_monospace(fsize, ekFCELL);
+    gtnap->global_font = i_font_monospace_cell_size(fsize);
 
     /* Compute the real size of a cell, based on font */
     font_extents(gtnap->global_font, i_FONT_REF_TEXT, -1, &w, &h);
@@ -988,7 +998,7 @@ static bool_t i_button_fit_height(GtNap *gtnap, const real32_t fsize, const real
     {
         real32_t bheight = 0;
         ptr_destopt(font_destroy, &gtnap->button_font, Font);
-        gtnap->button_font = font_monospace(bsize, ekFCELL);
+        gtnap->button_font = i_font_monospace_cell_size(bsize);
         bheight = i_button_size(gtnap->button_font);
         if (bheight > height + tolerance)
         {
@@ -1014,7 +1024,7 @@ static bool_t i_edit_fit_height(GtNap *gtnap, const real32_t fsize, const real32
     {
         real32_t eheight = 0;
         ptr_destopt(font_destroy, &gtnap->edit_font, Font);
-        gtnap->edit_font = font_monospace(esize, ekFCELL);
+        gtnap->edit_font = i_font_monospace_cell_size(esize);
         eheight = i_edit_size(gtnap->edit_font);
         if (eheight > height + tolerance)
         {
@@ -3951,7 +3961,6 @@ uint32_t gtnap_textview(const uint32_t wid, const int32_t top, const int32_t lef
     cassert_no_null(gtwin);
     textview_family(view, font_family(GTNAP_GLOBAL->global_font));
     textview_fsize(view, font_size(GTNAP_GLOBAL->global_font));
-    textview_units(view, font_units(GTNAP_GLOBAL->global_font));
     textview_apply_all(view);
     size.width = (real32_t)(right - left + 1) * GTNAP_GLOBAL->cell_x_sizef;
     size.height = (real32_t)(bottom - top + 1) * GTNAP_GLOBAL->cell_y_sizef;

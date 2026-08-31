@@ -1717,22 +1717,36 @@ void _oswindow_delete_tooltip(OSWindow *window, HWND control_hwnd)
 
 void _oswindow_scale_size(const OSWindow *window, const real32_t width, const real32_t height, LONG *nwidth, LONG *nheight)
 {
-    cassert_no_null(window);
     cassert_no_null(nwidth);
     cassert_no_null(nheight);
-    *nwidth = (LONG)bmath_roundf(width * window->scale);
-    *nheight = (LONG)bmath_roundf(height * window->scale);
+    if (window != NULL)
+    {
+        *nwidth = (LONG)bmath_roundf(width * window->scale);
+        *nheight = (LONG)bmath_roundf(height * window->scale);
+    }
+    else
+    {
+        *nwidth = (LONG)width;
+        *nheight = (LONG)height;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
 void _oswindow_scale_pos(const OSWindow *window, const real32_t x, const real32_t y, LONG *nx, LONG *ny)
 {
-    cassert_no_null(window);
     cassert_no_null(nx);
     cassert_no_null(ny);
-    *nx = (LONG)bmath_roundf(x * window->scale);
-    *ny = (LONG)bmath_roundf(y * window->scale);
+    if (window != NULL)
+    {
+        *nx = (LONG)bmath_roundf(x * window->scale);
+        *ny = (LONG)bmath_roundf(y * window->scale);
+    }
+    else
+    {
+        *nx = (LONG)x;
+        *ny = (LONG)y;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1747,6 +1761,7 @@ uint32_t _oswindow_dpi(const OSWindow *window)
 
 real32_t _oswindow_scale(const OSWindow *window)
 {
-    cassert_no_null(window);
-    return window->scale;
+    if (window != NULL)
+        return window->scale;
+    return 1.f;
 }
