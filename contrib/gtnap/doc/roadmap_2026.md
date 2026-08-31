@@ -48,7 +48,7 @@ The main goal this year is to consolidate the use of GTNAP/Forms in the Aspec pr
 - Sprint 11: Implement ToolButton texts in NAppGUI/designer. **Done Sprint 104 30/04/26**
 - Sprint 12: Add TabBar and TreeView to designer. **Done Sprint 106 31/05/26**
 - Sprint 13: Implement HiDPI support in NAppGUI Win32 backend (I). **Done Sprint 111 15/08/26**
-- Sprint 14: Implement HiDPI support in NAppGUI Win32 backend (II). **Done Sprint 112 15/08/26**
+- Sprint 14: Implement HiDPI support in NAppGUI Win32 backend (II). **Done Sprint 112 31/08/26**
 - Sprint 15: Implement support in NAppGUI for GTK3/Wayland backend. Ubuntu 24+ application icon.
 - Sprint 16: --> Possible maintenance tasks for current projects. HBAWS Vendorization **Done Sprint 109 15/07/26**
 - Sprint 17: Implement HiDPI support in NAppGUI GTK backend.
