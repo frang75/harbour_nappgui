@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: treest.hxx
+ * https://nappgui.com/en/core/treest.html
  *
  */
 
@@ -102,10 +103,16 @@
         ntree_write_ex(stream, cast_const(tree, NTree), func_write, data); \
     } \
 \
-    static __TYPECHECK NodeSt(type) *treest_##type##_root_get(const TreeSt(type) *tree); \
-    static NodeSt(type) *treest_##type##_root_get(const TreeSt(type) *tree) \
+    static __TYPECHECK NodeSt(type) *treest_##type##_root_get(TreeSt(type) *tree); \
+    static NodeSt(type) *treest_##type##_root_get(TreeSt(type) *tree) \
     { \
-        return cast(ntree_root_get(cast_const(tree, NTree)), NodeSt(type)); \
+        return cast(ntree_root_get(cast(tree, NTree)), NodeSt(type)); \
+    } \
+\
+    static __TYPECHECK const NodeSt(type) *treest_##type##_root_get_const(const TreeSt(type) *tree); \
+    static const NodeSt(type) *treest_##type##_root_get_const(const TreeSt(type) *tree) \
+    { \
+        return cast_const(ntree_root_get(cast_const(tree, NTree)), NodeSt(type)); \
     } \
 \
     static __TYPECHECK NodeSt(type) *treest_##type##_root_new(TreeSt(type) *tree); \
@@ -120,10 +127,22 @@
         return cast(ntree_dfs_first(cast(tree, NTree)), NodeSt(type)); \
     } \
 \
+    static __TYPECHECK const NodeSt(type) *treest_##type##_dfs_first_const(const TreeSt(type) *tree); \
+    static const NodeSt(type) *treest_##type##_dfs_first_const(const TreeSt(type) *tree) \
+    { \
+        return cast_const(ntree_dfs_first(cast(tree, NTree)), NodeSt(type)); \
+    } \
+\
     static __TYPECHECK NodeSt(type) *treest_##type##_dfs_last(TreeSt(type) *tree); \
     static NodeSt(type) *treest_##type##_dfs_last(TreeSt(type) *tree) \
     { \
         return cast(ntree_dfs_last(cast(tree, NTree)), NodeSt(type)); \
+    } \
+\
+    static __TYPECHECK const NodeSt(type) *treest_##type##_dfs_last_const(const TreeSt(type) *tree); \
+    static const NodeSt(type) *treest_##type##_dfs_last_const(const TreeSt(type) *tree) \
+    { \
+        return cast_const(ntree_dfs_last(cast(tree, NTree)), NodeSt(type)); \
     } \
 \
     static __TYPECHECK NodeSt(type) *treest_##type##_next(TreeSt(type) *tree); \
@@ -132,10 +151,22 @@
         return cast(ntree_next(cast(tree, NTree)), NodeSt(type)); \
     } \
 \
+    static __TYPECHECK const NodeSt(type) *treest_##type##_next_const(const TreeSt(type) *tree); \
+    static const NodeSt(type) *treest_##type##_next_const(const TreeSt(type) *tree) \
+    { \
+        return cast_const(ntree_next(cast(tree, NTree)), NodeSt(type)); \
+    } \
+\
     static __TYPECHECK NodeSt(type) *treest_##type##_prev(TreeSt(type) *tree); \
     static NodeSt(type) *treest_##type##_prev(TreeSt(type) *tree) \
     { \
         return cast(ntree_prev(cast(tree, NTree)), NodeSt(type)); \
+    } \
+\
+    static __TYPECHECK const NodeSt(type) *treest_##type##_prev_const(const TreeSt(type) *tree); \
+    static const NodeSt(type) *treest_##type##_prev_const(const TreeSt(type) *tree) \
+    { \
+        return cast_const(ntree_prev(cast(tree, NTree)), NodeSt(type)); \
     } \
 \
     static __TYPECHECK void treest_##type##_dfs_stop(TreeSt(type) *tree); \
@@ -162,16 +193,28 @@
         return ntree_node_index(cast_const(node, NNode)); \
     } \
 \
-    static __TYPECHECK NodeSt(type) *treest_##type##_node_parent(const NodeSt(type) *node); \
-    static NodeSt(type) *treest_##type##_node_parent(const NodeSt(type) *node) \
+    static __TYPECHECK NodeSt(type) *treest_##type##_node_parent(NodeSt(type) *node); \
+    static NodeSt(type) *treest_##type##_node_parent(NodeSt(type) *node) \
     { \
-        return cast(ntree_node_parent(cast_const(node, NNode)), NodeSt(type)); \
+        return cast(ntree_node_parent(cast(node, NNode)), NodeSt(type)); \
     } \
 \
-    static __TYPECHECK NodeSt(type) *treest_##type##_node_get(const NodeSt(type) *node, const uint32_t pos); \
-    static NodeSt(type) *treest_##type##_node_get(const NodeSt(type) *node, const uint32_t pos) \
+    static __TYPECHECK const NodeSt(type) *treest_##type##_node_parent_const(const NodeSt(type) *node); \
+    static const NodeSt(type) *treest_##type##_node_parent_const(const NodeSt(type) *node) \
     { \
-        return cast(ntree_node_get(cast_const(node, NNode), pos), NodeSt(type)); \
+        return cast_const(ntree_node_parent(cast_const(node, NNode)), NodeSt(type)); \
+    } \
+\
+    static __TYPECHECK NodeSt(type) *treest_##type##_node_get(NodeSt(type) *node, const uint32_t pos); \
+    static NodeSt(type) *treest_##type##_node_get(NodeSt(type) *node, const uint32_t pos) \
+    { \
+        return cast(ntree_node_get(cast(node, NNode), pos), NodeSt(type)); \
+    } \
+\
+    static __TYPECHECK const NodeSt(type) *treest_##type##_node_get_const(const NodeSt(type) *node, const uint32_t pos); \
+    static const NodeSt(type) *treest_##type##_node_get_const(const NodeSt(type) *node, const uint32_t pos) \
+    { \
+        return cast_const(ntree_node_get(cast_const(node, NNode), pos), NodeSt(type)); \
     } \
 \
     static __TYPECHECK NodeSt(type) *treest_##type##_node_insert(NodeSt(type) *node, const uint32_t pos); \

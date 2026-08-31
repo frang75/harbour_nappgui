@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: treept.h
+ * https://nappgui.com/en/core/treept.html
  *
  */
 
@@ -50,20 +51,35 @@
 #define treept_root_get(tree, type) \
     treept_##type##_root_get(tree)
 
+#define treept_root_get_const(tree, type) \
+    treept_##type##_root_get_const(tree)
+
 #define treept_root_new(tree, ptr, type) \
     treept_##type##_root_new(tree, ptr)
 
 #define treept_dfs_first(tree, type) \
     treept_##type##_dfs_first(tree)
 
+#define treept_dfs_first_const(tree, type) \
+    treept_##type##_dfs_first_const(tree)
+
 #define treept_dfs_last(tree, type) \
     treept_##type##_dfs_last(tree)
+
+#define treept_dfs_last_const(tree, type) \
+    treept_##type##_dfs_last_const(tree)
 
 #define treept_next(tree, type) \
     treept_##type##_next(tree)
 
+#define treept_next_const(tree, type) \
+    treept_##type##_next_const(tree)
+
 #define treept_prev(tree, type) \
     treept_##type##_prev(tree)
+
+#define treept_prev_const(tree, type) \
+    treept_##type##_prev_const(tree)
 
 #define treept_dfs_stop(tree, type) \
     treept_##type##_dfs_stop(tree)
@@ -80,8 +96,14 @@
 #define treept_node_parent(node, type) \
     treept_##type##_node_parent(node)
 
+#define treept_node_parent_const(node, type) \
+    treept_##type##_node_parent_const(node)
+
 #define treept_node_get(node, pos, type) \
     treept_##type##_node_get(node, pos)
+
+#define treept_node_get_const(node, pos, type) \
+    treept_##type##_node_get_const(node, pos)
 
 #define treept_node_insert(node, pos, ptr, type) \
     treept_##type##_node_insert(node, pos, ptr)
@@ -109,9 +131,9 @@
     { \
         const NodePt(type) *elem##_node; \
         const type *elem; \
-        for (elem##_node = treept_##type##_dfs_first(tree); \
+        for (elem##_node = treept_##type##_dfs_first_const(tree); \
              elem##_node != NULL; \
-             elem##_node = treept_##type##_next(tree)) \
+             elem##_node = treept_##type##_next_const(tree)) \
         { \
             elem = treept_##type##_node_data_const(elem##_node);
 
@@ -129,9 +151,9 @@
     { \
         const NodePt(type) *elem##_node; \
         const type *elem; \
-        for (elem##_node = treept_##type##_dfs_last(tree); \
+        for (elem##_node = treept_##type##_dfs_last_const(tree); \
              elem##_node != NULL; \
-             elem##_node = treept_##type##_prev(tree)) \
+             elem##_node = treept_##type##_prev_const(tree)) \
         { \
             elem = treept_##type##_node_data_const(elem##_node);
 

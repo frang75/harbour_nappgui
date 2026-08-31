@@ -1274,11 +1274,21 @@ static void i_OnTreeFAreaData(HbNapFDBConn *dbconn, Event *e)
     switch (etype)
     {
 
-    case ekGUI_EVENT_TBL_NROOTS:
+    case ekGUI_EVENT_TBL_NCHILDREN:
     {
-        uint32_t *nroots = event_result(e, uint32_t);
-        NodeSt(HbNapFNode) *root = treest_root_get(dbconn->tdata, HbNapFNode);
-        *nroots = root ? treest_node_size(root, HbNapFNode) : 0;
+        void *node = event_params(e, void);
+        uint32_t *n = event_result(e, uint32_t);
+        /* Root node */
+        if (node == NULL)
+        {
+            NodeSt(HbNapFNode) *root = treest_root_get(dbconn->tdata, HbNapFNode);
+            *n = root ? treest_node_size(root, HbNapFNode) : 0;
+        }
+        else
+        {
+            NodeSt(HbNapFNode) *parent = cast(node, NodeSt(HbNapFNode));
+            *n = treest_node_size(parent, HbNapFNode);
+        }
         break;
     }
 
@@ -1293,7 +1303,7 @@ static void i_OnTreeFAreaData(HbNapFDBConn *dbconn, Event *e)
         if (parent == NULL)
             parent = treest_root_get(dbconn->tdata, HbNapFNode);
 
-        child = treest_node_get(parent, node->child, HbNapFNode);
+        child = treest_node_get(parent, node->ichild, HbNapFNode);
         data = treest_node_data(child, HbNapFNode);
         info->node = child;
 
@@ -1301,7 +1311,7 @@ static void i_OnTreeFAreaData(HbNapFDBConn *dbconn, Event *e)
             /* If children are built, use tree count, otherwise use the pre-counted DB children */
             uint32_t nc = treest_node_size(child, HbNapFNode);
             cassert((nc > 0 && data->nchildren == 0) || nc == 0);
-            info->nchildren = (nc > 0) ? nc : data->nchildren;
+            info->children = (bool_t)(nc > 0) || (bool_t)(data->nchildren > 0);
         }
 
         info->expanded = data->expanded;

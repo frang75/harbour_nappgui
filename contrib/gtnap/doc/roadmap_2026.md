@@ -47,15 +47,15 @@ The main goal this year is to consolidate the use of GTNAP/Forms in the Aspec pr
 - Sprint 10: Implement TreeView widget in NAppGUI. **Done Sprint 107 15/06/26**
 - Sprint 11: Implement ToolButton texts in NAppGUI/designer. **Done Sprint 104 30/04/26**
 - Sprint 12: Add TabBar and TreeView to designer. **Done Sprint 106 31/05/26**
-- Sprint 13: Implement HiDPI support in NAppGUI Win32 backend (I).
-- Sprint 14: Implement HiDPI support in NAppGUI Win32 backend (II).
+- Sprint 13: Implement HiDPI support in NAppGUI Win32 backend (I). **Done Sprint 111 15/08/26**
+- Sprint 14: Implement HiDPI support in NAppGUI Win32 backend (II). **Done Sprint 112 15/08/26**
 - Sprint 15: Implement support in NAppGUI for GTK3/Wayland backend. Ubuntu 24+ application icon.
-- Sprint 16: --> Possible maintenance tasks for current projects.
+- Sprint 16: --> Possible maintenance tasks for current projects. HBAWS Vendorization **Done Sprint 109 15/07/26**
 - Sprint 17: Implement HiDPI support in NAppGUI GTK backend.
 - Sprint 18: Aspec-clone app: Delve deeper into the user mode.
 - Sprint 19: Aspec-clone app: Main Window, modals, navigation.
 - Sprint 20: Aspec-clone app: Support for editbox with char patterns (date/time/document).
-- Sprint 21: --> Possible maintenance tasks for current projects.
+- Sprint 21: --> Possible maintenance tasks for current projects. HBOFFICE Vendorization **Done Sprint 110 31/07/26**
 - Sprint 22: Aspec-clone app: Keyboard navigation within the form. Hotkeys.
 - Sprint 23: Aspec-clone app: Messagebox, secondary windows.
 - Sprint 24: Aspec-clone app: Reuse parts in designer.
