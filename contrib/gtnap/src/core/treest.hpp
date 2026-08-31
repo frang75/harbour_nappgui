@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: treest.hpp
+ * https://nappgui.com/en/core/treest.html
  *
  */
 
@@ -29,9 +30,13 @@ struct TreeSt
 
         static uint32_t index(const Node *node);
 
-        static Node *parent(const Node *node);
+        static Node *parent(Node *node);
 
-        static Node *get(const Node *node, const uint32_t pos);
+        static const Node *parent(const Node *node);
+
+        static Node *get(Node *node, const uint32_t pos);
+
+        static const Node *get(const Node *node, const uint32_t pos);
 
         static Node *insert(Node *node, const uint32_t pos);
 
@@ -67,17 +72,27 @@ struct TreeSt
 
     static uint32_t mem(const TreeSt< type > *tree);
 
-    static Node *root_get(const TreeSt< type > *tree);
+    static Node *root_get(TreeSt< type > *tree);
+
+    static const Node *root_get(const TreeSt< type > *tree);
 
     static Node *root_new(TreeSt< type > *tree);
 
     static Node *dfs_first(TreeSt< type > *tree);
 
+    static const Node *dfs_first(const TreeSt< type > *tree);
+
     static Node *dfs_last(TreeSt< type > *tree);
+
+    static const Node *dfs_last(const TreeSt< type > *tree);
 
     static Node *next(TreeSt< type > *tree);
 
+    static const Node *next(const TreeSt< type > *tree);
+
     static Node *prev(TreeSt< type > *tree);
+
+    static const Node *prev(const TreeSt< type > *tree);
 
     static void dfs_stop(TreeSt< type > *tree);
 
@@ -125,7 +140,7 @@ uint32_t TreeSt< type >::Node::index(const Node *node)
 /*---------------------------------------------------------------------------*/
 
 template < typename type >
-typename TreeSt< type >::Node *TreeSt< type >::Node::parent(const Node *node)
+typename TreeSt< type >::Node *TreeSt< type >::Node::parent(Node *node)
 {
     return cast(ntree_node_parent(cast_const(node, NNode)), Node);
 }
@@ -133,9 +148,25 @@ typename TreeSt< type >::Node *TreeSt< type >::Node::parent(const Node *node)
 /*---------------------------------------------------------------------------*/
 
 template < typename type >
-typename TreeSt< type >::Node *TreeSt< type >::Node::get(const Node *node, const uint32_t pos)
+const typename TreeSt< type >::Node *TreeSt< type >::Node::parent(const Node *node)
+{
+    return cast_const(ntree_node_parent(cast_const(node, NNode)), Node);
+}
+
+/*---------------------------------------------------------------------------*/
+
+template < typename type >
+typename TreeSt< type >::Node *TreeSt< type >::Node::get(Node *node, const uint32_t pos)
 {
     return cast(ntree_node_get(cast_const(node, NNode), pos), Node);
+}
+
+/*---------------------------------------------------------------------------*/
+
+template < typename type >
+const typename TreeSt< type >::Node *TreeSt< type >::Node::get(const Node *node, const uint32_t pos)
+{
+    return cast_const(ntree_node_get(cast_const(node, NNode), pos), Node);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -255,9 +286,17 @@ uint32_t TreeSt< type >::mem(const TreeSt< type > *tree)
 /*---------------------------------------------------------------------------*/
 
 template < typename type >
-typename TreeSt< type >::Node *TreeSt< type >::root_get(const TreeSt< type > *tree)
+typename TreeSt< type >::Node *TreeSt< type >::root_get(TreeSt< type > *tree)
 {
     return cast(ntree_root_get(cast_const(tree, NTree)), Node);
+}
+
+/*---------------------------------------------------------------------------*/
+
+template < typename type >
+const typename TreeSt< type >::Node *TreeSt< type >::root_get(const TreeSt< type > *tree)
+{
+    return cast_const(ntree_root_get(cast_const(tree, NTree)), Node);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -279,9 +318,25 @@ typename TreeSt< type >::Node *TreeSt< type >::dfs_first(TreeSt< type > *tree)
 /*---------------------------------------------------------------------------*/
 
 template < typename type >
+const typename TreeSt< type >::Node *TreeSt< type >::dfs_first(const TreeSt< type > *tree)
+{
+    return cast_const(ntree_dfs_first(cast(tree, NTree)), Node);
+}
+
+/*---------------------------------------------------------------------------*/
+
+template < typename type >
 typename TreeSt< type >::Node *TreeSt< type >::dfs_last(TreeSt< type > *tree)
 {
     return cast(ntree_dfs_last(cast(tree, NTree)), Node);
+}
+
+/*---------------------------------------------------------------------------*/
+
+template < typename type >
+const typename TreeSt< type >::Node *TreeSt< type >::dfs_last(const TreeSt< type > *tree)
+{
+    return cast_const(ntree_dfs_last(cast(tree, NTree)), Node);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -295,9 +350,25 @@ typename TreeSt< type >::Node *TreeSt< type >::next(TreeSt< type > *tree)
 /*---------------------------------------------------------------------------*/
 
 template < typename type >
+const typename TreeSt< type >::Node *TreeSt< type >::next(const TreeSt< type > *tree)
+{
+    return cast_const(ntree_next(cast(tree, NTree)), Node);
+}
+
+/*---------------------------------------------------------------------------*/
+
+template < typename type >
 typename TreeSt< type >::Node *TreeSt< type >::prev(TreeSt< type > *tree)
 {
     return cast(ntree_prev(cast(tree, NTree)), Node);
+}
+
+/*---------------------------------------------------------------------------*/
+
+template < typename type >
+const typename TreeSt< type >::Node *TreeSt< type >::prev(const TreeSt< type > *tree)
+{
+    return cast_const(ntree_prev(cast(tree, NTree)), Node);
 }
 
 /*---------------------------------------------------------------------------*/

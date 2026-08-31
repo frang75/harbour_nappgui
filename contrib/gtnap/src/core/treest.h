@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: treest.h
+ * https://nappgui.com/en/core/treest.html
  *
  */
 
@@ -50,20 +51,35 @@
 #define treest_root_get(tree, type) \
     treest_##type##_root_get(tree)
 
+#define treest_root_get_const(tree, type) \
+    treest_##type##_root_get_const(tree)
+
 #define treest_root_new(tree, type) \
     treest_##type##_root_new(tree)
 
 #define treest_dfs_first(tree, type) \
     treest_##type##_dfs_first(tree)
 
+#define treest_dfs_first_const(tree, type) \
+    treest_##type##_dfs_first_const(tree)
+
 #define treest_dfs_last(tree, type) \
     treest_##type##_dfs_last(tree)
+
+#define treest_dfs_last_const(tree, type) \
+    treest_##type##_dfs_last_const(tree)
 
 #define treest_next(tree, type) \
     treest_##type##_next(tree)
 
+#define treest_next_const(tree, type) \
+    treest_##type##_next_const(tree)
+
 #define treest_prev(tree, type) \
     treest_##type##_prev(tree)
+
+#define treest_prev_const(tree, type) \
+    treest_##type##_prev_const(tree)
 
 #define treest_dfs_stop(tree, type) \
     treest_##type##_dfs_stop(tree)
@@ -80,8 +96,14 @@
 #define treest_node_parent(node, type) \
     treest_##type##_node_parent(node)
 
+#define treest_node_parent_const(node, type) \
+    treest_##type##_node_parent_const(node)
+
 #define treest_node_get(node, pos, type) \
     treest_##type##_node_get(node, pos)
+
+#define treest_node_get_const(node, pos, type) \
+    treest_##type##_node_get_const(node, pos)
 
 #define treest_node_insert(node, pos, type) \
     treest_##type##_node_insert(node, pos)
@@ -109,9 +131,9 @@
     { \
         const NodeSt(type) *elem##_node; \
         const type *elem; \
-        for (elem##_node = treest_##type##_dfs_first(tree); \
+        for (elem##_node = treest_##type##_dfs_first_const(tree); \
              elem##_node != NULL; \
-             elem##_node = treest_##type##_next(tree)) \
+             elem##_node = treest_##type##_next_const(tree)) \
         { \
             elem = treest_##type##_node_data_const(elem##_node);
 
@@ -129,9 +151,9 @@
     { \
         const NodeSt(type) *elem##_node; \
         const type *elem; \
-        for (elem##_node = treest_##type##_dfs_last(tree); \
+        for (elem##_node = treest_##type##_dfs_last_const(tree); \
              elem##_node != NULL; \
-             elem##_node = treest_##type##_prev(tree)) \
+             elem##_node = treest_##type##_prev_const(tree)) \
         { \
             elem = treest_##type##_node_data_const(elem##_node);
 

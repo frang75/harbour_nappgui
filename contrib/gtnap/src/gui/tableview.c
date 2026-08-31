@@ -69,7 +69,7 @@ struct _tnode_t
 {
     void *node;
     uint32_t depth;
-    uint32_t nchildren;
+    bool_t children;
     bool_t expanded;
 };
 
@@ -442,7 +442,7 @@ static bool_t i_row_is_selected(const ArrSt(uint32_t) *selected, const uint32_t 
 static void i_draw_tree_marker(DCtx *ctx, const uint32_t x, const uint32_t y, const uint32_t row_height, const TNode *tnode)
 {
     cassert_no_null(tnode);
-    if (tnode->nchildren > 0)
+    if (tnode->children == TRUE)
     {
         V2Df points[3];
         real32_t cx = (real32_t)x + (real32_t)(tnode->depth * i_TREE_INDENT) + (real32_t)i_TREE_INDENT / 2;
@@ -1062,6 +1062,9 @@ static void i_OnSize(TData *data, Event *e)
     View *view = event_sender(e, View);
     cassert_no_null(data);
     scrollview_control_size(data->sview, (uint32_t)p->width, (uint32_t)p->height);
+    i_head_height(data);
+    i_row_height(data);
+
     data->recompute_width = TRUE;
     data->recompute_height = TRUE;
     i_document_size(view, data);
@@ -1197,7 +1200,7 @@ static void i_OnMove(TData *data, Event *e)
             if (data->tree_col_id != UINT32_MAX && data->mouse_row < data->num_rows)
             {
                 const TNode *tnode = arrst_get_const(data->tree_nodes, data->mouse_row, TNode);
-                if (tnode->nchildren > 0)
+                if (tnode->children == TRUE)
                 {
                     const Column *cols = arrst_all_const(data->columns, Column);
                     uint32_t tree_col_x = 0;
@@ -1376,22 +1379,23 @@ static void i_build_subtree(TableView *view, TData *data, void *parent, const ui
     TNode *tnode;
 
     node.parent = parent;
-    node.child = child_index;
+    node.ichild = child_index;
     ninfo.node = NULL;
-    ninfo.nchildren = 0;
     ninfo.expanded = FALSE;
+    ninfo.children = FALSE;
     listener_event(data->OnData, ekGUI_EVENT_TBL_NODEINFO, view, &node, &ninfo, TableView, EvTbNode, EvTbNodeInfo);
 
     tnode = arrst_new(data->tree_nodes, TNode);
     tnode->node = ninfo.node;
     tnode->depth = depth;
-    tnode->nchildren = ninfo.nchildren;
     tnode->expanded = ninfo.expanded;
+    tnode->children = ninfo.children;
 
-    if (ninfo.expanded == TRUE && ninfo.nchildren > 0)
+    if (ninfo.expanded == TRUE && ninfo.children == TRUE)
     {
-        uint32_t i;
-        for (i = 0; i < ninfo.nchildren; ++i)
+        uint32_t i, nchildren = 0;
+        listener_event(data->OnData, ekGUI_EVENT_TBL_NCHILDREN, view, ninfo.node, &nchildren, TableView, void, uint32_t);
+        for (i = 0; i < nchildren; ++i)
             i_build_subtree(view, data, ninfo.node, i, depth + 1);
     }
 }
@@ -1427,7 +1431,7 @@ static void i_build_tree(TableView *view, TData *data)
     {
         uint32_t nroots = 0;
         uint32_t i;
-        listener_event(data->OnData, ekGUI_EVENT_TBL_NROOTS, view, NULL, &nroots, TableView, void, uint32_t);
+        listener_event(data->OnData, ekGUI_EVENT_TBL_NCHILDREN, view, NULL, &nroots, TableView, void, uint32_t);
         for (i = 0; i < nroots; ++i)
             i_build_subtree(view, data, NULL, i, 0);
     }
@@ -1472,22 +1476,23 @@ static uint32_t i_insert_subtree(TableView *view, TData *data, void *parent, con
     uint32_t next = pos + 1;
 
     node.parent = parent;
-    node.child = child;
+    node.ichild = child;
     ninfo.node = NULL;
-    ninfo.nchildren = 0;
+    ninfo.children = FALSE;
     ninfo.expanded = FALSE;
     listener_event(data->OnData, ekGUI_EVENT_TBL_NODEINFO, view, &node, &ninfo, TableView, EvTbNode, EvTbNodeInfo);
 
     tnode = arrst_insert_n(data->tree_nodes, pos, 1, TNode);
     tnode->node = ninfo.node;
     tnode->depth = depth;
-    tnode->nchildren = ninfo.nchildren;
+    tnode->children = ninfo.children;
     tnode->expanded = ninfo.expanded;
 
-    if (ninfo.expanded == TRUE && ninfo.nchildren > 0)
+    if (ninfo.expanded == TRUE && ninfo.children == TRUE)
     {
-        uint32_t i;
-        for (i = 0; i < ninfo.nchildren; ++i)
+        uint32_t i, nchildren = 0;
+        listener_event(data->OnData, ekGUI_EVENT_TBL_NCHILDREN, view, ninfo.node, &nchildren, TableView, void, uint32_t);
+        for (i = 0; i < nchildren; ++i)
             next = i_insert_subtree(view, data, ninfo.node, i, depth + 1, next);
     }
 
@@ -1500,23 +1505,22 @@ static void i_expand_node(TableView *view, TData *data, const uint32_t row)
 {
     void *ptr = NULL;
     uint32_t depth = 0;
-    uint32_t nch = 0;
+    uint32_t i, nchildren = 0;
     uint32_t nc = 0;
-    uint32_t i = 0;
     uint32_t next = 0;
 
     cassert_no_null(data);
     {
         const TNode *tnode = arrst_get_const(data->tree_nodes, row, TNode);
         cassert(tnode->expanded == FALSE);
-        cassert(tnode->nchildren > 0);
+        cassert(tnode->children == TRUE);
         ptr = tnode->node;
         depth = tnode->depth;
-        nch = tnode->nchildren;
+        listener_event(data->OnData, ekGUI_EVENT_TBL_NCHILDREN, view, ptr, &nchildren, TableView, void, uint32_t);
     }
 
     next = row + 1;
-    for (i = 0; i < nch; ++i)
+    for (i = 0; i < nchildren; ++i)
         next = i_insert_subtree(view, data, ptr, i, depth + 1, next);
 
     nc = next - (row + 1);
@@ -1611,7 +1615,7 @@ static void i_toggle_expand(TableView *view, TData *data, const uint32_t row)
 {
     TNode *tnode = arrst_get(data->tree_nodes, row, TNode);
     cassert_no_null(tnode);
-    cassert(tnode->nchildren > 0);
+    cassert(tnode->children == TRUE);
 
     if (data->OnData != NULL)
     {
@@ -1674,7 +1678,7 @@ static void i_OnDown(TData *data, Event *e)
             if (data->tree_col_id != UINT32_MAX && data->mouse_row < n)
             {
                 const TNode *tnode = arrst_get_const(data->tree_nodes, data->mouse_row, TNode);
-                if (tnode->nchildren > 0)
+                if (tnode->children == TRUE)
                 {
                     const Column *cols = arrst_all_const(data->columns, Column);
                     uint32_t tree_col_x = 0;
@@ -2033,7 +2037,7 @@ static void i_OnKeyDown(TData *data, Event *e)
             if (data->tree_col_id != UINT32_MAX && data->focus_row != UINT32_MAX)
             {
                 const TNode *tnode = arrst_get_const(data->tree_nodes, data->focus_row, TNode);
-                if (tnode->nchildren > 0 && tnode->expanded == FALSE)
+                if (tnode->children == TRUE && tnode->expanded == FALSE)
                 {
                     i_toggle_expand(view, data, data->focus_row);
                     view_update(cast(view, View));
