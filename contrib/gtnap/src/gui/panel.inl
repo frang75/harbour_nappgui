@@ -40,6 +40,7 @@ Window *_panel_get_window(Panel *panel);
 
 Cell *_panel_get_component_cell(Panel *panel, const GuiComponent *component);
 
+/* Preserve. Its used in high-level APIs */
 void _panel_compose(Panel *panel, const S2Df *required_size, S2Df *final_size);
 
 void _panel_natural(Panel *panel, const uint32_t di, real32_t *dim0, real32_t *dim1);
