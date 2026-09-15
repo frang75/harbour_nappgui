@@ -49,7 +49,7 @@ The main goal this year is to consolidate the use of GTNAP/Forms in the Aspec pr
 - Sprint 12: Add TabBar and TreeView to designer. **Done Sprint 106 31/05/26**
 - Sprint 13: Implement HiDPI support in NAppGUI Win32 backend (I). **Done Sprint 111 15/08/26**
 - Sprint 14: Implement HiDPI support in NAppGUI Win32 backend (II). **Done Sprint 112 31/08/26**
-- Sprint 15: Implement support in NAppGUI for GTK3/Wayland backend. **Done Sprint 114 15/09/26**.
+- Sprint 15: Implement support in NAppGUI for GTK3/Wayland backend. **Done Sprint 113 15/09/26**.
 - Sprint 16: --> Possible maintenance tasks for current projects. HBAWS Vendorization **Done Sprint 109 15/07/26**
 - Sprint 17: Implement HiDPI support in NAppGUI GTK backend.
 - Sprint 18: Aspec-clone app: Delve deeper into the user mode.
