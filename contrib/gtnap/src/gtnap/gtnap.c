@@ -2825,7 +2825,7 @@ void gtnap_init(const char_t *title, const uint32_t rows, const uint32_t cols, P
         (FPtr_app_create)i_gtnap_create,
         (FPtr_app_update)i_gtnap_update,
         (FPtr_destroy)i_gtnap_destroy,
-        (char_t *)"");
+        (char_t *)"-gdkbackend=x11");
 }
 
 /*---------------------------------------------------------------------------*/
