@@ -19,6 +19,7 @@
 
 #include <sewer/nowarn.hxx>
 #include <EGL/egl.h>
+#include <EGL/eglext.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
 #ifdef GDK_WINDOWING_WAYLAND
@@ -38,9 +39,26 @@ struct _oglctx_t
     EGLDisplay *display;
     EGLSurface *surface;
     EGLContext *context;
+#if defined(GDK_WINDOWING_WAYLAND) && GTK_CHECK_VERSION(3, 16, 0)
+    GdkGLContext *glctx;
+#endif
     GLenum glew;
     oglerr_t err;
 };
+
+/*---------------------------------------------------------------------------*/
+
+#if defined(GDK_WINDOWING_WAYLAND) && GTK_CHECK_VERSION(3, 16, 0)
+
+typedef void *(*FPtr_oglview_upgrade)(void *view);
+
+typedef struct _oglview_hook_t
+{
+    FPtr_oglview_upgrade func_upgrade;
+    void *view;
+} OglViewHook;
+
+#endif
 
 /*---------------------------------------------------------------------------*/
 /* https://www.khronos.org/registry/EGL/sdk/docs/man/html/eglChooseConfig.xhtml */
@@ -77,8 +95,6 @@ static EGLBoolean i_egl_pixel_format(const OGLProps *props, EGLDisplay *display,
 }
 
 /*---------------------------------------------------------------------------*/
-
-#if defined(EGL_VERSION_1_5)
 
 static EGLint i_egl_major(const oglapi_t api)
 {
@@ -166,6 +182,8 @@ static EGLint i_egl_minor(const oglapi_t api)
 
 /*---------------------------------------------------------------------------*/
 
+#if defined(EGL_VERSION_1_5)
+
 static EGLint i_egl_profile(const oglapi_t api)
 {
     switch (api)
@@ -202,6 +220,25 @@ static EGLint i_egl_profile(const oglapi_t api)
 
 /*---------------------------------------------------------------------------*/
 
+static EGLDisplay i_egl_display_x11(EGLNativeDisplayType native_display)
+{
+    EGLDisplay display = EGL_NO_DISPLAY;
+#if defined(EGL_VERSION_1_5) && defined(EGL_PLATFORM_X11_KHR)
+    /* eglGetDisplay() guesses the native display type and honors the EGL_PLATFORM
+       environment variable. With EGL_PLATFORM=wayland (set by some terminals/sessions),
+       Mesa takes our X11 Display* as a wl_display and crashes. Be explicit */
+    display = eglGetPlatformDisplay(EGL_PLATFORM_X11_KHR, (void *)native_display, NULL);
+#endif
+
+    /* EGL 1.4 drivers */
+    if (display == EGL_NO_DISPLAY)
+        display = eglGetDisplay(native_display);
+
+    return display;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_egl_create(EGLNativeDisplayType native_display, EGLNativeWindowType native_window, OGLCtx *ogl)
 {
     EGLBoolean ok;
@@ -211,7 +248,7 @@ static void i_egl_create(EGLNativeDisplayType native_display, EGLNativeWindowTyp
 
     cassert_no_null(ogl);
 
-    ogl->display = eglGetDisplay(native_display);
+    ogl->display = i_egl_display_x11(native_display);
     if (ogl->display == EGL_NO_DISPLAY)
     {
         ogl->err = ekOGLVIEW;
@@ -286,44 +323,154 @@ static void i_egl_create(EGLNativeDisplayType native_display, EGLNativeWindowTyp
 
 static void i_egl_config_x11(GtkWidget *widget, GdkDisplay *gdk_display, OGLCtx *ogl)
 {
-    Display *x11_display = gdk_x11_display_get_xdisplay(gdk_display);
-    GdkWindow *gdk_window = gtk_widget_get_window(widget);
-    Window xid = gdk_x11_window_get_xid(gdk_window);
-    i_egl_create((EGLNativeDisplayType)x11_display, (EGLNativeWindowType)xid, ogl);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    gtk_widget_set_double_buffered(widget, FALSE);
+#pragma GCC diagnostic pop
+
+    /* The widget should to be realized for access to GdkWindow 'gtk_widget_get_window'
+       necessary to create the EGL Surface */
+    if (gtk_widget_get_realized(widget) == FALSE)
+        gtk_widget_realize(widget);
+
+    {
+        Display *x11_display = gdk_x11_display_get_xdisplay(gdk_display);
+        GdkWindow *gdk_window = gtk_widget_get_window(widget);
+        Window xid = gdk_x11_window_get_xid(gdk_window);
+        i_egl_create((EGLNativeDisplayType)x11_display, (EGLNativeWindowType)xid, ogl);
+    }
+
+    if (ogl->err == ekOGLOK)
+        if (blib_strcmp(gtk_widget_get_name(widget), "NAppGUICairoCtx") == 0)
+            gtk_widget_set_name(widget, "NAppGUIOpenGLCtx");
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_egl_config(GtkWidget *widget, OGLCtx *ogl)
-{
-    GdkDisplay *gdk_display = gtk_widget_get_display(widget);
+#if defined(GDK_WINDOWING_WAYLAND) && GTK_CHECK_VERSION(3, 16, 0)
 
-#ifdef GDK_WINDOWING_WAYLAND
-    /* Native OpenGL views are not supported on Wayland: EGL has no equivalent of X11's
-     * child-window embedding, and a manually created wl_subsurface (the only client-side
-     * way to give the view its own native surface) reliably corrupts Mutter's window
-     * stacking regardless of call ordering or synchronization -- confirmed with gdb, the
-     * compositor's own logs and protocol traces across several independent fix attempts,
-     * all root-caused to a genuine compositor-side bug, not a client usage error. See
-     * "OpenGL (ogl3d) en Wayland" in internal/wayland_handoff.md for the full
-     * investigation. Revisiting this properly needs a GtkGLArea-based redesign (GTK's own
-     * sanctioned mechanism for this, which side-steps the whole issue by never creating a
-     * native surface at all), parked for now. */
-    if (GDK_IS_WAYLAND_DISPLAY(gdk_display) == TRUE)
+static bool_t i_egl_wayland_api_supported(const oglapi_t api)
+{
+    switch (api)
+    {
+    case ekOGL_1_1:
+    case ekOGL_1_2:
+    case ekOGL_1_2_1:
+    case ekOGL_1_3:
+    case ekOGL_1_4:
+    case ekOGL_1_5:
+    case ekOGL_2_0:
+    case ekOGL_2_1:
+    case ekOGL_3_0:
+    case ekOGL_3_1:
+        return FALSE;
+    case ekOGL_3_2:
+    case ekOGL_3_3:
+    case ekOGL_4_0:
+    case ekOGL_4_1:
+    case ekOGL_4_2:
+    case ekOGL_4_3:
+    case ekOGL_4_4:
+    case ekOGL_4_5:
+    case ekOGL_4_6:
+        return TRUE;
+    default:
+        cassert_default(api);
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_egl_config_wayland(GtkWidget *widget, OGLCtx *ogl)
+{
+    OglViewHook *hook = NULL;
+    GtkWidget *area = NULL;
+
+    if (i_egl_wayland_api_supported(ogl->props.api) == FALSE)
+    {
+        ogl->err = ekOGLAPIVERS;
+        return;
+    }
+
+    if (gtk_widget_get_mapped(gtk_widget_get_toplevel(widget)) == FALSE)
+    {
+        cassert_msg(FALSE, "ogl3d_context() must be called after the window is shown on Wayland");
+        ogl->err = ekOGLVIEW;
+        return;
+    }
+
+    hook = cast(g_object_get_data(G_OBJECT(widget), "nappgui-oglview-hook"), OglViewHook);
+
+    if (hook == NULL || hook->func_upgrade == NULL)
     {
         ogl->err = ekOGLVIEW;
         return;
     }
-#endif
 
-    i_egl_config_x11(widget, gdk_display, ogl);
+    area = cast(hook->func_upgrade(hook->view), GtkWidget);
+
+    if (GTK_IS_GL_AREA(area) == FALSE)
+    {
+        ogl->err = ekOGLVIEW;
+        return;
+    }
+
+    gtk_gl_area_set_required_version(GTK_GL_AREA(area), i_egl_major(ogl->props.api), i_egl_minor(ogl->props.api));
+#if GTK_CHECK_VERSION(3, 22, 0)
+    gtk_gl_area_set_use_es(GTK_GL_AREA(area), FALSE);
+#endif
+    gtk_gl_area_set_has_depth_buffer(GTK_GL_AREA(area), (gboolean)(ogl->props.depth_bpp > 0));
+    gtk_gl_area_set_has_stencil_buffer(GTK_GL_AREA(area), (gboolean)(ogl->props.stencil_bpp > 0));
+
+    gtk_widget_show(area);
+
+    if (gtk_widget_get_realized(area) == FALSE)
+        gtk_widget_realize(area);
+
+    ogl->widget = area;
+    gtk_gl_area_make_current(GTK_GL_AREA(area));
+
+    if (gtk_gl_area_get_error(GTK_GL_AREA(area)) != NULL)
+    {
+        ogl->err = ekOGLCONTEXT;
+        return;
+    }
+
+    ogl->glctx = gtk_gl_area_get_context(GTK_GL_AREA(area));
+    ogl->glew = glewInit();
+    if (ogl->glew != GLEW_OK)
+    {
+        ogl->err = ekOGLGLEW;
+        return;
+    }
+
+    if (_ogl3dimp_check_version(ogl->props.api) == FALSE)
+    {
+        ogl->err = ekOGLAPIVERS;
+        return;
+    }
+
+    ogl->err = ekOGLOK;
 }
+
+#else
+
+static void i_egl_config_wayland(GtkWidget *widget, OGLCtx *ogl)
+{
+    unref(widget);
+    ogl->err = ekOGLVIEW;
+}
+
+#endif
 
 /*---------------------------------------------------------------------------*/
 
 OGLCtx *_ogl3dimp_context(const OGLProps *props, void *view, oglerr_t *err)
 {
     GtkWidget *widget = NULL;
+    GdkDisplay *gdk_display = NULL;
     OGLCtx *ogl = NULL;
 
     cassert_no_null(props);
@@ -349,35 +496,28 @@ OGLCtx *_ogl3dimp_context(const OGLProps *props, void *view, oglerr_t *err)
     ogl->display = NULL;
     ogl->surface = NULL;
     ogl->context = NULL;
+#if defined(GDK_WINDOWING_WAYLAND) && GTK_CHECK_VERSION(3, 16, 0)
+    ogl->glctx = NULL;
+#endif
+    ogl->err = ekOGLCONTEXT;
 
-    if (blib_strcmp(G_OBJECT_TYPE_NAME(widget), "GtkDrawingArea") == 0)
+    gdk_display = gtk_widget_get_display(widget);
+
+#ifdef GDK_WINDOWING_WAYLAND
+    if (GDK_IS_WAYLAND_DISPLAY(gdk_display) == TRUE)
     {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        gtk_widget_set_double_buffered(widget, FALSE);
-#pragma GCC diagnostic pop
-
-        /* The widget should to be realized for access to GdkWindow 'gtk_widget_get_window'
-           necessary to create the EGL Surface */
-        if (gtk_widget_get_realized(widget) == FALSE)
-            gtk_widget_realize(widget);
-
-        ogl->err = ekOGLCONTEXT;
-        i_egl_config(widget, ogl);
+        i_egl_config_wayland(widget, ogl);
     }
     else
+#endif
     {
-        cassert(blib_strcmp(G_OBJECT_TYPE_NAME(widget), "GtkGLArea"));
+        cassert_msg(blib_strcmp(G_OBJECT_TYPE_NAME(widget), "GtkDrawingArea") == 0, "Unexpected native view widget type");
+        i_egl_config_x11(widget, gdk_display, ogl);
     }
 
     if (ogl->err == ekOGLOK)
     {
         ptr_assign(err, ekOGLOK);
-
-        /* The widget is a Cairo-based NAppGUI view */
-        if (blib_strcmp(gtk_widget_get_name(widget), "NAppGUICairoCtx") == 0)
-            gtk_widget_set_name(widget, "NAppGUIOpenGLCtx");
-
         return ogl;
     }
     else
@@ -394,6 +534,7 @@ void _ogl3dimp_destroy(OGLCtx **ogl)
 {
     cassert_no_null(ogl);
     cassert_no_null(*ogl);
+
     if ((*ogl)->context != NULL)
     {
         EGLBoolean ok;
@@ -405,29 +546,36 @@ void _ogl3dimp_destroy(OGLCtx **ogl)
         ok = eglDestroyContext((*ogl)->display, (*ogl)->context);
         cassert_unref(ok == EGL_TRUE, ok);
         (*ogl)->context = NULL;
-    }
 
-    if ((*ogl)->surface != NULL)
-    {
-        EGLBoolean ok = eglDestroySurface((*ogl)->display, (*ogl)->surface);
-        cassert_unref(ok == EGL_TRUE, ok);
-        (*ogl)->surface = NULL;
-    }
+        if ((*ogl)->surface != NULL)
+        {
+            EGLBoolean ok2 = eglDestroySurface((*ogl)->display, (*ogl)->surface);
+            cassert_unref(ok2 == EGL_TRUE, ok2);
+            (*ogl)->surface = NULL;
+        }
 
-    if ((*ogl)->display != NULL)
-    {
-        EGLBoolean ok = eglTerminate((*ogl)->display);
-        cassert_unref(ok == EGL_TRUE, ok);
-        (*ogl)->display = NULL;
-    }
+        if ((*ogl)->display != NULL)
+        {
+            EGLBoolean ok2 = eglTerminate((*ogl)->display);
+            cassert_unref(ok2 == EGL_TRUE, ok2);
+            (*ogl)->display = NULL;
+        }
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    gtk_widget_set_double_buffered((*ogl)->widget, TRUE);
+        gtk_widget_set_double_buffered((*ogl)->widget, TRUE);
 #pragma GCC diagnostic pop
 
-    if (blib_strcmp(gtk_widget_get_name((*ogl)->widget), "NAppGUIOpenGLCtx") == 0)
-        gtk_widget_set_name((*ogl)->widget, "NAppGUICairoCtx");
+        if (blib_strcmp(gtk_widget_get_name((*ogl)->widget), "NAppGUIOpenGLCtx") == 0)
+            gtk_widget_set_name((*ogl)->widget, "NAppGUICairoCtx");
+    }
+#if defined(GDK_WINDOWING_WAYLAND) && GTK_CHECK_VERSION(3, 16, 0)
+    else if ((*ogl)->glctx != NULL)
+    {
+        /* The GdkGLContext behind a GtkGlArea is owned by the widget itself */
+        (*ogl)->glctx = NULL;
+    }
+#endif
 
     bmem_free(*dcast(ogl, byte_t));
     *ogl = NULL;
@@ -438,6 +586,24 @@ void _ogl3dimp_destroy(OGLCtx **ogl)
 void ogl3d_begin_draw(OGLCtx *ogl)
 {
     cassert_no_null(ogl);
+
+#if defined(GDK_WINDOWING_WAYLAND) && GTK_CHECK_VERSION(3, 16, 0)
+    if (ogl->glctx != NULL)
+    {
+        /* GtkGlArea makes ogl->glctx current automatically around its own "render" signal,
+           but ogl3d_begin_draw() can also be called from outside that signal (e.g. when
+           releasing GPU resources on context teardown)  */
+        if (gdk_gl_context_get_current() != ogl->glctx)
+            gtk_gl_area_make_current(GTK_GL_AREA(ogl->widget));
+
+        if (__TRUE_EXPECTED(ogl->glew != GLEW_OK))
+        {
+            ogl->glew = glewInit();
+            cassert(ogl->glew == GLEW_OK);
+        }
+        return;
+    }
+#endif
 
     if (eglGetCurrentContext() != ogl->context)
     {
@@ -456,6 +622,7 @@ void ogl3d_begin_draw(OGLCtx *ogl)
 void ogl3d_end_draw(OGLCtx *ogl)
 {
     cassert_no_null(ogl);
+    /* GtkGlArea presents the frame itself right after its "render" signal returns TRUE */
     if (ogl->context != NULL)
         eglSwapBuffers(ogl->display, ogl->surface);
 }

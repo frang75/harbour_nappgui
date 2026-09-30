@@ -33,6 +33,18 @@
 #error This file is only for GTK Toolkit
 #endif
 
+#if GTK_CHECK_VERSION(3, 16, 0)
+
+typedef void *(*FPtr_osview_gl_upgrade)(void *view);
+
+typedef struct _osview_glhook_t
+{
+    FPtr_osview_gl_upgrade func_upgrade;
+    void *view;
+} OSViewGLHook;
+
+#endif
+
 struct _osview_t
 {
     OSControl control;
@@ -50,6 +62,10 @@ struct _osview_t
     Listener *OnResignFocus;
     Listener *OnAcceptFocus;
     Listener *OnOverlay;
+#if GTK_CHECK_VERSION(3, 16, 0)
+    OSViewGLHook glhook;
+    GtkWidget *glarea;
+#endif
 };
 
 /*---------------------------------------------------------------------------*/
@@ -137,7 +153,7 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSView *view)
 static gboolean i_OnRender(GtkGLArea *widget, GdkGLContext *glctx, OSView *view)
 {
     EvDraw params;
-    cassert(GTK_WIDGET(widget) == view->control.widget);
+    cassert(GTK_WIDGET(widget) == view->glarea);
     unref(glctx);
     params.ctx = NULL;
     params.x = 0;
@@ -321,39 +337,108 @@ static gboolean i_OnKeyRelease(GtkWidget *widget, GdkEventKey *event, OSView *vi
 
 /*---------------------------------------------------------------------------*/
 
+static void i_wire_common_signals(GtkWidget *area, GtkWidget *top, OSView *view)
+{
+    gtk_widget_add_events(area, GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
+    g_signal_connect(area, "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)view);
+    g_signal_connect(area, "button-release-event", G_CALLBACK(i_OnRelease), (gpointer)view);
+    _oslistener_signal(area, TRUE, &view->listeners.moved_signal, GDK_POINTER_MOTION_MASK, "motion-notify-event", G_CALLBACK(i_OnMove), (gpointer)view);
+    gtk_widget_set_can_focus(area, TRUE);
+    gtk_widget_set_can_focus(top, TRUE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+#if GTK_CHECK_VERSION(3, 16, 0)
+
+static void i_wire_dynamic_signals(GtkWidget *area, OSView *view)
+{
+    view->listeners.enter_signal = 0;
+    view->listeners.leave_signal = 0;
+    view->listeners.pressed_signal = 0;
+    view->listeners.release_signal = 0;
+    view->listeners.wheel_signal = 0;
+    view->listeners.keypressed_signal = 0;
+    view->listeners.keyrelease_signal = 0;
+
+    _oslistener_signal(area, view->listeners.OnEnter != NULL, &view->listeners.enter_signal, GDK_ENTER_NOTIFY_MASK, "enter-notify-event", G_CALLBACK(i_OnEnter), (gpointer)view);
+    _oslistener_signal(area, view->listeners.OnExit != NULL, &view->listeners.leave_signal, GDK_LEAVE_NOTIFY_MASK, "leave-notify-event", G_CALLBACK(i_OnExit), (gpointer)view);
+    _oslistener_signal(area, view->listeners.OnClick != NULL || view->listeners.OnDown != NULL, &view->listeners.pressed_signal, GDK_BUTTON_PRESS_MASK, "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)view);
+    _oslistener_signal(area, view->listeners.OnClick != NULL || view->listeners.OnUp != NULL, &view->listeners.release_signal, GDK_BUTTON_RELEASE_MASK, "button-release-event", G_CALLBACK(i_OnRelease), (gpointer)view);
+    _oslistener_signal(area, view->listeners.OnWheel != NULL, &view->listeners.wheel_signal, GDK_SCROLL_MASK, "scroll-event", G_CALLBACK(i_OnWheel), (gpointer)view);
+    _oslistener_signal(area, view->listeners.OnKeyDown != NULL, &view->listeners.keypressed_signal, 0, "key-press-event", G_CALLBACK(i_OnKeyPress), (gpointer)view);
+    _oslistener_signal(area, view->listeners.OnKeyUp != NULL, &view->listeners.keyrelease_signal, 0, "key-release-event", G_CALLBACK(i_OnKeyRelease), (gpointer)view);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void *i_upgrade_to_opengl(void *view_ptr)
+{
+    OSView *view = cast(view_ptr, OSView);
+    GtkWidget *parent = NULL;
+    GtkWidget *eventbox = NULL;
+    GtkWidget *new_area = NULL;
+    gint x = 0, y = 0, width = 0, height = 0;
+    gboolean was_visible = FALSE;
+    cassert_no_null(view);
+    cassert_msg((view->flags & (ekVIEW_BORDER | ekVIEW_HSCROLL | ekVIEW_VSCROLL)) == 0, "OpenGL views cannot use ekVIEW_BORDER/HSCROLL/VSCROLL");
+    cassert(view->control.widget == view->darea);
+    parent = gtk_widget_get_parent(view->darea);
+    cassert_no_null(parent);
+    cassert(GTK_IS_LAYOUT(parent) == TRUE);
+
+    gtk_container_child_get(GTK_CONTAINER(parent), view->darea, "x", &x, "y", &y, NULL);
+    gtk_widget_get_size_request(view->darea, &width, &height);
+    was_visible = gtk_widget_get_visible(view->darea);
+    gtk_widget_destroy(view->darea);
+    g_object_unref(view->control.widget);
+    eventbox = gtk_event_box_new();
+    gtk_widget_set_name(eventbox, "NAppGUIOpenGLCtx");
+    new_area = gtk_gl_area_new();
+    g_signal_connect(new_area, "render", G_CALLBACK(i_OnRender), (gpointer)view);
+    gtk_container_add(GTK_CONTAINER(eventbox), new_area);
+    g_object_set_data(G_OBJECT(eventbox), "nappgui-oglview-hook", &view->glhook);
+    gtk_layout_put(GTK_LAYOUT(parent), eventbox, x, y);
+    gtk_widget_set_size_request(eventbox, width, height);
+
+    view->darea = eventbox;
+    view->glarea = new_area;
+    view->clip_width = (real32_t)width;
+    view->clip_height = (real32_t)height;
+    view->flags |= ekVIEW_OPENGL;
+    _oscontrol_init(&view->control, ekGUI_TYPE_CUSTOMVIEW, eventbox, eventbox, FALSE);
+    i_wire_common_signals(eventbox, eventbox, view);
+    i_wire_dynamic_signals(eventbox, view);
+
+    if (was_visible)
+        gtk_widget_show(eventbox);
+
+    return new_area;
+}
+
+#endif
+
+/*---------------------------------------------------------------------------*/
+
 OSView *osview_create(const uint32_t flags)
 {
     OSView *view = heap_new0(OSView);
     GtkWidget *area = NULL;
     GtkWidget *top = NULL;
 
-    /* Creating a Cairo-based drawing area */
-    if ((view->flags & ekVIEW_OPENGL) == 0)
+    if ((flags & ekVIEW_HSCROLL) || (flags & ekVIEW_VSCROLL))
     {
         /* GtkLayout --> Blank container (similar to GtkDrawingArea) but accepts children widgets */
-        if ((flags & ekVIEW_HSCROLL) || (flags & ekVIEW_VSCROLL))
-        {
-            area = gtk_layout_new(NULL, NULL);
-        }
-        else
-        {
-            area = gtk_drawing_area_new();
-        }
-
-        gtk_widget_set_name(area, "NAppGUICairoCtx");
-        g_signal_connect(area, "configure-event", G_CALLBACK(i_OnConfig), (gpointer)view);
-        g_signal_connect(area, "draw", G_CALLBACK(i_OnDraw), (gpointer)view);
+        area = gtk_layout_new(NULL, NULL);
     }
-    /* Creating a OpenGL-based drawing area */
     else
     {
-#if GTK_CHECK_VERSION(3, 16, 0)
-        area = gtk_gl_area_new();
-        g_signal_connect(area, "render", G_CALLBACK(i_OnRender), (gpointer)view);
-#else
-        cassert(FALSE);
-#endif
+        area = gtk_drawing_area_new();
     }
+
+    gtk_widget_set_name(area, "NAppGUICairoCtx");
+    g_signal_connect(area, "configure-event", G_CALLBACK(i_OnConfig), (gpointer)view);
+    g_signal_connect(area, "draw", G_CALLBACK(i_OnDraw), (gpointer)view);
 
     /* DrawingArea or Layout have their own GDK window for event listeners */
     cassert(gtk_widget_get_has_window(area) == TRUE);
@@ -391,12 +476,14 @@ OSView *osview_create(const uint32_t flags)
             g_signal_connect(area, "scroll-event", G_CALLBACK(i_OnWheel), (gpointer)view);
     }
 
-    gtk_widget_add_events(view->darea, GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
-    g_signal_connect(view->darea, "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)view);
-    g_signal_connect(view->darea, "button-release-event", G_CALLBACK(i_OnRelease), (gpointer)view);
-    _oslistener_signal(view->darea, TRUE, &view->listeners.moved_signal, GDK_POINTER_MOTION_MASK, "motion-notify-event", G_CALLBACK(i_OnMove), (gpointer)view);
-    gtk_widget_set_can_focus(view->darea, TRUE);
-    gtk_widget_set_can_focus(top, TRUE);
+    i_wire_common_signals(view->darea, top, view);
+
+#if GTK_CHECK_VERSION(3, 16, 0)
+    view->glhook.func_upgrade = i_upgrade_to_opengl;
+    view->glhook.view = view;
+    g_object_set_data(G_OBJECT(top), "nappgui-oglview-hook", &view->glhook);
+#endif
+
     return view;
 }
 
@@ -629,8 +716,15 @@ void osview_content_size(OSView *view, const real32_t width, const real32_t heig
 
 real32_t osview_scale_factor(const OSView *view)
 {
+    cassert_no_null(view);
+#if GTK_CHECK_VERSION(3, 10, 0)
+    /* GTK3 only supports integer scales. With fractional desktop scaling (eg. 125%)
+       the compositor rounds up (x2) and downsamples, so GL framebuffers are x2 too */
+    return (real32_t)gtk_widget_get_scale_factor(view->control.widget);
+#else
     unref(view);
     return 1;
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -639,6 +733,15 @@ void osview_set_need_display(OSView *view)
 {
     cassert_no_null(view);
     cassert_no_null(view->darea);
+
+#if GTK_CHECK_VERSION(3, 16, 0)
+    if ((view->flags & ekVIEW_OPENGL) != 0)
+    {
+        gtk_gl_area_queue_render(GTK_GL_AREA(view->glarea));
+        return;
+    }
+#endif
+
     gtk_widget_queue_draw(view->darea);
 }
 
