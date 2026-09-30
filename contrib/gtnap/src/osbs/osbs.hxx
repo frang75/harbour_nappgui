@@ -71,7 +71,8 @@ typedef enum _macos_t
     ekMACOS_VENTURA,
     ekMACOS_SONOMA,
     ekMACOS_SEQUOIA,
-    ekMACOS_TAHOE
+    ekMACOS_TAHOE,
+    ekMACOS_GOLDEN_GATE
 } macos_t;
 
 typedef enum _endian_t

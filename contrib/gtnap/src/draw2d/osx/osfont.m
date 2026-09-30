@@ -29,26 +29,11 @@
 
 static String *i_SYSTEM_FONT_FAMILY = NULL;
 static String *i_MONOSPACE_FONT_FAMILY = NULL;
-static bool_t i_SYSTEM_FONT_REDUCED = FALSE;
 
 /*---------------------------------------------------------------------------*/
 
 void osfont_alloc_globals(void)
 {
-    /*
-     * I don't know why, in some newer macOS the system default font
-     * has a great font scaling by default. This affect when apply font
-     * transform, necessary for some fonts italic shear and x-scaling.
-     * This code detects if the system font has this big scaling
-     */
-    real32_t xscale = 1.1f;
-    OSFont *font = osfont_create("__SYSTEM__", font_regular_size(), -1, xscale, 0);
-    real32_t w, h;
-    osfont_extents(font, "OO", -1, xscale, &w, &h);
-    osfont_destroy(&font);
-    unref(w);
-    if (h > 40)
-        i_SYSTEM_FONT_REDUCED = TRUE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -95,6 +80,33 @@ static const char_t *i_monospace_font_family(void)
 }
 
 /*---------------------------------------------------------------------------*/
+
+static NSFont *i_transform_font(NSFontDescriptor *descriptor, const CGFloat xscale, const CGFloat height, const BOOL shear)
+{
+    NSAffineTransform *font_transform = [NSAffineTransform transform];
+
+    /* Apply the x-scale */
+    [font_transform scaleXBy:xscale * height yBy:height];
+
+    if (shear == YES)
+    {
+        NSAffineTransformStruct data;
+        NSAffineTransform *italic_transform = nil;
+        data.m11 = 1.f;
+        data.m12 = 0.f;
+        data.m21 = -tanf(/*italic_angle*/ -10.f * 0.017453292519943f);
+        data.m22 = 1.f;
+        data.tX = 0.f;
+        data.tY = 0.f;
+        italic_transform = [NSAffineTransform transform];
+        [italic_transform setTransformStruct:data];
+        [font_transform appendTransform:italic_transform];
+    }
+
+    return [NSFont fontWithDescriptor:descriptor textTransform:font_transform];
+}
+
+/*---------------------------------------------------------------------------*/
 /*
  * This funtion apply two transforms:
  *  - A shear if itatic is required.
@@ -123,28 +135,22 @@ static NSFont *i_font_transform(NSFont *font, const CGFloat xscale, const CGFloa
     /* We have to apply an affine transform to text */
     if ((italic == YES && with_italic == NO) || (xscale > 0 && fabs((double)xscale - 1) > 0.01))
     {
-        NSAffineTransform *font_transform = [NSAffineTransform transform];
-
-        /* Apply the x-scale */
-        [font_transform scaleXBy:xscale * height yBy:height];
-
-        /* Italic is required, but don't apply by FontManager */
+        BOOL shear = NO;
+        NSFontDescriptor *descriptor = [tfont fontDescriptor];
+        CGFloat ratio = 1;
         if (italic == YES && with_italic == NO)
-        {
-            NSAffineTransformStruct data;
-            NSAffineTransform *italic_transform = nil;
-            data.m11 = 1.f;
-            data.m12 = 0.f;
-            data.m21 = -tanf(/*italic_angle*/ -10.f * 0.017453292519943f);
-            data.m22 = 1.f;
-            data.tX = 0.f;
-            data.tY = 0.f;
-            italic_transform = [NSAffineTransform transform];
-            [italic_transform setTransformStruct:data];
-            [font_transform appendTransform:italic_transform];
-        }
+            shear = YES;
+        tfont = i_transform_font(descriptor, xscale, height, shear);
 
-        tfont = [NSFont fontWithDescriptor:[tfont fontDescriptor] textTransform:font_transform];
+        /*
+         * Since macOS Tahoe, the system fonts (regular and monospace) multiply the
+         * matrix size by their own point size, giving a huge font. We measure that
+         * ratio and remove it from the matrix. With older macOS or with fonts by
+         * family the ratio is 1 and nothing changes.
+         */
+        ratio = [tfont pointSize] / height;
+        if (fabs((double)ratio - 1) > 0.01)
+            tfont = i_transform_font(descriptor, xscale, height / ratio, shear);
     }
 
     return tfont;
@@ -201,8 +207,7 @@ static NSFont *i_nsfont(const char_t *family, const real32_t size, const uint32_
 
 OSFont *osfont_create(const char_t *family, const real32_t size, const real32_t width, const real32_t xscale, const uint32_t style)
 {
-    real32_t esize = size;
-    NSFont *nsfont = i_nsfont(family, esize, style);
+    NSFont *nsfont = i_nsfont(family, size, style);
     cassert_fatal_msg(nsfont != nil, "Font is not available on this computer.");
     unref(width);
 
@@ -212,9 +217,7 @@ OSFont *osfont_create(const char_t *family, const real32_t size, const real32_t 
         if (with_italic || (xscale > 0 && fabsf(xscale - 1) > 0.01))
         {
             NSFontManager *manager = [NSFontManager sharedFontManager];
-            if (str_equ_c(family, "__SYSTEM__") == TRUE && i_SYSTEM_FONT_REDUCED == TRUE)
-                esize /= size;
-            nsfont = i_font_transform(nsfont, (CGFloat)xscale, (CGFloat)esize, with_italic, manager);
+            nsfont = i_font_transform(nsfont, (CGFloat)xscale, (CGFloat)size, with_italic, manager);
         }
 
         [nsfont retain];

@@ -8,6 +8,7 @@
 
 #
 # Values for 'CMAKE_OSX_DEPLOYMENT_TARGET'
+# 27.0      # Golden Gate
 # 26.0      # Tahoe
 # 15.0      # Sequoia
 # 14.0      # Sonoma
@@ -29,8 +30,12 @@
 #------------------------------------------------------------------------------
 
 function(nap_macos_sdk_name sdkVersion _ret)
+    # 27 = "Golden Gate"
+    if (sdkVersion VERSION_GREATER "26.9999")
+        set(${_ret} "Golden Gate" PARENT_SCOPE)
+
     # 26 = "Tahoe"
-    if (sdkVersion VERSION_GREATER "25.9999")
+    elseif (sdkVersion VERSION_GREATER "25.9999")
         set(${_ret} "Tahoe" PARENT_SCOPE)
 
     # 15 = "Sequoia"
