@@ -51,7 +51,7 @@ The main goal this year is to consolidate the use of GTNAP/Forms in the Aspec pr
 - Sprint 14: Implement HiDPI support in NAppGUI Win32 backend (II). **Done Sprint 112 31/08/26**
 - Sprint 15: Implement support in NAppGUI for GTK3/Wayland backend. **Done Sprint 113 15/09/26**.
 - Sprint 16: --> Possible maintenance tasks for current projects. HBAWS Vendorization **Done Sprint 109 15/07/26**
-- Sprint 17: Implement HiDPI support in NAppGUI GTK backend.
+- Sprint 17: Implement HiDPI support in NAppGUI GTK backend. **Done Sprint 115 15/10/26**
 - Sprint 18: Aspec-clone app: Delve deeper into the user mode.
 - Sprint 19: Aspec-clone app: Main Window, modals, navigation.
 - Sprint 20: Aspec-clone app: Support for editbox with char patterns (date/time/document).
