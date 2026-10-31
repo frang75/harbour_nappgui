@@ -1,0 +1,361 @@
+---------------------------
+Generating OfficeSDK
+Main path: C:\harbour_nappgui\contrib\hboffice\officesdk
+Build type: Release
+---------------------------
+-- Selecting Windows SDK version 10.0.26100.0 to target Windows 10.0.26200.
+- LIBREOFFICE_HOME: C:\Program Files\LibreOffice
+-- Configuring done (0.2s)
+-- Generating done (0.1s)
+-- Build files have been written to: C:/harbour_nappgui/contrib/hboffice/officesdk/build
+MSBuild version 18.7.8+1ac568fee for .NET Framework
+
+     Creating library C:/harbour_nappgui/contrib/hboffice/officesdk/bin/win/officesdk.lib and object C:/harbour_nappgui/contrib/hboffice/officesdk/bin/win/officesdk.exp
+  officesdk.vcxproj -> C:\harbour_nappgui\contrib\hboffice\officesdk\bin\win\officesdk.dll
+---------------------------
+OFFICESDK DLL build succeed
+---------------------------
+--------------------------------
+officesdk build successfully
+--------------------------------
+---------------------------
+Generating HBOFFICE
+Main path: C:\harbour_nappgui\contrib\hboffice
+Build type: Release
+COMPILER: mingw64
+---------------------------
+HBMK HOME: ..\\..\\bin\\win\\mingw64
+hbmk2: Compiling...
+hbmk2: Creating static library...
+       C:\harbour_nappgui\contrib\hboffice\build\Release\lib\libhboffice.a
+---------------------------
+HBOFFICE LIB build succeed
+---------------------------
+--------------------------------
+hboffice mingw64 lib build successfully
+--------------------------------
+---------------------------
+Generating HBAWS
+Main path: C:\harbour_nappgui\contrib\hbaws
+Build type: Release
+COMPILER: mingw64
+---------------------------
+HBMK HOME: ..\\..\\bin\\win\\mingw64
+hbmk2: Compiling...
+hbmk2: Compiling C++...
+hbmk2: Creating static library...
+       C:\harbour_nappgui\contrib\hbaws\build\Release\lib\libhbaws.a
+------------------------
+HBAWS LIB build succeed
+------------------------
+-------------------------
+hbaws mingw64 build successfully
+-------------------------
+---------------------------
+Generating GTNAP
+Main path: C:\harbour_nappgui\contrib\gtnap
+Build type: Release
+COMPILER: mingw64
+HBMK path: ..\\..\\bin\\win\\mingw64
+---------------------------
+-- The C compiler identification is GNU 15.2.0
+-- The CXX compiler identification is GNU 15.2.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: C:/msys64/ucrt64/bin/gcc.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: C:/msys64/ucrt64/bin/g++.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- ---------------------------------------------
+-- NAppGUI Cross-Platform SDK
+-- 2015-2026 Francisco Garcia Collado
+-- MIT License
+-- ---------------------------------------------
+-- * VERSION: 1.7.0.7270 
+-- * GENERATOR: MinGW Makefiles 
+-- * BUILD_SHARED: False 
+-- * CMAKE: 4.2.1 
+-- * COMPILER: GNU 
+-- * COMPILER_VERSION: 15.2.0 
+-- * WEB_SUPPORT: NO 
+-- * BUILD_TYPE: Release 
+-- * BUILD_ARCH: x64 
+-- * HOST_ARCH: x64 
+-- * PACKAGE_ID: mwgcc15_2_0_x64 
+-- ---------------------------------------------
+-- - Generating NAppGUI Tools...
+-- - [NRC] tool successfully generated 'C:/harbour_nappgui/contrib/gtnap/build/tools/build/Debug/bin/nrc.exe'
+-- - [OK] sewer: Static library
+-- - [OK] osbs: Static library
+-- - [OK] core: Static library
+-- - [OK] geom2d: Static library
+-- - [OK] draw2d: Static library
+-- - [OK] osgui: Static library
+-- - [OK] gui: Static library
+-- - [OK] osapp: Static library
+-- - [OK] encode: Static library
+-- - [OK] inet: Static library
+-- - [OK] deblib: Static library
+-- - [OK] gtnapdeb: Desktop application
+-- - [OK] nflib_res: Resource pack recompiled.
+-- - [OK] nflib: Static library
+-- - [OK] nforms: Static library
+-- - [OK] res_designer: Resource pack recompiled.
+-- - [OK] napdesign: Desktop application
+-- Configuring done (69.2s)
+-- Generating done (0.3s)
+-- Build files have been written to: C:/harbour_nappgui/contrib/gtnap/build
+[  0%] Building C object src/sewer/CMakeFiles/sewer.dir/blib.c.obj
+[  1%] Building CXX object src/sewer/CMakeFiles/sewer.dir/bmath.cpp.obj
+[  2%] Building C object src/sewer/CMakeFiles/sewer.dir/bmem.c.obj
+[  2%] Building C object src/sewer/CMakeFiles/sewer.dir/cassert.c.obj
+[  2%] Building C object src/sewer/CMakeFiles/sewer.dir/ptr.c.obj
+[  3%] Building C object src/sewer/CMakeFiles/sewer.dir/qsort.c.obj
+[  3%] Building C object src/sewer/CMakeFiles/sewer.dir/sewer.c.obj
+[  4%] Building C object src/sewer/CMakeFiles/sewer.dir/types.c.obj
+[  4%] Building C object src/sewer/CMakeFiles/sewer.dir/unicode.c.obj
+[  5%] Building C object src/sewer/CMakeFiles/sewer.dir/win/bmem_win.c.obj
+[  5%] Building C object src/sewer/CMakeFiles/sewer.dir/win/bstdimp.c.obj
+C:\harbour_nappgui\contrib\gtnap\src\sewer\win\bstdimp.c: In function 'bstd_printf':
+C:\harbour_nappgui\contrib\gtnap\src\sewer\win\bstdimp.c:121:106: warning: conversion to 'long long unsigned int' from 'int' may change the sign of the result [-Wsign-conversion]
+  121 |         unicode_convers(cast_const(buffer, char_t), cast(wbuffer, char_t), ekUTF8, ekUTF16, (length + 1) * sizeof(WCHAR));
+      |                                                                                                          ^
+C:\harbour_nappgui\contrib\gtnap\src\sewer\win\bstdimp.c:121:106: warning: conversion from 'long long unsigned int' to 'uint32_t' {aka 'const unsigned int'} may change value [-Wconversion]
+  121 |         unicode_convers(cast_const(buffer, char_t), cast(wbuffer, char_t), ekUTF8, ekUTF16, (length + 1) * sizeof(WCHAR));
+      |                                                                                             ~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+[  6%] Linking CXX static library ..\..\Release\lib\libsewer.a
+[  6%] Built target sewer
+[  7%] Building C object src/osbs/CMakeFiles/osbs.dir/bsocket.c.obj
+[  7%] Building C object src/osbs/CMakeFiles/osbs.dir/log.c.obj
+[  8%] Building C object src/osbs/CMakeFiles/osbs.dir/osbs.c.obj
+[  8%] Building C object src/osbs/CMakeFiles/osbs.dir/win/bfile.c.obj
+[  8%] Building C object src/osbs/CMakeFiles/osbs.dir/win/bmutex.c.obj
+[  9%] Building C object src/osbs/CMakeFiles/osbs.dir/win/bproc.c.obj
+[  9%] Building C object src/osbs/CMakeFiles/osbs.dir/win/bsocket.c.obj
+[ 10%] Building C object src/osbs/CMakeFiles/osbs.dir/win/bthread.c.obj
+[ 10%] Building C object src/osbs/CMakeFiles/osbs.dir/win/btime.c.obj
+[ 11%] Building C object src/osbs/CMakeFiles/osbs.dir/win/dlib.c.obj
+[ 11%] Building C object src/osbs/CMakeFiles/osbs.dir/win/sinfo.c.obj
+[ 12%] Linking C static library ..\..\Release\lib\libosbs.a
+[ 12%] Built target osbs
+[ 12%] Building C object src/core/CMakeFiles/core.dir/array.c.obj
+[ 12%] Building C object src/core/CMakeFiles/core.dir/bhash.c.obj
+[ 13%] Building C object src/core/CMakeFiles/core.dir/buffer.c.obj
+[ 13%] Building C object src/core/CMakeFiles/core.dir/clock.c.obj
+[ 14%] Building CXX object src/core/CMakeFiles/core.dir/core.cpp.obj
+[ 14%] Building C object src/core/CMakeFiles/core.dir/date.c.obj
+[ 15%] Building C object src/core/CMakeFiles/core.dir/dbind.c.obj
+[ 15%] Building CXX object src/core/CMakeFiles/core.dir/event.cpp.obj
+[ 16%] Building C object src/core/CMakeFiles/core.dir/heap.c.obj
+[ 16%] Building C object src/core/CMakeFiles/core.dir/hfile.c.obj
+[ 17%] Building C object src/core/CMakeFiles/core.dir/keybuf.c.obj
+[ 17%] Building C object src/core/CMakeFiles/core.dir/lex.c.obj
+[ 18%] Building C object src/core/CMakeFiles/core.dir/nfa.c.obj
+[ 18%] Building C object src/core/CMakeFiles/core.dir/ntree.c.obj
+[ 18%] Building C object src/core/CMakeFiles/core.dir/obj.c.obj
+[ 19%] Building C object src/core/CMakeFiles/core.dir/rbtree.c.obj
+[ 19%] Building C object src/core/CMakeFiles/core.dir/regex.c.obj
+[ 20%] Building C object src/core/CMakeFiles/core.dir/respack.c.obj
+[ 20%] Building C object src/core/CMakeFiles/core.dir/stream.c.obj
+[ 21%] Building C object src/core/CMakeFiles/core.dir/strings.c.obj
+[ 21%] Building C object src/core/CMakeFiles/core.dir/tfilter.c.obj
+[ 22%] Linking CXX static library ..\..\Release\lib\libcore.a
+[ 22%] Built target core
+[ 22%] Building C object src/encode/CMakeFiles/encode.dir/base64.c.obj
+[ 22%] Building CXX object src/geom2d/CMakeFiles/geom2d.dir/box2d.cpp.obj
+[ 23%] Building CXX object src/geom2d/CMakeFiles/geom2d.dir/cir2d.cpp.obj
+[ 23%] Building C object src/encode/CMakeFiles/encode.dir/encode.c.obj
+[ 23%] Building CXX object src/geom2d/CMakeFiles/geom2d.dir/col2d.cpp.obj
+[ 24%] Building C object src/encode/CMakeFiles/encode.dir/json.c.obj
+[ 24%] Building C object src/encode/CMakeFiles/encode.dir/url.c.obj
+[ 25%] Building CXX object src/geom2d/CMakeFiles/geom2d.dir/obb2d.cpp.obj
+[ 25%] Building CXX object src/geom2d/CMakeFiles/geom2d.dir/pol2d.cpp.obj
+[ 26%] Linking C static library ..\..\Release\lib\libencode.a
+[ 27%] Building CXX object src/geom2d/CMakeFiles/geom2d.dir/polabel.cpp.obj
+[ 27%] Built target encode
+[ 27%] Building C object src/inet/CMakeFiles/inet.dir/httpreq.c.obj
+[ 27%] Building CXX object src/geom2d/CMakeFiles/geom2d.dir/polpart.cpp.obj
+[ 28%] Building C object src/inet/CMakeFiles/inet.dir/inet.c.obj
+[ 28%] Building C object src/inet/CMakeFiles/inet.dir/win/inet_win.c.obj
+[ 29%] Building CXX object src/geom2d/CMakeFiles/geom2d.dir/r2d.cpp.obj
+[ 29%] Building CXX object src/geom2d/CMakeFiles/geom2d.dir/s2d.cpp.obj
+[ 30%] Building C object src/inet/CMakeFiles/inet.dir/win/oshttpreq.c.obj
+[ 31%] Building CXX object src/geom2d/CMakeFiles/geom2d.dir/seg2d.cpp.obj
+[ 31%] Building CXX object src/geom2d/CMakeFiles/geom2d.dir/t2d.cpp.obj
+[ 31%] Building CXX object src/geom2d/CMakeFiles/geom2d.dir/tri2d.cpp.obj
+[ 32%] Building CXX object src/geom2d/CMakeFiles/geom2d.dir/v2d.cpp.obj
+[ 32%] Linking CXX static library ..\..\Release\lib\libinet.a
+[ 32%] Linking CXX static library ..\..\Release\lib\libgeom2d.a
+[ 32%] Built target inet
+[ 32%] Built target geom2d
+[ 32%] Building C object src/draw2d/CMakeFiles/draw2d.dir/color.c.obj
+[ 33%] Building C object src/draw2d/CMakeFiles/draw2d.dir/dctx.c.obj
+[ 33%] Building C object src/draw2d/CMakeFiles/draw2d.dir/draw2d.c.obj
+[ 33%] Building CXX object src/draw2d/CMakeFiles/draw2d.dir/drawg.cpp.obj
+[ 34%] Building C object src/draw2d/CMakeFiles/draw2d.dir/font.c.obj
+[ 34%] Building C object src/draw2d/CMakeFiles/draw2d.dir/guictx.c.obj
+[ 35%] Building C object src/draw2d/CMakeFiles/draw2d.dir/image.c.obj
+[ 35%] Building C object src/draw2d/CMakeFiles/draw2d.dir/imgutil.c.obj
+[ 36%] Building C object src/draw2d/CMakeFiles/draw2d.dir/palette.c.obj
+[ 36%] Building C object src/draw2d/CMakeFiles/draw2d.dir/pixbuf.c.obj
+[ 37%] Building CXX object src/draw2d/CMakeFiles/draw2d.dir/win/dctx_win.cpp.obj
+[ 38%] Building CXX object src/draw2d/CMakeFiles/draw2d.dir/win/draw_win.cpp.obj
+[ 38%] Building CXX object src/draw2d/CMakeFiles/draw2d.dir/win/osfont.cpp.obj
+[ 38%] Building CXX object src/draw2d/CMakeFiles/draw2d.dir/win/osimage.cpp.obj
+[ 39%] Linking CXX static library ..\..\Release\lib\libdraw2d.a
+[ 39%] Built target draw2d
+[ 39%] Building C object src/osgui/CMakeFiles/osgui.dir/osbutton.c.obj
+[ 39%] Building C object src/gui/CMakeFiles/gui.dir/button.c.obj
+[ 40%] Building C object src/gui/CMakeFiles/gui.dir/combo.c.obj
+[ 41%] Building C object src/osgui/CMakeFiles/osgui.dir/oscombo.c.obj
+[ 41%] Building C object src/gui/CMakeFiles/gui.dir/component.c.obj
+[ 41%] Building C object src/osgui/CMakeFiles/osgui.dir/oscontrol.c.obj
+[ 42%] Building C object src/osgui/CMakeFiles/osgui.dir/osedit.c.obj
+[ 42%] Building C object src/osgui/CMakeFiles/osgui.dir/osgui.c.obj
+[ 43%] Building C object src/gui/CMakeFiles/gui.dir/comwin.c.obj
+[ 44%] Building C object src/osgui/CMakeFiles/osgui.dir/osguictx.c.obj
+[ 44%] Building C object src/osgui/CMakeFiles/osgui.dir/osline.c.obj
+[ 44%] Building C object src/gui/CMakeFiles/gui.dir/drawctrl.c.obj
+[ 44%] Building C object src/osgui/CMakeFiles/osgui.dir/ospanel.c.obj
+[ 45%] Building C object src/gui/CMakeFiles/gui.dir/edit.c.obj
+[ 46%] Building C object src/osgui/CMakeFiles/osgui.dir/ospopup.c.obj
+[ 46%] Building C object src/osgui/CMakeFiles/osgui.dir/osprogress.c.obj
+[ 46%] Building C object src/gui/CMakeFiles/gui.dir/editimp.c.obj
+[ 47%] Building C object src/osgui/CMakeFiles/osgui.dir/osscrolls.c.obj
+[ 47%] Building C object src/osgui/CMakeFiles/osgui.dir/osslider.c.obj
+[ 47%] Building C object src/gui/CMakeFiles/gui.dir/gbind.c.obj
+[ 48%] Building C object src/gui/CMakeFiles/gui.dir/gui.c.obj
+[ 49%] Building C object src/osgui/CMakeFiles/osgui.dir/ossplit.c.obj
+[ 49%] Building C object src/gui/CMakeFiles/gui.dir/guicontrol.c.obj
+[ 49%] Building C object src/osgui/CMakeFiles/osgui.dir/ostabs.c.obj
+[ 50%] Building C object src/gui/CMakeFiles/gui.dir/imageview.c.obj
+[ 51%] Building C object src/osgui/CMakeFiles/osgui.dir/ostabstop.c.obj
+[ 51%] Building C object src/gui/CMakeFiles/gui.dir/items.c.obj
+[ 51%] Building C object src/osgui/CMakeFiles/osgui.dir/ostext.c.obj
+[ 52%] Building C object src/osgui/CMakeFiles/osgui.dir/osupdown.c.obj
+[ 53%] Building C object src/gui/CMakeFiles/gui.dir/label.c.obj
+[ 53%] Building C object src/gui/CMakeFiles/gui.dir/layout.c.obj
+[ 53%] Building C object src/osgui/CMakeFiles/osgui.dir/osview.c.obj
+[ 54%] Building C object src/gui/CMakeFiles/gui.dir/line.c.obj
+[ 55%] Building C object src/osgui/CMakeFiles/osgui.dir/osweb.c.obj
+[ 55%] Building C object src/gui/CMakeFiles/gui.dir/listbox.c.obj
+[ 55%] Building C object src/osgui/CMakeFiles/osgui.dir/oswindow.c.obj
+[ 56%] Building C object src/gui/CMakeFiles/gui.dir/menu.c.obj
+[ 56%] Building C object src/osgui/CMakeFiles/osgui.dir/win/osbutton.c.obj
+[ 57%] Building C object src/osgui/CMakeFiles/osgui.dir/win/oscombo.c.obj
+[ 57%] Building C object src/osgui/CMakeFiles/osgui.dir/win/oscomwin.c.obj
+[ 57%] Building C object src/gui/CMakeFiles/gui.dir/menuitem.c.obj
+[ 58%] Building C object src/gui/CMakeFiles/gui.dir/panel.c.obj
+[ 58%] Building C object src/gui/CMakeFiles/gui.dir/popup.c.obj
+[ 59%] Building CXX object src/osgui/CMakeFiles/osgui.dir/win/oscontrol.cpp.obj
+[ 59%] Building C object src/gui/CMakeFiles/gui.dir/progress.c.obj
+[ 59%] Building CXX object src/osgui/CMakeFiles/osgui.dir/win/osdrawctrl.cpp.obj
+[ 60%] Building C object src/gui/CMakeFiles/gui.dir/res_gui.c.obj
+[ 61%] Building C object src/osgui/CMakeFiles/osgui.dir/win/osedit.c.obj
+[ 61%] Building C object src/gui/CMakeFiles/gui.dir/scrollview.c.obj
+[ 62%] Building C object src/gui/CMakeFiles/gui.dir/slider.c.obj
+[ 62%] Building C object src/gui/CMakeFiles/gui.dir/splitview.c.obj
+[ 62%] Building C object src/osgui/CMakeFiles/osgui.dir/win/osglobals.c.obj
+[ 63%] Building C object src/gui/CMakeFiles/gui.dir/tableview.c.obj
+[ 63%] Building C object src/gui/CMakeFiles/gui.dir/tabs.c.obj
+[ 64%] Building CXX object src/osgui/CMakeFiles/osgui.dir/win/osgui_win.cpp.obj
+[ 64%] Building CXX object src/osgui/CMakeFiles/osgui.dir/win/osimg.cpp.obj
+[ 65%] Building C object src/gui/CMakeFiles/gui.dir/textview.c.obj
+[ 66%] Building C object src/osgui/CMakeFiles/osgui.dir/win/osimglist.c.obj
+[ 66%] Building C object src/gui/CMakeFiles/gui.dir/updown.c.obj
+[ 67%] Building C object src/gui/CMakeFiles/gui.dir/view.c.obj
+[ 67%] Building C object src/gui/CMakeFiles/gui.dir/webview.c.obj
+[ 68%] Building C object src/gui/CMakeFiles/gui.dir/window.c.obj
+[ 68%] Building C object src/osgui/CMakeFiles/osgui.dir/win/osline.c.obj
+[ 69%] Building C object src/osgui/CMakeFiles/osgui.dir/win/oslistener.c.obj
+[ 69%] Building C object src/osgui/CMakeFiles/osgui.dir/win/osmenu.c.obj
+[ 69%] Linking CXX static library ..\..\Release\lib\libgui.a
+[ 69%] Built target gui
+[ 69%] Building C object src/osgui/CMakeFiles/osgui.dir/win/osmenuitem.c.obj
+[ 69%] Building C object src/deblib/CMakeFiles/deblib.dir/deblib.c.obj
+[ 70%] Building C object src/osgui/CMakeFiles/osgui.dir/win/ospanel.c.obj
+[ 70%] Building C object src/nflib/CMakeFiles/nflib.dir/fbutton.c.obj
+[ 71%] Linking C static library ..\..\Release\lib\libdeblib.a
+[ 72%] Building C object src/nflib/CMakeFiles/nflib.dir/fcheck.c.obj
+[ 72%] Built target deblib
+[ 72%] Building C object src/nflib/CMakeFiles/nflib.dir/fcombo.c.obj
+[ 72%] Building C object src/osgui/CMakeFiles/osgui.dir/win/ospopup.c.obj
+[ 73%] Building C object src/nflib/CMakeFiles/nflib.dir/fedit.c.obj
+[ 74%] Building C object src/osgui/CMakeFiles/osgui.dir/win/osprogress.c.obj
+[ 74%] Building C object src/nflib/CMakeFiles/nflib.dir/ffont.c.obj
+[ 75%] Building C object src/nflib/CMakeFiles/nflib.dir/fform.c.obj
+[ 75%] Building C object src/osgui/CMakeFiles/osgui.dir/win/osscroll.c.obj
+[ 75%] Building C object src/nflib/CMakeFiles/nflib.dir/fhline.c.obj
+[ 76%] Building C object src/nflib/CMakeFiles/nflib.dir/fimage.c.obj
+[ 77%] Building C object src/osgui/CMakeFiles/osgui.dir/win/osslider.c.obj
+[ 77%] Building C object src/osgui/CMakeFiles/osgui.dir/win/ossplit.c.obj
+[ 77%] Building C object src/nflib/CMakeFiles/nflib.dir/flabel.c.obj
+[ 78%] Building C object src/nflib/CMakeFiles/nflib.dir/flayout.c.obj
+[ 78%] Building C object src/nflib/CMakeFiles/nflib.dir/flistbox.c.obj
+[ 79%] Building C object src/osgui/CMakeFiles/osgui.dir/win/osstyleXP.c.obj
+[ 79%] Building C object src/nflib/CMakeFiles/nflib.dir/fpanel.c.obj
+[ 80%] Building C object src/nflib/CMakeFiles/nflib.dir/fpopup.c.obj
+[ 80%] Building C object src/osgui/CMakeFiles/osgui.dir/win/ostabs.c.obj
+[ 81%] Building C object src/osgui/CMakeFiles/osgui.dir/win/ostext.c.obj
+[ 81%] Building C object src/nflib/CMakeFiles/nflib.dir/fprogress.c.obj
+[ 82%] Building C object src/nflib/CMakeFiles/nflib.dir/fradio.c.obj
+[ 82%] Building C object src/nflib/CMakeFiles/nflib.dir/fslider.c.obj
+[ 82%] Building C object src/osgui/CMakeFiles/osgui.dir/win/osupdown.c.obj
+[ 83%] Building C object src/nflib/CMakeFiles/nflib.dir/fsview.c.obj
+[ 84%] Building CXX object src/osgui/CMakeFiles/osgui.dir/win/osview.cpp.obj
+[ 84%] Building C object src/nflib/CMakeFiles/nflib.dir/ftable.c.obj
+[ 84%] Building CXX object src/osgui/CMakeFiles/osgui.dir/win/osweb.cpp.obj
+[ 85%] Building C object src/nflib/CMakeFiles/nflib.dir/ftabs.c.obj
+[ 85%] Building C object src/nflib/CMakeFiles/nflib.dir/ftext.c.obj
+[ 86%] Building C object src/nflib/CMakeFiles/nflib.dir/ftool.c.obj
+[ 86%] Building C object src/osgui/CMakeFiles/osgui.dir/win/oswindow.c.obj
+[ 86%] Building C object src/nflib/CMakeFiles/nflib.dir/fview.c.obj
+[ 87%] Building C object src/nflib/CMakeFiles/nflib.dir/fvline.c.obj
+[ 87%] Building C object src/nflib/CMakeFiles/nflib.dir/fvslider.c.obj
+[ 87%] Building C object src/nflib/CMakeFiles/nflib.dir/nflib.c.obj
+[ 88%] Building C object src/nflib/CMakeFiles/nflib.dir/resgen/nflib_res.c.obj
+[ 88%] Linking C static library ..\..\Release\lib\libnflib.a
+[ 88%] Built target nflib
+[ 89%] Linking CXX static library ..\..\Release\lib\libosgui.a
+[ 90%] Building C object src/nforms/CMakeFiles/nforms.dir/nform.c.obj
+[ 90%] Building C object src/nforms/CMakeFiles/nforms.dir/nforms.c.obj
+[ 90%] Built target osgui
+[ 91%] Linking C static library ..\..\Release\lib\libnforms.a
+[ 91%] Building C object src/osapp/CMakeFiles/osapp.dir/osapp.c.obj
+[ 92%] Building C object src/osapp/CMakeFiles/osapp.dir/win/osapp_win.c.obj
+[ 92%] Built target nforms
+[ 92%] Linking CXX static library ..\..\Release\lib\libosapp.a
+[ 92%] Built target osapp
+[ 93%] Building C object src/debugger/CMakeFiles/gtnapdeb.dir/debugger.c.obj
+[ 93%] Building RC object src/debugger/CMakeFiles/gtnapdeb.dir/res.rc.obj
+[ 94%] Building C object src/napdesign/CMakeFiles/napdesign.dir/cbutton.c.obj
+[ 94%] Building C object src/napdesign/CMakeFiles/napdesign.dir/designer.c.obj
+[ 95%] Building C object src/napdesign/CMakeFiles/napdesign.dir/dform.c.obj
+[ 95%] Building C object src/napdesign/CMakeFiles/napdesign.dir/dgui.c.obj
+[ 96%] Building C object src/napdesign/CMakeFiles/napdesign.dir/dialogs.c.obj
+[ 97%] Linking CXX executable ..\..\Release\bin\gtnapdeb.exe
+[ 97%] Building C object src/napdesign/CMakeFiles/napdesign.dir/dlayout.c.obj
+[ 98%] Building C object src/napdesign/CMakeFiles/napdesign.dir/imgproc.c.obj
+[ 98%] Building C object src/napdesign/CMakeFiles/napdesign.dir/inspect.c.obj
+[ 98%] Built target gtnapdeb
+[ 99%] Building C object src/napdesign/CMakeFiles/napdesign.dir/propedit.c.obj
+[ 99%] Building RC object src/napdesign/CMakeFiles/napdesign.dir/res.rc.obj
+[ 99%] Building C object src/napdesign/CMakeFiles/napdesign.dir/resgen/res_designer.c.obj
+C:\harbour_nappgui\contrib\gtnap\src\napdesign\propedit.c: In function 'i_scrollbar_width':
+C:\harbour_nappgui\contrib\gtnap\src\napdesign\propedit.c:2542:5: warning: implicit declaration of function 'panel_scroll_size'; did you mean 'panel_scroll_mode'? [-Wimplicit-function-declaration]
+ 2542 |     panel_scroll_size(panel, &width, NULL);
+      |     ^~~~~~~~~~~~~~~~~
+      |     panel_scroll_mode
+C:\harbour_nappgui\contrib\gtnap\src\napdesign\propedit.c:2542:5: warning: nested extern declaration of 'panel_scroll_size' [-Wnested-externs]
+[100%] Linking CXX executable ..\..\Release\bin\napdesign.exe
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.2.0/../../../../x86_64-w64-mingw32/bin/ld.exe: CMakeFiles\napdesign.dir/objects.a(propedit.c.obj):propedit.c:(.text+0x7692): undefined reference to `panel_scroll_size'
+collect2.exe: error: ld returned 1 exit status
+mingw32-make[2]: *** [src\napdesign\CMakeFiles\napdesign.dir\build.make:295: Release/bin/napdesign.exe] Error 1
+mingw32-make[1]: *** [CMakeFiles\Makefile2:894: src/napdesign/CMakeFiles/napdesign.dir/all] Error 2
+mingw32-make: *** [Makefile:135: all] Error 2
+Error building NAppGUI
+The system cannot find the batch label specified - error_gtnap
