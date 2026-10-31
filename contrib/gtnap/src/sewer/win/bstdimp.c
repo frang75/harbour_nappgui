@@ -109,7 +109,6 @@ uint32_t bstd_printf(const char_t *format, ...)
     WriteFile(handle, (LPCVOID)buffer, (DWORD)length, &lwsize, NULL);
     unref(lwsize);
 
-#if defined(_MSC_VER)
     if (length < 1024)
     {
         WCHAR wbuffer[1024];
@@ -119,11 +118,10 @@ uint32_t bstd_printf(const char_t *format, ...)
     else
     {
         WCHAR *wbuffer = cast(bmem_malloc((uint32_t)(length + 1) * sizeof(WCHAR)), WCHAR);
-        unicode_convers(cast_const(buffer, char_t), cast(wbuffer, char_t), ekUTF8, ekUTF16, (length + 1) * sizeof(WCHAR));
+        unicode_convers(cast_const(buffer, char_t), cast(wbuffer, char_t), ekUTF8, ekUTF16, (uint32_t)(length + 1) * sizeof32(WCHAR));
         OutputDebugString(wbuffer);
         bmem_free(cast(wbuffer, byte_t));
     }
-#endif
 
     if (dbuffer != NULL)
         bmem_free(cast(dbuffer, byte_t));
