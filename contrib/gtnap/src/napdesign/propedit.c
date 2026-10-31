@@ -2536,23 +2536,13 @@ static void i_destroy_data(PropData **data)
 
 /*---------------------------------------------------------------------------*/
 
-static real32_t i_scrollbar_width(Panel *panel)
-{
-    real32_t width = 0;
-    panel_scroll_size(panel, &width, NULL);
-    return width;
-}
-
-/*---------------------------------------------------------------------------*/
-
 Panel *propedit_create(Designer *app)
 {
     PropData *data = i_data(app);
     Panel *panel = panel_custom(FALSE, TRUE, FALSE);
-    real32_t mright = i_scrollbar_width(panel);
     Layout *layout0 = i_no_sel_layout();
-    Layout *layout1 = i_layout_layout(data, mright);
-    Layout *layout2 = i_cell_layout(data, mright);
+    Layout *layout1 = i_layout_layout(data, 0);
+    Layout *layout2 = i_cell_layout(data, 0);
     panel_layout(panel, layout0);
     panel_layout(panel, layout1);
     panel_layout(panel, layout2);
@@ -2613,7 +2603,7 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
     layout_dbind_obj(data->hline_layout, NULL, FHline);
     layout_dbind_obj(data->vline_layout, NULL, FVline);
     layout_dbind_obj(data->panell_layout, NULL, FPanel);
-    
+
     /* i_no_sel_layout */
     if (sel->flayout == NULL)
     {
@@ -2759,7 +2749,7 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
         {
             layout_dbind_obj(data->panell_layout, cell->widget.panel, FPanel);
             panel_visible_layout(data->cell_panel, 22);
-        }        
+        }
         else
         {
             cassert(FALSE);
