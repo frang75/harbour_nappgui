@@ -38,7 +38,7 @@ The main goal this year is to consolidate the use of GTNAP/Forms in the Aspec pr
 - Sprint 1: Windows flickering. Use `DeferWindowPos()` Win32 API. **Done Sprint 97 15/01/26**
 - Sprint 2: GTK resizing issue. Review GTK API and monitor the mouse events. Ubuntu 24+ application icon. **Done Sprint 114 30/09/26**.
 - Sprint 3: macOS panels with scrollbar (remains at fixed pos). **Done Sprint 97 15/01/26**
-- Sprint 4: Improve NAppGUI layout algorithm to take into account panel scrollbars width/height.
+- Sprint 4: Improve NAppGUI layout algorithm to take into account panel scrollbars width/height. **Done Sprint 116 31/10/26**
 - Sprint 5: Implement line widgets (hor/ver) in NAppGUI and add them to designer. **Done Sprint 101 15/03/26**
 - Sprint 6: --> Possible maintenance tasks for current projects. **Done Sprint 100 28/02/26** (Fully documentation review).
 - Sprint 7: Implement group widget in NAppGUI. **Done Sprint 102 31/03/26**
