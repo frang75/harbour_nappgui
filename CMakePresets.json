@@ -1,0 +1,39 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 21,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "windows-ninja-vs2026-debug",
+            "displayName": "Windows x64 Debug (Ninja, VS2026 v145)",
+            "description": "Ninja generator using the VS2026 (v145) MSVC toolset. Run from a VS2026 x64 Native Tools command prompt/PowerShell.",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            },
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "toolset": {
+                "value": "v145",
+                "strategy": "external"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "windows-ninja-vs2026-debug",
+            "configurePreset": "windows-ninja-vs2026-debug"
+        }
+    ]
+}

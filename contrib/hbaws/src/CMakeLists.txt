@@ -7,11 +7,11 @@ nap_target_cxx_standard(${TARGET_NAME} 11)
 set(AWSDIR "${CMAKE_CURRENT_SOURCE_DIR}/../awssdk")
 set(LIBS "aws-cpp-sdk-core;aws-cpp-sdk-s3")
 
-if (CMAKE_GENERATOR MATCHES "Visual Studio")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     set(AWSBIN "${AWSDIR}/bin/win/msvc")
 elseif (CMAKE_GENERATOR MATCHES "Xcode")
     set(AWSBIN "${AWSDIR}/bin/darwin/clang")
-elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(AWSBIN "${AWSDIR}/bin/linux/gcc")
 else()
     message(FATAL_ERROR "No vendored AWS-SDK binaries for this generator/compiler")
@@ -20,7 +20,7 @@ endif()
 target_include_directories(${TARGET_NAME} PUBLIC "${AWSDIR}/include")
 target_link_directories(${TARGET_NAME} PUBLIC "${AWSBIN}")
 
-if (CMAKE_GENERATOR MATCHES "Visual Studio")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     # Same defines as contrib/hbaws/hbaws.hbp, required for the AWS-SDK
     # headers to correctly declare dllimport-ed symbols.
     target_compile_definitions(${TARGET_NAME} PRIVATE

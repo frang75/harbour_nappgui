@@ -3,28 +3,28 @@
     "configurations": [
         {
             "name": "Exemplo",
-            "type": "cppdbg",
+            "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Debug/bin/exemplo",
+            "program": "${workspaceFolder}/build/windows-ninja-vs2026-debug/Debug/bin/exemplo.exe",
             "args": ["--hb:gtnap"],
-            "environment": [{ "name": "LIBREOFFICE_HOME", "value": "/usr/lib/libreoffice" },
-                            { "name": "AWS_SDK_ROOT", "value": "/home/fran/aws-sdk" },
-                            { "name": "LD_LIBRARY_PATH", "value": "/usr/lib/libreoffice/program:/home/fran/aws-sdk/gcc/Release/lib"}],
+            "environment": [
+                { "name": "PATH", "value": "${env:PATH};${env:AWS_SDK_ROOT}\\msvc64\\Release\\bin" }
+            ],
             "cwd": "${workspaceFolder}/contrib/gtnap/tests/cuademo/gtnap_cualib"
         },
         {
             "name": "Designer",
-            "type": "cppdbg",
+            "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Debug/bin/napdesign",
+            "program": "${workspaceFolder}/build/windows-ninja-vs2026-debug/Debug/bin/napdesign.exe",
             "args": [],
             "cwd": "${workspaceFolder}/contrib/gtnap/tests/cuademo/gtnap_cualib"
         },
         {
             "name": "Debugger",
-            "type": "cppdbg",
+            "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Debug/bin/gtnapdeb",
+            "program": "${workspaceFolder}/build/windows-ninja-vs2026-debug/Debug/bin/gtnapdeb.exe",
             "args": ["35", "100"],
             "cwd": "${workspaceFolder}/contrib/gtnap/tests/cuademo/gtnap_cualib"
         }
