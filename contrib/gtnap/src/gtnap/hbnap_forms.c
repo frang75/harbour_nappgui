@@ -228,7 +228,8 @@ HB_FUNC(HBNAP_FORMS_MODAL)
 {
     HbNapForm *form = cast(hb_parptr(1), HbNapForm);
     HbNapForm *parent = cast(hb_parptr(2), HbNapForm);
-    uint32_t ret = hbnap_forms_modal(form, parent);
+    HB_ITEM *onclose_block = hb_param(3, HB_IT_BLOCK);
+    uint32_t ret = hbnap_forms_modal(form, parent, onclose_block);
     hb_retni(ret);
 }
 
@@ -237,7 +238,8 @@ HB_FUNC(HBNAP_FORMS_MODAL)
 HB_FUNC(HBNAP_FORMS_MODAL_GTNAP)
 {
     HbNapForm *form = cast(hb_parptr(1), HbNapForm);
-    uint32_t ret = hbnap_forms_modal_gtnap(form);
+    HB_ITEM *onclose_block = hb_param(2, HB_IT_BLOCK);
+    uint32_t ret = hbnap_forms_modal_gtnap(form, onclose_block);
     hb_retni(ret);
 }
 

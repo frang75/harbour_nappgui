@@ -1932,7 +1932,13 @@ static void i_form_frame(HbNapForm *form, Window *parent)
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_show(HbNapForm *form, HB_ITEM *onclose_block)
+/* Sets a veto-capable [X]/close callback for 'form'. Works for both
+   top-level (HBNAP_FORMS_SHOW) and modal (HBNAP_FORMS_MODAL/_GTNAP) forms -
+   NAppGUI's own window_modal() already consults the same window->OnClose
+   listener for the ekGUI_CLOSE_BUTTON case (window.c, i_OnWindowClose), no
+   core change needed. If the block returns .F., the close is vetoed and
+   the form/dialog stays open. */
+static void i_set_onclose(HbNapForm *form, HB_ITEM *onclose_block)
 {
     cassert_no_null(form);
     if (form->OnClose_block != NULL)
@@ -1940,6 +1946,14 @@ void hbnap_forms_show(HbNapForm *form, HB_ITEM *onclose_block)
 
     form->OnClose_block = hb_itemNew(onclose_block);
     window_OnClose(form->window, listener(form, i_OnFormClose, HbNapForm));
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_show(HbNapForm *form, HB_ITEM *onclose_block)
+{
+    cassert_no_null(form);
+    i_set_onclose(form, onclose_block);
     window_update(form->window);
     i_form_frame(form, NULL);
     window_show(form->window);
@@ -1947,9 +1961,11 @@ void hbnap_forms_show(HbNapForm *form, HB_ITEM *onclose_block)
 
 /*---------------------------------------------------------------------------*/
 
-static uint32_t i_forms_modal(HbNapForm *form, Window *parent)
+static uint32_t i_forms_modal(HbNapForm *form, Window *parent, HB_ITEM *onclose_block)
 {
     cassert_no_null(form);
+    if (onclose_block != NULL)
+        i_set_onclose(form, onclose_block);
     window_update(form->window);
     i_form_frame(form, parent);
     form->modal_ret = window_modal(form->window, parent);
@@ -1958,19 +1974,19 @@ static uint32_t i_forms_modal(HbNapForm *form, Window *parent)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hbnap_forms_modal(HbNapForm *form, HbNapForm *parent)
+uint32_t hbnap_forms_modal(HbNapForm *form, HbNapForm *parent, HB_ITEM *onclose_block)
 {
     cassert_no_null(parent);
-    return i_forms_modal(form, parent->window);
+    return i_forms_modal(form, parent->window, onclose_block);
 }
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hbnap_forms_modal_gtnap(HbNapForm *form)
+uint32_t hbnap_forms_modal_gtnap(HbNapForm *form, HB_ITEM *onclose_block)
 {
     Window *parent = gtnap_current_window();
     cassert_no_null(parent);
-    return i_forms_modal(form, parent);
+    return i_forms_modal(form, parent, onclose_block);
 }
 
 /*---------------------------------------------------------------------------*/

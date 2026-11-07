@@ -64,9 +64,9 @@ extern void hbnap_forms_maximize(HbNapForm *form);
 
 extern void hbnap_forms_show(HbNapForm *form, HB_ITEM *onclose_block);
 
-extern uint32_t hbnap_forms_modal(HbNapForm *form, HbNapForm *parent);
+extern uint32_t hbnap_forms_modal(HbNapForm *form, HbNapForm *parent, HB_ITEM *onclose_block);
 
-extern uint32_t hbnap_forms_modal_gtnap(HbNapForm *form);
+extern uint32_t hbnap_forms_modal_gtnap(HbNapForm *form, HB_ITEM *onclose_block);
 
 extern void hbnap_forms_stop_modal(HbNapForm *form, const uint32_t value);
 

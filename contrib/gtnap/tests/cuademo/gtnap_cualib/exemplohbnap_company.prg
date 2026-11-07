@@ -13,6 +13,7 @@ STATIC H_MUTEX_CARGA
 STATIC N_TASK_ATUAL
 STATIC N_SUBFRACAO
 STATIC L_CARGA_FIM
+STATIC L_CARGA_CANCELADA // Set by I_CANCELAR_CARGA() when the user closes the dialog with [X]
 
 ********************************
 STAT FUNC VALIDAR_EMPRESA(O_EMPRESA)
@@ -29,20 +30,32 @@ STAT PROC WORKER_CARGA_BASES()
 // the protected STATICs above.
 LOCAL N_TASK, N_STEP
 LOCAL N_PASSOS := 20
+LOCAL L_CANCEL := .F.
 
 FOR N_TASK := 1 TO 15
     FOR N_STEP := 1 TO N_PASSOS
         hb_idleSleep(0.050)
         hb_mutexLock(H_MUTEX_CARGA)
-        N_TASK_ATUAL := N_TASK
-        N_SUBFRACAO := N_STEP / N_PASSOS
+        L_CANCEL := L_CARGA_CANCELADA
+        IF L_CANCEL == .F.
+            N_TASK_ATUAL := N_TASK
+            N_SUBFRACAO := N_STEP / N_PASSOS
+        ENDIF
         hb_mutexUnLock(H_MUTEX_CARGA)
+        IF L_CANCEL == .T.
+            EXIT // Breaks the N_STEP loop
+        ENDIF
     NEXT
+    IF L_CANCEL == .T.
+        EXIT // Breaks the N_TASK loop
+    ENDIF
 NEXT
 
-hb_mutexLock(H_MUTEX_CARGA)
-L_CARGA_FIM := .T.
-hb_mutexUnLock(H_MUTEX_CARGA)
+IF L_CANCEL == .F.
+    hb_mutexLock(H_MUTEX_CARGA)
+    L_CARGA_FIM := .T.
+    hb_mutexUnLock(H_MUTEX_CARGA)
+ENDIF
 
 RETURN
 
@@ -75,14 +88,34 @@ ENDIF
 RETURN .T. // Keep ticking
 
 ********************************
+STAT FUNC I_CANCELAR_CARGA(N_TICK_ID)
+********************************
+// Close callback, passed as the 3rd arg to HBNAP_FORMS_MODAL(): user
+// pressed [X] on the CopyFiles dialog. Signals the worker thread to stop
+// (cooperative - no forced kill) and unregisters the tick explicitly.
+// The actual hb_threadJoin() happens right after HBNAP_FORMS_MODAL()
+// returns, in SIMULAR_ATUALIZACAO_BASES().
+hb_mutexLock(H_MUTEX_CARGA)
+L_CARGA_CANCELADA := .T.
+hb_mutexUnLock(H_MUTEX_CARGA)
+
+HBNAP_FORMS_TICK_STOP(N_TICK_ID)
+
+RETURN .T. // Allow the dialog to actually close
+
+********************************
 STAT PROC SIMULAR_ATUALIZACAO_BASES(O_PARENT_FORM)
 ********************************
 // Shows CopyFiles.nfm and drives it for ~15s with a real background
 // thread (hb_threadStart) doing the (simulated) work, while the main
 // thread's HBNAP_FORMS_TICK() reads the shared progress every 50ms and
-// updates the two progress bars/labels.
+// updates the two progress bars/labels. If the user closes it early with
+// [X], the load is cancelled, an interruption notice is shown, and the
+// Empresas dialog is shown anyway - same as a normal completion.
 LOCAL O_FORM := HBNAP_FORMS_LOAD(DIRET_FORMS() + "CopyFiles.nfm", DIRET_FORMS(), 0)
 LOCAL H_THREAD
+LOCAL N_TICK_ID
+LOCAL N_RES
 LOCAL C_TAREFAS := { ;
     "Inicializando conexão com o banco de dados", ;
     "Carregando tabela de Empresas", ;
@@ -105,6 +138,7 @@ H_MUTEX_CARGA := hb_mutexCreate()
 N_TASK_ATUAL := 1
 N_SUBFRACAO := 0
 L_CARGA_FIM := .F.
+L_CARGA_CANCELADA := .F.
 
 HBNAP_FORMS_SET_TEXT(O_FORM, "main_text", ;
     "Atualizando as bases de dados do sistema. Este processo pode levar " + ;
@@ -112,9 +146,16 @@ HBNAP_FORMS_SET_TEXT(O_FORM, "main_text", ;
 HBNAP_FORMS_SET_TEXT(O_FORM, "info_text", "Processo: DB-SYNC")
 
 H_THREAD := hb_threadStart(@WORKER_CARGA_BASES())
-HBNAP_FORMS_TICK(O_FORM, 0.050, {|| ATUALIZAR_PROGRESSO_CARGA(O_FORM, C_TAREFAS) })
-HBNAP_FORMS_MODAL(O_FORM, O_PARENT_FORM)
+N_TICK_ID := HBNAP_FORMS_TICK(O_FORM, 0.050, {|| ATUALIZAR_PROGRESSO_CARGA(O_FORM, C_TAREFAS) })
+
+N_RES := HBNAP_FORMS_MODAL(O_FORM, O_PARENT_FORM, {|| I_CANCELAR_CARGA(N_TICK_ID) })
+
 hb_threadJoin(H_THREAD)
+
+IF N_RES == HBNAP_CLOSED_BY_BUTTON
+    INFO_MESSAGE_BOX("O processo de atualização das bases de dados foi interrompido.", O_PARENT_FORM)
+ENDIF
+
 HBNAP_FORMS_DESTROY(O_FORM)
 
 RETURN
