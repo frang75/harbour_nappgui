@@ -62,7 +62,7 @@ RETURN
 ********************************
 STAT FUNC ATUALIZAR_PROGRESSO_CARGA(O_FORM, C_TAREFAS)
 ********************************
-// HBNAP_FORMS_TICK callback (main thread, every 50ms). Reads the shared
+// HBNAP_TIMER_START callback (main thread, every 50ms). Reads the shared
 // state under the mutex, then pushes it into the form widgets.
 LOCAL N_TASK, N_SUBFRAC, L_FIM, N_GERAL
 
@@ -99,7 +99,7 @@ hb_mutexLock(H_MUTEX_CARGA)
 L_CARGA_CANCELADA := .T.
 hb_mutexUnLock(H_MUTEX_CARGA)
 
-HBNAP_FORMS_TICK_STOP(N_TICK_ID)
+HBNAP_TIMER_STOP(N_TICK_ID)
 
 RETURN .T. // Allow the dialog to actually close
 
@@ -108,7 +108,7 @@ STAT PROC SIMULAR_ATUALIZACAO_BASES(O_PARENT_FORM)
 ********************************
 // Shows CopyFiles.nfm and drives it for ~15s with a real background
 // thread (hb_threadStart) doing the (simulated) work, while the main
-// thread's HBNAP_FORMS_TICK() reads the shared progress every 50ms and
+// thread's HBNAP_TIMER_START() reads the shared progress every 50ms and
 // updates the two progress bars/labels. If the user closes it early with
 // [X], the load is cancelled, an interruption notice is shown, and the
 // Empresas dialog is shown anyway - same as a normal completion.
@@ -146,10 +146,8 @@ HBNAP_FORMS_SET_TEXT(O_FORM, "main_text", ;
 HBNAP_FORMS_SET_TEXT(O_FORM, "info_text", "Processo: DB-SYNC")
 
 H_THREAD := hb_threadStart(@WORKER_CARGA_BASES())
-N_TICK_ID := HBNAP_FORMS_TICK(O_FORM, 0.050, {|| ATUALIZAR_PROGRESSO_CARGA(O_FORM, C_TAREFAS) })
-
+N_TICK_ID := HBNAP_TIMER_START(0.050, {|| ATUALIZAR_PROGRESSO_CARGA(O_FORM, C_TAREFAS) })
 N_RES := HBNAP_FORMS_MODAL(O_FORM, O_PARENT_FORM, {|| I_CANCELAR_CARGA(N_TICK_ID) })
-
 hb_threadJoin(H_THREAD)
 
 IF N_RES == HBNAP_CLOSED_BY_BUTTON

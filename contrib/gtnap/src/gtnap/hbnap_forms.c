@@ -22,6 +22,24 @@ HB_FUNC(HBNAP_FORMS_EXIT_APP)
 
 /*---------------------------------------------------------------------------*/
 
+HB_FUNC(HBNAP_TIMER_START)
+{
+    real64_t interval_secs = hb_parnd(1);
+    HB_ITEM *block = hb_param(2, HB_IT_BLOCK);
+    uint32_t timer_id = hbnap_timer_start(interval_secs, block);
+    hb_retni((int)timer_id);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(HBNAP_TIMER_STOP)
+{
+    uint32_t timer_id = (uint32_t)hb_parni(1);
+    hbnap_timer_stop(timer_id);
+}
+
+/*---------------------------------------------------------------------------*/
+
 HB_FUNC(HBNAP_FORMS_LOAD)
 {
     const char_t *pathname = hb_parcx(1);
@@ -184,25 +202,6 @@ HB_FUNC(HBNAP_FORMS_ONCLICK)
     const char_t *cell = hb_parcx(2);
     HB_ITEM *block = hb_param(3, HB_IT_BLOCK);
     hbnap_forms_OnClick(form, cell, block);
-}
-
-/*---------------------------------------------------------------------------*/
-
-HB_FUNC(HBNAP_FORMS_TICK)
-{
-    HbNapForm *form = cast(hb_parptr(1), HbNapForm);
-    real64_t interval_secs = hb_parnd(2);
-    HB_ITEM *block = hb_param(3, HB_IT_BLOCK);
-    uint32_t tick_id = hbnap_forms_tick(form, interval_secs, block);
-    hb_retni((int)tick_id);
-}
-
-/*---------------------------------------------------------------------------*/
-
-HB_FUNC(HBNAP_FORMS_TICK_STOP)
-{
-    uint32_t tick_id = (uint32_t)hb_parni(1);
-    hbnap_forms_tick_stop(tick_id);
 }
 
 /*---------------------------------------------------------------------------*/

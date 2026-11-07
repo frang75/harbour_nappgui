@@ -75,7 +75,6 @@ struct _hbnap_callback_t
 
 struct _hbnap_update_t
 {
-    HbNapForm *form;
     HB_ITEM *block;
     real64_t interval_secs;
     real64_t last_time;
@@ -494,6 +493,38 @@ void hbnap_forms_update_all(const real64_t ctime)
 
 /*---------------------------------------------------------------------------*/
 
+uint32_t hbnap_timer_start(const real64_t interval_secs, HB_ITEM *tick_block)
+{
+    HbNapUpdate *update = NULL;
+    cassert_no_null(HBNAP_GLOBAL);
+    update = heap_new0(HbNapUpdate);
+    update->block = tick_block ? hb_itemNew(tick_block) : NULL;
+    update->interval_secs = interval_secs;
+    update->last_time = HBNAP_GLOBAL->last_ctime;
+    update->update_id = HBNAP_GLOBAL->update_id;
+    HBNAP_GLOBAL->update_id += 1;
+    arrpt_append(HBNAP_GLOBAL->updates, update, HbNapUpdate);
+    return update->update_id;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_timer_stop(const uint32_t timer_id)
+{
+    if (HBNAP_GLOBAL != NULL && HBNAP_GLOBAL->updates != NULL)
+    {
+        arrpt_foreach(update, HBNAP_GLOBAL->updates, HbNapUpdate)
+            if (update->update_id == timer_id)
+            {
+                arrpt_delete(HBNAP_GLOBAL->updates, update_i, i_destroy_hbnap_update, HbNapUpdate);
+                return;
+            }
+        arrpt_end()
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnFormMoved(HbNapForm *form, Event *e)
 {
     const EvPos *p = event_params(e, EvPos);
@@ -640,25 +671,6 @@ void hbnap_forms_destroy(HbNapForm **form)
 {
     cassert_no_null(form);
     cassert_no_null(*form);
-
-    if (HBNAP_GLOBAL != NULL && HBNAP_GLOBAL->updates != NULL)
-    {
-        uint32_t i = 0;
-        uint32_t n = arrpt_size(HBNAP_GLOBAL->updates, HbNapUpdate);
-        while (i < n)
-        {
-            HbNapUpdate *update = arrpt_get(HBNAP_GLOBAL->updates, i, HbNapUpdate);
-            if (update->form == *form)
-            {
-                arrpt_delete(HBNAP_GLOBAL->updates, i, i_destroy_hbnap_update, HbNapUpdate);
-                n -= 1;
-            }
-            else
-            {
-                i += 1;
-            }
-        }
-    }
 
     str_destroy(&(*form)->nameid);
     str_destroy(&(*form)->respath);
@@ -1825,43 +1837,6 @@ void hbnap_forms_OnClick(HbNapForm *form, const char_t *cell, HB_ITEM *click_blo
     Listener *listener = i_hbnap_form_listener(click_block, form, i_OnFormButtonClick);
     cassert_no_null(form);
     nform_set_listener(form->form, cell, listener);
-}
-
-/*---------------------------------------------------------------------------*/
-
-uint32_t hbnap_forms_tick(HbNapForm *form, const real64_t interval_secs, HB_ITEM *tick_block)
-{
-    HbNapUpdate *update = NULL;
-    cassert_no_null(form);
-    cassert_no_null(HBNAP_GLOBAL);
-    update = heap_new0(HbNapUpdate);
-    update->form = form;
-    update->block = tick_block ? hb_itemNew(tick_block) : NULL;
-    update->interval_secs = interval_secs;
-    update->last_time = HBNAP_GLOBAL->last_ctime; /* So it first fires ~interval_secs from now, not immediately */
-    update->update_id = HBNAP_GLOBAL->update_id;
-    HBNAP_GLOBAL->update_id += 1;
-    arrpt_append(HBNAP_GLOBAL->updates, update, HbNapUpdate);
-    return update->update_id;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void hbnap_forms_tick_stop(const uint32_t tick_id)
-{
-    if (HBNAP_GLOBAL != NULL && HBNAP_GLOBAL->updates != NULL)
-    {
-        uint32_t i, n = arrpt_size(HBNAP_GLOBAL->updates, HbNapUpdate);
-        for (i = 0; i < n; ++i)
-        {
-            HbNapUpdate *update = arrpt_get(HBNAP_GLOBAL->updates, i, HbNapUpdate);
-            if (update->update_id == tick_id)
-            {
-                arrpt_delete(HBNAP_GLOBAL->updates, i, i_destroy_hbnap_update, HbNapUpdate);
-                return;
-            }
-        }
-    }
 }
 
 /*---------------------------------------------------------------------------*/
