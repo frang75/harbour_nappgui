@@ -2778,7 +2778,7 @@ static void i_gtnap_update(GtNap *gtnap, const real64_t prtime, const real64_t c
     gtnap = GTNAP_GLOBAL;
     cassert_no_null(gtnap);
     unref(prtime);
-    unref(ctime);
+    hbnap_forms_update_all(ctime);
     if (gtnap->modal_time_window != NULL)
     {
         GtNapWindow *gtwin = gtnap->modal_time_window;
@@ -2821,7 +2821,7 @@ void gtnap_init(const char_t *title, const uint32_t rows, const uint32_t cols, P
     INIT_COLS = cols;
 
     osmain_imp(
-        0, NULL, hInstance, 0.5f,
+        0, NULL, hInstance, 0.04f,
         (FPtr_app_create)i_gtnap_create,
         (FPtr_app_update)i_gtnap_update,
         (FPtr_destroy)i_gtnap_destroy,

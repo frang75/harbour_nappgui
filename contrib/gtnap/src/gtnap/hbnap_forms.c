@@ -70,6 +70,16 @@ HB_FUNC(HBNAP_FORMS_SET_INT)
 
 /*---------------------------------------------------------------------------*/
 
+HB_FUNC(HBNAP_FORMS_SET_REAL)
+{
+    HbNapForm *form = cast(hb_parptr(1), HbNapForm);
+    const char_t *cell = hb_parcx(2);
+    real32_t value = (real32_t)hb_parnd(3);
+    hbnap_forms_set_real(form, cell, value);
+}
+
+/*---------------------------------------------------------------------------*/
+
 HB_FUNC(HBNAP_FORMS_INSERT_TEXT)
 {
     HbNapForm *form = cast(hb_parptr(1), HbNapForm);
@@ -174,6 +184,25 @@ HB_FUNC(HBNAP_FORMS_ONCLICK)
     const char_t *cell = hb_parcx(2);
     HB_ITEM *block = hb_param(3, HB_IT_BLOCK);
     hbnap_forms_OnClick(form, cell, block);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(HBNAP_FORMS_TICK)
+{
+    HbNapForm *form = cast(hb_parptr(1), HbNapForm);
+    real64_t interval_secs = hb_parnd(2);
+    HB_ITEM *block = hb_param(3, HB_IT_BLOCK);
+    uint32_t tick_id = hbnap_forms_tick(form, interval_secs, block);
+    hb_retni((int)tick_id);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(HBNAP_FORMS_TICK_STOP)
+{
+    uint32_t tick_id = (uint32_t)hb_parni(1);
+    hbnap_forms_tick_stop(tick_id);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -20,6 +20,8 @@ extern void hbnap_forms_init_app(HB_ITEM *main_block);
 
 extern void hbnap_forms_exit_app(void);
 
+extern void hbnap_forms_update_all(const real64_t ctime);
+
 extern HbNapForm *hbnap_forms_load(const char_t *pathname, const char_t *resource_path, const uint32_t flags);
 
 extern void hbnap_forms_destroy(HbNapForm **form);
@@ -29,6 +31,8 @@ extern void hbnap_forms_title(HbNapForm *form, const char_t *text);
 extern void hbnap_forms_set_text(HbNapForm *form, const char_t *cell, const char_t *text);
 
 extern void hbnap_forms_set_int(HbNapForm *form, const char_t *cell, const int32_t value);
+
+extern void hbnap_forms_set_real(HbNapForm *form, const char_t *cell, const real32_t value);
 
 extern void hbnap_forms_insert_text(HbNapForm *form, const char_t *cell, const char_t *text);
 
@@ -51,6 +55,10 @@ extern void hbnap_forms_tree_bind(HbNapForm *form, const char_t *cell, HB_ITEM *
 extern void hbnap_forms_item_list(HbNapForm *form, const char_t *cell, HB_ITEM *items);
 
 extern void hbnap_forms_OnClick(HbNapForm *form, const char_t *cell, HB_ITEM *click_block);
+
+extern uint32_t hbnap_forms_tick(HbNapForm *form, const real64_t interval_secs, HB_ITEM *tick_block);
+
+extern void hbnap_forms_tick_stop(const uint32_t tick_id);
 
 extern void hbnap_forms_maximize(HbNapForm *form);
 

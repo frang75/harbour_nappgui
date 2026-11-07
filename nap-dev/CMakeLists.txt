@@ -16,8 +16,11 @@ nap_desktop_app(${EXECUTABLE_NAME} "gtnap;hboffice;hbaws" NRC_NONE)
 target_include_directories(${EXECUTABLE_NAME} PUBLIC "../../src")
 
 # Harbour libraries
+# Note: "hbvmmt" (not "hbvm") - the multi-threaded VM, same one hbmk2 itself
+# links when a .hbp has "-mt". Without it, hb_threadStart() silently returns
+# NIL (the plain "hbvm" build has no real thread support compiled in).
 set(HARBOUR_LIBS "")
-set(HARBOUR_LIBS ${HARBOUR_LIBS} "hbct;hbextern;hbdebug;hbvm;hbrtl;hblang;hbcpage")
+set(HARBOUR_LIBS ${HARBOUR_LIBS} "hbct;hbextern;hbdebug;hbvmmt;hbrtl;hblang;hbcpage")
 if (WIN32)
     set(HARBOUR_LIBS ${HARBOUR_LIBS} "gtcgi;gtpca;gtstd;hbrtl")
     set(HARBOUR_LIBS ${HARBOUR_LIBS} "gtwin")

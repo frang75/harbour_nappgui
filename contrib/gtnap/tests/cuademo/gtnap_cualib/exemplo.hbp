@@ -64,6 +64,9 @@ hbct.hbc
 -d_TESTE{DEBUG}
 -z
 
+# Multi-threaded RTL (hb_thread*/hb_mutex* support)
+-mt
+
 
 #
 # To remove...

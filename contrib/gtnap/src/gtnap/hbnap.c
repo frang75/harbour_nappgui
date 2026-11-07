@@ -55,6 +55,7 @@
 /*---------------------------------------------------------------------------*/
 
 typedef struct _hbnap_callback_t HbNapCallback;
+typedef struct _hbnap_update_t HbNapUpdate;
 typedef struct _hbnap_bind_t HbNapBind;
 typedef struct _hbnap_fcolumn_t HbNapFColumn;
 typedef struct _hbnap_fnode_t HbNapFNode;
@@ -70,6 +71,15 @@ struct _hbnap_callback_t
     HB_ITEM *block;
     int32_t key;
     uint32_t autoclose_id;
+};
+
+struct _hbnap_update_t
+{
+    HbNapForm *form;
+    HB_ITEM *block;
+    real64_t interval_secs;
+    real64_t last_time;
+    uint32_t update_id;
 };
 
 struct _hbnap_bind_t
@@ -135,9 +145,13 @@ struct _hbnap_t
     bool_t debugger_visible;
     GtNapDebugger *debugger;
     ArrPt(HbNapCallback) *menu_callbacks;
+    ArrPt(HbNapUpdate) *updates;
+    uint32_t update_id;
+    real64_t last_ctime;
 };
 
 DeclPt(HbNapCallback);
+DeclPt(HbNapUpdate);
 DeclSt(HbNapBind);
 DeclSt(HbNapFColumn);
 DeclSt(HbNapFArea2);
@@ -294,12 +308,25 @@ static void i_destroy_hbnap_callback(HbNapCallback **callback)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_destroy_hbnap_update(HbNapUpdate **update)
+{
+    cassert_no_null(update);
+    cassert_no_null(*update);
+    if ((*update)->block != NULL)
+        hb_itemRelease((*update)->block);
+    heap_delete(update, HbNapUpdate);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static HbNap *i_hbnap_state_create(void)
 {
     const char_t *build_cfg = NULL;
     cassert(HBNAP_GLOBAL == NULL);
     HBNAP_GLOBAL = heap_new0(HbNap);
     HBNAP_GLOBAL->menu_callbacks = arrpt_create(HbNapCallback);
+    HBNAP_GLOBAL->updates = arrpt_create(HbNapUpdate);
+    HBNAP_GLOBAL->update_id = 1;
     HBNAP_GLOBAL->date_digits = (hb_setGetCentury() == (HB_BOOL)HB_TRUE) ? 8 : 6;
     HBNAP_GLOBAL->date_chars = HBNAP_GLOBAL->date_digits + 2;
 
@@ -339,6 +366,7 @@ static void i_hbnap_state_destroy(HbNap **gtnap)
     cassert(*gtnap == HBNAP_GLOBAL);
     cassert(arrpt_size((*gtnap)->menu_callbacks, HbNapCallback) == 0);
     arrpt_destroy(&(*gtnap)->menu_callbacks, i_destroy_hbnap_callback, HbNapCallback);
+    arrpt_destroy(&(*gtnap)->updates, i_destroy_hbnap_update, HbNapUpdate);
     str_destroy(&(*gtnap)->working_path);
     str_destroy(&(*gtnap)->debugger_path);
 
@@ -372,7 +400,7 @@ static void i_hbnap_update(HbNap *gtnap, const real64_t prtime, const real64_t c
     gtnap = HBNAP_GLOBAL;
     cassert_no_null(gtnap);
     unref(prtime);
-    unref(ctime);
+    hbnap_forms_update_all(ctime);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -397,7 +425,7 @@ void hbnap_forms_init_app(HB_ITEM *main_block)
     INIT_CODEBLOCK = hb_itemNew(main_block);
 
     osmain_imp(
-        0, NULL, hInstance, 0.5f,
+        0, NULL, hInstance, 0.04f,
         (FPtr_app_create)i_hbnap_create,
         (FPtr_app_update)i_hbnap_update,
         (FPtr_destroy)i_hbnap_destroy,
@@ -427,6 +455,41 @@ void hbnap_exit_indirect(void)
     if (HBNAP_GLOBAL != NULL)
         i_hbnap_state_destroy(&HBNAP_GLOBAL);
     nforms_finish();
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_update_all(const real64_t ctime)
+{
+    if (HBNAP_GLOBAL != NULL && HBNAP_GLOBAL->updates != NULL)
+    {
+        uint32_t i = 0, n = arrpt_size(HBNAP_GLOBAL->updates, HbNapUpdate);
+        HBNAP_GLOBAL->last_ctime = ctime;
+        while (i < n)
+        {
+            HbNapUpdate *update = arrpt_get(HBNAP_GLOBAL->updates, i, HbNapUpdate);
+            bool_t remove = FALSE;
+
+            if (ctime - update->last_time >= update->interval_secs && update->block != NULL)
+            {
+                PHB_ITEM ritem = hb_itemDo(update->block, 0);
+                update->last_time = ctime;
+                if (HB_ITEM_TYPE(ritem) == HB_IT_LOGICAL && (bool_t)hb_itemGetL(ritem) == FALSE)
+                    remove = TRUE;
+                hb_itemRelease(ritem);
+            }
+
+            if (remove == TRUE)
+            {
+                arrpt_delete(HBNAP_GLOBAL->updates, i, i_destroy_hbnap_update, HbNapUpdate);
+                n -= 1;
+            }
+            else
+            {
+                i += 1;
+            }
+        }
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -577,6 +640,26 @@ void hbnap_forms_destroy(HbNapForm **form)
 {
     cassert_no_null(form);
     cassert_no_null(*form);
+
+    if (HBNAP_GLOBAL != NULL && HBNAP_GLOBAL->updates != NULL)
+    {
+        uint32_t i = 0;
+        uint32_t n = arrpt_size(HBNAP_GLOBAL->updates, HbNapUpdate);
+        while (i < n)
+        {
+            HbNapUpdate *update = arrpt_get(HBNAP_GLOBAL->updates, i, HbNapUpdate);
+            if (update->form == *form)
+            {
+                arrpt_delete(HBNAP_GLOBAL->updates, i, i_destroy_hbnap_update, HbNapUpdate);
+                n -= 1;
+            }
+            else
+            {
+                i += 1;
+            }
+        }
+    }
+
     str_destroy(&(*form)->nameid);
     str_destroy(&(*form)->respath);
     ptr_destopt(window_destroy, &(*form)->window, Window);
@@ -616,6 +699,14 @@ void hbnap_forms_set_int(HbNapForm *form, const char_t *cell, const int32_t valu
 {
     cassert_no_null(form);
     nform_set_control_int(form->form, cell, value);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_set_real(HbNapForm *form, const char_t *cell, const real32_t value)
+{
+    cassert_no_null(form);
+    nform_set_control_real(form->form, cell, value);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1734,6 +1825,43 @@ void hbnap_forms_OnClick(HbNapForm *form, const char_t *cell, HB_ITEM *click_blo
     Listener *listener = i_hbnap_form_listener(click_block, form, i_OnFormButtonClick);
     cassert_no_null(form);
     nform_set_listener(form->form, cell, listener);
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t hbnap_forms_tick(HbNapForm *form, const real64_t interval_secs, HB_ITEM *tick_block)
+{
+    HbNapUpdate *update = NULL;
+    cassert_no_null(form);
+    cassert_no_null(HBNAP_GLOBAL);
+    update = heap_new0(HbNapUpdate);
+    update->form = form;
+    update->block = tick_block ? hb_itemNew(tick_block) : NULL;
+    update->interval_secs = interval_secs;
+    update->last_time = HBNAP_GLOBAL->last_ctime; /* So it first fires ~interval_secs from now, not immediately */
+    update->update_id = HBNAP_GLOBAL->update_id;
+    HBNAP_GLOBAL->update_id += 1;
+    arrpt_append(HBNAP_GLOBAL->updates, update, HbNapUpdate);
+    return update->update_id;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_tick_stop(const uint32_t tick_id)
+{
+    if (HBNAP_GLOBAL != NULL && HBNAP_GLOBAL->updates != NULL)
+    {
+        uint32_t i, n = arrpt_size(HBNAP_GLOBAL->updates, HbNapUpdate);
+        for (i = 0; i < n; ++i)
+        {
+            HbNapUpdate *update = arrpt_get(HBNAP_GLOBAL->updates, i, HbNapUpdate);
+            if (update->update_id == tick_id)
+            {
+                arrpt_delete(HBNAP_GLOBAL->updates, i, i_destroy_hbnap_update, HbNapUpdate);
+                return;
+            }
+        }
+    }
 }
 
 /*---------------------------------------------------------------------------*/
