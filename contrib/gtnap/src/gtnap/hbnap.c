@@ -2038,6 +2038,7 @@ static const real32_t i_IMAGE_PADDING_TOP = 30;
 static const real32_t i_IMAGE_PADDING_BOTTOM = 36;
 static const real32_t i_IMAGE_PADDING_RIGHT = 70;
 static const real32_t i_TITLE_PADDING_LEFT = 80;
+static const real32_t i_FOCUS_RING_OUTSET = 4;
 
 /*---------------------------------------------------------------------------*/
 
@@ -2182,7 +2183,7 @@ static void i_OnDrawMainView(HbNapForm *form, Event *e)
             draw_matrixf(p->ctx, &t2d);
             draw_line_color(p->ctx, gui_accent_color());
             draw_line_width(p->ctx, 3);
-            draw_rect(p->ctx, ekSTROKE, 0, 0, i_ITEM_WIDTH, i_ITEM_HEIGHT);
+            draw_rect(p->ctx, ekSTROKE, -i_FOCUS_RING_OUTSET, -i_FOCUS_RING_OUTSET, i_ITEM_WIDTH + 2 * i_FOCUS_RING_OUTSET, i_ITEM_HEIGHT + 2 * i_FOCUS_RING_OUTSET);
         }
     arrst_end()
 }
@@ -2423,7 +2424,6 @@ void hbnap_forms_main_cover(HbNapForm *form, const char_t *canvas_cell, const ch
     view_OnFocus(view, listener(form, i_OnFocusMainView, HbNapForm));
     view_get_size(view, &view_size);
     i_mainitems_locations(view, view_size.width);
-    window_focus(form->window, cast(view, GuiControl));
 }
 
 /*---------------------------------------------------------------------------*/

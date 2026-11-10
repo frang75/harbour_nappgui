@@ -281,7 +281,7 @@ static FLabel *i_read_label(Stream *stm, const uint16_t vers)
 {
     FLabel *label = heap_new0(FLabel);
     label->text = str_read(stm);
-    
+
     if (vers >= 12)
         ffont_read_init_ex(stm, &label->font, &vers);
     else
@@ -1643,7 +1643,7 @@ void flayout_synchro(const FLayout *layout, Layout *glayout)
     cassert_no_null(layout);
     layout_margin4(glayout, layout->margin_top, layout->margin_right, layout->margin_bottom, layout->margin_left);
     layout_taborder(glayout, layout->row_tabstop ? ekGUI_HORIZONTAL : ekGUI_VERTICAL);
-    
+
     if (layout->with_border == TRUE)
         layout_skcolor(glayout, gui_alt_color(layout->border_light, layout->border_dark));
     else
@@ -1813,8 +1813,6 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
         {
             for (i = 0; i < ncols; ++i)
             {
-                flayout_cell_synchro(layout, glayout, i, j);
-
                 switch (cells->type)
                 {
                 case ekCELL_TYPE_EMPTY:
@@ -2003,6 +2001,7 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     cassert_default(cells->type);
                 }
 
+                flayout_cell_synchro(layout, glayout, i, j);
                 cells += 1;
             }
         }

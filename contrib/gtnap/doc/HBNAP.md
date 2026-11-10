@@ -792,6 +792,15 @@ PAR4: Menu main image.
 PAR5: Item list.
 ```
 
+#### Keyboard navigation
+
+The cover supports full keyboard navigation, on top of mouse clicks:
+
+- Clicking an option with the mouse activates it directly.
+- `[UP]`/`[DOWN]`/`[LEFT]`/`[RIGHT]` move the current selection across the grid, respecting the number of columns actually computed for the current window size (it is recalculated live on every resize). At the edges of the grid, the arrows simply do nothing (no wraparound).
+- `[RETURN]` activates the currently selected option, same as clicking it.
+- The selected option is drawn with a focus ring (in the system accent color) around its border, which scales together with the box itself when the mouse hovers over it.
+
 ![hbnap9](./images/hbnap9.png)
 
 ![hbnap10](./images/hbnap10.png)
