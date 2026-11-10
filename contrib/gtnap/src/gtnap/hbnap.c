@@ -2330,9 +2330,12 @@ static void i_OnKeyDownMainView(HbNapForm *form, Event *e)
         }
         else if (p->key == ekKEY_DOWN)
         {
-            if (data->sel_item + data->ncols < n)
+            uint32_t nrows = (n + data->ncols - 1) / data->ncols;
+            uint32_t row = data->sel_item / data->ncols;
+            if (row + 1 < nrows)
             {
-                data->sel_item += data->ncols;
+                uint32_t target = data->sel_item + data->ncols;
+                data->sel_item = (target < n) ? target : n - 1;
                 view_update(view);
             }
         }
