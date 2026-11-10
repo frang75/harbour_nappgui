@@ -2018,6 +2018,9 @@ struct i_maindata_t
     Font *item_font;
     Font *item_sfont;
     uint32_t hover_item;
+    uint32_t sel_item;
+    uint32_t ncols;
+    bool_t has_focus;
     ArrSt(MainItem) *items;
 };
 
@@ -2173,6 +2176,14 @@ static void i_OnDrawMainView(HbNapForm *form, Event *e)
     arrst_foreach_const(item, data->items, MainItem)
         T2Df t2d = i_item_transform(item, (bool_t)(item_i == data->hover_item));
         i_draw_mainitem(p->ctx, item, data->item_font, data->item_sfont, &t2d);
+
+        if (data->has_focus == TRUE && item_i == data->sel_item)
+        {
+            draw_matrixf(p->ctx, &t2d);
+            draw_line_color(p->ctx, gui_accent_color());
+            draw_line_width(p->ctx, 3);
+            draw_rect(p->ctx, ekSTROKE, 0, 0, i_ITEM_WIDTH, i_ITEM_HEIGHT);
+        }
     arrst_end()
 }
 
@@ -2196,6 +2207,7 @@ static void i_mainitems_locations(View *view, const real32_t width)
     }
 
     cassert(ncols > 0);
+    data->ncols = ncols;
     nrows = (n / ncols) + ((n % ncols) ? 1 : 0);
     content_height = i_IMAGE_PADDING_TOP + i_ITEM_HEIGHT * nrows + i_ITEM_SEP * (nrows - 1);
     content_height += data->logo_height;
@@ -2267,6 +2279,73 @@ static void i_OnClickMainView(HbNapForm *form, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnFocusMainView(HbNapForm *form, Event *e)
+{
+    View *view = event_sender(e, View);
+    MainData *data = view_get_data(view, MainData);
+    cassert_no_null(data);
+    data->has_focus = TRUE;
+    view_update(view);
+    unref(form);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnKeyDownMainView(HbNapForm *form, Event *e)
+{
+    View *view = event_sender(e, View);
+    MainData *data = view_get_data(view, MainData);
+    uint32_t n = 0;
+    cassert_no_null(data);
+    unref(form);
+    n = arrst_size(data->items, MainItem);
+
+    if (n > 0)
+    {
+        const EvKey *p = event_params(e, EvKey);
+        if (p->key == ekKEY_LEFT)
+        {
+            if (data->sel_item % data->ncols > 0)
+            {
+                data->sel_item -= 1;
+                view_update(view);
+            }
+        }
+        else if (p->key == ekKEY_RIGHT)
+        {
+            if (data->sel_item % data->ncols < data->ncols - 1 && data->sel_item + 1 < n)
+            {
+                data->sel_item += 1;
+                view_update(view);
+            }
+        }
+        else if (p->key == ekKEY_UP)
+        {
+            if (data->sel_item >= data->ncols)
+            {
+                data->sel_item -= data->ncols;
+                view_update(view);
+            }
+        }
+        else if (p->key == ekKEY_DOWN)
+        {
+            if (data->sel_item + data->ncols < n)
+            {
+                data->sel_item += data->ncols;
+                view_update(view);
+            }
+        }
+        else if (p->key == ekKEY_RETURN || p->key == ekKEY_NUMRET)
+        {
+            const MainItem *item = arrst_get_const(data->items, data->sel_item, MainItem);
+            PHB_ITEM ritem = hb_itemDo(item->OnClick, 0);
+            hb_itemRelease(ritem);
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void hbnap_forms_main_cover(HbNapForm *form, const char_t *canvas_cell, const char_t *title, const char_t *logo_path, HB_ITEM *cover_items)
 {
     View *view = NULL;
@@ -2292,6 +2371,8 @@ void hbnap_forms_main_cover(HbNapForm *form, const char_t *canvas_cell, const ch
 
     data->items = arrst_create(MainItem);
     data->hover_item = UINT32_MAX;
+    data->sel_item = 0;
+    data->has_focus = FALSE;
 
     n = hb_arrayLen(cover_items);
     for (i = 1; i <= n; ++i)
@@ -2338,8 +2419,11 @@ void hbnap_forms_main_cover(HbNapForm *form, const char_t *canvas_cell, const ch
     view_OnSize(view, listener(form, i_OnSizeMainView, HbNapForm));
     view_OnMove(view, listener(form, i_OnMoveMainView, HbNapForm));
     view_OnClick(view, listener(form, i_OnClickMainView, HbNapForm));
+    view_OnKeyDown(view, listener(form, i_OnKeyDownMainView, HbNapForm));
+    view_OnFocus(view, listener(form, i_OnFocusMainView, HbNapForm));
     view_get_size(view, &view_size);
     i_mainitems_locations(view, view_size.width);
+    window_focus(form->window, cast(view, GuiControl));
 }
 
 /*---------------------------------------------------------------------------*/
