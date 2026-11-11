@@ -2631,6 +2631,9 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
         label_text(data->cell_type_label, text);
         panel_visible_layout(panel, 2);
         layout_dbind_obj(data->cell_layout, cell, FCell);
+
+        cell_enabled(layout_cell(data->cell_layout, 1, 4), flayout_allow_tabstop(cell->type));
+
         if (cell->type == ekCELL_TYPE_EMPTY)
         {
             panel_visible_layout(data->cell_panel, 0);

@@ -102,4 +102,6 @@ _nflib_api GuiControl *flayout_search_gui_control(const FLayout *layout, Layout 
 
 _nflib_api Layout *flayout_search_cell_location(const FLayout *layout, Layout *gui_layout, const char_t *cell_name, uint32_t *col, uint32_t *row);
 
+_nflib_api bool_t flayout_allow_tabstop(const celltype_t type);
+
 __END_C

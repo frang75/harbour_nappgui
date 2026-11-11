@@ -605,6 +605,9 @@ static void i_read_cell(Stream *stm, FCell *cell, const uint16_t *vers)
     cell->halign = stm_read_enum(stm, halign_t);
     cell->valign = stm_read_enum(stm, valign_t);
 
+    if (flayout_allow_tabstop(cell->type) == FALSE)
+        cell->tabstop = FALSE;
+
     if (*vers >= 9)
     {
         cell->padding_left = stm_read_r32(stm);
@@ -1275,6 +1278,7 @@ void flayout_add_label(FLayout *layout, FLabel *label, const uint32_t col, const
     cassert_no_null(label);
     cassert(cell->type == ekCELL_TYPE_EMPTY);
     cell->type = ekCELL_TYPE_LABEL;
+    cell->tabstop = FALSE;
     cell->halign = ekHALIGN_LEFT;
     cell->valign = ekVALIGN_CENTER;
     cell->widget.label = label;
@@ -1443,6 +1447,7 @@ void flayout_add_progress(FLayout *layout, FProgress *progress, const uint32_t c
     cassert_no_null(progress);
     cassert(cell->type == ekCELL_TYPE_EMPTY);
     cell->type = ekCELL_TYPE_PROGRESS;
+    cell->tabstop = FALSE;
     cell->halign = ekHALIGN_JUSTIFY;
     cell->valign = ekVALIGN_CENTER;
     cell->widget.progress = progress;
@@ -1499,6 +1504,7 @@ void flayout_add_image(FLayout *layout, FImage *image, const uint32_t col, const
     cassert_no_null(image);
     cassert(cell->type == ekCELL_TYPE_EMPTY);
     cell->type = ekCELL_TYPE_IMAGE;
+    cell->tabstop = FALSE;
     cell->halign = ekHALIGN_CENTER;
     cell->valign = ekVALIGN_CENTER;
     cell->widget.image = image;
@@ -1527,6 +1533,7 @@ void flayout_add_hline(FLayout *layout, FHline *hline, const uint32_t col, const
     cassert_no_null(hline);
     cassert(cell->type == ekCELL_TYPE_EMPTY);
     cell->type = ekCELL_TYPE_HLINE;
+    cell->tabstop = FALSE;
     cell->halign = ekHALIGN_JUSTIFY;
     cell->valign = ekVALIGN_CENTER;
     cell->widget.hline = hline;
@@ -1541,6 +1548,7 @@ void flayout_add_vline(FLayout *layout, FVline *vline, const uint32_t col, const
     cassert_no_null(vline);
     cassert(cell->type == ekCELL_TYPE_EMPTY);
     cell->type = ekCELL_TYPE_VLINE;
+    cell->tabstop = FALSE;
     cell->halign = ekHALIGN_CENTER;
     cell->valign = ekVALIGN_JUSTIFY;
     cell->widget.vline = vline;
@@ -1770,7 +1778,15 @@ void flayout_cell_synchro(const FLayout *layout, Layout *glayout, const uint32_t
     valign = _nflib_valign(fcell->valign);
     layout_halign(glayout, col, row, halign);
     layout_valign(glayout, col, row, valign);
-    layout_tabstop(glayout, col, row, fcell->tabstop);
+
+    {
+        bool_t tabstop = fcell->tabstop;
+        if (flayout_allow_tabstop(fcell->type) == FALSE)
+            tabstop = FALSE;
+
+        layout_tabstop(glayout, col, row, tabstop);
+    }
+
     cell_padding4(cell, fcell->padding_top, fcell->padding_left, fcell->padding_bottom, fcell->padding_left);
 }
 
@@ -2106,4 +2122,44 @@ Layout *flayout_search_cell_location(const FLayout *layout, Layout *gui_layout, 
     }
 
     return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t flayout_allow_tabstop(const celltype_t type)
+{
+    switch (type)
+    {
+    case ekCELL_TYPE_LABEL:
+    case ekCELL_TYPE_PROGRESS:
+    case ekCELL_TYPE_IMAGE:
+    case ekCELL_TYPE_HLINE:
+    case ekCELL_TYPE_VLINE:
+        return FALSE;
+
+    case ekCELL_TYPE_EMPTY:
+    case ekCELL_TYPE_BUTTON:
+    case ekCELL_TYPE_CHECK:
+    case ekCELL_TYPE_RADIO:
+    case ekCELL_TYPE_TOOL:
+    case ekCELL_TYPE_POPUP:
+    case ekCELL_TYPE_EDIT:
+    case ekCELL_TYPE_COMBO:
+    case ekCELL_TYPE_TABS:
+    case ekCELL_TYPE_LISTBOX:
+    case ekCELL_TYPE_SLIDER:
+    case ekCELL_TYPE_VSLIDER:
+    case ekCELL_TYPE_VIEW:
+    case ekCELL_TYPE_SCROLL_VIEW:
+    case ekCELL_TYPE_TEXT:
+    case ekCELL_TYPE_TABLEVIEW:
+    case ekCELL_TYPE_PANEL:
+    case ekCELL_TYPE_LAYOUT:
+        return TRUE;
+
+    default:
+        cassert_default(type);
+    }
+
+    return TRUE;
 }
