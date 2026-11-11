@@ -110,9 +110,10 @@ STAT PROC SIMULAR_ATUALIZACAO_BASES(O_PARENT_FORM)
 // thread (hb_threadStart) doing the (simulated) work, while the main
 // thread's HBNAP_TIMER_START() reads the shared progress every 50ms and
 // updates the two progress bars/labels. If the user closes it early with
-// [X], the load is cancelled, an interruption notice is shown, and the
-// Empresas dialog is shown anyway - same as a normal completion.
-LOCAL O_FORM := HBNAP_FORMS_LOAD(DIRET_FORMS() + "CopyFiles.nfm", DIRET_FORMS(), 0)
+// [X] or [ESC], the load is cancelled, an interruption notice is shown,
+// and the Empresas dialog is shown anyway - same as a normal completion.
+// [RETURN] has no effect (no HBNAP_FORMS_CLOSE_ON_RETURN flag).
+LOCAL O_FORM := HBNAP_FORMS_LOAD(DIRET_FORMS() + "CopyFiles.nfm", DIRET_FORMS(), HBNAP_FORMS_CLOSE_ON_ESC)
 LOCAL H_THREAD
 LOCAL N_TICK_ID
 LOCAL N_RES
@@ -150,7 +151,7 @@ N_TICK_ID := HBNAP_TIMER_START(0.050, {|| ATUALIZAR_PROGRESSO_CARGA(O_FORM, C_TA
 N_RES := HBNAP_FORMS_MODAL(O_FORM, O_PARENT_FORM, {|| I_CANCELAR_CARGA(N_TICK_ID) })
 hb_threadJoin(H_THREAD)
 
-IF N_RES == HBNAP_CLOSED_BY_BUTTON
+IF N_RES == HBNAP_CLOSED_BY_BUTTON .OR. N_RES == HBNAP_CLOSED_BY_ESC
     INFO_MESSAGE_BOX("O processo de atualização das bases de dados foi interrompido.", O_PARENT_FORM)
 ENDIF
 
