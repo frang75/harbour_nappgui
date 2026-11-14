@@ -2058,9 +2058,65 @@ static bool_t i_hbnap_valid_hotkey(const vkey_t key, const uint32_t modifiers)
     case ekKEY_9:
         return (bool_t)(modifiers != ekMKEY_NONE);
 
-    default:
+    case ekKEY_UNDEF:
+    case ekKEY_BSLASH:
+    case ekKEY_RCURLY:
+    case ekKEY_LCURLY:
+    case ekKEY_SEMICOLON:
+    case ekKEY_QUEST:
+    case ekKEY_COMMA:
+    case ekKEY_MINUS:
+    case ekKEY_PERIOD:
+    case ekKEY_TAB:
+    case ekKEY_SPACE:
+    case ekKEY_GTLT:
+    case ekKEY_BACK:
+    case ekKEY_NUMDECIMAL:
+    case ekKEY_NUMMULT:
+    case ekKEY_NUMADD:
+    case ekKEY_NUMLOCK:
+    case ekKEY_NUMDIV:
+    case ekKEY_NUMRET:
+    case ekKEY_NUMMINUS:
+    case ekKEY_NUMEQUAL:
+    case ekKEY_NUM0:
+    case ekKEY_NUM1:
+    case ekKEY_NUM2:
+    case ekKEY_NUM3:
+    case ekKEY_NUM4:
+    case ekKEY_NUM5:
+    case ekKEY_NUM6:
+    case ekKEY_NUM7:
+    case ekKEY_NUM8:
+    case ekKEY_NUM9:
+    case ekKEY_PAGEUP:
+    case ekKEY_HOME:
+    case ekKEY_SUPR:
+    case ekKEY_PAGEDOWN:
+    case ekKEY_END:
+    case ekKEY_LEFT:
+    case ekKEY_RIGHT:
+    case ekKEY_DOWN:
+    case ekKEY_UP:
+    case ekKEY_LSHIFT:
+    case ekKEY_RSHIFT:
+    case ekKEY_LCTRL:
+    case ekKEY_RCTRL:
+    case ekKEY_LALT:
+    case ekKEY_RALT:
+    case ekKEY_INSERT:
+    case ekKEY_EXCLAM:
+    case ekKEY_MENU:
+    case ekKEY_LWIN:
+    case ekKEY_RWIN:
+    case ekKEY_CAPS:
+    case ekKEY_TILDE:
+    case ekKEY_GRAVE:
+    case ekKEY_PLUS:
         return FALSE;
     }
+
+    return FALSE;
 }
 
 /*---------------------------------------------------------------------------*/
