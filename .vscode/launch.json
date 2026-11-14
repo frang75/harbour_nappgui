@@ -102,6 +102,49 @@
                     "ignoreFailures": true
                 }
             ]
+        },
+        {
+            "name": "Exemplo (macOS)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/macos-ninja-clang-debug/Debug/bin/exemplo.app/Contents/MacOS/exemplo",
+            "args": [
+                "--hb:gtnap"
+            ],
+            "cwd": "${workspaceFolder}/contrib/gtnap/tests/cuademo/gtnap_cualib",
+            "environment": [
+                {
+                    "name": "DYLD_LIBRARY_PATH",
+                    "value": "/Applications/LibreOffice.app/Contents/Frameworks:${env:DYLD_LIBRARY_PATH}"
+                }
+            ],
+            "externalConsole": false,
+            "MIMode": "lldb"
+        },
+        {
+            "name": "Designer (macOS)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/macos-ninja-clang-debug/Debug/bin/napdesign.app/Contents/MacOS/napdesign",
+            "args": [],
+            "cwd": "${workspaceFolder}/contrib/gtnap/tests/cuademo/gtnap_cualib",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb"
+        },
+        {
+            "name": "Debugger (macOS)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/macos-ninja-clang-debug/Debug/bin/gtnapdeb.app/Contents/MacOS/gtnapdeb",
+            "args": [
+                "35",
+                "100"
+            ],
+            "cwd": "${workspaceFolder}/contrib/gtnap/tests/cuademo/gtnap_cualib",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb"
         }
     ]
 }

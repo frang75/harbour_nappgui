@@ -46,6 +46,24 @@
                 "lhs": "${hostSystemName}",
                 "rhs": "Linux"
             }
+        },
+        {
+            "name": "macos-ninja-clang-debug",
+            "displayName": "macOS Debug (Ninja, Apple Clang)",
+            "description": "Ninja generator using the Xcode Apple Clang toolchain.",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            }
         }
     ],
     "buildPresets": [
@@ -56,6 +74,10 @@
         {
             "name": "linux-ninja-gcc-debug",
             "configurePreset": "linux-ninja-gcc-debug"
+        },
+        {
+            "name": "macos-ninja-clang-debug",
+            "configurePreset": "macos-ninja-clang-debug"
         }
     ]
 }

@@ -9,7 +9,7 @@ set(LIBS "aws-cpp-sdk-core;aws-cpp-sdk-s3")
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     set(AWSBIN "${AWSDIR}/bin/win/msvc")
-elseif (CMAKE_GENERATOR MATCHES "Xcode")
+elseif (APPLE)
     set(AWSBIN "${AWSDIR}/bin/darwin/clang")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(AWSBIN "${AWSDIR}/bin/linux/gcc")
