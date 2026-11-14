@@ -2264,6 +2264,7 @@ struct i_maindata_t
     uint32_t hover_item;
     uint32_t sel_item;
     uint32_t ncols;
+    real32_t content_height;
     bool_t has_focus;
     ArrSt(MainItem) *items;
 };
@@ -2472,6 +2473,7 @@ static void i_mainitems_locations(View *view, const real32_t width)
             item->pos_y += i_IMAGE_PADDING_BOTTOM;
     arrst_end()
 
+    data->content_height = content_height;
     view_content_size(view, s2df(content_width, content_height), s2df(10, 10));
 }
 
@@ -2536,6 +2538,60 @@ static void i_OnFocusMainView(HbNapForm *form, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_scroll_sel_into_view(View *view, const MainData *data)
+{
+    const MainItem *item = arrst_get_const(data->items, data->sel_item, MainItem);
+    uint32_t n = arrst_size(data->items, MainItem);
+    uint32_t nrows = (n + data->ncols - 1) / data->ncols;
+    uint32_t row = data->sel_item / data->ncols;
+    V2Df scroll_pos;
+    S2Df viewport_size;
+    real32_t hscroll_reserve = 0;
+    real32_t visible_height;
+    real32_t new_y;
+    bool_t update = FALSE;
+
+    view_viewport(view, &scroll_pos, &viewport_size);
+    view_scroll_size(view, NULL, &hscroll_reserve);
+    visible_height = viewport_size.height - hscroll_reserve;
+    new_y = scroll_pos.y;
+
+    if (row == 0)
+    {
+        if (scroll_pos.y > 0)
+        {
+            new_y = 0;
+            update = TRUE;
+        }
+    }
+    else if (row == nrows - 1)
+    {
+        real32_t max_y = (data->content_height > visible_height) ? (data->content_height - visible_height) : 0;
+        if (scroll_pos.y < max_y)
+        {
+            new_y = max_y;
+            update = TRUE;
+        }
+    }
+    else if (scroll_pos.y > item->pos_y)
+    {
+        new_y = (item->pos_y > i_ITEM_SEP) ? (item->pos_y - i_ITEM_SEP) : 0;
+        update = TRUE;
+    }
+    else if (scroll_pos.y + visible_height < item->pos_y + i_ITEM_HEIGHT)
+    {
+        new_y = (item->pos_y + i_ITEM_HEIGHT + i_ITEM_SEP) - visible_height;
+        update = TRUE;
+    }
+
+    if (update == TRUE)
+        view_scroll_y(view, new_y);
+
+    view_update(view);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnKeyDownMainView(HbNapForm *form, Event *e)
 {
     View *view = event_sender(e, View);
@@ -2548,6 +2604,7 @@ static void i_OnKeyDownMainView(HbNapForm *form, Event *e)
     if (n > 0)
     {
         const EvKey *p = event_params(e, EvKey);
+
         if (p->key == ekKEY_LEFT)
         {
             if (data->sel_item % data->ncols > 0)
@@ -2569,7 +2626,7 @@ static void i_OnKeyDownMainView(HbNapForm *form, Event *e)
             if (data->sel_item >= data->ncols)
             {
                 data->sel_item -= data->ncols;
-                view_update(view);
+                i_scroll_sel_into_view(view, data);
             }
         }
         else if (p->key == ekKEY_DOWN)
@@ -2580,7 +2637,7 @@ static void i_OnKeyDownMainView(HbNapForm *form, Event *e)
             {
                 uint32_t target = data->sel_item + data->ncols;
                 data->sel_item = (target < n) ? target : n - 1;
-                view_update(view);
+                i_scroll_sel_into_view(view, data);
             }
         }
         else if (p->key == ekKEY_RETURN || p->key == ekKEY_NUMRET)
