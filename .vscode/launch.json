@@ -45,7 +45,12 @@
                 "--hb:gtnap"
             ],
             "cwd": "${workspaceFolder}/contrib/gtnap/tests/cuademo/gtnap_cualib",
-            "environment": [],
+            "environment": [
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "${workspaceFolder}/contrib/hbaws/awssdk/bin/linux/gcc:/usr/lib/libreoffice/program:${env:LD_LIBRARY_PATH}"
+                }
+            ],
             "externalConsole": false,
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb",
