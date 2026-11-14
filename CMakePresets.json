@@ -28,12 +28,34 @@
                 "lhs": "${hostSystemName}",
                 "rhs": "Windows"
             }
+        },
+        {
+            "name": "linux-ninja-gcc-debug",
+            "displayName": "Linux Debug (Ninja, GCC)",
+            "description": "Ninja generator using the system GCC toolchain.",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_CXX_COMPILER": "g++",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
         }
     ],
     "buildPresets": [
         {
             "name": "windows-ninja-vs2026-debug",
             "configurePreset": "windows-ninja-vs2026-debug"
+        },
+        {
+            "name": "linux-ninja-gcc-debug",
+            "configurePreset": "linux-ninja-gcc-debug"
         }
     ]
 }
