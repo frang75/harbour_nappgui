@@ -52,11 +52,11 @@ The main goal this year is to consolidate the use of GTNAP/Forms in the Aspec pr
 - Sprint 15: Implement support in NAppGUI for GTK3/Wayland backend. **Done Sprint 113 15/09/26**.
 - Sprint 16: --> Possible maintenance tasks for current projects. HBAWS Vendorization **Done Sprint 109 15/07/26**
 - Sprint 17: Implement HiDPI support in NAppGUI GTK backend. **Done Sprint 115 15/10/26**
-- Sprint 18: Aspec-clone app: Delve deeper into the user mode.
-- Sprint 19: Aspec-clone app: Main Window, modals, navigation.
+- Sprint 18: Aspec-clone app: Delve deeper into the user mode. **Done Sprint 117 15/11/26**
+- Sprint 19: Aspec-clone app: Main Window, modals, navigation. **Done Sprint 117 15/11/26**
 - Sprint 20: Aspec-clone app: Support for editbox with char patterns (date/time/document).
 - Sprint 21: --> Possible maintenance tasks for current projects. HBOFFICE Vendorization **Done Sprint 110 31/07/26**
-- Sprint 22: Aspec-clone app: Keyboard navigation within the form. Hotkeys.
+- Sprint 22: Aspec-clone app: Keyboard navigation within the form. Hotkeys. **Done Sprint 117 15/11/26**
 - Sprint 23: Aspec-clone app: Messagebox, secondary windows.
 - Sprint 24: Aspec-clone app: Reuse parts in designer.
 
