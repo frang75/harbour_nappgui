@@ -1841,6 +1841,246 @@ void hbnap_forms_OnClick(HbNapForm *form, const char_t *cell, HB_ITEM *click_blo
 
 /*---------------------------------------------------------------------------*/
 
+static vkey_t i_hbkey(const int hbkey)
+{
+    switch (hbkey)
+    {
+    case HBNAP_KEY_F1:
+        return ekKEY_F1;
+    case HBNAP_KEY_F2:
+        return ekKEY_F2;
+    case HBNAP_KEY_F3:
+        return ekKEY_F3;
+    case HBNAP_KEY_F4:
+        return ekKEY_F4;
+    case HBNAP_KEY_F5:
+        return ekKEY_F5;
+    case HBNAP_KEY_F6:
+        return ekKEY_F6;
+    case HBNAP_KEY_F7:
+        return ekKEY_F7;
+    case HBNAP_KEY_F8:
+        return ekKEY_F8;
+    case HBNAP_KEY_F9:
+        return ekKEY_F9;
+    case HBNAP_KEY_F10:
+        return ekKEY_F10;
+    case HBNAP_KEY_F11:
+        return ekKEY_F11;
+    case HBNAP_KEY_F12:
+        return ekKEY_F12;
+    case HBNAP_KEY_F13:
+        return ekKEY_F13;
+    case HBNAP_KEY_F14:
+        return ekKEY_F14;
+    case HBNAP_KEY_F15:
+        return ekKEY_F15;
+    case HBNAP_KEY_F16:
+        return ekKEY_F16;
+    case HBNAP_KEY_F17:
+        return ekKEY_F17;
+    case HBNAP_KEY_F18:
+        return ekKEY_F18;
+    case HBNAP_KEY_F19:
+        return ekKEY_F19;
+
+    case HBNAP_KEY_ESC:
+        return ekKEY_ESCAPE;
+    case HBNAP_KEY_RETURN:
+        return ekKEY_RETURN;
+
+    case HBNAP_KEY_A:
+        return ekKEY_A;
+    case HBNAP_KEY_B:
+        return ekKEY_B;
+    case HBNAP_KEY_C:
+        return ekKEY_C;
+    case HBNAP_KEY_D:
+        return ekKEY_D;
+    case HBNAP_KEY_E:
+        return ekKEY_E;
+    case HBNAP_KEY_F:
+        return ekKEY_F;
+    case HBNAP_KEY_G:
+        return ekKEY_G;
+    case HBNAP_KEY_H:
+        return ekKEY_H;
+    case HBNAP_KEY_I:
+        return ekKEY_I;
+    case HBNAP_KEY_J:
+        return ekKEY_J;
+    case HBNAP_KEY_K:
+        return ekKEY_K;
+    case HBNAP_KEY_L:
+        return ekKEY_L;
+    case HBNAP_KEY_M:
+        return ekKEY_M;
+    case HBNAP_KEY_N:
+        return ekKEY_N;
+    case HBNAP_KEY_O:
+        return ekKEY_O;
+    case HBNAP_KEY_P:
+        return ekKEY_P;
+    case HBNAP_KEY_Q:
+        return ekKEY_Q;
+    case HBNAP_KEY_R:
+        return ekKEY_R;
+    case HBNAP_KEY_S:
+        return ekKEY_S;
+    case HBNAP_KEY_T:
+        return ekKEY_T;
+    case HBNAP_KEY_U:
+        return ekKEY_U;
+    case HBNAP_KEY_V:
+        return ekKEY_V;
+    case HBNAP_KEY_W:
+        return ekKEY_W;
+    case HBNAP_KEY_X:
+        return ekKEY_X;
+    case HBNAP_KEY_Y:
+        return ekKEY_Y;
+    case HBNAP_KEY_Z:
+        return ekKEY_Z;
+
+    case HBNAP_KEY_0:
+        return ekKEY_0;
+    case HBNAP_KEY_1:
+        return ekKEY_1;
+    case HBNAP_KEY_2:
+        return ekKEY_2;
+    case HBNAP_KEY_3:
+        return ekKEY_3;
+    case HBNAP_KEY_4:
+        return ekKEY_4;
+    case HBNAP_KEY_5:
+        return ekKEY_5;
+    case HBNAP_KEY_6:
+        return ekKEY_6;
+    case HBNAP_KEY_7:
+        return ekKEY_7;
+    case HBNAP_KEY_8:
+        return ekKEY_8;
+    case HBNAP_KEY_9:
+        return ekKEY_9;
+
+    default:
+        cassert_default(hbkey);
+    }
+
+    return ekKEY_UNDEF;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static uint32_t i_hbmodifiers(const int hbmodifiers)
+{
+    uint32_t modifiers = ekMKEY_NONE;
+
+    if (hbmodifiers & HBNAP_MOD_SHIFT)
+        modifiers |= ekMKEY_SHIFT;
+
+    if (hbmodifiers & HBNAP_MOD_CONTROL)
+        modifiers |= ekMKEY_CONTROL;
+
+    if (hbmodifiers & HBNAP_MOD_ALT)
+        modifiers |= ekMKEY_ALT;
+
+    return modifiers;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/* [TAB]/[SHIFT+TAB] are reserved for widget navigation, and a plain
+   letter/number without a modifier would conflict with normal text
+   input (Edit, Combo, ...), so both are rejected here. */
+static bool_t i_hbnap_valid_hotkey(const vkey_t key, const uint32_t modifiers)
+{
+    switch (key)
+    {
+    case ekKEY_F1:
+    case ekKEY_F2:
+    case ekKEY_F3:
+    case ekKEY_F4:
+    case ekKEY_F5:
+    case ekKEY_F6:
+    case ekKEY_F7:
+    case ekKEY_F8:
+    case ekKEY_F9:
+    case ekKEY_F10:
+    case ekKEY_F11:
+    case ekKEY_F12:
+    case ekKEY_F13:
+    case ekKEY_F14:
+    case ekKEY_F15:
+    case ekKEY_F16:
+    case ekKEY_F17:
+    case ekKEY_F18:
+    case ekKEY_F19:
+    case ekKEY_ESCAPE:
+    case ekKEY_RETURN:
+        return TRUE;
+
+    case ekKEY_A:
+    case ekKEY_B:
+    case ekKEY_C:
+    case ekKEY_D:
+    case ekKEY_E:
+    case ekKEY_F:
+    case ekKEY_G:
+    case ekKEY_H:
+    case ekKEY_I:
+    case ekKEY_J:
+    case ekKEY_K:
+    case ekKEY_L:
+    case ekKEY_M:
+    case ekKEY_N:
+    case ekKEY_O:
+    case ekKEY_P:
+    case ekKEY_Q:
+    case ekKEY_R:
+    case ekKEY_S:
+    case ekKEY_T:
+    case ekKEY_U:
+    case ekKEY_V:
+    case ekKEY_W:
+    case ekKEY_X:
+    case ekKEY_Y:
+    case ekKEY_Z:
+    case ekKEY_0:
+    case ekKEY_1:
+    case ekKEY_2:
+    case ekKEY_3:
+    case ekKEY_4:
+    case ekKEY_5:
+    case ekKEY_6:
+    case ekKEY_7:
+    case ekKEY_8:
+    case ekKEY_9:
+        return (bool_t)(modifiers != ekMKEY_NONE);
+
+    default:
+        return FALSE;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_hotkey(HbNapForm *form, const int key, const int modifiers, HB_ITEM *hotkey_block)
+{
+    vkey_t vkey;
+    uint32_t vmodifiers;
+    cassert_no_null(form);
+    vkey = i_hbkey(key);
+    vmodifiers = i_hbmodifiers(modifiers);
+    if (i_hbnap_valid_hotkey(vkey, vmodifiers) == TRUE)
+    {
+        Listener *listener = i_hbnap_form_listener(hotkey_block, form, i_OnFormButtonClick);
+        window_hotkey(form->window, vkey, vmodifiers, listener);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void hbnap_forms_maximize(HbNapForm *form)
 {
     cassert_no_null(form);

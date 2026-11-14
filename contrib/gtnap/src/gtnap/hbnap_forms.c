@@ -206,6 +206,17 @@ HB_FUNC(HBNAP_FORMS_ONCLICK)
 
 /*---------------------------------------------------------------------------*/
 
+HB_FUNC(HBNAP_HOTKEY)
+{
+    HbNapForm *form = cast(hb_parptr(1), HbNapForm);
+    int key = hb_parni(2);
+    int modifiers = hb_parni(3);
+    HB_ITEM *block = hb_param(4, HB_IT_BLOCK);
+    hbnap_hotkey(form, key, modifiers, block);
+}
+
+/*---------------------------------------------------------------------------*/
+
 HB_FUNC(HBNAP_FORMS_MAXIMIZE)
 {
     HbNapForm *form = cast(hb_parptr(1), HbNapForm);

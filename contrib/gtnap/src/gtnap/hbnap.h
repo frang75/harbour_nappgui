@@ -60,6 +60,8 @@ extern void hbnap_forms_item_list(HbNapForm *form, const char_t *cell, HB_ITEM *
 
 extern void hbnap_forms_OnClick(HbNapForm *form, const char_t *cell, HB_ITEM *click_block);
 
+extern void hbnap_hotkey(HbNapForm *form, const int key, const int modifiers, HB_ITEM *hotkey_block);
+
 extern void hbnap_forms_maximize(HbNapForm *form);
 
 extern void hbnap_forms_show(HbNapForm *form, HB_ITEM *onclose_block);
