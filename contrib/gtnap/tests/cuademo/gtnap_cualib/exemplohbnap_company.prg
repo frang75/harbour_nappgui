@@ -272,6 +272,11 @@ IF SRECNO != -1
 ENDIF
 
 ********************************
+STAT FUNC MOSTRAR_EVENTO(O_FORM, C_TEXT, C_ORIGEM)
+********************************
+RETURN INFO_MESSAGE_BOX(C_TEXT + hb_eol() + hb_eol() + "Origem: " + C_ORIGEM, O_FORM)
+
+********************************
 PROC TST_FORM_EMPRESAS(O_PARENT_FORM)
 ********************************
 LOCAL O_FORM
@@ -288,7 +293,7 @@ LOCAL V_COLS := { ; // table columns
 // Simulate the database load/update, like the client's production apps do
 SIMULAR_ATUALIZACAO_BASES(O_PARENT_FORM)
 
-O_FORM := HBNAP_FORMS_LOAD(DIRET_FORMS() + "Company_list.nfm", DIRET_FORMS(), hb_bitOr(HBNAP_FORMS_RESIZABLE, HBNAP_FORMS_CLOSE_ON_ESC, HBNAP_FORMS_CLOSE_ON_RETURN))
+O_FORM := HBNAP_FORMS_LOAD(DIRET_FORMS() + "Company_list.nfm", DIRET_FORMS(), hb_bitOr(HBNAP_FORMS_RESIZABLE, HBNAP_FORMS_CLOSE_ON_ESC))
 
 USE ../dados/empresas NEW SHARED
 GOTO TOP
@@ -301,6 +306,17 @@ HBNAP_FORMS_ONCLICK(O_FORM, "edit_button", {|| EDIT_EMPRESA(O_FORM) })
 HBNAP_FORMS_ONCLICK(O_FORM, "edit_tool", {|| EDIT_EMPRESA(O_FORM) })
 HBNAP_FORMS_ONCLICK(O_FORM, "remove_button", {|| REMOVE_EMPRESA(O_FORM) })
 HBNAP_FORMS_ONCLICK(O_FORM, "remove_tool", {|| REMOVE_EMPRESA(O_FORM) })
+
+// [RETURN] and "button_enter" trigger the same message, tagged with their origin
+HBNAP_FORMS_ONCLICK(O_FORM, "button_enter", {|| MOSTRAR_EVENTO(O_FORM, "Acessar informações", "Button click") })
+HBNAP_HOTKEY(O_FORM, HBNAP_KEY_RETURN, 0, {|| MOSTRAR_EVENTO(O_FORM, "Acessar informações", "Hotkey [RETURN]") })
+
+// Function key hotkeys
+HBNAP_HOTKEY(O_FORM, HBNAP_KEY_F1, 0, {|| MOSTRAR_EVENTO(O_FORM, "Help", "Hotkey [F1]") })
+HBNAP_HOTKEY(O_FORM, HBNAP_KEY_F2, 0, {|| MOSTRAR_EVENTO(O_FORM, "Option 2", "Hotkey [F2]") })
+HBNAP_HOTKEY(O_FORM, HBNAP_KEY_F3, 0, {|| MOSTRAR_EVENTO(O_FORM, "Option 3", "Hotkey [F3]") })
+HBNAP_HOTKEY(O_FORM, HBNAP_KEY_F4, 0, {|| MOSTRAR_EVENTO(O_FORM, "Option 4", "Hotkey [F4]") })
+HBNAP_HOTKEY(O_FORM, HBNAP_KEY_F5, 0, {|| MOSTRAR_EVENTO(O_FORM, "Option 5", "Hotkey [F5]") })
 
 // Launch the form
 N_RES := HBNAP_FORMS_MODAL(O_FORM, O_PARENT_FORM)
