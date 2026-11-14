@@ -3549,6 +3549,7 @@ static uint32_t i_add_label(const int32_t top, const int32_t left, const bool_t 
     S2Df size;
     cassert_no_null(gtnap);
     label_font(label, gtnap->global_font);
+    label_trim(label, ekELLIPNONE);
     size.width = gtnap->cell_x_sizef;
     size.height = gtnap->label_y_sizef;
     return i_add_object(ekOBJ_LABEL, top, left, gtnap->cell_x_sizef, gtnap->cell_y_sizef, &size, in_scroll, (GuiComponent *)label, gtwin);
