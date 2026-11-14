@@ -10,6 +10,7 @@
 * [Table binding (TableView)](#table-binding-tableview)
 * [Tree binding (TableView)](#tree-binding-tableview)
 * [Multithreading](#multithreading)
+* [Keyboard navigation](#keyboard-navigation)
 * [HBNAP API Reference](#hbnap-api-reference)
     - [HBNAP_TIMER_START](#hbnap_timer_start)
     - [HBNAP_TIMER_STOP](#hbnap_timer_stop)
@@ -344,6 +345,15 @@ STAT PROC RUN_TASK(O_PARENT)
 A complete, real-world example - a simulated 15-subtask database-loading progress dialog, with early-cancel support - can be found in [exemplohbnap_company.prg](../tests/cuademo/gtnap_cualib/exemplohbnap_company.prg) (`SIMULAR_ATUALIZACAO_BASES()`).
 
 ![mtgui](./images/mtgui.gif)
+
+## Keyboard navigation
+
+HBNAP is designed so a form can be fully operated without a mouse, if needed:
+
+- **`[RETURN]`/`[ESC]` close modal dialogs.** Pass `HBNAP_FORMS_CLOSE_ON_RETURN`/`HBNAP_FORMS_CLOSE_ON_ESC` to [HBNAP_FORMS_LOAD](#hbnap_forms_load) to let either key close the form. Check the return value of `HBNAP_FORMS_MODAL()`/`HBNAP_FORMS_MODAL_GTNAP()` to know exactly which key closed it: `HBNAP_CLOSED_BY_RETURN`, `HBNAP_CLOSED_BY_ESC`, or `HBNAP_CLOSED_BY_BUTTON` (the `[X]` button). If the form has a default button, `[RETURN]` presses it too, regardless of that flag.
+- **`[TAB]`/`[SHIFT+TAB]` move between widgets**, following the tab order set for each cell in NAppGUI Designer. Some widgets (Label, Progress, Image, lines, ...) never take part in this order, since they have no interactive state to receive the focus.
+- **`[ALT]+letter` on buttons and menus.** A `&` before a letter in a button's text (see [HBNAP_FORMS_SET_TEXT](#hbnap_forms_set_text)) gives it a real keyboard accelerator: `[ALT]+letter` presses the button from anywhere in the window, no matter what currently has the focus. The same `&` syntax in a menu item's text (`HBNAP_MENUITEM_CREATE()`) gives it the usual underlined mnemonic, but that one only works while the menu is actually open.
+- **`[F1]`-`[F19]`, `[ESC]`/`[RETURN]`, or `Shift`/`Ctrl`/`Alt` + letter/number as form-wide shortcuts**, via [HBNAP_HOTKEY](#hbnap_hotkey). Unlike the button accelerators above, these are not tied to any widget's text, and the callback can do anything - not just "press this button".
 
 ## HBNAP API Reference
 
