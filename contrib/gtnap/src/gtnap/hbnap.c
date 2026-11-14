@@ -2157,9 +2157,14 @@ static void i_set_onclose(HbNapForm *form, HB_ITEM *onclose_block)
 {
     cassert_no_null(form);
     if (form->OnClose_block != NULL)
+    {
         hb_itemRelease(form->OnClose_block);
+        form->OnClose_block = NULL;
+    }
 
-    form->OnClose_block = hb_itemNew(onclose_block);
+    if (onclose_block != NULL)
+        form->OnClose_block = hb_itemNew(onclose_block);
+
     window_OnClose(form->window, listener(form, i_OnFormClose, HbNapForm));
 }
 
@@ -2179,8 +2184,7 @@ void hbnap_forms_show(HbNapForm *form, HB_ITEM *onclose_block)
 static uint32_t i_forms_modal(HbNapForm *form, Window *parent, HB_ITEM *onclose_block)
 {
     cassert_no_null(form);
-    if (onclose_block != NULL)
-        i_set_onclose(form, onclose_block);
+    i_set_onclose(form, onclose_block);
     window_update(form->window);
     i_form_frame(form, parent);
     form->modal_ret = window_modal(form->window, parent);

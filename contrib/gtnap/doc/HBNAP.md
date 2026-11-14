@@ -500,7 +500,7 @@ Embeds (swaps) an interior panel into a form at run time.
 
 ```
 O_EMBEDDED := HBNAP_FORMS_LOAD(DIRET_FORMS() + "InnerPanel.nfm", DIRET_FORMS(), HBNAP_FORMS_EMBEDDED_PANEL)
-N_VALUE := HBNAP_FORMS_EMBEB(O_FORM, O_EMBEDDED, "runtime_panel")
+N_VALUE := HBNAP_FORMS_EMBED(O_FORM, O_EMBEDDED, "runtime_panel")
 
 PAR1: Form object.
 PAR2: Inner (embedded) form object. It must be created with HBNAP_FORMS_EMBEDDED_PANEL flag.
@@ -520,6 +520,7 @@ LOCAL V_BIND := { ;
                     {"cidade_combo", @O_EMPRESA[3] }, ;
                     {"codent_edit", @O_EMPRESA[4] }, ;
                     {"gestora_edit", @O_EMPRESA[5] } ;
+                }
 
 HBNAP_FORMS_BIND(O_FORM, V_BIND)
 
@@ -696,8 +697,10 @@ Activate the form as the main application window. It is not recommended to use t
 HBNAP_FORMS_SHOW(O_MAINWINDOW, {|| MAIN_WINDOW_CLOSE() })
 
 PAR1: Form object.
-PAR2: Code block to be executed when the window close button [X] is pressed.
-      If the block returns .F., the close is vetoed and the window stays open.
+PAR2: (Optional) Code block to be executed when the window close button [X]
+      is pressed. If the block returns .F., the close is vetoed and the
+      window stays open. Any other result (including omitting this block)
+      allows the close to proceed normally.
 ```
 
 ### HBNAP_FORMS_MODAL
