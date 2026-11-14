@@ -30,6 +30,7 @@
     - [HBNAP_FORMS_TREE_BIND](#hbnap_forms_tree_bind)
     - [HBNAP_FORMS_ITEM_LIST](#hbnap_forms_item_list)
     - [HBNAP_FORMS_ONCLICK](#hbnap_forms_onclick)
+    - [HBNAP_HOTKEY](#hbnap_hotkey)
     - [HBNAP_FORMS_MAXIMIZE](#hbnap_forms_maximize)
     - [HBNAP_FORMS_SHOW](#hbnap_forms_show)
     - [HBNAP_FORMS_MODAL](#hbnap_forms_modal)
@@ -652,6 +653,30 @@ PAR1: Form object.
 PAR2: Widget (button) cell name.
 PAR3: Code block to execute when the button is pressed.
 ```
+
+### HBNAP_HOTKEY
+
+Registers a window-level keyboard shortcut (hotkey) on a form. Unlike `HBNAP_FORMS_ONCLICK()`, it is not tied to any widget - it fires no matter which control currently has the focus.
+
+```
+HBNAP_HOTKEY(O_FORM, HBNAP_KEY_F1, 0, {|| INFO_MESSAGE_BOX("Help", O_FORM) })
+HBNAP_HOTKEY(O_FORM, HBNAP_KEY_S, HBNAP_MOD_CONTROL, {|| GUARDAR(O_FORM) })
+
+PAR1: Form object.
+PAR2: Key code (hbnap.ch). Supported:
+      - HBNAP_KEY_F1 .. HBNAP_KEY_F19 (function keys)
+      - HBNAP_KEY_ESC, HBNAP_KEY_RETURN
+      - HBNAP_KEY_A .. HBNAP_KEY_Z, HBNAP_KEY_0 .. HBNAP_KEY_9 (letters/numbers -
+        REQUIRE at least one modifier, see PAR3. A plain letter/number with no
+        modifier is rejected, since it would collide with normal text input in
+        an Edit/Combo widget)
+      [TAB]/[SHIFT+TAB] are NOT supported: they are reserved for widget navigation.
+PAR3: hb_bitOr() of modifiers, or 0 for none:
+      HBNAP_MOD_SHIFT, HBNAP_MOD_CONTROL, HBNAP_MOD_ALT
+PAR4: Code block to execute when the hotkey is pressed.
+```
+
+> **Note on priority:** if the form was loaded with `HBNAP_FORMS_CLOSE_ON_ESC`/`HBNAP_FORMS_CLOSE_ON_RETURN` (see [HBNAP_FORMS_LOAD](#hbnap_forms_load)), or has a default button, that behavior always takes priority over a hotkey registered for `HBNAP_KEY_ESC`/`HBNAP_KEY_RETURN` on the same form - the hotkey will never fire for that key, since the window already consumes it first.
 
 ### HBNAP_FORMS_MAXIMIZE
 
