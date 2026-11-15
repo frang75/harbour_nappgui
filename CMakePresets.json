@@ -1,0 +1,83 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 21,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "windows-ninja-vs2026-debug",
+            "displayName": "Windows x64 Debug (Ninja, VS2026 v145)",
+            "description": "Ninja generator using the VS2026 (v145) MSVC toolset. Run from a VS2026 x64 Native Tools command prompt/PowerShell.",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            },
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "toolset": {
+                "value": "v145",
+                "strategy": "external"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "linux-ninja-gcc-debug",
+            "displayName": "Linux Debug (Ninja, GCC)",
+            "description": "Ninja generator using the system GCC toolchain.",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_CXX_COMPILER": "g++",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        },
+        {
+            "name": "macos-ninja-clang-debug",
+            "displayName": "macOS Debug (Ninja, Apple Clang)",
+            "description": "Ninja generator using the Xcode Apple Clang toolchain.",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "windows-ninja-vs2026-debug",
+            "configurePreset": "windows-ninja-vs2026-debug"
+        },
+        {
+            "name": "linux-ninja-gcc-debug",
+            "configurePreset": "linux-ninja-gcc-debug"
+        },
+        {
+            "name": "macos-ninja-clang-debug",
+            "configurePreset": "macos-ninja-clang-debug"
+        }
+    ]
+}

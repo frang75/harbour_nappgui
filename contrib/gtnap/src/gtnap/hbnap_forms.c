@@ -22,6 +22,24 @@ HB_FUNC(HBNAP_FORMS_EXIT_APP)
 
 /*---------------------------------------------------------------------------*/
 
+HB_FUNC(HBNAP_TIMER_START)
+{
+    real64_t interval_secs = hb_parnd(1);
+    HB_ITEM *block = hb_param(2, HB_IT_BLOCK);
+    uint32_t timer_id = hbnap_timer_start(interval_secs, block);
+    hb_retni((int)timer_id);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(HBNAP_TIMER_STOP)
+{
+    uint32_t timer_id = (uint32_t)hb_parni(1);
+    hbnap_timer_stop(timer_id);
+}
+
+/*---------------------------------------------------------------------------*/
+
 HB_FUNC(HBNAP_FORMS_LOAD)
 {
     const char_t *pathname = hb_parcx(1);
@@ -66,6 +84,16 @@ HB_FUNC(HBNAP_FORMS_SET_INT)
     const char_t *cell = hb_parcx(2);
     int32_t value = (int32_t)hb_parni(3);
     hbnap_forms_set_int(form, cell, value);
+}
+
+/*---------------------------------------------------------------------------*/
+
+HB_FUNC(HBNAP_FORMS_SET_REAL)
+{
+    HbNapForm *form = cast(hb_parptr(1), HbNapForm);
+    const char_t *cell = hb_parcx(2);
+    real32_t value = (real32_t)hb_parnd(3);
+    hbnap_forms_set_real(form, cell, value);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -178,6 +206,17 @@ HB_FUNC(HBNAP_FORMS_ONCLICK)
 
 /*---------------------------------------------------------------------------*/
 
+HB_FUNC(HBNAP_HOTKEY)
+{
+    HbNapForm *form = cast(hb_parptr(1), HbNapForm);
+    int key = hb_parni(2);
+    int modifiers = hb_parni(3);
+    HB_ITEM *block = hb_param(4, HB_IT_BLOCK);
+    hbnap_hotkey(form, key, modifiers, block);
+}
+
+/*---------------------------------------------------------------------------*/
+
 HB_FUNC(HBNAP_FORMS_MAXIMIZE)
 {
     HbNapForm *form = cast(hb_parptr(1), HbNapForm);
@@ -199,7 +238,8 @@ HB_FUNC(HBNAP_FORMS_MODAL)
 {
     HbNapForm *form = cast(hb_parptr(1), HbNapForm);
     HbNapForm *parent = cast(hb_parptr(2), HbNapForm);
-    uint32_t ret = hbnap_forms_modal(form, parent);
+    HB_ITEM *onclose_block = hb_param(3, HB_IT_BLOCK);
+    uint32_t ret = hbnap_forms_modal(form, parent, onclose_block);
     hb_retni(ret);
 }
 
@@ -208,7 +248,8 @@ HB_FUNC(HBNAP_FORMS_MODAL)
 HB_FUNC(HBNAP_FORMS_MODAL_GTNAP)
 {
     HbNapForm *form = cast(hb_parptr(1), HbNapForm);
-    uint32_t ret = hbnap_forms_modal_gtnap(form);
+    HB_ITEM *onclose_block = hb_param(2, HB_IT_BLOCK);
+    uint32_t ret = hbnap_forms_modal_gtnap(form, onclose_block);
     hb_retni(ret);
 }
 

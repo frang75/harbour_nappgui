@@ -55,6 +55,7 @@
 /*---------------------------------------------------------------------------*/
 
 typedef struct _hbnap_callback_t HbNapCallback;
+typedef struct _hbnap_update_t HbNapUpdate;
 typedef struct _hbnap_bind_t HbNapBind;
 typedef struct _hbnap_fcolumn_t HbNapFColumn;
 typedef struct _hbnap_fnode_t HbNapFNode;
@@ -70,6 +71,14 @@ struct _hbnap_callback_t
     HB_ITEM *block;
     int32_t key;
     uint32_t autoclose_id;
+};
+
+struct _hbnap_update_t
+{
+    HB_ITEM *block;
+    real64_t interval_secs;
+    real64_t last_time;
+    uint32_t update_id;
 };
 
 struct _hbnap_bind_t
@@ -135,9 +144,13 @@ struct _hbnap_t
     bool_t debugger_visible;
     GtNapDebugger *debugger;
     ArrPt(HbNapCallback) *menu_callbacks;
+    ArrPt(HbNapUpdate) *updates;
+    uint32_t update_id;
+    real64_t last_ctime;
 };
 
 DeclPt(HbNapCallback);
+DeclPt(HbNapUpdate);
 DeclSt(HbNapBind);
 DeclSt(HbNapFColumn);
 DeclSt(HbNapFArea2);
@@ -294,12 +307,25 @@ static void i_destroy_hbnap_callback(HbNapCallback **callback)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_destroy_hbnap_update(HbNapUpdate **update)
+{
+    cassert_no_null(update);
+    cassert_no_null(*update);
+    if ((*update)->block != NULL)
+        hb_itemRelease((*update)->block);
+    heap_delete(update, HbNapUpdate);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static HbNap *i_hbnap_state_create(void)
 {
     const char_t *build_cfg = NULL;
     cassert(HBNAP_GLOBAL == NULL);
     HBNAP_GLOBAL = heap_new0(HbNap);
     HBNAP_GLOBAL->menu_callbacks = arrpt_create(HbNapCallback);
+    HBNAP_GLOBAL->updates = arrpt_create(HbNapUpdate);
+    HBNAP_GLOBAL->update_id = 1;
     HBNAP_GLOBAL->date_digits = (hb_setGetCentury() == (HB_BOOL)HB_TRUE) ? 8 : 6;
     HBNAP_GLOBAL->date_chars = HBNAP_GLOBAL->date_digits + 2;
 
@@ -339,6 +365,7 @@ static void i_hbnap_state_destroy(HbNap **gtnap)
     cassert(*gtnap == HBNAP_GLOBAL);
     cassert(arrpt_size((*gtnap)->menu_callbacks, HbNapCallback) == 0);
     arrpt_destroy(&(*gtnap)->menu_callbacks, i_destroy_hbnap_callback, HbNapCallback);
+    arrpt_destroy(&(*gtnap)->updates, i_destroy_hbnap_update, HbNapUpdate);
     str_destroy(&(*gtnap)->working_path);
     str_destroy(&(*gtnap)->debugger_path);
 
@@ -372,7 +399,7 @@ static void i_hbnap_update(HbNap *gtnap, const real64_t prtime, const real64_t c
     gtnap = HBNAP_GLOBAL;
     cassert_no_null(gtnap);
     unref(prtime);
-    unref(ctime);
+    hbnap_forms_update_all(ctime);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -397,7 +424,7 @@ void hbnap_forms_init_app(HB_ITEM *main_block)
     INIT_CODEBLOCK = hb_itemNew(main_block);
 
     osmain_imp(
-        0, NULL, hInstance, 0.5f,
+        0, NULL, hInstance, 0.04f,
         (FPtr_app_create)i_hbnap_create,
         (FPtr_app_update)i_hbnap_update,
         (FPtr_destroy)i_hbnap_destroy,
@@ -427,6 +454,73 @@ void hbnap_exit_indirect(void)
     if (HBNAP_GLOBAL != NULL)
         i_hbnap_state_destroy(&HBNAP_GLOBAL);
     nforms_finish();
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_update_all(const real64_t ctime)
+{
+    if (HBNAP_GLOBAL != NULL && HBNAP_GLOBAL->updates != NULL)
+    {
+        uint32_t i = 0, n = arrpt_size(HBNAP_GLOBAL->updates, HbNapUpdate);
+        HBNAP_GLOBAL->last_ctime = ctime;
+        while (i < n)
+        {
+            HbNapUpdate *update = arrpt_get(HBNAP_GLOBAL->updates, i, HbNapUpdate);
+            bool_t remove = FALSE;
+
+            if (ctime - update->last_time >= update->interval_secs && update->block != NULL)
+            {
+                PHB_ITEM ritem = hb_itemDo(update->block, 0);
+                update->last_time = ctime;
+                if (HB_ITEM_TYPE(ritem) == HB_IT_LOGICAL && (bool_t)hb_itemGetL(ritem) == FALSE)
+                    remove = TRUE;
+                hb_itemRelease(ritem);
+            }
+
+            if (remove == TRUE)
+            {
+                arrpt_delete(HBNAP_GLOBAL->updates, i, i_destroy_hbnap_update, HbNapUpdate);
+                n -= 1;
+            }
+            else
+            {
+                i += 1;
+            }
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t hbnap_timer_start(const real64_t interval_secs, HB_ITEM *tick_block)
+{
+    HbNapUpdate *update = NULL;
+    cassert_no_null(HBNAP_GLOBAL);
+    update = heap_new0(HbNapUpdate);
+    update->block = tick_block ? hb_itemNew(tick_block) : NULL;
+    update->interval_secs = interval_secs;
+    update->last_time = HBNAP_GLOBAL->last_ctime;
+    update->update_id = HBNAP_GLOBAL->update_id;
+    HBNAP_GLOBAL->update_id += 1;
+    arrpt_append(HBNAP_GLOBAL->updates, update, HbNapUpdate);
+    return update->update_id;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_timer_stop(const uint32_t timer_id)
+{
+    if (HBNAP_GLOBAL != NULL && HBNAP_GLOBAL->updates != NULL)
+    {
+        arrpt_foreach(update, HBNAP_GLOBAL->updates, HbNapUpdate)
+            if (update->update_id == timer_id)
+            {
+                arrpt_delete(HBNAP_GLOBAL->updates, update_i, i_destroy_hbnap_update, HbNapUpdate);
+                return;
+            }
+        arrpt_end()
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -577,6 +671,7 @@ void hbnap_forms_destroy(HbNapForm **form)
 {
     cassert_no_null(form);
     cassert_no_null(*form);
+
     str_destroy(&(*form)->nameid);
     str_destroy(&(*form)->respath);
     ptr_destopt(window_destroy, &(*form)->window, Window);
@@ -616,6 +711,14 @@ void hbnap_forms_set_int(HbNapForm *form, const char_t *cell, const int32_t valu
 {
     cassert_no_null(form);
     nform_set_control_int(form->form, cell, value);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_set_real(HbNapForm *form, const char_t *cell, const real32_t value)
+{
+    cassert_no_null(form);
+    nform_set_control_real(form->form, cell, value);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1738,6 +1841,302 @@ void hbnap_forms_OnClick(HbNapForm *form, const char_t *cell, HB_ITEM *click_blo
 
 /*---------------------------------------------------------------------------*/
 
+static vkey_t i_hbkey(const int hbkey)
+{
+    switch (hbkey)
+    {
+    case HBNAP_KEY_F1:
+        return ekKEY_F1;
+    case HBNAP_KEY_F2:
+        return ekKEY_F2;
+    case HBNAP_KEY_F3:
+        return ekKEY_F3;
+    case HBNAP_KEY_F4:
+        return ekKEY_F4;
+    case HBNAP_KEY_F5:
+        return ekKEY_F5;
+    case HBNAP_KEY_F6:
+        return ekKEY_F6;
+    case HBNAP_KEY_F7:
+        return ekKEY_F7;
+    case HBNAP_KEY_F8:
+        return ekKEY_F8;
+    case HBNAP_KEY_F9:
+        return ekKEY_F9;
+    case HBNAP_KEY_F10:
+        return ekKEY_F10;
+    case HBNAP_KEY_F11:
+        return ekKEY_F11;
+    case HBNAP_KEY_F12:
+        return ekKEY_F12;
+    case HBNAP_KEY_F13:
+        return ekKEY_F13;
+    case HBNAP_KEY_F14:
+        return ekKEY_F14;
+    case HBNAP_KEY_F15:
+        return ekKEY_F15;
+    case HBNAP_KEY_F16:
+        return ekKEY_F16;
+    case HBNAP_KEY_F17:
+        return ekKEY_F17;
+    case HBNAP_KEY_F18:
+        return ekKEY_F18;
+    case HBNAP_KEY_F19:
+        return ekKEY_F19;
+
+    case HBNAP_KEY_ESC:
+        return ekKEY_ESCAPE;
+    case HBNAP_KEY_RETURN:
+        return ekKEY_RETURN;
+
+    case HBNAP_KEY_A:
+        return ekKEY_A;
+    case HBNAP_KEY_B:
+        return ekKEY_B;
+    case HBNAP_KEY_C:
+        return ekKEY_C;
+    case HBNAP_KEY_D:
+        return ekKEY_D;
+    case HBNAP_KEY_E:
+        return ekKEY_E;
+    case HBNAP_KEY_F:
+        return ekKEY_F;
+    case HBNAP_KEY_G:
+        return ekKEY_G;
+    case HBNAP_KEY_H:
+        return ekKEY_H;
+    case HBNAP_KEY_I:
+        return ekKEY_I;
+    case HBNAP_KEY_J:
+        return ekKEY_J;
+    case HBNAP_KEY_K:
+        return ekKEY_K;
+    case HBNAP_KEY_L:
+        return ekKEY_L;
+    case HBNAP_KEY_M:
+        return ekKEY_M;
+    case HBNAP_KEY_N:
+        return ekKEY_N;
+    case HBNAP_KEY_O:
+        return ekKEY_O;
+    case HBNAP_KEY_P:
+        return ekKEY_P;
+    case HBNAP_KEY_Q:
+        return ekKEY_Q;
+    case HBNAP_KEY_R:
+        return ekKEY_R;
+    case HBNAP_KEY_S:
+        return ekKEY_S;
+    case HBNAP_KEY_T:
+        return ekKEY_T;
+    case HBNAP_KEY_U:
+        return ekKEY_U;
+    case HBNAP_KEY_V:
+        return ekKEY_V;
+    case HBNAP_KEY_W:
+        return ekKEY_W;
+    case HBNAP_KEY_X:
+        return ekKEY_X;
+    case HBNAP_KEY_Y:
+        return ekKEY_Y;
+    case HBNAP_KEY_Z:
+        return ekKEY_Z;
+
+    case HBNAP_KEY_0:
+        return ekKEY_0;
+    case HBNAP_KEY_1:
+        return ekKEY_1;
+    case HBNAP_KEY_2:
+        return ekKEY_2;
+    case HBNAP_KEY_3:
+        return ekKEY_3;
+    case HBNAP_KEY_4:
+        return ekKEY_4;
+    case HBNAP_KEY_5:
+        return ekKEY_5;
+    case HBNAP_KEY_6:
+        return ekKEY_6;
+    case HBNAP_KEY_7:
+        return ekKEY_7;
+    case HBNAP_KEY_8:
+        return ekKEY_8;
+    case HBNAP_KEY_9:
+        return ekKEY_9;
+
+    default:
+        cassert_default(hbkey);
+    }
+
+    return ekKEY_UNDEF;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static uint32_t i_hbmodifiers(const int hbmodifiers)
+{
+    uint32_t modifiers = ekMKEY_NONE;
+
+    if (hbmodifiers & HBNAP_MOD_SHIFT)
+        modifiers |= ekMKEY_SHIFT;
+
+    if (hbmodifiers & HBNAP_MOD_CONTROL)
+        modifiers |= ekMKEY_CONTROL;
+
+    if (hbmodifiers & HBNAP_MOD_ALT)
+        modifiers |= ekMKEY_ALT;
+
+    return modifiers;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/* [TAB]/[SHIFT+TAB] are reserved for widget navigation, and a plain
+   letter/number without a modifier would conflict with normal text
+   input (Edit, Combo, ...), so both are rejected here. */
+static bool_t i_hbnap_valid_hotkey(const vkey_t key, const uint32_t modifiers)
+{
+    switch (key)
+    {
+    case ekKEY_F1:
+    case ekKEY_F2:
+    case ekKEY_F3:
+    case ekKEY_F4:
+    case ekKEY_F5:
+    case ekKEY_F6:
+    case ekKEY_F7:
+    case ekKEY_F8:
+    case ekKEY_F9:
+    case ekKEY_F10:
+    case ekKEY_F11:
+    case ekKEY_F12:
+    case ekKEY_F13:
+    case ekKEY_F14:
+    case ekKEY_F15:
+    case ekKEY_F16:
+    case ekKEY_F17:
+    case ekKEY_F18:
+    case ekKEY_F19:
+    case ekKEY_ESCAPE:
+    case ekKEY_RETURN:
+        return TRUE;
+
+    case ekKEY_A:
+    case ekKEY_B:
+    case ekKEY_C:
+    case ekKEY_D:
+    case ekKEY_E:
+    case ekKEY_F:
+    case ekKEY_G:
+    case ekKEY_H:
+    case ekKEY_I:
+    case ekKEY_J:
+    case ekKEY_K:
+    case ekKEY_L:
+    case ekKEY_M:
+    case ekKEY_N:
+    case ekKEY_O:
+    case ekKEY_P:
+    case ekKEY_Q:
+    case ekKEY_R:
+    case ekKEY_S:
+    case ekKEY_T:
+    case ekKEY_U:
+    case ekKEY_V:
+    case ekKEY_W:
+    case ekKEY_X:
+    case ekKEY_Y:
+    case ekKEY_Z:
+    case ekKEY_0:
+    case ekKEY_1:
+    case ekKEY_2:
+    case ekKEY_3:
+    case ekKEY_4:
+    case ekKEY_5:
+    case ekKEY_6:
+    case ekKEY_7:
+    case ekKEY_8:
+    case ekKEY_9:
+        return (bool_t)(modifiers != ekMKEY_NONE);
+
+    case ekKEY_UNDEF:
+    case ekKEY_BSLASH:
+    case ekKEY_RCURLY:
+    case ekKEY_LCURLY:
+    case ekKEY_SEMICOLON:
+    case ekKEY_QUEST:
+    case ekKEY_COMMA:
+    case ekKEY_MINUS:
+    case ekKEY_PERIOD:
+    case ekKEY_TAB:
+    case ekKEY_SPACE:
+    case ekKEY_GTLT:
+    case ekKEY_BACK:
+    case ekKEY_NUMDECIMAL:
+    case ekKEY_NUMMULT:
+    case ekKEY_NUMADD:
+    case ekKEY_NUMLOCK:
+    case ekKEY_NUMDIV:
+    case ekKEY_NUMRET:
+    case ekKEY_NUMMINUS:
+    case ekKEY_NUMEQUAL:
+    case ekKEY_NUM0:
+    case ekKEY_NUM1:
+    case ekKEY_NUM2:
+    case ekKEY_NUM3:
+    case ekKEY_NUM4:
+    case ekKEY_NUM5:
+    case ekKEY_NUM6:
+    case ekKEY_NUM7:
+    case ekKEY_NUM8:
+    case ekKEY_NUM9:
+    case ekKEY_PAGEUP:
+    case ekKEY_HOME:
+    case ekKEY_SUPR:
+    case ekKEY_PAGEDOWN:
+    case ekKEY_END:
+    case ekKEY_LEFT:
+    case ekKEY_RIGHT:
+    case ekKEY_DOWN:
+    case ekKEY_UP:
+    case ekKEY_LSHIFT:
+    case ekKEY_RSHIFT:
+    case ekKEY_LCTRL:
+    case ekKEY_RCTRL:
+    case ekKEY_LALT:
+    case ekKEY_RALT:
+    case ekKEY_INSERT:
+    case ekKEY_EXCLAM:
+    case ekKEY_MENU:
+    case ekKEY_LWIN:
+    case ekKEY_RWIN:
+    case ekKEY_CAPS:
+    case ekKEY_TILDE:
+    case ekKEY_GRAVE:
+    case ekKEY_PLUS:
+        return FALSE;
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_hotkey(HbNapForm *form, const int key, const int modifiers, HB_ITEM *hotkey_block)
+{
+    vkey_t vkey;
+    uint32_t vmodifiers;
+    cassert_no_null(form);
+    vkey = i_hbkey(key);
+    vmodifiers = i_hbmodifiers(modifiers);
+    if (i_hbnap_valid_hotkey(vkey, vmodifiers) == TRUE)
+    {
+        Listener *listener = i_hbnap_form_listener(hotkey_block, form, i_OnFormButtonClick);
+        window_hotkey(form->window, vkey, vmodifiers, listener);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void hbnap_forms_maximize(HbNapForm *form)
 {
     cassert_no_null(form);
@@ -1804,14 +2203,33 @@ static void i_form_frame(HbNapForm *form, Window *parent)
 
 /*---------------------------------------------------------------------------*/
 
-void hbnap_forms_show(HbNapForm *form, HB_ITEM *onclose_block)
+/* Sets a veto-capable [X]/close callback for 'form'. Works for both
+   top-level (HBNAP_FORMS_SHOW) and modal (HBNAP_FORMS_MODAL/_GTNAP) forms -
+   NAppGUI's own window_modal() already consults the same window->OnClose
+   listener for the ekGUI_CLOSE_BUTTON case (window.c, i_OnWindowClose), no
+   core change needed. If the block returns .F., the close is vetoed and
+   the form/dialog stays open. */
+static void i_set_onclose(HbNapForm *form, HB_ITEM *onclose_block)
 {
     cassert_no_null(form);
     if (form->OnClose_block != NULL)
+    {
         hb_itemRelease(form->OnClose_block);
+        form->OnClose_block = NULL;
+    }
 
-    form->OnClose_block = hb_itemNew(onclose_block);
+    if (onclose_block != NULL)
+        form->OnClose_block = hb_itemNew(onclose_block);
+
     window_OnClose(form->window, listener(form, i_OnFormClose, HbNapForm));
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hbnap_forms_show(HbNapForm *form, HB_ITEM *onclose_block)
+{
+    cassert_no_null(form);
+    i_set_onclose(form, onclose_block);
     window_update(form->window);
     i_form_frame(form, NULL);
     window_show(form->window);
@@ -1819,9 +2237,10 @@ void hbnap_forms_show(HbNapForm *form, HB_ITEM *onclose_block)
 
 /*---------------------------------------------------------------------------*/
 
-static uint32_t i_forms_modal(HbNapForm *form, Window *parent)
+static uint32_t i_forms_modal(HbNapForm *form, Window *parent, HB_ITEM *onclose_block)
 {
     cassert_no_null(form);
+    i_set_onclose(form, onclose_block);
     window_update(form->window);
     i_form_frame(form, parent);
     form->modal_ret = window_modal(form->window, parent);
@@ -1830,19 +2249,19 @@ static uint32_t i_forms_modal(HbNapForm *form, Window *parent)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hbnap_forms_modal(HbNapForm *form, HbNapForm *parent)
+uint32_t hbnap_forms_modal(HbNapForm *form, HbNapForm *parent, HB_ITEM *onclose_block)
 {
     cassert_no_null(parent);
-    return i_forms_modal(form, parent->window);
+    return i_forms_modal(form, parent->window, onclose_block);
 }
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t hbnap_forms_modal_gtnap(HbNapForm *form)
+uint32_t hbnap_forms_modal_gtnap(HbNapForm *form, HB_ITEM *onclose_block)
 {
     Window *parent = gtnap_current_window();
     cassert_no_null(parent);
-    return i_forms_modal(form, parent);
+    return i_forms_modal(form, parent, onclose_block);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1899,6 +2318,10 @@ struct i_maindata_t
     Font *item_font;
     Font *item_sfont;
     uint32_t hover_item;
+    uint32_t sel_item;
+    uint32_t ncols;
+    real32_t content_height;
+    bool_t has_focus;
     ArrSt(MainItem) *items;
 };
 
@@ -1916,6 +2339,7 @@ static const real32_t i_IMAGE_PADDING_TOP = 30;
 static const real32_t i_IMAGE_PADDING_BOTTOM = 36;
 static const real32_t i_IMAGE_PADDING_RIGHT = 70;
 static const real32_t i_TITLE_PADDING_LEFT = 80;
+static const real32_t i_FOCUS_RING_OUTSET = 4;
 
 /*---------------------------------------------------------------------------*/
 
@@ -2054,6 +2478,14 @@ static void i_OnDrawMainView(HbNapForm *form, Event *e)
     arrst_foreach_const(item, data->items, MainItem)
         T2Df t2d = i_item_transform(item, (bool_t)(item_i == data->hover_item));
         i_draw_mainitem(p->ctx, item, data->item_font, data->item_sfont, &t2d);
+
+        if (data->has_focus == TRUE && item_i == data->sel_item)
+        {
+            draw_matrixf(p->ctx, &t2d);
+            draw_line_color(p->ctx, gui_accent_color());
+            draw_line_width(p->ctx, 3);
+            draw_rect(p->ctx, ekSTROKE, -i_FOCUS_RING_OUTSET, -i_FOCUS_RING_OUTSET, i_ITEM_WIDTH + 2 * i_FOCUS_RING_OUTSET, i_ITEM_HEIGHT + 2 * i_FOCUS_RING_OUTSET);
+        }
     arrst_end()
 }
 
@@ -2077,6 +2509,7 @@ static void i_mainitems_locations(View *view, const real32_t width)
     }
 
     cassert(ncols > 0);
+    data->ncols = ncols;
     nrows = (n / ncols) + ((n % ncols) ? 1 : 0);
     content_height = i_IMAGE_PADDING_TOP + i_ITEM_HEIGHT * nrows + i_ITEM_SEP * (nrows - 1);
     content_height += data->logo_height;
@@ -2096,6 +2529,7 @@ static void i_mainitems_locations(View *view, const real32_t width)
             item->pos_y += i_IMAGE_PADDING_BOTTOM;
     arrst_end()
 
+    data->content_height = content_height;
     view_content_size(view, s2df(content_width, content_height), s2df(10, 10));
 }
 
@@ -2148,6 +2582,131 @@ static void i_OnClickMainView(HbNapForm *form, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnFocusMainView(HbNapForm *form, Event *e)
+{
+    View *view = event_sender(e, View);
+    MainData *data = view_get_data(view, MainData);
+    cassert_no_null(data);
+    data->has_focus = TRUE;
+    view_update(view);
+    unref(form);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_scroll_sel_into_view(View *view, const MainData *data)
+{
+    const MainItem *item = arrst_get_const(data->items, data->sel_item, MainItem);
+    uint32_t n = arrst_size(data->items, MainItem);
+    uint32_t nrows = (n + data->ncols - 1) / data->ncols;
+    uint32_t row = data->sel_item / data->ncols;
+    V2Df scroll_pos;
+    S2Df viewport_size;
+    real32_t hscroll_reserve = 0;
+    real32_t visible_height;
+    real32_t new_y;
+    bool_t update = FALSE;
+
+    view_viewport(view, &scroll_pos, &viewport_size);
+    view_scroll_size(view, NULL, &hscroll_reserve);
+    visible_height = viewport_size.height - hscroll_reserve;
+    new_y = scroll_pos.y;
+
+    if (row == 0)
+    {
+        if (scroll_pos.y > 0)
+        {
+            new_y = 0;
+            update = TRUE;
+        }
+    }
+    else if (row == nrows - 1)
+    {
+        real32_t max_y = (data->content_height > visible_height) ? (data->content_height - visible_height) : 0;
+        if (scroll_pos.y < max_y)
+        {
+            new_y = max_y;
+            update = TRUE;
+        }
+    }
+    else if (scroll_pos.y > item->pos_y)
+    {
+        new_y = (item->pos_y > i_ITEM_SEP) ? (item->pos_y - i_ITEM_SEP) : 0;
+        update = TRUE;
+    }
+    else if (scroll_pos.y + visible_height < item->pos_y + i_ITEM_HEIGHT)
+    {
+        new_y = (item->pos_y + i_ITEM_HEIGHT + i_ITEM_SEP) - visible_height;
+        update = TRUE;
+    }
+
+    if (update == TRUE)
+        view_scroll_y(view, new_y);
+
+    view_update(view);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnKeyDownMainView(HbNapForm *form, Event *e)
+{
+    View *view = event_sender(e, View);
+    MainData *data = view_get_data(view, MainData);
+    uint32_t n = 0;
+    cassert_no_null(data);
+    unref(form);
+    n = arrst_size(data->items, MainItem);
+
+    if (n > 0)
+    {
+        const EvKey *p = event_params(e, EvKey);
+
+        if (p->key == ekKEY_LEFT)
+        {
+            if (data->sel_item % data->ncols > 0)
+            {
+                data->sel_item -= 1;
+                view_update(view);
+            }
+        }
+        else if (p->key == ekKEY_RIGHT)
+        {
+            if (data->sel_item % data->ncols < data->ncols - 1 && data->sel_item + 1 < n)
+            {
+                data->sel_item += 1;
+                view_update(view);
+            }
+        }
+        else if (p->key == ekKEY_UP)
+        {
+            if (data->sel_item >= data->ncols)
+            {
+                data->sel_item -= data->ncols;
+                i_scroll_sel_into_view(view, data);
+            }
+        }
+        else if (p->key == ekKEY_DOWN)
+        {
+            uint32_t nrows = (n + data->ncols - 1) / data->ncols;
+            uint32_t row = data->sel_item / data->ncols;
+            if (row + 1 < nrows)
+            {
+                uint32_t target = data->sel_item + data->ncols;
+                data->sel_item = (target < n) ? target : n - 1;
+                i_scroll_sel_into_view(view, data);
+            }
+        }
+        else if (p->key == ekKEY_RETURN || p->key == ekKEY_NUMRET)
+        {
+            const MainItem *item = arrst_get_const(data->items, data->sel_item, MainItem);
+            PHB_ITEM ritem = hb_itemDo(item->OnClick, 0);
+            hb_itemRelease(ritem);
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void hbnap_forms_main_cover(HbNapForm *form, const char_t *canvas_cell, const char_t *title, const char_t *logo_path, HB_ITEM *cover_items)
 {
     View *view = NULL;
@@ -2173,6 +2732,8 @@ void hbnap_forms_main_cover(HbNapForm *form, const char_t *canvas_cell, const ch
 
     data->items = arrst_create(MainItem);
     data->hover_item = UINT32_MAX;
+    data->sel_item = 0;
+    data->has_focus = FALSE;
 
     n = hb_arrayLen(cover_items);
     for (i = 1; i <= n; ++i)
@@ -2219,6 +2780,8 @@ void hbnap_forms_main_cover(HbNapForm *form, const char_t *canvas_cell, const ch
     view_OnSize(view, listener(form, i_OnSizeMainView, HbNapForm));
     view_OnMove(view, listener(form, i_OnMoveMainView, HbNapForm));
     view_OnClick(view, listener(form, i_OnClickMainView, HbNapForm));
+    view_OnKeyDown(view, listener(form, i_OnKeyDownMainView, HbNapForm));
+    view_OnFocus(view, listener(form, i_OnFocusMainView, HbNapForm));
     view_get_size(view, &view_size);
     i_mainitems_locations(view, view_size.width);
 }

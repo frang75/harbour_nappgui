@@ -9,12 +9,17 @@
 * [Data binding](#data-binding)
 * [Table binding (TableView)](#table-binding-tableview)
 * [Tree binding (TableView)](#tree-binding-tableview)
+* [Multithreading](#multithreading)
+* [Keyboard navigation](#keyboard-navigation)
 * [HBNAP API Reference](#hbnap-api-reference)
+    - [HBNAP_TIMER_START](#hbnap_timer_start)
+    - [HBNAP_TIMER_STOP](#hbnap_timer_stop)
     - [HBNAP_FORMS_LOAD](#hbnap_forms_load)
     - [HBNAP_FORMS_DESTROY](#hbnap_forms_destroy)
     - [HBNAP_FORMS_TITLE](#hbnap_forms_title)
     - [HBNAP_FORMS_SET_TEXT](#hbnap_forms_set_text)
     - [HBNAP_FORMS_SET_INT](#hbnap_forms_set_int)
+    - [HBNAP_FORMS_SET_REAL](#hbnap_forms_set_real)
     - [HBNAP_FORMS_INSERT_TEXT](#hbnap_forms_insert_text)
     - [HBNAP_FORMS_GET_INT](#hbnap_forms_get_int)
     - [HBNAP_FORMS_EMBED](#hbnap_forms_embed)
@@ -26,6 +31,7 @@
     - [HBNAP_FORMS_TREE_BIND](#hbnap_forms_tree_bind)
     - [HBNAP_FORMS_ITEM_LIST](#hbnap_forms_item_list)
     - [HBNAP_FORMS_ONCLICK](#hbnap_forms_onclick)
+    - [HBNAP_HOTKEY](#hbnap_hotkey)
     - [HBNAP_FORMS_MAXIMIZE](#hbnap_forms_maximize)
     - [HBNAP_FORMS_SHOW](#hbnap_forms_show)
     - [HBNAP_FORMS_MODAL](#hbnap_forms_modal)
@@ -257,7 +263,122 @@ HBNAP uses lazy expansion: nodes with `expanded = .F.` do not have their subtree
 
 ![hbnap11](./images/hbnap11.png)
 
+## Multithreading
+
+NAppGUI runs on a single thread, which updates the GUI at regular time intervals (the application tick). Whenever there is a "hard" computational task - a database update, a large file copy, etc. - it must run on a separate, parallel thread (asynchronously), so the GUI thread is freed and never gets frozen by it. While that task runs, it can keep informing the GUI of its status through progress bars, labels, counters, and so on.
+
+Since the GUI is only ever touched by that single thread, a worker thread must never call `HBNAP_FORMS_*` / `HBNAP_TIMER_*` directly - it only writes to state it shares with the main thread, which is read and reflected on the form widgets by the regular GUI tick.
+
+> **A secondary thread must perform computation tasks only, and must NEVER update the GUI nor call any `HBNAP_*` function.**
+
+The recommended pattern is:
+
+1. Launch the task on a secondary thread with Harbour's own MT API (`hb_threadStart()`), guarding any state shared with the main thread behind a `hb_mutexCreate()`/`hb_mutexLock()`/`hb_mutexUnLock()`.
+2. Poll that shared state from the main thread with `HBNAP_TIMER_START()`, at a short interval (e.g. every 50ms), and push the result into the form widgets (`HBNAP_FORMS_SET_TEXT()`, `HBNAP_FORMS_SET_REAL()`, ...). The worker thread never touches the form - only the main thread does, driven by the timer.
+3. When the task finishes, return `.F.` from the timer callback to stop it, and close the dialog (typically with `HBNAP_FORMS_STOP_MODAL()`).
+4. If the user can cancel early (e.g. pressing `[X]`), use the optional close-callback parameter of `HBNAP_FORMS_MODAL()` / `HBNAP_FORMS_MODAL_GTNAP()` / `HBNAP_FORMS_SHOW()` to signal the worker thread to stop cooperatively (never force-kill a thread), then `hb_threadJoin()` it once the dialog has actually closed.
+
+> **Note:** using `hb_thread*`/`hb_mutex*` functions requires the `-mt` Harbour compiler flag in the project's `.hbp` file (multi-threaded RTL).
+
+```harbour
+STATIC H_MUTEX
+STATIC N_PROGRESS
+STATIC L_FINISHED
+STATIC L_CANCELLED
+
+STAT PROC WORKER()
+    LOCAL N_STEP
+    FOR N_STEP := 1 TO 100
+        hb_idleSleep(0.050) // Simulates heavy work
+        hb_mutexLock(H_MUTEX)
+        IF L_CANCELLED == .F.
+            N_PROGRESS := N_STEP / 100
+        ENDIF
+        hb_mutexUnLock(H_MUTEX)
+        IF L_CANCELLED == .T.
+            EXIT
+        ENDIF
+    NEXT
+    hb_mutexLock(H_MUTEX)
+    L_FINISHED := .T.
+    hb_mutexUnLock(H_MUTEX)
+    RETURN
+
+STAT FUNC UPDATE_PROGRESS(O_FORM)
+    LOCAL N_VALUE, L_DONE
+    hb_mutexLock(H_MUTEX)
+    N_VALUE := N_PROGRESS
+    L_DONE := L_FINISHED
+    hb_mutexUnLock(H_MUTEX)
+    HBNAP_FORMS_SET_REAL(O_FORM, "progress", N_VALUE)
+    IF L_DONE == .T.
+        HBNAP_FORMS_STOP_MODAL(O_FORM, 0)
+        RETURN .F. // Stop ticking
+    ENDIF
+    RETURN .T. // Keep ticking
+
+STAT FUNC ON_CANCEL(N_TIMER_ID)
+    hb_mutexLock(H_MUTEX)
+    L_CANCELLED := .T.
+    hb_mutexUnLock(H_MUTEX)
+    HBNAP_TIMER_STOP(N_TIMER_ID)
+    RETURN .T. // Allow the dialog to close
+
+STAT PROC RUN_TASK(O_PARENT)
+    LOCAL O_FORM := HBNAP_FORMS_LOAD(...)
+    LOCAL H_THREAD, N_TIMER_ID, N_RES
+
+    H_MUTEX := hb_mutexCreate()
+    N_PROGRESS := 0
+    L_FINISHED := .F.
+    L_CANCELLED := .F.
+
+    H_THREAD := hb_threadStart(@WORKER())
+    N_TIMER_ID := HBNAP_TIMER_START(0.050, {|| UPDATE_PROGRESS(O_FORM) })
+    N_RES := HBNAP_FORMS_MODAL(O_FORM, O_PARENT, {|| ON_CANCEL(N_TIMER_ID) })
+
+    hb_threadJoin(H_THREAD)
+    HBNAP_FORMS_DESTROY(O_FORM)
+    RETURN
+```
+
+A complete, real-world example - a simulated 15-subtask database-loading progress dialog, with early-cancel support - can be found in [exemplohbnap_company.prg](../tests/cuademo/gtnap_cualib/exemplohbnap_company.prg) (`SIMULAR_ATUALIZACAO_BASES()`).
+
+![mtgui](./images/mtgui.gif)
+
+## Keyboard navigation
+
+HBNAP is designed so a form can be fully operated without a mouse, if needed:
+
+- **`[RETURN]`/`[ESC]` close modal dialogs.** Pass `HBNAP_FORMS_CLOSE_ON_RETURN`/`HBNAP_FORMS_CLOSE_ON_ESC` to [HBNAP_FORMS_LOAD](#hbnap_forms_load) to let either key close the form. Check the return value of `HBNAP_FORMS_MODAL()`/`HBNAP_FORMS_MODAL_GTNAP()` to know exactly which key closed it: `HBNAP_CLOSED_BY_RETURN`, `HBNAP_CLOSED_BY_ESC`, or `HBNAP_CLOSED_BY_BUTTON` (the `[X]` button). If the form has a default button, `[RETURN]` presses it too, regardless of that flag.
+- **`[TAB]`/`[SHIFT+TAB]` move between widgets**, following the tab order set for each cell in NAppGUI Designer. Some widgets (Label, Progress, Image, lines, ...) never take part in this order, since they have no interactive state to receive the focus.
+- **`[ALT]+letter` on buttons and menus.** A `&` before a letter in a button's text (see [HBNAP_FORMS_SET_TEXT](#hbnap_forms_set_text)) gives it a real keyboard accelerator: `[ALT]+letter` presses the button from anywhere in the window, no matter what currently has the focus. The same `&` syntax in a menu item's text (`HBNAP_MENUITEM_CREATE()`) gives it the usual underlined mnemonic, but that one only works while the menu is actually open.
+- **`[F1]`-`[F19]`, `[ESC]`/`[RETURN]`, or `Shift`/`Ctrl`/`Alt` + letter/number as form-wide shortcuts**, via [HBNAP_HOTKEY](#hbnap_hotkey). Unlike the button accelerators above, these are not tied to any widget's text, and the callback can do anything - not just "press this button".
+
 ## HBNAP API Reference
+
+### HBNAP_TIMER_START
+
+Starts a generic interval timer, driven by NAppGUI's own application tick (so it still runs on each platform's real native message loop - Win32/macOS/GTK3). Not tied to any form: the callback block decides what to do with it, typically updating one or more forms. See [Multithreading](#multithreading).
+
+```
+N_TIMER_ID := HBNAP_TIMER_START(0.050, {|| UPDATE_PROGRESS(O_FORM) })
+
+PAR1: Interval, in seconds, between calls to the callback block.
+PAR2: Code block to execute on every tick. If it returns .F., the timer
+      stops itself (no need to call HBNAP_TIMER_STOP() in that case).
+RET: Timer id, to be used later with HBNAP_TIMER_STOP().
+```
+
+### HBNAP_TIMER_STOP
+
+Stops and removes a timer previously started with `HBNAP_TIMER_START()`.
+
+```
+HBNAP_TIMER_STOP(N_TIMER_ID)
+
+PAR1: Timer id, as returned by HBNAP_TIMER_START().
+```
 
 ### HBNAP_FORMS_LOAD
 
@@ -337,6 +458,20 @@ PAR2: Widget cell name.
 PAR3: Integer value
 ```
 
+### HBNAP_FORMS_SET_REAL
+
+Sets a real (floating point) value for a widget within the form. Access to the widget is done using the cell identifier. The widgets that respond to this function are:
+
+- Progress Bar (0 to 1 range)
+
+```
+HBNAP_FORMS_SET_REAL(O_FORM, "progress1", 0.75)
+
+PAR1: Form object.
+PAR2: Widget cell name.
+PAR3: Real value.
+```
+
 ### HBNAP_FORMS_INSERT_TEXT
 
 Add text to the end of a widget, without deleting previous text. Access to the widget is done using the cell identifier. The widgets that respond to this function are:
@@ -375,7 +510,7 @@ Embeds (swaps) an interior panel into a form at run time.
 
 ```
 O_EMBEDDED := HBNAP_FORMS_LOAD(DIRET_FORMS() + "InnerPanel.nfm", DIRET_FORMS(), HBNAP_FORMS_EMBEDDED_PANEL)
-N_VALUE := HBNAP_FORMS_EMBEB(O_FORM, O_EMBEDDED, "runtime_panel")
+N_VALUE := HBNAP_FORMS_EMBED(O_FORM, O_EMBEDDED, "runtime_panel")
 
 PAR1: Form object.
 PAR2: Inner (embedded) form object. It must be created with HBNAP_FORMS_EMBEDDED_PANEL flag.
@@ -395,6 +530,7 @@ LOCAL V_BIND := { ;
                     {"cidade_combo", @O_EMPRESA[3] }, ;
                     {"codent_edit", @O_EMPRESA[4] }, ;
                     {"gestora_edit", @O_EMPRESA[5] } ;
+                }
 
 HBNAP_FORMS_BIND(O_FORM, V_BIND)
 
@@ -529,6 +665,30 @@ PAR2: Widget (button) cell name.
 PAR3: Code block to execute when the button is pressed.
 ```
 
+### HBNAP_HOTKEY
+
+Registers a window-level keyboard shortcut (hotkey) on a form. Unlike `HBNAP_FORMS_ONCLICK()`, it is not tied to any widget - it fires no matter which control currently has the focus.
+
+```
+HBNAP_HOTKEY(O_FORM, HBNAP_KEY_F1, 0, {|| INFO_MESSAGE_BOX("Help", O_FORM) })
+HBNAP_HOTKEY(O_FORM, HBNAP_KEY_S, HBNAP_MOD_CONTROL, {|| GUARDAR(O_FORM) })
+
+PAR1: Form object.
+PAR2: Key code (hbnap.ch). Supported:
+      - HBNAP_KEY_F1 .. HBNAP_KEY_F19 (function keys)
+      - HBNAP_KEY_ESC, HBNAP_KEY_RETURN
+      - HBNAP_KEY_A .. HBNAP_KEY_Z, HBNAP_KEY_0 .. HBNAP_KEY_9 (letters/numbers -
+        REQUIRE at least one modifier, see PAR3. A plain letter/number with no
+        modifier is rejected, since it would collide with normal text input in
+        an Edit/Combo widget)
+      [TAB]/[SHIFT+TAB] are NOT supported: they are reserved for widget navigation.
+PAR3: hb_bitOr() of modifiers, or 0 for none:
+      HBNAP_MOD_SHIFT, HBNAP_MOD_CONTROL, HBNAP_MOD_ALT
+PAR4: Code block to execute when the hotkey is pressed.
+```
+
+> **Note on priority:** if the form was loaded with `HBNAP_FORMS_CLOSE_ON_ESC`/`HBNAP_FORMS_CLOSE_ON_RETURN` (see [HBNAP_FORMS_LOAD](#hbnap_forms_load)), or has a default button, that behavior always takes priority over a hotkey registered for `HBNAP_KEY_ESC`/`HBNAP_KEY_RETURN` on the same form - the hotkey will never fire for that key, since the window already consumes it first.
+
 ### HBNAP_FORMS_MAXIMIZE
 
 Maximizes a form so that it fills the entire screen area. It is only applicable to those forms created with the `HBNAP_FORMS_RESIZABLE` flag. If the form is not already visible, it will be displayed maximized when activated.
@@ -547,7 +707,10 @@ Activate the form as the main application window. It is not recommended to use t
 HBNAP_FORMS_SHOW(O_MAINWINDOW, {|| MAIN_WINDOW_CLOSE() })
 
 PAR1: Form object.
-PAR2: Code block to be executed when the window close button [X] is pressed.
+PAR2: (Optional) Code block to be executed when the window close button [X]
+      is pressed. If the block returns .F., the close is vetoed and the
+      window stays open. Any other result (including omitting this block)
+      allows the close to proceed normally.
 ```
 
 ### HBNAP_FORMS_MODAL
@@ -555,7 +718,7 @@ PAR2: Code block to be executed when the window close button [X] is pressed.
 Run a form in modal mode. The previous form (parent) will be locked until this form is closed.
 
 ```
-N_RES := HBNAP_FORMS_MODAL(O_FORM, O_PARENT_FORM)
+N_RES := HBNAP_FORMS_MODAL(O_FORM, O_PARENT_FORM, {|| ON_CLOSE_PRESSED() })
 
 IF N_RES == HBNAP_CLOSED_BY_ESC
 ELSEIF N_RES == HBNAP_CLOSED_BY_RETURN
@@ -565,6 +728,10 @@ ENDIF
 
 PAR1: Form object.
 PAR2: Parent form object.
+PAR3: (Optional) Code block to be executed when the window close button [X]
+      is pressed. If the block returns .F., the close is vetoed and the
+      dialog stays open. Any other result (including omitting this block)
+      allows the close to proceed normally.
 RET: Integer with the modal execution result.
 
 # Return values (in hbnap.ch)
@@ -579,9 +746,11 @@ HBNAP_CLOSED_BY_BUTTON  Form closed by [X] button in title bar.
 Same as `HBNAP_FORMS_MODAL()` but considering that the parent window is a GTNAP window (semigraphic mode). These windows are controlled internally by GTNAP and do not have an object accessible from Harbour.
 
 ```
-N_RES := HBNAP_FORMS_MODAL_GTNAP(O_MAINWINDOW)
+N_RES := HBNAP_FORMS_MODAL_GTNAP(O_MAINWINDOW, {|| ON_CLOSE_PRESSED() })
 
 PAR1: Form object.
+PAR2: (Optional) Code block to be executed when the window close button [X]
+      is pressed. Same veto semantics as HBNAP_FORMS_MODAL().
 RET: Integer with the modal execution result. Same as HBNAP_FORMS_MODAL().
 ```
 
@@ -660,6 +829,15 @@ PAR3: Main menu title.
 PAR4: Menu main image.
 PAR5: Item list.
 ```
+
+#### Keyboard navigation
+
+The cover supports full keyboard navigation, on top of mouse clicks:
+
+- Clicking an option with the mouse activates it directly.
+- `[UP]`/`[DOWN]`/`[LEFT]`/`[RIGHT]` move the current selection across the grid, respecting the number of columns actually computed for the current window size (it is recalculated live on every resize). At the edges of the grid, the arrows simply do nothing (no wraparound).
+- `[RETURN]` activates the currently selected option, same as clicking it.
+- The selected option is drawn with a focus ring (in the system accent color) around its border, which scales together with the box itself when the mouse hovers over it.
 
 ![hbnap9](./images/hbnap9.png)
 

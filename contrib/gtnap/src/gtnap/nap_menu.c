@@ -41,6 +41,7 @@ struct _menuvert_t
     real32_t total_height;
     real32_t control_widthf;
     real32_t control_heightf;
+    real32_t content_widthf;
     real32_t cell_x_sizef;
     real32_t cell_y_sizef;
     ArrSt(MenuOpt) *opts;
@@ -125,8 +126,8 @@ static void i_OnDraw(Panel *panel, Event *e)
         draw_text_color(p->ctx, kCOLOR_DEFAULT);
         if (opt_i == menu->selected)
         {
-            drawctrl_fill(p->ctx, (int32_t)xpos, (int32_t)ypos, (uint32_t)menu->control_widthf - 1, (uint32_t)menu->row_heightf, ekCTRL_STATE_PRESSED);
-            drawctrl_focus(p->ctx, (int32_t)xpos, (int32_t)ypos, (uint32_t)menu->control_widthf - 1, (uint32_t)menu->row_heightf, ekCTRL_STATE_PRESSED);
+            drawctrl_fill(p->ctx, (int32_t)xpos, (int32_t)ypos, (uint32_t)menu->content_widthf - 1, (uint32_t)menu->row_heightf, ekCTRL_STATE_PRESSED);
+            drawctrl_focus(p->ctx, (int32_t)xpos, (int32_t)ypos, (uint32_t)menu->content_widthf - 1, (uint32_t)menu->row_heightf, ekCTRL_STATE_PRESSED);
             drawctrl_text(p->ctx, tc(opt->text), (int32_t)(xpos + menu->cell_x_sizef), (int32_t)(ypos + yoffset), ekCTRL_STATE_PRESSED);
         }
         else
@@ -351,6 +352,7 @@ static void i_OnKeyDown(Panel *panel, Event *e)
 static void i_view_size(MenuVert *menu)
 {
     real32_t width = 0, height = 0;
+    real32_t bar_width = 0, bar_height = 0;
     cassert_no_null(menu);
 
     arrst_foreach(opt, menu->opts, MenuOpt)
@@ -365,7 +367,18 @@ static void i_view_size(MenuVert *menu)
     arrst_end();
 
     menu->total_height = height;
-    view_content_size(menu->view, s2df(menu->control_widthf, height), s2df(0, menu->row_heightf));
+    menu->content_widthf = menu->control_widthf;
+    view_content_size(menu->view, s2df(menu->content_widthf, height), s2df(0, menu->row_heightf));
+
+    /* If the vertical scrollbar appeared, shrink the content width by its
+       reserved space, so it doesn't also trigger a horizontal scrollbar,
+       and the selected-row fill/focus rect (i_OnDraw) stays clear of it */
+    view_scroll_size(menu->view, &bar_width, &bar_height);
+    if (bar_width > 0)
+    {
+        menu->content_widthf = menu->control_widthf - bar_width;
+        view_content_size(menu->view, s2df(menu->content_widthf, height), s2df(0, menu->row_heightf));
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -404,7 +417,7 @@ Panel *nap_menu_create(const bool_t autoclose, const Font *font, const real32_t 
     view_OnExit(view, listener(panel, i_OnExit, Panel));
     view_OnUp(view, listener(panel, i_OnUp, Panel));
     view_OnKeyDown(view, listener(panel, i_OnKeyDown, Panel));
-    _component_visible((GuiComponent *)view, TRUE);
+    _component_visible(cast(view, GuiComponent), TRUE);
     panel_data(panel, &menu, i_destroy, MenuVert);
     layout_view(layout, view, 0, 0);
     layout_tabstop(layout, 0, 0, TRUE);

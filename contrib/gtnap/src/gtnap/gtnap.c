@@ -2778,7 +2778,7 @@ static void i_gtnap_update(GtNap *gtnap, const real64_t prtime, const real64_t c
     gtnap = GTNAP_GLOBAL;
     cassert_no_null(gtnap);
     unref(prtime);
-    unref(ctime);
+    hbnap_forms_update_all(ctime);
     if (gtnap->modal_time_window != NULL)
     {
         GtNapWindow *gtwin = gtnap->modal_time_window;
@@ -2821,7 +2821,7 @@ void gtnap_init(const char_t *title, const uint32_t rows, const uint32_t cols, P
     INIT_COLS = cols;
 
     osmain_imp(
-        0, NULL, hInstance, 0.5f,
+        0, NULL, hInstance, 0.04f,
         (FPtr_app_create)i_gtnap_create,
         (FPtr_app_update)i_gtnap_update,
         (FPtr_destroy)i_gtnap_destroy,
@@ -3549,6 +3549,7 @@ static uint32_t i_add_label(const int32_t top, const int32_t left, const bool_t 
     S2Df size;
     cassert_no_null(gtnap);
     label_font(label, gtnap->global_font);
+    label_trim(label, ekELLIPNONE);
     size.width = gtnap->cell_x_sizef;
     size.height = gtnap->label_y_sizef;
     return i_add_object(ekOBJ_LABEL, top, left, gtnap->cell_x_sizef, gtnap->cell_y_sizef, &size, in_scroll, (GuiComponent *)label, gtwin);

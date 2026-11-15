@@ -17,5 +17,7 @@ extern void hbnap_init_indirect(void);
 
 extern void hbnap_exit_indirect(void);
 
+extern void hbnap_forms_update_all(const real64_t ctime);
+
 __END_C
 

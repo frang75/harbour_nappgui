@@ -3,30 +3,148 @@
     "configurations": [
         {
             "name": "Exemplo",
-            "type": "cppdbg",
+            "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Debug/bin/exemplo",
-            "args": ["--hb:gtnap"],
-            "environment": [{ "name": "LIBREOFFICE_HOME", "value": "/usr/lib/libreoffice" },
-                            { "name": "AWS_SDK_ROOT", "value": "/home/fran/aws-sdk" },
-                            { "name": "LD_LIBRARY_PATH", "value": "/usr/lib/libreoffice/program:/home/fran/aws-sdk/gcc/Release/lib"}],
+            "program": "${workspaceFolder}/build/windows-ninja-vs2026-debug/Debug/bin/exemplo.exe",
+            "args": [
+                "--hb:gtnap"
+            ],
+            "environment": [
+                {
+                    "name": "PATH",
+                    "value": "${env:PATH};${env:AWS_SDK_ROOT}\\msvc64\\Release\\bin"
+                }
+            ],
             "cwd": "${workspaceFolder}/contrib/gtnap/tests/cuademo/gtnap_cualib"
         },
         {
             "name": "Designer",
-            "type": "cppdbg",
+            "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Debug/bin/napdesign",
+            "program": "${workspaceFolder}/build/windows-ninja-vs2026-debug/Debug/bin/napdesign.exe",
             "args": [],
             "cwd": "${workspaceFolder}/contrib/gtnap/tests/cuademo/gtnap_cualib"
         },
         {
             "name": "Debugger",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/windows-ninja-vs2026-debug/Debug/bin/gtnapdeb.exe",
+            "args": [
+                "35",
+                "100"
+            ],
+            "cwd": "${workspaceFolder}/contrib/gtnap/tests/cuademo/gtnap_cualib"
+        },
+        {
+            "name": "Exemplo (Linux)",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Debug/bin/gtnapdeb",
-            "args": ["35", "100"],
-            "cwd": "${workspaceFolder}/contrib/gtnap/tests/cuademo/gtnap_cualib"
+            "program": "${workspaceFolder}/build/linux-ninja-gcc-debug/Debug/bin/exemplo",
+            "args": [
+                "--hb:gtnap"
+            ],
+            "cwd": "${workspaceFolder}/contrib/gtnap/tests/cuademo/gtnap_cualib",
+            "environment": [
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "${workspaceFolder}/contrib/hbaws/awssdk/bin/linux/gcc:/usr/lib/libreoffice/program:${env:LD_LIBRARY_PATH}"
+                }
+            ],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Designer (Linux)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/linux-ninja-gcc-debug/Debug/bin/napdesign",
+            "args": [],
+            "cwd": "${workspaceFolder}/contrib/gtnap/tests/cuademo/gtnap_cualib",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Debugger (Linux)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/linux-ninja-gcc-debug/Debug/bin/gtnapdeb",
+            "args": [
+                "35",
+                "100"
+            ],
+            "cwd": "${workspaceFolder}/contrib/gtnap/tests/cuademo/gtnap_cualib",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Exemplo (macOS)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/macos-ninja-clang-debug/Debug/bin/exemplo.app/Contents/MacOS/exemplo",
+            "args": [
+                "--hb:gtnap"
+            ],
+            "cwd": "${workspaceFolder}/contrib/gtnap/tests/cuademo/gtnap_cualib",
+            "environment": [
+                {
+                    "name": "DYLD_LIBRARY_PATH",
+                    "value": "/Applications/LibreOffice.app/Contents/Frameworks:${env:DYLD_LIBRARY_PATH}"
+                }
+            ],
+            "externalConsole": false,
+            "MIMode": "lldb"
+        },
+        {
+            "name": "Designer (macOS)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/macos-ninja-clang-debug/Debug/bin/napdesign.app/Contents/MacOS/napdesign",
+            "args": [],
+            "cwd": "${workspaceFolder}/contrib/gtnap/tests/cuademo/gtnap_cualib",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb"
+        },
+        {
+            "name": "Debugger (macOS)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/macos-ninja-clang-debug/Debug/bin/gtnapdeb.app/Contents/MacOS/gtnapdeb",
+            "args": [
+                "35",
+                "100"
+            ],
+            "cwd": "${workspaceFolder}/contrib/gtnap/tests/cuademo/gtnap_cualib",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb"
         }
     ]
 }

@@ -24,6 +24,7 @@
         "gui.h": "c",
         "tableview.h": "c"
     },
-    "files.encoding": "windows1252",
-    "cmake.sourceDirectory": "/home/fran/harbour_nappgui"
+    "files.encoding": "utf8",
+    "cmake.sourceDirectory": "${workspaceFolder}",
+    "cmake.useVsDeveloperEnvironment": "always"
 }
