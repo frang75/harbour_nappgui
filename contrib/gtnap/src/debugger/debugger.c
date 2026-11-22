@@ -606,10 +606,7 @@ static void i_unknown(App *app, const DebMsg *msg)
 
 static uint32_t i_protocol_thread(App *app)
 {
-    Socket *server_sock = NULL;
-    heap_start_mt();
-
-    server_sock = bsocket_server(kDEBLIB_SERVER_PORT, 32, NULL);
+    Socket *server_sock = bsocket_server(kDEBLIB_SERVER_PORT, 32, NULL);
 
     if (app->print_log == TRUE)
     {
@@ -746,7 +743,6 @@ static uint32_t i_protocol_thread(App *app)
         bsocket_close(&server_sock);
     }
 
-    heap_end_mt();
     return 0;
 }
 

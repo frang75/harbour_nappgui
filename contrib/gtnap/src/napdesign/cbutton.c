@@ -68,6 +68,7 @@ static VCtrlTbl i_CBUTTON_TLB = {
     NULL, /* func_natural */
     (FPtr_gctx_call)i_set_empty,
     (FPtr_gctx_set_uint32)i_set_uint32,
+    NULL, /* func_int32 */
     NULL /* func_image*/};
 
 /*---------------------------------------------------------------------------*/
