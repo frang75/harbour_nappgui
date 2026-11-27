@@ -1382,7 +1382,7 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                             {
                                 real32_t imgheight = (real32_t)image_height(image);
                                 real32_t yoffset = (rheight - imgheight) / 2;
-                                draw_image(ctx, image, dcell->content_rect.pos.x + xpos, dcell->content_rect.pos.y + yoffset);                               
+                                draw_image(ctx, image, dcell->content_rect.pos.x + xpos, dcell->content_rect.pos.y + yoffset);
                             }
 
                             xpos += imgwidth + 4;
@@ -1694,10 +1694,11 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
                 break;
             }
 
-            case ekCELL_TYPE_HLINE:
-            case ekCELL_TYPE_VLINE:
-                draw_fill_color(ctx, wcolor);
-                draw_rect(ctx, ekFILL, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
+            case ekCELL_TYPE_DATEVIEW:
+                /* TODO: Calendar drawing */
+                draw_line_color(ctx, wcolor);
+                draw_rect(ctx, ekSTROKE, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
+                draw_line_color(ctx, colors->main);
                 break;
 
             case ekCELL_TYPE_PANEL:
@@ -1734,6 +1735,12 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
 
                 break;
             }
+
+            case ekCELL_TYPE_HLINE:
+            case ekCELL_TYPE_VLINE:
+                draw_fill_color(ctx, wcolor);
+                draw_rect(ctx, ekFILL, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
+                break;
 
             case ekCELL_TYPE_LAYOUT:
             {

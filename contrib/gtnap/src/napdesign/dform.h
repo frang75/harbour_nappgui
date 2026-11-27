@@ -102,11 +102,13 @@ void dform_synchro_imageview(DForm *form, const DSelect *sel);
 
 void dform_synchro_table(DForm *form, const DSelect *sel);
 
+void dform_synchro_date(DForm *form, const DSelect *sel);
+
+void dform_synchro_panel(DForm *form, const DSelect *sel);
+
 void dform_synchro_hline(DForm *form, const DSelect *sel);
 
 void dform_synchro_vline(DForm *form, const DSelect *sel);
-
-void dform_synchro_panel(DForm *form, const DSelect *sel);
 
 void dform_synchro_layout(DForm *form, const DSelect *sel);
 

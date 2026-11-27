@@ -24,6 +24,7 @@
 #include <nflib/fslider.h>
 #include <nflib/fvslider.h>
 #include <nflib/ftable.h>
+#include <nflib/fdate.h>
 #include <nflib/ftabs.h>
 #include <nflib/ftext.h>
 #include <nflib/ftool.h>
@@ -41,6 +42,7 @@
 #include <gui/listbox.h>
 #include <gui/imageview.h>
 #include <gui/tableview.h>
+#include <gui/dateview.h>
 #include <gui/tabs.h>
 #include <gui/textview.h>
 #include <gui/layout.h>
@@ -785,6 +787,28 @@ static void i_new_table(FTable *ftable, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_new_date(FDate *fdate, const DSelect *sel)
+{
+    DateView *view = dateview_create();
+    cassert_no_null(sel);
+    fdate_synchro(fdate, view);
+    flayout_add_date(sel->flayout, fdate, sel->col, sel->row);
+    layout_dateview(sel->glayout, view, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_new_panel(FPanel *fpanel, const DSelect *sel)
+{
+    Panel *panel = panel_create();
+    cassert_no_null(sel);
+    fpanel_synchro(fpanel, panel);
+    flayout_add_panel(sel->flayout, fpanel, sel->col, sel->row);
+    layout_panel(sel->glayout, panel, sel->col, sel->row);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_new_hline(FHline *fhline, const DSelect *sel)
 {
     Line *line = line_horizontal();
@@ -803,17 +827,6 @@ static void i_new_vline(FVline *fvline, const DSelect *sel)
     fvline_synchro(fvline, line);
     flayout_add_vline(sel->flayout, fvline, sel->col, sel->row);
     layout_line(sel->glayout, line, sel->col, sel->row);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_new_panel(FPanel *fpanel, const DSelect *sel)
-{
-    Panel *panel = panel_create();
-    cassert_no_null(sel);
-    fpanel_synchro(fpanel, panel);
-    flayout_add_panel(sel->flayout, fpanel, sel->col, sel->row);
-    layout_panel(sel->glayout, panel, sel->col, sel->row);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1136,9 +1149,17 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
 
                 case ekWIDGET_DATEVIEW:
                 {
-                    /* TODO: dialog_new_date() + i_new_date() (step 4) */
-                    cassert(FALSE);
-                    return FALSE;
+                    FDate *fdate = dialog_new_date(window, font, &sel);
+                    if (fdate != NULL)
+                    {
+                        i_new_date(fdate, &sel);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
                 }
 
                 case ekWIDGET_PANEL:
@@ -1639,17 +1660,10 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
                 break;
             }
 
-            case ekCELL_TYPE_HLINE:
+            case ekCELL_TYPE_DATEVIEW:
             {
-                FHline *fhline = dbind_copy(clipboard->fcell->widget.hline, FHline);
-                i_new_hline(fhline, &form->sel);
-                break;
-            }
-    
-            case ekCELL_TYPE_VLINE:
-            {
-                FVline *fvline = dbind_copy(clipboard->fcell->widget.vline, FVline);
-                i_new_vline(fvline, &form->sel);
+                FDate *fdate = dbind_copy(clipboard->fcell->widget.date, FDate);
+                i_new_date(fdate, &form->sel);
                 break;
             }
 
@@ -1657,6 +1671,20 @@ bool_t dform_OnPaste(DForm *form, const DClipBoard *clipboard, Panel *inspect, P
             {
                 FPanel *fpanel = dbind_copy(clipboard->fcell->widget.panel, FPanel);
                 i_new_panel(fpanel, &form->sel);
+                break;
+            }
+
+            case ekCELL_TYPE_HLINE:
+            {
+                FHline *fhline = dbind_copy(clipboard->fcell->widget.hline, FHline);
+                i_new_hline(fhline, &form->sel);
+                break;
+            }
+
+            case ekCELL_TYPE_VLINE:
+            {
+                FVline *fvline = dbind_copy(clipboard->fcell->widget.vline, FVline);
+                i_new_vline(fvline, &form->sel);
                 break;
             }
 
@@ -2290,6 +2318,36 @@ void dform_synchro_table(DForm *form, const DSelect *sel)
 
 /*---------------------------------------------------------------------------*/
 
+void dform_synchro_date(DForm *form, const DSelect *sel)
+{
+    FCell *cell = i_sel_fcell(sel);
+    DateView *view = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_DATEVIEW);
+    i_need_save(form, TRUE);
+    view = layout_get_dateview(sel->glayout, sel->col, sel->row);
+    fdate_synchro(cell->widget.date, view);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dform_synchro_panel(DForm *form, const DSelect *sel)
+{
+    FCell *cell = i_sel_fcell(sel);
+    Panel *panel = NULL;
+    cassert_no_null(form);
+    cassert_no_null(sel);
+    cassert_no_null(cell);
+    cassert(cell->type == ekCELL_TYPE_PANEL);
+    i_need_save(form, TRUE);
+    panel = layout_get_panel(sel->glayout, sel->col, sel->row);
+    fpanel_synchro(cell->widget.panel, panel);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dform_synchro_hline(DForm *form, const DSelect *sel)
 {
     FCell *cell = i_sel_fcell(sel);
@@ -2316,21 +2374,6 @@ void dform_synchro_vline(DForm *form, const DSelect *sel)
     i_need_save(form, TRUE);
     line = layout_get_line(sel->glayout, sel->col, sel->row);
     fvline_synchro(cell->widget.vline, line);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dform_synchro_panel(DForm *form, const DSelect *sel)
-{
-    FCell *cell = i_sel_fcell(sel);
-    Panel *panel = NULL;
-    cassert_no_null(form);
-    cassert_no_null(sel);
-    cassert_no_null(cell);
-    cassert(cell->type == ekCELL_TYPE_PANEL);
-    i_need_save(form, TRUE);
-    panel = layout_get_panel(sel->glayout, sel->col, sel->row);
-    fpanel_synchro(cell->widget.panel, panel);
 }
 
 /*---------------------------------------------------------------------------*/

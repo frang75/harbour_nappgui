@@ -2738,6 +2738,12 @@ void propedit_set(Panel *panel, DForm *form, const DSelect *sel)
             i_update_header_list(cell->widget.table->headers, data->table_list, data->header_layout);
             panel_visible_layout(data->cell_panel, 19);
         }
+        else if (cell->type == ekCELL_TYPE_DATEVIEW)
+        {
+            /* TODO: DateView property editor (step 5) */
+            cassert(FALSE);
+            panel_visible_layout(data->cell_panel, 0);
+        }
         else if (cell->type == ekCELL_TYPE_HLINE)
         {
             layout_dbind_obj(data->hline_layout, cell->widget.hline, FHline);
