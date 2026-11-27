@@ -984,12 +984,12 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     }
                 }
 
-                case ekWIDGET_LISTBOX:
+                case ekWIDGET_TABS:
                 {
-                    FListBox *flistbox = dialog_new_listbox(window, font, &sel);
-                    if (flistbox != NULL)
+                    FTabs *ftabs = dialog_new_tabs(window, font, &sel);
+                    if (ftabs != NULL)
                     {
-                        i_new_listbox(flistbox, &sel, folder_path, colors);
+                        i_new_tabs(ftabs, &sel, folder_path, colors);
                         i_after_new_widget(form, inspect, propedit, &sel);
                         return TRUE;
                     }
@@ -999,12 +999,12 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     }
                 }
 
-                case ekWIDGET_TABS:
+                case ekWIDGET_LISTBOX:
                 {
-                    FTabs *ftabs = dialog_new_tabs(window, font, &sel);
-                    if (ftabs != NULL)
+                    FListBox *flistbox = dialog_new_listbox(window, font, &sel);
+                    if (flistbox != NULL)
                     {
-                        i_new_tabs(ftabs, &sel, folder_path, colors);
+                        i_new_listbox(flistbox, &sel, folder_path, colors);
                         i_after_new_widget(form, inspect, propedit, &sel);
                         return TRUE;
                     }
@@ -1134,6 +1134,28 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     }
                 }
 
+                case ekWIDGET_DATEVIEW:
+                {
+                    /* TODO: dialog_new_date() + i_new_date() (step 4) */
+                    cassert(FALSE);
+                    return FALSE;
+                }
+
+                case ekWIDGET_PANEL:
+                {
+                    FPanel *fpanel = dialog_new_panel(window, font, &sel);
+                    if (fpanel != NULL)
+                    {
+                        i_new_panel(fpanel, &sel);
+                        i_after_new_widget(form, inspect, propedit, &sel);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        return FALSE;
+                    }
+                }
+
                 case ekWIDGET_HORZ_LINE:
                 {
                     FHline *fhline = dialog_new_hline(window, font, &sel);
@@ -1155,21 +1177,6 @@ bool_t dform_OnClick(DForm *form, Window *window, Panel *inspect, Panel *propedi
                     if (fvline != NULL)
                     {
                         i_new_vline(fvline, &sel);
-                        i_after_new_widget(form, inspect, propedit, &sel);
-                        return TRUE;
-                    }
-                    else
-                    {
-                        return FALSE;
-                    }
-                }
-
-                case ekWIDGET_PANEL:
-                {
-                    FPanel *fpanel = dialog_new_panel(window, font, &sel);
-                    if (fpanel != NULL)
-                    {
-                        i_new_panel(fpanel, &sel);
                         i_after_new_widget(form, inspect, propedit, &sel);
                         return TRUE;
                     }
@@ -2471,12 +2478,14 @@ const char_t* dform_cell_type(const celltype_t type)
         return gui_text(TEXT_CELL_IMAGE);
     case ekCELL_TYPE_TABLEVIEW:
         return gui_text(TEXT_CELL_TABLE);
+    case ekCELL_TYPE_DATEVIEW:
+        return gui_text(TEXT_CELL_DATEVIEW);
+    case ekCELL_TYPE_PANEL:
+        return gui_text(TEXT_CELL_PANEL);
     case ekCELL_TYPE_HLINE:
         return gui_text(TEXT_CELL_HLINE);
     case ekCELL_TYPE_VLINE:
         return gui_text(TEXT_CELL_VLINE);
-    case ekCELL_TYPE_PANEL:
-        return gui_text(TEXT_CELL_PANEL);
     case ekCELL_TYPE_LAYOUT:
         return gui_text(TEXT_CELL_LAYOUT);
     default:
@@ -2530,12 +2539,14 @@ const Image *dform_cell_icon(const celltype_t type)
         return gui_image(IMAGEVIEW16_PNG);
     case ekCELL_TYPE_TABLEVIEW:
         return gui_image(TABLEVIEW16_PNG);
+    case ekCELL_TYPE_DATEVIEW:
+        return gui_image(DATEVIEW16_PNG);
+    case ekCELL_TYPE_PANEL:
+        return gui_image(PANEL16_PNG);
     case ekCELL_TYPE_HLINE:
         return gui_image(HLINE16_PNG);
     case ekCELL_TYPE_VLINE:
         return gui_image(VLINE16_PNG);
-    case ekCELL_TYPE_PANEL:
-        return gui_image(PANEL16_PNG);
     case ekCELL_TYPE_LAYOUT:
         return gui_image(LCELL16_PNG);
     default:

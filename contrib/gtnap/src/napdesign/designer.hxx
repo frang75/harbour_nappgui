@@ -42,7 +42,8 @@ typedef enum _widget_t
     ekWIDGET_PROGRESS,
     ekWIDGET_HORZ_LINE,
     ekWIDGET_VERT_LINE,
-    ekWIDGET_PANEL
+    ekWIDGET_PANEL,
+    ekWIDGET_DATEVIEW
 } widget_t;
 
 typedef enum _drawer_t

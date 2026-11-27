@@ -98,6 +98,7 @@ TEXT_PANEL          Panel
 TEXT_TEXT_VIEW      Text View
 TEXT_IMAGE_VIEW     Image View
 TEXT_TABLE_VIEW     Table View
+TEXT_DATE_VIEW      Date View
 TEXT_VIEW           View
 TEXT_FORM           Form
 TEXT_FORM_PROPS     Form properties
@@ -181,9 +182,10 @@ TEXT_CELL_SVIEW     ScrollViewCell
 TEXT_CELL_TEXT      TextViewCell
 TEXT_CELL_IMAGE     ImageViewCell
 TEXT_CELL_TABLE     TableCell
+TEXT_CELL_DATEVIEW  DateViewCell
+TEXT_CELL_PANEL     PanelCell
 TEXT_CELL_HLINE     HLineCell
 TEXT_CELL_VLINE     VLineCell
-TEXT_CELL_PANEL     PanelCell
 TEXT_CELL_LAYOUT    LayoutCell
 TEXT_FILE           File
 TEXT_FILENAME       Filename
