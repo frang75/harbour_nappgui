@@ -221,10 +221,38 @@ static void i_draw_flat_button(OSButton *button, const Image *image)
 
 /*---------------------------------------------------------------------------*/
 
+static bool_t i_is_glyph_only(const OSButton *button)
+{
+    uint32_t type = 0;
+    cassert_no_null(button);
+    type = button_get_type(button->flags);
+    if (type == ekBUTTON_CHECK2 || type == ekBUTTON_CHECK3 || type == ekBUTTON_RADIO)
+        return (bool_t)(GetWindowTextLength(button->control.hwnd) == 0);
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_draw_glyph_focus(const OSButton *button)
+{
+    HWND hwnd = NULL;
+    HDC hdc = NULL;
+    RECT rc;
+    cassert_no_null(button);
+    hwnd = button->control.hwnd;
+    hdc = GetDC(hwnd);
+    GetClientRect(hwnd, &rc);
+    rc.right = rc.left + _osgui_system_metrics_for_dpi(SM_CXMENUCHECK, _oswindow_dpi(button->control.window));
+    FrameRect(hdc, &rc, kCHESSBOARD_BRUSH);
+    ReleaseDC(hwnd, hdc);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_update_focus_show(const OSButton *button)
 {
     cassert_no_null(button);
-    if ((button_get_type(button->flags) == ekBUTTON_CHECK2 || button_get_type(button->flags) == ekBUTTON_CHECK3 || button_get_type(button->flags) == ekBUTTON_RADIO) && GetWindowTextLength(button->control.hwnd) > 0)
+    if (i_is_glyph_only(button) == TRUE)
     {
         SendMessage(button->control.hwnd, WM_UPDATEUISTATE, MAKEWPARAM(UIS_SET, UISF_HIDEFOCUS), 0);
     }
@@ -267,6 +295,24 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
                 _oscontrol_draw_focus(hwnd, 3, 3, 3, 3);
             return 0;
         }
+        else if (i_is_glyph_only(button) == TRUE)
+        {
+            LRESULT res = CallWindowProc(button->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
+            if (GetFocus() == hwnd)
+                i_draw_glyph_focus(button);
+            return res;
+        }
+        break;
+
+    case WM_UPDATEUISTATE:
+        /* Keyboard navigation clears UISF_HIDEFOCUS. Keep the native focus rect hidden in glyph-only buttons */
+        if (i_is_glyph_only(button) == TRUE)
+        {
+            LRESULT res = CallWindowProc(button->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
+            if ((SendMessage(hwnd, WM_QUERYUISTATE, 0, 0) & UISF_HIDEFOCUS) == 0)
+                CallWindowProc(button->control.def_wnd_proc, hwnd, WM_UPDATEUISTATE, MAKEWPARAM(UIS_SET, UISF_HIDEFOCUS), 0);
+            return res;
+        }
         break;
 
     case WM_SETFOCUS:
@@ -285,12 +331,19 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
             i_LAST_FOCUS = NULL;
         }
         i_update_focus_show(button);
+
+        /* Native focus rect is hidden, the control is not repainted by default */
+        if (i_is_glyph_only(button) == TRUE)
+            InvalidateRect(hwnd, NULL, FALSE);
         break;
 
     case WM_KILLFOCUS:
         /* GTNAP fix for double '_osbutton_command' call */
         if (button->is_default == TRUE)
             return 0;
+
+        if (i_is_glyph_only(button) == TRUE)
+            InvalidateRect(hwnd, NULL, FALSE);
         break;
 
     case WM_LBUTTONDOWN:
