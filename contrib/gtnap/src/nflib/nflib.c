@@ -8,6 +8,7 @@
 #include <draw2d/image.h>
 #include <core/dbind.h>
 #include <core/respack.h>
+#include <osbs/btime.h>
 #include <osbs/log.h>
 #include <sewer/blib.h>
 #include <sewer/cassert.h>
@@ -55,6 +56,7 @@ static void i_dbind(void)
     dbind_enum(celltype_t, ekCELL_TYPE_TEXT, "");
     dbind_enum(celltype_t, ekCELL_TYPE_IMAGE, "");
     dbind_enum(celltype_t, ekCELL_TYPE_TABLEVIEW, "");
+    dbind_enum(celltype_t, ekCELL_TYPE_DATEVIEW, "");
     dbind_enum(celltype_t, ekCELL_TYPE_HLINE, "");
     dbind_enum(celltype_t, ekCELL_TYPE_VLINE, "");
     dbind_enum(celltype_t, ekCELL_TYPE_PANEL, "");
@@ -78,6 +80,14 @@ static void i_dbind(void)
     dbind_enum(scale_t, ekSCALE_FIT, "Fit");
     dbind_enum(ffamily_t, ekFFAMILY_REGULAR, "Regular");
     dbind_enum(ffamily_t, ekFFAMILY_MONOSPACE, "Monospace");
+    dbind_enum(fwday_t, ekFWDAY_LOCALE, "Locale");
+    dbind_enum(fwday_t, ekFWDAY_SUNDAY, "Sunday");
+    dbind_enum(fwday_t, ekFWDAY_MONDAY, "Monday");
+    dbind_enum(fwday_t, ekFWDAY_TUESDAY, "Tuesday");
+    dbind_enum(fwday_t, ekFWDAY_WEDNESDAY, "Wednesday");
+    dbind_enum(fwday_t, ekFWDAY_THURSDAY, "Thursday");
+    dbind_enum(fwday_t, ekFWDAY_FRIDAY, "Friday");
+    dbind_enum(fwday_t, ekFWDAY_SATURDAY, "Saturday");
     dbind(FFont, ffamily_t, family);
     dbind(FFont, real32_t, size);
     dbind(FFont, bool_t, bold);
@@ -148,6 +158,8 @@ static void i_dbind(void)
     dbind(FTable, real32_t, min_width);
     dbind(FTable, real32_t, min_height);
     dbind(FTable, ArrSt(FHeader) *, headers);
+    dbind(FDate, FFont, font);
+    dbind(FDate, fwday_t, first_wday);
     dbind(FHline, real32_t, length);
     dbind(FVline, real32_t, length);
     dbind(FPanel, bool_t, autosize);
@@ -316,6 +328,7 @@ static void i_dbind(void)
     dbind_increment(FTable, real32_t, min_height, 1);
     dbind_precision(FTable, real32_t, min_height, 1);
     dbind_range(FTable, real32_t, min_height, 10, 1000);
+    dbind_default(FDate, fwday_t, first_wday, ekFWDAY_LOCALE);
     dbind_default(FHline, real32_t, length, 100);
     dbind_increment(FHline, real32_t, length, 1);
     dbind_precision(FHline, real32_t, length, 1);
@@ -415,6 +428,7 @@ static void i_dbind(void)
     dbind(FWidget, FText *, text);
     dbind(FWidget, FImage *, image);
     dbind(FWidget, FTable*, table);
+    dbind(FWidget, FDate*, date);
     dbind(FWidget, FHline*, hline);
     dbind(FWidget, FVline*, vline);
     dbind(FWidget, FPanel*, panel);
@@ -439,6 +453,7 @@ static void i_dbind(void)
     dbind_default(FWidget, FText *, text, NULL);
     dbind_default(FWidget, FImage *, image, NULL);
     dbind_default(FWidget, FTable*, table, NULL);
+    dbind_default(FWidget, FDate*, date, NULL);
     dbind_default(FWidget, FHline*, hline, NULL);
     dbind_default(FWidget, FVline*, vline, NULL);
     dbind_default(FWidget, FPanel*, panel, NULL);
@@ -589,4 +604,32 @@ gui_scale_t _nflib_scale(const scale_t scale)
         cassert_default(scale);
     }
     return ekGUI_SCALE_ASPECT;
+}
+
+/*---------------------------------------------------------------------------*/
+
+week_day_t _nflib_wday(const fwday_t wday)
+{
+    switch (wday)
+    {
+    case ekFWDAY_LOCALE:
+        return btime_first_wday();
+    case ekFWDAY_SUNDAY:
+        return ekSUNDAY;
+    case ekFWDAY_MONDAY:
+        return ekMONDAY;
+    case ekFWDAY_TUESDAY:
+        return ekTUESDAY;
+    case ekFWDAY_WEDNESDAY:
+        return ekWEDNESDAY;
+    case ekFWDAY_THURSDAY:
+        return ekTHURSDAY;
+    case ekFWDAY_FRIDAY:
+        return ekFRIDAY;
+    case ekFWDAY_SATURDAY:
+        return ekSATURDAY;
+    default:
+        cassert_default(wday);
+    }
+    return ekMONDAY;
 }

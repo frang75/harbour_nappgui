@@ -30,6 +30,7 @@ typedef struct _fvline_t FVline;
 typedef struct _fpanel_t FPanel;
 typedef struct _fheader_t FHeader;
 typedef struct _ftable_t FTable;
+typedef struct _fdate_t FDate;
 typedef struct _fcolumn_t FColumn;
 typedef struct _frow_t FRow;
 /* Must be a union (when dbind supports) */
@@ -63,7 +64,8 @@ typedef enum _celltype_t
     ekCELL_TYPE_HLINE,
     ekCELL_TYPE_VLINE,
     ekCELL_TYPE_TABS,
-    ekCELL_TYPE_PANEL
+    ekCELL_TYPE_PANEL,
+    ekCELL_TYPE_DATEVIEW
 } celltype_t;
 
 /* Don't change the order. Add new values to end */
@@ -109,6 +111,19 @@ typedef enum _ffamily_t
     ekFFAMILY_REGULAR,
     ekFFAMILY_MONOSPACE
 } ffamily_t;
+
+/* Don't change the order. Add new values to end */
+typedef enum _fwday_t
+{
+    ekFWDAY_LOCALE,
+    ekFWDAY_SUNDAY,
+    ekFWDAY_MONDAY,
+    ekFWDAY_TUESDAY,
+    ekFWDAY_WEDNESDAY,
+    ekFWDAY_THURSDAY,
+    ekFWDAY_FRIDAY,
+    ekFWDAY_SATURDAY
+} fwday_t;
 
 struct _ffont_t
 {
@@ -281,6 +296,12 @@ struct _ftable_t
     ArrSt(FHeader) *headers;
 };
 
+struct _fdate_t
+{
+    FFont font;
+    fwday_t first_wday;
+};
+
 struct _fcolumn_t
 {
     bool_t expand;
@@ -315,6 +336,7 @@ struct _fwidget_t
     FText *text;
     FImage *image;
     FTable *table;
+    FDate *date;
     FHline *hline;
     FVline *vline;
     FPanel *panel;

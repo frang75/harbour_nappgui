@@ -61,17 +61,24 @@ void ffont_remove(FFont *font)
 
 /*---------------------------------------------------------------------------*/
 
-void ffont_read_init_ex(Stream *stm, FFont *ffont, const uint16_t *vers)
+void ffont_read_init(Stream *stm, FFont *ffont)
 {
     cassert_no_null(ffont);
-    cassert_no_null(vers);
-    cassert_unref(*vers >= 12, vers);
     ffont->family = stm_read_enum(stm, ffamily_t);
     ffont->size = stm_read_r32(stm);
     ffont->bold = stm_read_bool(stm);
     ffont->italic = stm_read_bool(stm);
     ffont->underline = stm_read_bool(stm);
     ffont->strikeout = stm_read_bool(stm);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ffont_read_init_ex(Stream *stm, FFont *ffont, const uint16_t *vers)
+{
+    cassert_no_null(vers);
+    cassert_unref(*vers >= 12, vers);
+    ffont_read_init(stm, ffont);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -10,6 +10,8 @@ _nflib_api void ffont_init(FFont *font);
 
 _nflib_api void ffont_remove(FFont *font);
 
+_nflib_api void ffont_read_init(Stream *stm, FFont *ffont);
+
 _nflib_api void ffont_read_init_ex(Stream *stm, FFont *ffont, const uint16_t *vers);
 
 _nflib_api void ffont_write(Stream *stm, const FFont *ffont);

@@ -5,6 +5,7 @@
 #include "nflib.inl"
 #include "fcheck.h"
 #include "fcombo.h"
+#include "fdate.h"
 #include "fbutton.h"
 #include "fedit.h"
 #include "ffont.h"
@@ -29,6 +30,7 @@
 #include <gui/button.h>
 #include <gui/cell.h>
 #include <gui/combo.h>
+#include <gui/dateview.h>
 #include <gui/label.h>
 #include <gui/layout.h>
 #include <gui/layouth.h>
@@ -58,7 +60,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-static uint16_t i_VERSION = 13;
+static uint16_t i_VERSION = 14;
 static void i_write_layout(Stream *stm, const FLayout *layout);
 
 /*---------------------------------------------------------------------------*/
@@ -159,6 +161,10 @@ static void i_remove_cell(FCell *cell)
         ftable_destroy(&cell->widget.table);
         break;
 
+    case ekCELL_TYPE_DATEVIEW:
+        fdate_destroy(&cell->widget.date);
+        break;
+
     case ekCELL_TYPE_HLINE:
         fhline_destroy(&cell->widget.hline);
         break;
@@ -194,6 +200,7 @@ static void i_remove_cell(FCell *cell)
     cassert(cell->widget.text == NULL);
     cassert(cell->widget.image == NULL);
     cassert(cell->widget.table == NULL);
+    cassert(cell->widget.date == NULL);
     cassert(cell->widget.hline == NULL);
     cassert(cell->widget.vline == NULL);
     cassert(cell->widget.layout == NULL);
@@ -560,6 +567,16 @@ static FTable *i_read_table(Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
+static FDate *i_read_date(Stream *stm)
+{
+    FDate *date = heap_new0(FDate);
+    ffont_read_init(stm, &date->font);
+    date->first_wday = stm_read_enum(stm, fwday_t);
+    return date;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static FHline *i_read_hline(Stream *stm)
 {
     FHline *line = heap_new0(FHline);
@@ -680,6 +697,9 @@ static void i_read_cell(Stream *stm, FCell *cell, const uint16_t *vers)
         break;
     case ekCELL_TYPE_TABLEVIEW:
         cell->widget.table = i_read_table(stm);
+        break;
+    case ekCELL_TYPE_DATEVIEW:
+        cell->widget.date = i_read_date(stm);
         break;
     case ekCELL_TYPE_HLINE:
         cell->widget.hline = i_read_hline(stm);
@@ -1003,6 +1023,15 @@ static void i_write_table(Stream *stm, const FTable *table)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_write_date(Stream *stm, const FDate *date)
+{
+    cassert_no_null(date);
+    ffont_write(stm, &date->font);
+    stm_write_enum(stm, date->first_wday, fwday_t);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_write_hline(Stream *stm, const FHline *hline)
 {
     cassert_no_null(hline);
@@ -1099,6 +1128,9 @@ static void i_write_cell(Stream *stm, const FCell *cell)
         break;
     case ekCELL_TYPE_TABLEVIEW:
         i_write_table(stm, cell->widget.table);
+        break;
+    case ekCELL_TYPE_DATEVIEW:
+        i_write_date(stm, cell->widget.date);
         break;
     case ekCELL_TYPE_HLINE:
         i_write_hline(stm, cell->widget.hline);
@@ -1522,6 +1554,20 @@ void flayout_add_table(FLayout *layout, FTable *table, const uint32_t col, const
     cell->halign = ekHALIGN_JUSTIFY;
     cell->valign = ekVALIGN_JUSTIFY;
     cell->widget.table = table;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void flayout_add_date(FLayout *layout, FDate *date, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(date);
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_DATEVIEW;
+    cell->halign = ekHALIGN_LEFT;
+    cell->valign = ekVALIGN_TOP;
+    cell->widget.date = date;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1982,6 +2028,14 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     break;
                 }
 
+                case ekCELL_TYPE_DATEVIEW:
+                {
+                    DateView *view = dateview_create();
+                    fdate_synchro(cells->widget.date, view);
+                    layout_dateview(glayout, view, i, j);
+                    break;
+                }
+
                 case ekCELL_TYPE_HLINE:
                 {
                     Line *line = line_horizontal();
@@ -2063,6 +2117,7 @@ static GuiControl *i_search_gui_control(const FLayout *layout, Layout *gui_layou
                 case ekCELL_TYPE_TEXT:
                 case ekCELL_TYPE_IMAGE:
                 case ekCELL_TYPE_TABLEVIEW:
+                case ekCELL_TYPE_DATEVIEW:
                 case ekCELL_TYPE_HLINE:
                 case ekCELL_TYPE_VLINE:
                 case ekCELL_TYPE_PANEL:
@@ -2153,6 +2208,7 @@ bool_t flayout_allow_tabstop(const celltype_t type)
     case ekCELL_TYPE_SCROLL_VIEW:
     case ekCELL_TYPE_TEXT:
     case ekCELL_TYPE_TABLEVIEW:
+    case ekCELL_TYPE_DATEVIEW:
     case ekCELL_TYPE_PANEL:
     case ekCELL_TYPE_LAYOUT:
         return TRUE;
