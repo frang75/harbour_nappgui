@@ -1375,3 +1375,12 @@ Date dateview_selected(const DateView *view)
     else
         return kDATE_NULL;
 }
+
+/*---------------------------------------------------------------------------*/
+
+const Font *dateview_get_font(const DateView *view)
+{
+    const DData *data = view_get_data(cast(view, View), DData);
+    cassert_no_null(data);
+    return data->font;
+}

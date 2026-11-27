@@ -32,4 +32,6 @@ _gui_api void dateview_select(DateView *view, const Date *date);
 
 _gui_api Date dateview_selected(const DateView *view);
 
+_gui_api const Font *dateview_get_font(const DateView *view);
+
 __END_C

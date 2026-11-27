@@ -14,6 +14,7 @@
 #include <gui/tableviewh.h>
 #include <gui/edit.h>
 #include <gui/cell.h>
+#include <gui/dateview.h>
 #include <gui/popup.h>
 #include <gui/drawctrl.inl>
 #include <draw2d/color.h>
@@ -26,14 +27,17 @@
 #include <geom2d/v2d.h>
 #include <geom2d/t2d.h>
 #include <core/arrpt.h>
+#include <core/date.h>
 #include <core/arrst.h>
 #include <core/heap.h>
 #include <core/strings.h>
+#include <osbs/btime.h>
 #include <sewer/bmath.h>
 #include <sewer/bmem.h>
 #include <sewer/bstd.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
+#include <sewer/unicode.h>
 
 /*---------------------------------------------------------------------------*/
 
@@ -993,6 +997,169 @@ static void i_toolbutton_position(const real32_t width, const real32_t height, c
 
 /*---------------------------------------------------------------------------*/
 
+static color_t i_dim_color(const color_t color, const color_t back)
+{
+    real32_t r1 = 0, g1 = 0, b1 = 0;
+    real32_t r2 = 0, g2 = 0, b2 = 0;
+    color_get_rgbf(color, &r1, &g1, &b1);
+    color_get_rgbf(back, &r2, &g2, &b2);
+    return color_rgbaf((r1 + r2) * .5f, (g1 + g2) * .5f, (b1 + b2) * .5f, 1);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_draw_ctext(DCtx *ctx, const Font *font, const char_t *text, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
+{
+    real32_t twidth, theight;
+    font_extents(font, text, -1.f, &twidth, &theight);
+    draw_text(ctx, text, x + bmath_floorf((width - twidth) / 2), y + bmath_floorf((height - theight) / 2));
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_draw_dateview(DCtx *ctx, const DateView *view, const FDate *fdate, const R2Df *rect, const color_t color, const color_t back)
+{
+    static const real32_t i_MARGIN = 4;
+    const Font *font = dateview_get_font(view);
+    Font *bfont = font_with_style(font, font_style(font) | ekFBOLD);
+    color_t dim = i_dim_color(color, back);
+    Date today = date_system();
+    week_day_t first_wday = fdate->first_wday == ekFWDAY_LOCALE ? btime_first_wday() : (week_day_t)(fdate->first_wday - 1);
+    real32_t theight = bmath_ceilf(font_height(font));
+    real32_t pad = bmath_ceilf(theight * .6f);
+    real32_t cell_height = theight + pad;
+    real32_t header_height = bmath_ceilf(font_height(bfont)) + pad;
+    real32_t wdays_height = theight + bmath_floorf(pad / 2);
+    real32_t cell_width = 0, title_width = 0, header_width = 0;
+    real32_t avail_width = rect->size.width - 2 * i_MARGIN;
+    real32_t avail_height = rect->size.height - 2 * i_MARGIN;
+    real32_t x0 = 0, y = rect->pos.y + i_MARGIN, w = 0, h = 0;
+    bool_t header = FALSE, wdays = FALSE;
+    uint32_t ncols = 7, nrows = 0, i, j;
+    char_t text[128];
+
+    /* Cell width (same rules than DateView) */
+    font_extents(bfont, "OO", -1.f, &cell_width, &h);
+    cell_width = bmath_ceilf(cell_width) + pad;
+    if (cell_width < cell_height)
+        cell_width = cell_height;
+
+    for (i = 0; i < 12; ++i)
+    {
+        btime_month_name((month_t)(i + 1), text, sizeof(text));
+        font_extents(bfont, text, -1.f, &w, &h);
+        if (w > title_width)
+            title_width = w;
+    }
+
+    font_extents(bfont, " 0000", -1.f, &w, &h);
+    title_width += w;
+    header_width = bmath_ceilf(title_width) + 4 * header_height + 2 * pad;
+    if (header_width > 7 * cell_width)
+        cell_width = bmath_ceilf(header_width / 7);
+
+    /* Visible elements */
+    if (avail_width < cell_width || avail_height < cell_height)
+    {
+        font_destroy(&bfont);
+        return;
+    }
+
+    if (7 * cell_width <= avail_width)
+    {
+        x0 = rect->pos.x + bmath_floorf((rect->size.width - 7 * cell_width) / 2);
+    }
+    else
+    {
+        ncols = (uint32_t)(avail_width / cell_width);
+        x0 = rect->pos.x + i_MARGIN;
+    }
+
+    if (ncols == 7 && avail_height >= header_height + wdays_height + cell_height)
+    {
+        header = TRUE;
+        wdays = TRUE;
+        nrows = (uint32_t)((avail_height - header_height - wdays_height) / cell_height);
+    }
+    else if (avail_height >= wdays_height + cell_height)
+    {
+        wdays = TRUE;
+        nrows = (uint32_t)((avail_height - wdays_height) / cell_height);
+    }
+    else
+    {
+        nrows = (uint32_t)(avail_height / cell_height);
+    }
+
+    draw_text_width(ctx, -1);
+    draw_text_align(ctx, ekLEFT, ekTOP);
+    draw_text_color(ctx, color);
+    draw_line_color(ctx, color);
+
+    /* Header: << < Month Year > >> */
+    if (header == TRUE)
+    {
+        real32_t total = 7 * cell_width;
+        char_t month[128];
+        draw_font(ctx, font);
+        i_draw_ctext(ctx, font, "<<", x0, y, header_height, header_height);
+        i_draw_ctext(ctx, font, "<", x0 + header_height, y, header_height, header_height);
+        i_draw_ctext(ctx, font, ">", x0 + total - 2 * header_height, y, header_height, header_height);
+        i_draw_ctext(ctx, font, ">>", x0 + total - header_height, y, header_height, header_height);
+        btime_month_name((month_t)today.month, month, sizeof(month));
+        bstd_sprintf(text, sizeof(text), "%s %d", month, (int)today.year);
+        draw_font(ctx, bfont);
+        i_draw_ctext(ctx, bfont, text, x0, y, total, header_height);
+        y += header_height;
+    }
+
+    /* Weekday initials */
+    draw_font(ctx, font);
+    if (wdays == TRUE)
+    {
+        for (i = 0; i < ncols; ++i)
+        {
+            uint32_t codepoint = 0, nbytes = 0;
+            btime_wday_name((week_day_t)(((uint32_t)first_wday + i) % 7), text, sizeof(text));
+            codepoint = unicode_toupper(unicode_to_u32(text, ekUTF8));
+            nbytes = unicode_to_char(codepoint, text, ekUTF8);
+            text[nbytes] = '\0';
+            i_draw_ctext(ctx, font, text, x0 + (real32_t)i * cell_width, y, cell_width, wdays_height);
+        }
+
+        draw_line(ctx, x0, y + wdays_height - 1, x0 + (real32_t)ncols * cell_width, y + wdays_height - 1);
+        y += wdays_height;
+    }
+
+    /* Days of current month (adjacent months dimmed) */
+    {
+        Date first = today;
+        int32_t start = 0;
+        first.mday = 1;
+        start = date_to_days(&first) - (int32_t)((7 + (uint32_t)date_weekday(&first) - (uint32_t)first_wday) % 7);
+        for (j = 0; j < nrows; ++j)
+        {
+            for (i = 0; i < ncols; ++i)
+            {
+                Date day = date_from_days(start + (int32_t)(j * 7 + i));
+                real32_t cx = x0 + (real32_t)i * cell_width;
+                real32_t cy = y + (real32_t)j * cell_height;
+                bool_t current = (bool_t)(day.year == today.year && day.month == today.month);
+                bstd_sprintf(text, sizeof(text), "%d", (int)day.mday);
+                draw_text_color(ctx, current ? color : dim);
+                i_draw_ctext(ctx, font, text, cx, cy, cell_width, cell_height);
+                if (current == TRUE && day.mday == today.mday)
+                    draw_rect(ctx, ekSTROKE, cx + 1, cy + 1, cell_width - 2, cell_height - 2);
+            }
+        }
+    }
+
+    draw_text_color(ctx, color);
+    font_destroy(&bfont);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const Layout *glayout, const DSelect *hover, const DSelect *sel, const widget_t swidget, const Font *default_font, const DColors *colors, DCtx *ctx)
 {
     V2Df laypos;
@@ -1695,9 +1862,11 @@ static void i_draw_layout(const DLayout *dlayout, const FLayout *flayout, const 
             }
 
             case ekCELL_TYPE_DATEVIEW:
-                /* TODO: Calendar drawing */
+                i_draw_dateview(ctx, cell_dateview(gcell), fcell->widget.date, &dcell->content_rect, wcolor, colors->back);
                 draw_line_color(ctx, wcolor);
-                draw_rect(ctx, ekSTROKE, dcell->content_rect.pos.x, dcell->content_rect.pos.y, dcell->content_rect.size.width, dcell->content_rect.size.height);
+                draw_line_width(ctx, 2);
+                draw_rect(ctx, ekSTROKE, dcell->content_rect.pos.x + 1, dcell->content_rect.pos.y + 1, dcell->content_rect.size.width, dcell->content_rect.size.height);
+                draw_line_width(ctx, 1);
                 draw_line_color(ctx, colors->main);
                 break;
 
