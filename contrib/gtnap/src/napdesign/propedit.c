@@ -910,6 +910,22 @@ static Layout *i_font_layout(PropData *data)
 
 /*---------------------------------------------------------------------------*/
 
+static Layout *i_font_family_layout(void)
+{
+    Layout *layout1 = layout_create(1, 2);
+    Layout *layout2 = i_value_updown_layout(TIP_FONT_SIZE);
+    PopUp *popup = popup_create();
+    popup_tooltip(popup, gui_text(TIP_FONT_FAMILY));
+    layout_popup(layout1, popup, 0, 0);
+    layout_layout(layout1, layout2, 0, 1);
+    cell_dbind(layout_cell(layout1, 0, 0), FFont, ffamily_t, family);
+    cell_dbind(layout_cell(layout1, 0, 1), FFont, real32_t, size);
+    layout_dbind(layout1, NULL, FFont);
+    return layout1;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Layout *i_label_layout(PropData *data)
 {
     Layout *layout1 = layout_create(2, 7);
@@ -2262,7 +2278,7 @@ static void i_OnDateNotify(PropData *data, Event *e)
 static Layout *i_date_layout(PropData *data)
 {
     Layout *layout1 = layout_create(2, 3);
-    Layout *layout2 = i_font_layout(data);
+    Layout *layout2 = i_font_family_layout();
     Label *label1 = label_create();
     Label *label2 = label_create();
     PopUp *popup = popup_create();
