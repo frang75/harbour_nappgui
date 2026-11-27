@@ -54,9 +54,10 @@ TEXT_SVIEW_PROPS    Scroll view properties
 TEXT_TEXT_PROPS     Textview properties
 TEXT_IMAGE_PROPS    Imageview properties
 TEXT_TABLE_PROPS    Tableview properties
+TEXT_DATEVIEW_PROPS Dateview properties
+TEXT_PANEL_PROPS    Panel properties
 TEXT_HLINE_PROPS    HorzLine properties
 TEXT_VLINE_PROPS    VertLine properties
-TEXT_PANEL_PROPS    Panel properties
 TEXT_LAYOUT         Layout
 TEXT_LAYOUTS        Layouts
 TEXT_BUTTONS        Buttons
@@ -311,6 +312,7 @@ TIP_IMAGE_MHEIGHT   Imageview height.
 TIP_IMAGE_SCALE     Image scale mode (Aspect recommended).
 TIP_TABLE_MWIDTH    Tableview width.
 TIP_TABLE_MHEIGHT   Tableview height.
+TIP_DATE_WDAY       First day of the week ('Locale' uses the operating system setting).
 TIP_COLUMN_TITLE    Column title.
 TIP_COLUMN_HALIGN   Column header alignment.
 TIP_COLUMN_DALIGN   Column data alignment.

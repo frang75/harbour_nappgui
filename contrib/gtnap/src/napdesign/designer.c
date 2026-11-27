@@ -984,9 +984,10 @@ static bool_t i_is_widget_drawer(const drawer_t drawer)
     case ekDRAWER_IMAGE_PROPS:
     case ekDRAWER_TABLE_FRAME_PROPS:
     case ekDRAWER_TABLE_COLS_PROPS:
+    case ekDRAWER_DATEVIEW_PROPS:
+    case ekDRAWER_PANEL_PROPS:
     case ekDRAWER_HLINE_PROPS:
     case ekDRAWER_VLINE_PROPS:
-    case ekDRAWER_PANEL_PROPS:
         return FALSE;
     default:
         cassert_default(drawer);
@@ -2029,6 +2030,7 @@ static Designer *i_app(void)
     i_add_drawer(app->wdrawers, ekDRAWER_VLINE_PROPS, TEXT_VLINE_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_TABLE_COLS_PROPS, TEXT_COLUMN_PROPS);
     i_add_drawer(app->wdrawers, ekDRAWER_PANEL_PROPS, TEXT_PANEL_PROPS);
+    i_add_drawer(app->wdrawers, ekDRAWER_DATEVIEW_PROPS, TEXT_DATEVIEW_PROPS);
     i_add_widget(app->bwidgets, ekWIDGET_SELECT, TEXT_SELECT, CURSOR_PNG, ekDRAWER_WIDGET_SELECT);
     i_add_widget(app->bwidgets, ekWIDGET_VERT_LAYOUT, TEXT_VERT_LAYOUT, VLAYOUT_PNG, ekDRAWER_WIDGET_LAYOUTS);
     i_add_widget(app->bwidgets, ekWIDGET_HORZ_LAYOUT, TEXT_HORZ_LAYOUT, HLAYOUT_PNG, ekDRAWER_WIDGET_LAYOUTS);
