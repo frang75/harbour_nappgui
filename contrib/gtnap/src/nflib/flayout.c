@@ -3,49 +3,49 @@
 #include "flayout.h"
 #include "nflib.h"
 #include "nflib.inl"
-#include "fcheck.h"
-#include "fcombo.h"
-#include "fdate.h"
-#include "fbutton.h"
-#include "fedit.h"
 #include "ffont.h"
 #include "flabel.h"
-#include "flistbox.h"
-#include "fimage.h"
-#include "fpanel.h"
-#include "fpopup.h"
-#include "fprogress.h"
+#include "fbutton.h"
+#include "fcheck.h"
 #include "fradio.h"
+#include "ftool.h"
+#include "fpopup.h"
+#include "fedit.h"
+#include "fcombo.h"
+#include "ftabs.h"
+#include "flistbox.h"
 #include "fslider.h"
 #include "fvslider.h"
-#include "ftable.h"
-#include "ftabs.h"
-#include "ftext.h"
-#include "ftool.h"
+#include "fprogress.h"
 #include "fview.h"
 #include "fsview.h"
+#include "ftext.h"
+#include "fimage.h"
+#include "ftable.h"
+#include "fdate.h"
+#include "fpanel.h"
 #include "fhline.h"
 #include "fvline.h"
 #include <gui/gui.h>
-#include <gui/button.h>
 #include <gui/cell.h>
-#include <gui/combo.h>
-#include <gui/dateview.h>
-#include <gui/label.h>
 #include <gui/layout.h>
 #include <gui/layouth.h>
-#include <gui/line.h>
-#include <gui/listbox.h>
+#include <gui/label.h>
+#include <gui/button.h>
+#include <gui/popup.h>
 #include <gui/edit.h>
+#include <gui/combo.h>
 #include <gui/tabs.h>
+#include <gui/listbox.h>
+#include <gui/slider.h>
+#include <gui/progress.h>
+#include <gui/view.h>
 #include <gui/textview.h>
 #include <gui/imageview.h>
-#include <gui/panel.h>
-#include <gui/progress.h>
-#include <gui/popup.h>
-#include <gui/slider.h>
 #include <gui/tableview.h>
-#include <gui/view.h>
+#include <gui/dateview.h>
+#include <gui/panel.h>
+#include <gui/line.h>
 #include <draw2d/color.h>
 #include <draw2d/image.h>
 #include <geom2d/s2d.h>
@@ -165,16 +165,16 @@ static void i_remove_cell(FCell *cell)
         fdate_destroy(&cell->widget.date);
         break;
 
+    case ekCELL_TYPE_PANEL:
+        fpanel_destroy(&cell->widget.panel);
+        break;
+
     case ekCELL_TYPE_HLINE:
         fhline_destroy(&cell->widget.hline);
         break;
 
     case ekCELL_TYPE_VLINE:
         fvline_destroy(&cell->widget.vline);
-        break;
-
-    case ekCELL_TYPE_PANEL:
-        fpanel_destroy(&cell->widget.panel);
         break;
 
     case ekCELL_TYPE_LAYOUT:
@@ -193,14 +193,18 @@ static void i_remove_cell(FCell *cell)
     cassert(cell->widget.popup == NULL);
     cassert(cell->widget.edit == NULL);
     cassert(cell->widget.combo == NULL);
+    cassert(cell->widget.tabs == NULL);
     cassert(cell->widget.listbox == NULL);
     cassert(cell->widget.slider == NULL);
     cassert(cell->widget.vslider == NULL);
     cassert(cell->widget.progress == NULL);
+    cassert(cell->widget.view == NULL);
+    cassert(cell->widget.sview == NULL);
     cassert(cell->widget.text == NULL);
     cassert(cell->widget.image == NULL);
     cassert(cell->widget.table == NULL);
     cassert(cell->widget.date == NULL);
+    cassert(cell->widget.panel == NULL);
     cassert(cell->widget.hline == NULL);
     cassert(cell->widget.vline == NULL);
     cassert(cell->widget.layout == NULL);
@@ -250,36 +254,6 @@ FLayout *flayout_create(const uint32_t ncols, const uint32_t nrows)
     }
 
     return layout;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_read_col(Stream *stm, FColumn *col, const uint16_t *vers)
-{
-    cassert_no_null(col);
-    cassert_no_null(vers);
-    if (*vers >= 5)
-        col->expand = stm_read_bool(stm);
-    else
-        col->expand = FALSE;
-
-    col->forced_width = stm_read_r32(stm);
-    col->margin_right = stm_read_r32(stm);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_read_row(Stream *stm, FRow *row, const uint16_t *vers)
-{
-    cassert_no_null(row);
-    cassert_no_null(vers);
-    if (*vers >= 5)
-        row->expand = stm_read_bool(stm);
-    else
-        row->expand = FALSE;
-
-    row->forced_height = stm_read_r32(stm);
-    row->margin_bottom = stm_read_r32(stm);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -556,6 +530,36 @@ static void i_read_header(Stream *stm, FHeader *header)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_read_col(Stream *stm, FColumn *col, const uint16_t *vers)
+{
+    cassert_no_null(col);
+    cassert_no_null(vers);
+    if (*vers >= 5)
+        col->expand = stm_read_bool(stm);
+    else
+        col->expand = FALSE;
+
+    col->forced_width = stm_read_r32(stm);
+    col->margin_right = stm_read_r32(stm);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_read_row(Stream *stm, FRow *row, const uint16_t *vers)
+{
+    cassert_no_null(row);
+    cassert_no_null(vers);
+    if (*vers >= 5)
+        row->expand = stm_read_bool(stm);
+    else
+        row->expand = FALSE;
+
+    row->forced_height = stm_read_r32(stm);
+    row->margin_bottom = stm_read_r32(stm);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static FTable *i_read_table(Stream *stm)
 {
     FTable *table = heap_new0(FTable);
@@ -577,6 +581,17 @@ static FDate *i_read_date(Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
+static FPanel *i_read_panel(Stream *stm)
+{
+    FPanel *panel = heap_new0(FPanel);
+    panel->autosize = stm_read_bool(stm);
+    panel->min_width = stm_read_r32(stm);
+    panel->min_height = stm_read_r32(stm);
+    return panel;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static FHline *i_read_hline(Stream *stm)
 {
     FHline *line = heap_new0(FHline);
@@ -591,17 +606,6 @@ static FVline *i_read_vline(Stream *stm)
     FVline *line = heap_new0(FVline);
     line->length = stm_read_r32(stm);
     return line;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static FPanel *i_read_panel(Stream *stm)
-{
-    FPanel *panel = heap_new0(FPanel);
-    panel->autosize = stm_read_bool(stm);
-    panel->min_width = stm_read_r32(stm);
-    panel->min_height = stm_read_r32(stm);
-    return panel;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -701,14 +705,14 @@ static void i_read_cell(Stream *stm, FCell *cell, const uint16_t *vers)
     case ekCELL_TYPE_DATEVIEW:
         cell->widget.date = i_read_date(stm);
         break;
+    case ekCELL_TYPE_PANEL:
+        cell->widget.panel = i_read_panel(stm);
+        break;
     case ekCELL_TYPE_HLINE:
         cell->widget.hline = i_read_hline(stm);
         break;
     case ekCELL_TYPE_VLINE:
         cell->widget.vline = i_read_vline(stm);
-        break;
-    case ekCELL_TYPE_PANEL:
-        cell->widget.panel = i_read_panel(stm);
         break;
     case ekCELL_TYPE_LAYOUT:
         if (*vers >= 8)
@@ -796,26 +800,6 @@ void flayout_destroy(FLayout **layout)
     heap_delete(layout, FLayout);
     /* TODO: Change by */
     /* dbind_destroy(layout, FLayout); */
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_write_col(Stream *stm, const FColumn *col)
-{
-    cassert_no_null(col);
-    stm_write_bool(stm, col->expand);
-    stm_write_r32(stm, col->forced_width);
-    stm_write_r32(stm, col->margin_right);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_write_row(Stream *stm, const FRow *row)
-{
-    cassert_no_null(row);
-    stm_write_bool(stm, row->expand);
-    stm_write_r32(stm, row->forced_height);
-    stm_write_r32(stm, row->margin_bottom);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1013,6 +997,26 @@ static void i_write_header(Stream *stm, const FHeader *header)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_write_col(Stream *stm, const FColumn *col)
+{
+    cassert_no_null(col);
+    stm_write_bool(stm, col->expand);
+    stm_write_r32(stm, col->forced_width);
+    stm_write_r32(stm, col->margin_right);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_write_row(Stream *stm, const FRow *row)
+{
+    cassert_no_null(row);
+    stm_write_bool(stm, row->expand);
+    stm_write_r32(stm, row->forced_height);
+    stm_write_r32(stm, row->margin_bottom);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_write_table(Stream *stm, const FTable *table)
 {
     cassert_no_null(table);
@@ -1032,6 +1036,16 @@ static void i_write_date(Stream *stm, const FDate *date)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_write_panel(Stream *stm, const FPanel *panel)
+{
+    cassert_no_null(panel);
+    stm_write_bool(stm, panel->autosize);
+    stm_write_r32(stm, panel->min_width);
+    stm_write_r32(stm, panel->min_height);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_write_hline(Stream *stm, const FHline *hline)
 {
     cassert_no_null(hline);
@@ -1044,16 +1058,6 @@ static void i_write_vline(Stream *stm, const FVline *vline)
 {
     cassert_no_null(vline);
     stm_write_r32(stm, vline->length);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_write_panel(Stream *stm, const FPanel *panel)
-{
-    cassert_no_null(panel);
-    stm_write_bool(stm, panel->autosize);
-    stm_write_r32(stm, panel->min_width);
-    stm_write_r32(stm, panel->min_height);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1132,14 +1136,14 @@ static void i_write_cell(Stream *stm, const FCell *cell)
     case ekCELL_TYPE_DATEVIEW:
         i_write_date(stm, cell->widget.date);
         break;
+    case ekCELL_TYPE_PANEL:
+        i_write_panel(stm, cell->widget.panel);
+        break;
     case ekCELL_TYPE_HLINE:
         i_write_hline(stm, cell->widget.hline);
         break;
     case ekCELL_TYPE_VLINE:
         i_write_vline(stm, cell->widget.vline);
-        break;
-    case ekCELL_TYPE_PANEL:
-        i_write_panel(stm, cell->widget.panel);
         break;
     case ekCELL_TYPE_LAYOUT:
         i_write_layout(stm, cell->widget.layout);
@@ -1572,6 +1576,20 @@ void flayout_add_date(FLayout *layout, FDate *date, const uint32_t col, const ui
 
 /*---------------------------------------------------------------------------*/
 
+void flayout_add_panel(FLayout *layout, FPanel *panel, const uint32_t col, const uint32_t row)
+{
+    FCell *cell = i_cell(layout, col, row);
+    cassert_no_null(cell);
+    cassert_no_null(panel);
+    cassert(cell->type == ekCELL_TYPE_EMPTY);
+    cell->type = ekCELL_TYPE_PANEL;
+    cell->halign = ekHALIGN_JUSTIFY;
+    cell->valign = ekVALIGN_JUSTIFY;
+    cell->widget.panel = panel;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void flayout_add_hline(FLayout *layout, FHline *hline, const uint32_t col, const uint32_t row)
 {
     FCell *cell = i_cell(layout, col, row);
@@ -1598,20 +1616,6 @@ void flayout_add_vline(FLayout *layout, FVline *vline, const uint32_t col, const
     cell->halign = ekHALIGN_CENTER;
     cell->valign = ekVALIGN_JUSTIFY;
     cell->widget.vline = vline;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void flayout_add_panel(FLayout *layout, FPanel *panel, const uint32_t col, const uint32_t row)
-{
-    FCell *cell = i_cell(layout, col, row);
-    cassert_no_null(cell);
-    cassert_no_null(panel);
-    cassert(cell->type == ekCELL_TYPE_EMPTY);
-    cell->type = ekCELL_TYPE_PANEL;
-    cell->halign = ekHALIGN_JUSTIFY;
-    cell->valign = ekVALIGN_JUSTIFY;
-    cell->widget.panel = panel;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1940,19 +1944,19 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     break;
                 }
 
-                case ekCELL_TYPE_TABS:
-                {
-                    Tabs *tabs = tabs_create(ekGUI_POS_TOP);
-                    ftabs_synchro(cells->widget.tabs, tabs, resource_path);
-                    layout_tabs(glayout, tabs, i, j);
-                    break;
-                }
-
                 case ekCELL_TYPE_COMBO:
                 {
                     Combo *combo = combo_create();
                     fcombo_synchro(cells->widget.combo, combo);
                     layout_combo(glayout, combo, i, j);
+                    break;
+                }
+
+                case ekCELL_TYPE_TABS:
+                {
+                    Tabs *tabs = tabs_create(ekGUI_POS_TOP);
+                    ftabs_synchro(cells->widget.tabs, tabs, resource_path);
+                    layout_tabs(glayout, tabs, i, j);
                     break;
                 }
 
@@ -2036,6 +2040,14 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     break;
                 }
 
+                case ekCELL_TYPE_PANEL:
+                {
+                    Panel *panel = panel_create();
+                    fpanel_synchro(cells->widget.panel, panel);
+                    layout_panel(glayout, panel, i, j);
+                    break;
+                }
+
                 case ekCELL_TYPE_HLINE:
                 {
                     Line *line = line_horizontal();
@@ -2049,14 +2061,6 @@ Layout *flayout_to_gui(const FLayout *layout, const char_t *resource_path, const
                     Line *line = line_vertical();
                     fvline_synchro(cells->widget.vline, line);
                     layout_line(glayout, line, i, j);
-                    break;
-                }
-
-                case ekCELL_TYPE_PANEL:
-                {
-                    Panel *panel = panel_create();
-                    fpanel_synchro(cells->widget.panel, panel);
-                    layout_panel(glayout, panel, i, j);
                     break;
                 }
 
@@ -2118,9 +2122,9 @@ static GuiControl *i_search_gui_control(const FLayout *layout, Layout *gui_layou
                 case ekCELL_TYPE_IMAGE:
                 case ekCELL_TYPE_TABLEVIEW:
                 case ekCELL_TYPE_DATEVIEW:
+                case ekCELL_TYPE_PANEL:
                 case ekCELL_TYPE_HLINE:
                 case ekCELL_TYPE_VLINE:
-                case ekCELL_TYPE_PANEL:
                 {
                     Cell *gcell = layout_cell(gui_layout, i, j);
                     ptr_assign(loc_layout, gui_layout);
@@ -2129,8 +2133,8 @@ static GuiControl *i_search_gui_control(const FLayout *layout, Layout *gui_layou
                     return cell_control(gcell);
                 }
 
-                case ekCELL_TYPE_LAYOUT:
                 case ekCELL_TYPE_EMPTY:
+                case ekCELL_TYPE_LAYOUT:
                     break;
                 default:
                     cassert_default(cells->type);

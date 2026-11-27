@@ -25,14 +25,14 @@ typedef struct _fview_t FView;
 typedef struct _fsview_t FSView;
 typedef struct _ftext_t FText;
 typedef struct _fimage_t FImage;
-typedef struct _fhline_t FHline;
-typedef struct _fvline_t FVline;
-typedef struct _fpanel_t FPanel;
 typedef struct _fheader_t FHeader;
-typedef struct _ftable_t FTable;
-typedef struct _fdate_t FDate;
 typedef struct _fcolumn_t FColumn;
 typedef struct _frow_t FRow;
+typedef struct _ftable_t FTable;
+typedef struct _fdate_t FDate;
+typedef struct _fpanel_t FPanel;
+typedef struct _fhline_t FHline;
+typedef struct _fvline_t FVline;
 /* Must be a union (when dbind supports) */
 typedef struct _fwidget_t FWidget;
 typedef struct _fcell_t FCell;
@@ -261,23 +261,6 @@ struct _fimage_t
     real32_t min_height;
 };
 
-struct _fhline_t
-{
-    real32_t length;
-};
-
-struct _fvline_t
-{
-    real32_t length;
-};
-
-struct _fpanel_t
-{
-    bool_t autosize;
-    real32_t min_width;
-    real32_t min_height;
-};
-
 struct _fheader_t
 {
     String *title;
@@ -287,6 +270,20 @@ struct _fheader_t
     real32_t width;
     real32_t min_width;
     real32_t max_width;
+};
+
+struct _fcolumn_t
+{
+    bool_t expand;
+    real32_t margin_right;
+    real32_t forced_width;
+};
+
+struct _frow_t
+{
+    bool_t expand;
+    real32_t margin_bottom;
+    real32_t forced_height;
 };
 
 struct _ftable_t
@@ -302,18 +299,21 @@ struct _fdate_t
     fwday_t first_wday;
 };
 
-struct _fcolumn_t
+struct _fpanel_t
 {
-    bool_t expand;
-    real32_t margin_right;
-    real32_t forced_width;
+    bool_t autosize;
+    real32_t min_width;
+    real32_t min_height;
 };
 
-struct _frow_t
+struct _fhline_t
 {
-    bool_t expand;
-    real32_t margin_bottom;
-    real32_t forced_height;
+    real32_t length;
+};
+
+struct _fvline_t
+{
+    real32_t length;
 };
 
 struct _fwidget_t
@@ -337,9 +337,9 @@ struct _fwidget_t
     FImage *image;
     FTable *table;
     FDate *date;
+    FPanel *panel;
     FHline *hline;
     FVline *vline;
-    FPanel *panel;
     FLayout *layout;
 };
 
